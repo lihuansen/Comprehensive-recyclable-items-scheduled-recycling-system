@@ -1,11 +1,12 @@
 ﻿@{
     ViewBag.Title = "用户登录";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var loginType = ViewBag.LoginType ?? "password";
 }
 
 <style>
     .login-container {
-        max-width: 400px;
+        max-width: 450px;
         margin: 40px auto;
         padding: 30px;
         background-color: #f9f9f9;
@@ -66,7 +67,7 @@
         border-radius: 4px;
         padding: 10px 15px;
         margin-bottom: 20px;
-        display: none; /* 默认隐藏，有错误时显示 */
+        display: none;
     }
 
     .login-links {
@@ -82,6 +83,12 @@
             font-size: 14px;
             margin-bottom: 5px;
         }
+
+            .login-links a.active {
+                color: #23527c;
+                font-weight: bold;
+                text-decoration: underline;
+            }
 
             .login-links a:hover {
                 text-decoration: underline;
@@ -146,6 +153,34 @@
         border-color: #ac2925;
     }
 
+    .login-form {
+        display: none;
+    }
+
+        .login-form.active {
+            display: block;
+        }
+
+    .send-code-btn {
+        margin-top: 10px;
+        width: 100%;
+        padding: 8px;
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .send-code-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .send-code-btn.disabled {
+            background-color: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+
     /* 响应式调整 */
     @@media (max-width: 480px) {
         .login-container {
@@ -176,73 +211,89 @@
 
     <!-- 错误提示区域 -->
     <div class="error-message" id="errorMessage">
-        用户名或密码错误，请重新输入！
+        登录信息有误，请重新输入！
     </div>
 
-    <form id="loginForm">
-        <!-- 用户名输入 -->
-        <div class="form-group">
-            <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
-        </div>
+    <!-- 登录方式链接 -->
+    <div class="login-links">
+        <a href="@Url.Action("Login", "Account")" id="passwordLogin" class="@(loginType == "password" ? "active" : "")">密码登录</a>
+        <a href="@Url.Action("PhoneLogin", "Account")" id="phoneLogin" class="@(loginType == "phone" ? "active" : "")">手机号登录</a>
+        <a href="@Url.Action("EmailLogin", "Account")" id="emailLogin" class="@(loginType == "email" ? "active" : "")">邮箱登录</a>
+        <a href="@Url.Action("ForgotPassword", "Account")" id="forgotPassword">忘记密码</a>
+        <a href="@Url.Action("Register", "Account")" id="goToRegister">前往注册</a>
+    </div>
 
-        <!-- 密码输入 -->
-        <div class="form-group">
-            <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
-        </div>
+    <!-- 密码登录表单 -->
+    <div id="passwordForm" class="login-form @(loginType == "password" ? "active" : "")">
+        <form id="passwordLoginForm">
+            <div class="form-group">
+                <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+            </div>
 
-        <!-- 验证码输入 -->
-        <div class="form-group">
-            <div class="captcha-container">
-                <input type="text" class="form-control captcha-input" id="captcha" placeholder="请输入验证码" maxlength="4" required>
-                <div class="captcha-image" id="captchaImage" title="点击刷新验证码">
-                    A3B7
+            <div class="form-group">
+                <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+            </div>
+
+            <div class="form-group">
+                <div class="captcha-container">
+                    <input type="text" class="form-control captcha-input" id="captcha" placeholder="请输入验证码" maxlength="4" required>
+                    <div class="captcha-image" id="captchaImage" title="点击刷新验证码">
+                        A3B7
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 登录方式链接 -->
-        <div class="login-links">
-            <a href="#" id="passwordLogin">密码登录</a>
-            <a href="#" id="phoneLogin">手机号登录</a>
-            <a href="#" id="emailLogin">邮箱登录</a>
-            <a href="#" id="forgotPassword">忘记密码</a>
-            <a href="@Url.Action("Register", "User")" id="goToRegister">前往注册</a>
-        </div>
+            @Html.Partial("_RoleSelection")
+            @Html.Partial("_LoginButtons")
+        </form>
+    </div>
 
-        <!-- 角色选择 -->
-        <div class="role-selection">
-            <div class="role-options">
-                <div class="role-option">
-                    <input type="radio" id="roleUser" name="userRole" value="user" checked>
-                    <label for="roleUser">用户</label>
-                </div>
-                <div class="role-option">
-                    <input type="radio" id="roleCollector" name="userRole" value="collector">
-                    <label for="roleCollector">回收员</label>
-                </div>
-                <div class="role-option">
-                    <input type="radio" id="roleAdmin" name="userRole" value="admin">
-                    <label for="roleAdmin">管理员</label>
-                </div>
-                <div class="role-option">
-                    <input type="radio" id="roleSuperAdmin" name="userRole" value="superadmin">
-                    <label for="roleSuperAdmin">超级管理员</label>
-                </div>
+    <!-- 手机号登录表单 -->
+    <div id="phoneForm" class="login-form @(loginType == "phone" ? "active" : "")">
+        <form id="phoneLoginForm">
+            <div class="form-group">
+                <input type="text" class="form-control" id="phoneUsername" placeholder="请输入用户名" required>
             </div>
-        </div>
 
-        <!-- 登录按钮 -->
-        <div class="login-buttons">
-            <button type="submit" class="btn btn-primary btn-login">登录</button>
-            <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
-        </div>
-    </form>
+            <div class="form-group">
+                <input type="text" class="form-control" id="phoneNumber" placeholder="请输入手机号" required>
+            </div>
+
+            <div class="form-group">
+                <input type="text" class="form-control" id="phoneCode" placeholder="请输入手机验证码" required>
+                <button type="button" class="send-code-btn" id="sendPhoneCode">发送验证码</button>
+            </div>
+
+            @Html.Partial("_RoleSelection")
+            @Html.Partial("_LoginButtons")
+        </form>
+    </div>
+
+    <!-- 邮箱登录表单 -->
+    <div id="emailForm" class="login-form @(loginType == "email" ? "active" : "")">
+        <form id="emailLoginForm">
+            <div class="form-group">
+                <input type="text" class="form-control" id="emailUsername" placeholder="请输入用户名" required>
+            </div>
+
+            <div class="form-group">
+                <input type="email" class="form-control" id="emailAddress" placeholder="请输入邮箱" required>
+            </div>
+
+            <div class="form-group">
+                <input type="text" class="form-control" id="emailCode" placeholder="请输入邮箱验证码" required>
+                <button type="button" class="send-code-btn" id="sendEmailCode">发送验证码</button>
+            </div>
+
+            @Html.Partial("_RoleSelection")
+            @Html.Partial("_LoginButtons")
+        </form>
+    </div>
 </div>
 
 <script>
-    // 验证码点击刷新（模拟）
+    // 验证码点击刷新
     document.getElementById('captchaImage').addEventListener('click', function() {
-        // 这里只是模拟，实际应该从后端获取新验证码
         var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         var newCaptcha = '';
         for (var i = 0; i < 4; i++) {
@@ -251,48 +302,86 @@
         this.textContent = newCaptcha;
     });
 
+    // 发送手机验证码
+    document.getElementById('sendPhoneCode').addEventListener('click', function() {
+        var phoneNumber = document.getElementById('phoneNumber').value;
+        if (!phoneNumber) {
+            alert('请输入手机号');
+            return;
+        }
+
+        // 模拟发送验证码
+        this.disabled = true;
+        this.textContent = '60秒后重新发送';
+        this.classList.add('disabled');
+
+        var countdown = 60;
+        var timer = setInterval(function() {
+            countdown--;
+            document.getElementById('sendPhoneCode').textContent = countdown + '秒后重新发送';
+
+            if (countdown <= 0) {
+                clearInterval(timer);
+                document.getElementById('sendPhoneCode').disabled = false;
+                document.getElementById('sendPhoneCode').textContent = '发送验证码';
+                document.getElementById('sendPhoneCode').classList.remove('disabled');
+            }
+        }, 1000);
+    });
+
+    // 发送邮箱验证码
+    document.getElementById('sendEmailCode').addEventListener('click', function() {
+        var emailAddress = document.getElementById('emailAddress').value;
+        if (!emailAddress) {
+            alert('请输入邮箱');
+            return;
+        }
+
+        // 模拟发送验证码
+        this.disabled = true;
+        this.textContent = '60秒后重新发送';
+        this.classList.add('disabled');
+
+        var countdown = 60;
+        var timer = setInterval(function() {
+            countdown--;
+            document.getElementById('sendEmailCode').textContent = countdown + '秒后重新发送';
+
+            if (countdown <= 0) {
+                clearInterval(timer);
+                document.getElementById('sendEmailCode').disabled = false;
+                document.getElementById('sendEmailCode').textContent = '发送验证码';
+                document.getElementById('sendEmailCode').classList.remove('disabled');
+            }
+        }, 1000);
+    });
+
     // 取消按钮点击事件
     document.getElementById('cancelBtn').addEventListener('click', function() {
         window.location.href = '@Url.Action("Index", "Home")';
     });
 
-    // 表单提交事件（模拟）
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
+    // 表单提交事件
+    document.getElementById('passwordLoginForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        handleLogin('password');
+    });
 
-        // 模拟登录验证
-        var username = document.getElementById('username').value;
-        var password = document.getElementById('password').value;
-        var captcha = document.getElementById('captcha').value;
+    document.getElementById('phoneLoginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleLogin('phone');
+    });
+
+    document.getElementById('emailLoginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleLogin('email');
+    });
+
+    function handleLogin(type) {
         var userRole = document.querySelector('input[name="userRole"]:checked').value;
 
         // 这里只是演示，实际应该发送到后端验证
-        if (username && password && captcha) {
-            // 登录成功，根据角色跳转
-            alert('登录成功！角色：' + userRole);
-            window.location.href = '@Url.Action("Index", "Home")';
-        } else {
-            // 显示错误信息
-            document.getElementById('errorMessage').style.display = 'block';
-        }
-    });
-
-    // 登录方式切换（模拟）
-    document.getElementById('passwordLogin').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('username').placeholder = "请输入用户名";
-        // 实际应该切换不同的输入框
-    });
-
-    document.getElementById('phoneLogin').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('username').placeholder = "请输入手机号";
-        // 实际应该切换不同的输入框
-    });
-
-    document.getElementById('emailLogin').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('username').placeholder = "请输入邮箱";
-        // 实际应该切换不同的输入框
-    });
+        alert('登录成功！登录方式：' + type + '，角色：' + userRole);
+        window.location.href = '@Url.Action("Index", "Home")';
+    }
 </script>
