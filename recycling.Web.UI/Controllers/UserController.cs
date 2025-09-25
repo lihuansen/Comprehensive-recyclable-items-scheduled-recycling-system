@@ -18,5 +18,13 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
+        public ActionResult Register()
+        {
+            return View();
+        }
+        public ActionResult Forgot()
+        {
+            return View();
+        }
     }
 }
