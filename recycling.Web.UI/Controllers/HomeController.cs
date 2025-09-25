@@ -12,5 +12,25 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
+        public ActionResult Order()
+        {
+            return View();
+        }
+        public ActionResult Message()
+        {
+            return View();
+        }
+        public ActionResult Help()
+        {
+            return View();
+        }
+        public ActionResult Feedback()
+        {
+            return View();
+        }
+        public ActionResult Proflie()
+        {
+            return View();
+        }
     }
 }
