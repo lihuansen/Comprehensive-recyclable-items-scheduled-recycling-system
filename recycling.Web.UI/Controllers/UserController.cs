@@ -16,7 +16,18 @@ namespace recycling.Web.UI.Controllers
 
         public ActionResult Login()
         {
+            ViewBag.LoginType = "password";
             return View();
+        }
+        public ActionResult PhoneLogin()
+        {
+            ViewBag.LoginType = "phone";
+            return View("Login"); 
+        }
+        public ActionResult EmailLogin()
+        {
+            ViewBag.LoginType = "email";
+            return View("Login");
         }
         public ActionResult Register()
         {
