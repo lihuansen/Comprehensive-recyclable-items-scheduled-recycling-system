@@ -8,41 +8,148 @@
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
     <style>
-        .diamond-nav {
-            transform: rotate(45deg);
-            width: 120px;
-            height: 120px;
-            background-color: #d9534f;
-            margin: -30px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid white;
+        .navbar.navbar-inverse {
+            padding-top: 25px;
+            min-height: 100px;
+            background-color: #222;
         }
-
-            .diamond-nav a {
-                transform: rotate(-45deg);
-                color: white !important;
-                font-weight: bold;
-                font-size: 16px;
-                text-decoration: none;
-                display: block;
-                width: 100%;
-                text-align: center;
-                padding: 0;
-            }
-
-            .diamond-nav:hover {
-                background-color: #c9302c;
-            }
 
         .navbar-nav {
             display: flex;
             align-items: center;
+            width: 100%;
+            justify-content: center;
         }
 
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .diamond-nav {
+            transform: rotate(45deg);
+            width: 90px;
+            height: 90px;
+            background-color: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #9d9d9d;
+            margin: 0 25px;
+            position: relative;
+            top: -8px;
+        }
+
+        .diamond-text {
+            transform: rotate(-45deg);
+            color: #9d9d9d;
+            font-weight: bold;
+            font-size: 22px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            line-height: 1;
+            text-align: center;
+        }
+
+            .diamond-text span {
+                display: block;
+                margin: 1px 0; /* 增加行间距，使两行文字更分开 */
+                padding: 1px 0; /* 添加内边距进一步增加间距 */
+            }
+
+        .diamond-nav:hover {
+            background-color: #333;
+            border-color: white;
+        }
+
+            .diamond-nav:hover .diamond-text {
+                color: white;
+            }
+
+        .normal-nav a {
+            font-size: 18px;
+            padding: 12px 18px;
+            font-weight: bold;
+            color: #9d9d9d !important;
+        }
+
+            .normal-nav a:hover {
+                color: white !important;
+                background-color: transparent !important;
+            }
+
         .normal-nav {
-            margin: 0 10px;
+            margin: 0 8px;
+        }
+
+        .left-navs, .right-navs {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-collapse.collapse {
+            display: flex !important;
+        }
+
+        .container.body-content {
+            margin-top: 120px;
+        }
+
+        @@media (max-width: 992px) {
+            .normal-nav a {
+                font-size: 16px;
+                padding: 10px 14px;
+            }
+
+            .diamond-nav {
+                width: 80px;
+                height: 80px;
+                margin: 0 20px;
+            }
+
+            .diamond-text {
+                font-size: 20px;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .navbar.navbar-inverse {
+                padding-top: 15px;
+                min-height: auto;
+            }
+
+            .navbar-header {
+                display: block;
+            }
+
+            .navbar-collapse.collapse {
+                display: none !important;
+            }
+
+                .navbar-collapse.collapse.in {
+                    display: flex !important;
+                    flex-direction: column;
+                }
+
+            .nav-container {
+                flex-direction: column;
+            }
+
+            .diamond-nav {
+                margin: 20px 0;
+                order: -1;
+            }
+
+            .container.body-content {
+                margin-top: 30px;
+            }
         }
     </style>
 </head>
@@ -58,16 +165,29 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
+                    <div class="nav-container">
+                        <div class="left-navs">
                     <li class="normal-nav">@Html.ActionLink("首页", "Index", "Home")</li>
                     <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
                     <li class="normal-nav">@Html.ActionLink("我的消息", "Message", "Home")</li>
-                    <li class="diamond-nav">@Html.ActionLink("圾时达约", "Index", "Home", new { area = "" }, new { @class = "diamond-link" })</li>
-                    <li class="normal-nav">@Html.ActionLink("帮助中心", "Help", "Home")</li>
-                    <li class="normal-nav">@Html.ActionLink("问题反馈", "Feedback", "Home")</li>
-                    <li class="normal-nav">@Html.ActionLink("个人中心", "Profile", "Home")</li>
-                </ul>
+            </div>
+
+            <li class="diamond-nav">
+                <a href="@Url.Action("Index", "Home")" class="diamond-text">
+                    <span>圾时</span>
+                    <span>达约</span>
+                </a>
+            </li>
+
+            <div class="right-navs">
+                <li class="normal-nav">@Html.ActionLink("帮助中心", "Help", "Home")</li>
+                <li class="normal-nav">@Html.ActionLink("问题反馈", "Feedback", "Home")</li>
+                <li class="normal-nav">@Html.ActionLink("个人中心", "Profile", "Home")</li>
             </div>
         </div>
+        </ul>
+    </div>
+    </div>
     </div>
     <div class="container body-content">
         @RenderBody()
