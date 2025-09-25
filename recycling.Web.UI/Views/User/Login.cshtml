@@ -1,8 +1,298 @@
-﻿
-@{
-    ViewBag.Title = "登录";
+﻿@{
+    ViewBag.Title = "用户登录";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>登录</h2>
+<style>
+    .login-container {
+        max-width: 400px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
 
+    .login-title {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        height: 45px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        padding: 10px 15px;
+        font-size: 16px;
+    }
+
+    .captcha-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .captcha-input {
+        flex: 1;
+        margin-right: 10px;
+    }
+
+    .captcha-image {
+        height: 45px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Courier New', monospace;
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        cursor: pointer;
+        min-width: 100px;
+    }
+
+    .error-message {
+        color: #d9534f;
+        background-color: #f2dede;
+        border: 1px solid #ebccd1;
+        border-radius: 4px;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        display: none; /* 默认隐藏，有错误时显示 */
+    }
+
+    .login-links {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+        .login-links a {
+            color: #337ab7;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+            .login-links a:hover {
+                text-decoration: underline;
+            }
+
+    .role-selection {
+        margin-bottom: 25px;
+    }
+
+    .role-options {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .role-option {
+        display: flex;
+        align-items: center;
+    }
+
+        .role-option input {
+            margin-right: 5px;
+        }
+
+        .role-option label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+
+    .login-buttons {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .btn-login {
+        flex: 1;
+        margin-right: 10px;
+        height: 45px;
+        background-color: #5cb85c;
+        border-color: #4cae4c;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        margin-left: 10px;
+        height: 45px;
+        background-color: #d9534f;
+        border-color: #d43f3a;
+        color: white;
+        font-size: 16px;
+    }
+
+    .btn-login:hover {
+        background-color: #449d44;
+        border-color: #398439;
+    }
+
+    .btn-cancel:hover {
+        background-color: #c9302c;
+        border-color: #ac2925;
+    }
+
+    /* 响应式调整 */
+    @@media (max-width: 480px) {
+        .login-container {
+            margin: 20px 15px;
+            padding: 20px;
+        }
+
+        .role-options {
+            flex-direction: column;
+        }
+
+        .role-option {
+            margin-bottom: 10px;
+        }
+
+        .login-links {
+            flex-direction: column;
+        }
+
+            .login-links a {
+                margin-bottom: 8px;
+            }
+    }
+</style>
+
+<div class="login-container">
+    <h2 class="login-title">系统登录</h2>
+
+    <!-- 错误提示区域 -->
+    <div class="error-message" id="errorMessage">
+        用户名或密码错误，请重新输入！
+    </div>
+
+    <form id="loginForm">
+        <!-- 用户名输入 -->
+        <div class="form-group">
+            <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+        </div>
+
+        <!-- 密码输入 -->
+        <div class="form-group">
+            <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+        </div>
+
+        <!-- 验证码输入 -->
+        <div class="form-group">
+            <div class="captcha-container">
+                <input type="text" class="form-control captcha-input" id="captcha" placeholder="请输入验证码" maxlength="4" required>
+                <div class="captcha-image" id="captchaImage" title="点击刷新验证码">
+                    A3B7
+                </div>
+            </div>
+        </div>
+
+        <!-- 登录方式链接 -->
+        <div class="login-links">
+            <a href="#" id="passwordLogin">密码登录</a>
+            <a href="#" id="phoneLogin">手机号登录</a>
+            <a href="#" id="emailLogin">邮箱登录</a>
+            <a href="#" id="forgotPassword">忘记密码</a>
+            <a href="@Url.Action("Register", "Account")" id="goToRegister">前往注册</a>
+        </div>
+
+        <!-- 角色选择 -->
+        <div class="role-selection">
+            <div class="role-options">
+                <div class="role-option">
+                    <input type="radio" id="roleUser" name="userRole" value="user" checked>
+                    <label for="roleUser">用户</label>
+                </div>
+                <div class="role-option">
+                    <input type="radio" id="roleCollector" name="userRole" value="collector">
+                    <label for="roleCollector">回收员</label>
+                </div>
+                <div class="role-option">
+                    <input type="radio" id="roleAdmin" name="userRole" value="admin">
+                    <label for="roleAdmin">管理员</label>
+                </div>
+                <div class="role-option">
+                    <input type="radio" id="roleSuperAdmin" name="userRole" value="superadmin">
+                    <label for="roleSuperAdmin">超级管理员</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 登录按钮 -->
+        <div class="login-buttons">
+            <button type="submit" class="btn btn-primary btn-login">登录</button>
+            <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 验证码点击刷新（模拟）
+    document.getElementById('captchaImage').addEventListener('click', function() {
+        // 这里只是模拟，实际应该从后端获取新验证码
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        var newCaptcha = '';
+        for (var i = 0; i < 4; i++) {
+            newCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        this.textContent = newCaptcha;
+    });
+
+    // 取消按钮点击事件
+    document.getElementById('cancelBtn').addEventListener('click', function() {
+        window.location.href = '@Url.Action("Index", "Home")';
+    });
+
+    // 表单提交事件（模拟）
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // 模拟登录验证
+        var username = document.getElementById('username').value;
+        var password = document.getElementById('password').value;
+        var captcha = document.getElementById('captcha').value;
+        var userRole = document.querySelector('input[name="userRole"]:checked').value;
+
+        // 这里只是演示，实际应该发送到后端验证
+        if (username && password && captcha) {
+            // 登录成功，根据角色跳转
+            alert('登录成功！角色：' + userRole);
+            window.location.href = '@Url.Action("Index", "Home")';
+        } else {
+            // 显示错误信息
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+    });
+
+    // 登录方式切换（模拟）
+    document.getElementById('passwordLogin').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('username').placeholder = "请输入用户名";
+        // 实际应该切换不同的输入框
+    });
+
+    document.getElementById('phoneLogin').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('username').placeholder = "请输入手机号";
+        // 实际应该切换不同的输入框
+    });
+
+    document.getElementById('emailLogin').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('username').placeholder = "请输入邮箱";
+        // 实际应该切换不同的输入框
+    });
+</script>
