@@ -60,8 +60,8 @@
 
             .diamond-text span {
                 display: block;
-                margin: 1px 0; /* 增加行间距，使两行文字更分开 */
-                padding: 1px 0; /* 添加内边距进一步增加间距 */
+                margin: 1px 0;
+                padding: 1px 0;
             }
 
         .diamond-nav:hover {
@@ -101,6 +101,24 @@
         .container.body-content {
             margin-top: 120px;
         }
+
+        /* 新增：登录提示链接样式 */
+        .login-prompt {
+            text-align: right;
+            padding: 5px 15px;
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #e7e7e7;
+        }
+
+            .login-prompt a {
+                color: #337ab7;
+                text-decoration: none;
+                font-size: 14px;
+            }
+
+                .login-prompt a:hover {
+                    text-decoration: underline;
+                }
 
         @@media (max-width: 992px) {
             .normal-nav a {
@@ -150,6 +168,10 @@
             .container.body-content {
                 margin-top: 30px;
             }
+
+            .login-prompt {
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -190,6 +212,7 @@
     </div>
     </div>
 
+    <!-- 新增：登录提示链接 -->
     <div class="login-prompt">
         <div class="container">
             @Html.ActionLink("操作前，请先登录", "Login", "Account")
