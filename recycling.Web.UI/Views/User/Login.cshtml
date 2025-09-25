@@ -216,11 +216,11 @@
 
     <!-- 登录方式链接 -->
     <div class="login-links">
-        <a href="@Url.Action("Login", "Account")" id="passwordLogin" class="@(loginType == "password" ? "active" : "")">密码登录</a>
-        <a href="@Url.Action("PhoneLogin", "Account")" id="phoneLogin" class="@(loginType == "phone" ? "active" : "")">手机号登录</a>
-        <a href="@Url.Action("EmailLogin", "Account")" id="emailLogin" class="@(loginType == "email" ? "active" : "")">邮箱登录</a>
-        <a href="@Url.Action("ForgotPassword", "Account")" id="forgotPassword">忘记密码</a>
-        <a href="@Url.Action("Register", "Account")" id="goToRegister">前往注册</a>
+        <a href="@Url.Action("Login", "User")" id="passwordLogin" class="@(loginType == "password" ? "active" : "")">密码登录</a>
+        <a href="@Url.Action("PhoneLogin", "User")" id="phoneLogin" class="@(loginType == "phone" ? "active" : "")">手机号登录</a>
+        <a href="@Url.Action("EmailLogin", "User")" id="emailLogin" class="@(loginType == "email" ? "active" : "")">邮箱登录</a>
+        <a href="@Url.Action("Forgot", "User")" id="forgotPassword">忘记密码</a>
+        <a href="@Url.Action("Register", "User")" id="goToRegister">前往注册</a>
     </div>
 
     <!-- 密码登录表单 -->
