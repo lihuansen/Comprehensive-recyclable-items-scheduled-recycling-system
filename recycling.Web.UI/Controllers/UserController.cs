@@ -6,13 +6,14 @@ using System.Web.Mvc;
 
 namespace recycling.Web.UI.Controllers
 {
-    public class DengLuController : Controller
+    public class UserController : Controller
     {
-        // GET: DengLu
+        // GET: User
         public ActionResult Index()
         {
             return View();
         }
+
         public ActionResult Login()
         {
             return View();
