@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace recycling.DAL
 {
-    public class Class1
+    class Repository
     {
     }
 }
