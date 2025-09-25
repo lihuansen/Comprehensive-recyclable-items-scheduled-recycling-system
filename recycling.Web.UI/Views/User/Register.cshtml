@@ -1,7 +1,186 @@
-﻿
-@{
-    ViewBag.Title = "Register";
+﻿@{
+    ViewBag.Title = "用户注册";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Register</h2>
+<style>
+    .register-container {
+        max-width: 450px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
 
+    .register-title {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        height: 45px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        padding: 10px 15px;
+        font-size: 16px;
+    }
+
+    .send-code-btn {
+        margin-top: 10px;
+        width: 100%;
+        padding: 8px;
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .send-code-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .send-code-btn.disabled {
+            background-color: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+    .register-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+
+    .btn-register {
+        flex: 1;
+        margin-right: 10px;
+        height: 45px;
+        background-color: #5cb85c;
+        border-color: #4cae4c;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        margin-left: 10px;
+        height: 45px;
+        background-color: #d9534f;
+        border-color: #d43f3a;
+        color: white;
+        font-size: 16px;
+    }
+
+    .btn-register:hover {
+        background-color: #449d44;
+        border-color: #398439;
+    }
+
+    .btn-cancel:hover {
+        background-color: #c9302c;
+        border-color: #ac2925;
+    }
+
+    @@media (max-width: 480px) {
+        .register-container {
+            margin: 20px 15px;
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="register-container">
+    <h2 class="register-title">用户注册</h2>
+
+    <form id="registerForm">
+        <div class="form-group">
+            <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+        </div>
+
+        <div class="form-group">
+            <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+        </div>
+
+        <div class="form-group">
+            <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入密码" required>
+        </div>
+
+        <div class="form-group">
+            <input type="text" class="form-control" id="phoneNumber" placeholder="请输入手机号" required>
+            <button type="button" class="send-code-btn" id="sendPhoneCode">发送验证码</button>
+        </div>
+
+        <div class="form-group">
+            <input type="text" class="form-control" id="phoneCode" placeholder="请输入手机验证码" required>
+        </div>
+
+        <div class="form-group">
+            <input type="email" class="form-control" id="email" placeholder="请输入邮箱" required>
+        </div>
+
+        <div class="register-buttons">
+            <button type="submit" class="btn btn-primary btn-register">注册</button>
+            <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 取消按钮点击事件 - 返回登录页面
+    document.getElementById('cancelBtn').addEventListener('click', function() {
+        window.location.href = '@Url.Action("Login", "User")';
+    });
+
+    // 发送手机验证码
+    document.getElementById('sendPhoneCode').addEventListener('click', function() {
+        var phoneNumber = document.getElementById('phoneNumber').value;
+        if (!phoneNumber) {
+            alert('请输入手机号');
+            return;
+        }
+
+        // 模拟发送验证码
+        this.disabled = true;
+        this.textContent = '60秒后重新发送';
+        this.classList.add('disabled');
+
+        var countdown = 60;
+        var timer = setInterval(function() {
+            countdown--;
+            document.getElementById('sendPhoneCode').textContent = countdown + '秒后重新发送';
+
+            if (countdown <= 0) {
+                clearInterval(timer);
+                document.getElementById('sendPhoneCode').disabled = false;
+                document.getElementById('sendPhoneCode').textContent = '发送验证码';
+                document.getElementById('sendPhoneCode').classList.remove('disabled');
+            }
+        }, 1000);
+    });
+
+    // 表单提交事件
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        var password = document.getElementById('password').value;
+        var confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+            alert('两次输入的密码不一致，请重新输入');
+            return;
+        }
+
+        // 模拟注册成功
+        alert('注册成功！');
+        window.location.href = '@Url.Action("Login", "User")';
+    });
+</script>
