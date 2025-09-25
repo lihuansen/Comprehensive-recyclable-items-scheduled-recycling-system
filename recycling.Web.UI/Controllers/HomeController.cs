@@ -28,7 +28,7 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
-        public ActionResult Proflie()
+        public ActionResult Profile()
         {
             return View();
         }
