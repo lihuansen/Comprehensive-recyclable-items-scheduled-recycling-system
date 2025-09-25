@@ -180,6 +180,16 @@
     <Content Include="Scripts\jquery-3.4.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.4.1.min.map" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\recycling.BLL\recycling.BLL.csproj">
+      <Project>{0e7d980c-a0b6-42c8-a958-5eb24ed8d14a}</Project>
+      <Name>recycling.BLL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\recycling.Model\recycling.Model.csproj">
+      <Project>{6da7df6c-412a-4297-a76a-30321e6243c0}</Project>
+      <Name>recycling.Model</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
