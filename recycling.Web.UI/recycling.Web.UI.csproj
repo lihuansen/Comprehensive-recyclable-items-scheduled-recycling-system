@@ -167,6 +167,8 @@
     <Content Include="Views\Home\Feedback.cshtml" />
     <Content Include="Views\Home\Profile.cshtml" />
     <Content Include="Views\User\Login.cshtml" />
+    <Content Include="Views\User\Register.cshtml" />
+    <Content Include="Views\User\Forgot.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
