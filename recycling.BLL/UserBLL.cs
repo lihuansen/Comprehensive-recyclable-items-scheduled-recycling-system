@@ -118,6 +118,12 @@ namespace recycling.BLL
             return null;
         }
 
+        // 新增：根据用户名获取用户信息（供UI层登录成功后获取用户详情）
+        public Users GetUserByUsername(string username)
+        {
+            return _userDAL.GetUserByUsername(username);
+        }
+
         /// <summary>
         /// 密码哈希处理（使用SHA256）
         /// </summary>
