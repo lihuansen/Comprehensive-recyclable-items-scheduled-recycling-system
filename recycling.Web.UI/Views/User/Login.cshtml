@@ -101,6 +101,7 @@
     .role-options {
         display: flex;
         justify-content: space-between;
+        margin-bottom: 15px;
     }
 
     .role-option {
@@ -115,6 +116,25 @@
         .role-option label {
             margin-bottom: 0;
             font-weight: normal;
+            font-size: 16px;
+        }
+
+    .staff-role-dropdown {
+        display: none;
+        margin-top: 10px;
+    }
+
+        .staff-role-dropdown.active {
+            display: block;
+        }
+
+        .staff-role-dropdown select {
+            width: 100%;
+            height: 40px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            padding: 0 10px;
+            font-size: 14px;
         }
 
     .login-buttons {
@@ -181,6 +201,14 @@
             cursor: not-allowed;
         }
 
+    .staff-login-form {
+        display: none;
+    }
+
+        .staff-login-form.active {
+            display: block;
+        }
+
     /* 响应式调整 */
     @@media (max-width: 480px) {
         .login-container {
@@ -207,100 +235,186 @@
 </style>
 
 <div class="login-container">
-    <h2 class="login-title">系统登录</h2>
+    <h2 class="login-title">登录</h2>
 
     <!-- 错误提示区域 -->
     <div class="error-message" id="errorMessage">
         登录信息有误，请重新输入！
     </div>
 
-    <!-- 登录方式链接 -->
-    <div class="login-links">
-        <a href="@Url.Action("Login", "User")" id="passwordLogin" class="@(loginType == "password" ? "active" : "")">密码登录</a>
-        <a href="@Url.Action("PhoneLogin", "User")" id="phoneLogin" class="@(loginType == "phone" ? "active" : "")">手机号登录</a>
-        <a href="@Url.Action("EmailLogin", "User")" id="emailLogin" class="@(loginType == "email" ? "active" : "")">邮箱登录</a>
-        <a href="@Url.Action("Forgot", "User")" id="forgotPassword">忘记密码</a>
-        <a href="@Url.Action("Register", "User")" id="goToRegister">前往注册</a>
+    <!-- 角色选择 -->
+    <div class="role-selection">
+        <div class="role-options">
+            <div class="role-option">
+                <input type="radio" id="roleUser" name="userRole" value="user" checked>
+                <label for="roleUser">用户</label>
+            </div>
+            <div class="role-option">
+                <input type="radio" id="roleStaff" name="userRole" value="staff">
+                <label for="roleStaff">工作人员</label>
+            </div>
+        </div>
+
+        <!-- 工作人员角色下拉菜单 -->
+        <div class="staff-role-dropdown" id="staffRoleDropdown">
+            <select id="staffRole">
+                <option value="collector">回收员</option>
+                <option value="admin">管理员</option>
+                <option value="superadmin">超级管理员</option>
+            </select>
+        </div>
     </div>
 
-    <!-- 密码登录表单 -->
-    <div id="passwordForm" class="login-form @(loginType == "password" ? "active" : "")">
-        <form id="passwordLoginForm">
+    <!-- 用户登录区域 -->
+    <div id="userLoginArea">
+        <!-- 登录方式链接 -->
+        <div class="login-links">
+            <a href="@Url.Action("Login", "User")" id="passwordLogin" class="@(loginType == "password" ? "active" : "")">密码登录</a>
+            <a href="@Url.Action("PhoneLogin", "User")" id="phoneLogin" class="@(loginType == "phone" ? "active" : "")">手机号登录</a>
+            <a href="@Url.Action("EmailLogin", "User")" id="emailLogin" class="@(loginType == "email" ? "active" : "")">邮箱登录</a>
+            <a href="@Url.Action("Forgot", "User")" id="forgotPassword">忘记密码</a>
+            <a href="@Url.Action("Register", "User")" id="goToRegister">前往注册</a>
+        </div>
+
+        <!-- 密码登录表单 -->
+        <div id="passwordForm" class="login-form @(loginType == "password" ? "active" : "")">
+            <form id="passwordLoginForm">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+                </div>
+
+                <div class="form-group">
+                    <div class="captcha-container">
+                        <input type="text" class="form-control captcha-input" id="captcha" placeholder="请输入验证码" maxlength="4" required>
+                        <div class="captcha-image" id="captchaImage" title="点击刷新验证码">
+                            A3B7
+                        </div>
+                    </div>
+                </div>
+
+                <div class="login-buttons">
+                    <button type="submit" class="btn btn-primary btn-login">登录</button>
+                    <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 手机号登录表单 -->
+        <div id="phoneForm" class="login-form @(loginType == "phone" ? "active" : "")">
+            <form id="phoneLoginForm">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="phoneUsername" placeholder="请输入用户名" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" class="form-control" id="phoneNumber" placeholder="请输入手机号" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" class="form-control" id="phoneCode" placeholder="请输入手机验证码" required>
+                    <button type="button" class="send-code-btn" id="sendPhoneCode">发送验证码</button>
+                </div>
+
+                <div class="login-buttons">
+                    <button type="submit" class="btn btn-primary btn-login">登录</button>
+                    <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn2">取消</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 邮箱登录表单 -->
+        <div id="emailForm" class="login-form @(loginType == "email" ? "active" : "")">
+            <form id="emailLoginForm">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="emailUsername" placeholder="请输入用户名" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" class="form-control" id="emailAddress" placeholder="请输入邮箱" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" class="form-control" id="emailCode" placeholder="请输入邮箱验证码" required>
+                    <button type="button" class="send-code-btn" id="sendEmailCode">发送验证码</button>
+                </div>
+
+                <div class="login-buttons">
+                    <button type="submit" class="btn btn-primary btn-login">登录</button>
+                    <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn3">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 工作人员登录区域 -->
+    <div id="staffLoginArea" class="staff-login-form">
+        <form id="staffLoginForm">
             <div class="form-group">
-                <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+                <input type="text" class="form-control" id="staffUsername" placeholder="请输入工作人员账号" required>
             </div>
 
             <div class="form-group">
-                <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+                <input type="password" class="form-control" id="staffPassword" placeholder="请输入密码" required>
             </div>
 
             <div class="form-group">
                 <div class="captcha-container">
-                    <input type="text" class="form-control captcha-input" id="captcha" placeholder="请输入验证码" maxlength="4" required>
-                    <div class="captcha-image" id="captchaImage" title="点击刷新验证码">
-                        A3B7
+                    <input type="text" class="form-control captcha-input" id="staffCaptcha" placeholder="请输入验证码" maxlength="4" required>
+                    <div class="captcha-image" id="staffCaptchaImage" title="点击刷新验证码">
+                        X8Y2
                     </div>
                 </div>
             </div>
 
-            @Html.Partial("_RoleSelection")
-            @Html.Partial("_LoginButtons")
-        </form>
-    </div>
-
-    <!-- 手机号登录表单 -->
-    <div id="phoneForm" class="login-form @(loginType == "phone" ? "active" : "")">
-        <form id="phoneLoginForm">
-            <div class="form-group">
-                <input type="text" class="form-control" id="phoneUsername" placeholder="请输入用户名" required>
+            <div class="login-buttons">
+                <button type="submit" class="btn btn-primary btn-login">登录</button>
+                <button type="button" class="btn btn-danger btn-cancel" id="staffCancelBtn">取消</button>
             </div>
-
-            <div class="form-group">
-                <input type="text" class="form-control" id="phoneNumber" placeholder="请输入手机号" required>
-            </div>
-
-            <div class="form-group">
-                <input type="text" class="form-control" id="phoneCode" placeholder="请输入手机验证码" required>
-                <button type="button" class="send-code-btn" id="sendPhoneCode">发送验证码</button>
-            </div>
-
-            @Html.Partial("_RoleSelection")
-            @Html.Partial("_LoginButtons")
-        </form>
-    </div>
-
-    <!-- 邮箱登录表单 -->
-    <div id="emailForm" class="login-form @(loginType == "email" ? "active" : "")">
-        <form id="emailLoginForm">
-            <div class="form-group">
-                <input type="text" class="form-control" id="emailUsername" placeholder="请输入用户名" required>
-            </div>
-
-            <div class="form-group">
-                <input type="email" class="form-control" id="emailAddress" placeholder="请输入邮箱" required>
-            </div>
-
-            <div class="form-group">
-                <input type="text" class="form-control" id="emailCode" placeholder="请输入邮箱验证码" required>
-                <button type="button" class="send-code-btn" id="sendEmailCode">发送验证码</button>
-            </div>
-
-            @Html.Partial("_RoleSelection")
-            @Html.Partial("_LoginButtons")
         </form>
     </div>
 </div>
 
 <script>
+    // 角色选择切换
+    document.querySelectorAll('input[name="userRole"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'user') {
+                document.getElementById('userLoginArea').style.display = 'block';
+                document.getElementById('staffLoginArea').style.display = 'none';
+                document.getElementById('staffRoleDropdown').classList.remove('active');
+            } else {
+                document.getElementById('userLoginArea').style.display = 'none';
+                document.getElementById('staffLoginArea').style.display = 'block';
+                document.getElementById('staffRoleDropdown').classList.add('active');
+            }
+        });
+    });
+
     // 验证码点击刷新
-    document.getElementById('captchaImage').addEventListener('click', function() {
+    document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
+    document.getElementById('staffCaptchaImage').addEventListener('click', refreshStaffCaptcha);
+
+    function refreshCaptcha() {
         var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         var newCaptcha = '';
         for (var i = 0; i < 4; i++) {
             newCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         this.textContent = newCaptcha;
-    });
+    }
+
+    function refreshStaffCaptcha() {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        var newCaptcha = '';
+        for (var i = 0; i < 4; i++) {
+            newCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        this.textContent = newCaptcha;
+    }
 
     // 发送手机验证码
     document.getElementById('sendPhoneCode').addEventListener('click', function() {
@@ -357,31 +471,46 @@
     });
 
     // 取消按钮点击事件
-    document.getElementById('cancelBtn').addEventListener('click', function() {
+    document.getElementById('cancelBtn').addEventListener('click', goToHome);
+    document.getElementById('cancelBtn2').addEventListener('click', goToHome);
+    document.getElementById('cancelBtn3').addEventListener('click', goToHome);
+    document.getElementById('staffCancelBtn').addEventListener('click', goToHome);
+
+    function goToHome() {
         window.location.href = '@Url.Action("Index", "Home")';
-    });
+    }
 
     // 表单提交事件
     document.getElementById('passwordLoginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        handleLogin('password');
+        handleUserLogin('password');
     });
 
     document.getElementById('phoneLoginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        handleLogin('phone');
+        handleUserLogin('phone');
     });
 
     document.getElementById('emailLoginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        handleLogin('email');
+        handleUserLogin('email');
     });
 
-    function handleLogin(type) {
-        var userRole = document.querySelector('input[name="userRole"]:checked').value;
+    document.getElementById('staffLoginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleStaffLogin();
+    });
 
+    function handleUserLogin(type) {
         // 这里只是演示，实际应该发送到后端验证
-        alert('登录成功！登录方式：' + type + '，角色：' + userRole);
+        alert('用户登录成功！登录方式：' + type);
+        window.location.href = '@Url.Action("Index", "Home")';
+    }
+
+    function handleStaffLogin() {
+        var staffRole = document.getElementById('staffRole').value;
+        // 这里只是演示，实际应该发送到后端验证
+        alert('工作人员登录成功！角色：' + staffRole);
         window.location.href = '@Url.Action("Index", "Home")';
     }
 </script>
