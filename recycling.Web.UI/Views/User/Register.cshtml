@@ -2,13 +2,18 @@
 @{
     ViewBag.Title = "用户注册";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    // 判断是否注册成功（默认false）
+    // 1. 服务器端仅定义状态，不嵌入JS逻辑
     bool isRegisterSuccess = ViewBag.RegisterSuccess ?? false;
+    string loginUrl = Url.Action("Login", "User"); // 提前生成登录页URL
 }
 
 <link href="~/Content/register.css" rel="stylesheet" type="text/css" />
 
-<!-- 1. 注册成功提示框（默认隐藏，成功时显示） -->
+<!-- 2. 用隐藏域存储服务器端状态和URL（关键：避免Razor直接嵌入JS） -->
+<input type="hidden" id="isRegisterSuccess" value="@isRegisterSuccess" />
+<input type="hidden" id="loginUrl" value="@loginUrl" />
+
+<!-- 3. 注册成功提示框（默认隐藏，成功时显示） -->
 @if (isRegisterSuccess)
 {
     <div style="
@@ -31,7 +36,7 @@
         </p>
     </div>
 
-    <!-- 半透明遮罩（让提示框更突出，禁止操作其他元素） -->
+    <!-- 半透明遮罩 -->
     <div style="
         position: fixed;
         top: 0;
@@ -43,7 +48,7 @@
     "></div>
 }
 
-<!-- 2. 原注册表单（注册成功时隐藏表单） -->
+<!-- 4. 原注册表单（注册成功时隐藏） -->
 <div class="register-container" @(isRegisterSuccess ? "style='display: none;'" : "")>
     <h2 class="register-title">用户注册</h2>
 
@@ -59,7 +64,7 @@
     {
         @Html.AntiForgeryToken()
 
-        <!-- 1. 用户名（错误时保留值，无需修改） -->
+        <!-- 用户名 -->
         <div class="form-group">
             @Html.TextBoxFor(m => m.Username, new
             {
@@ -70,7 +75,7 @@
             @Html.ValidationMessageFor(m => m.Username, null, new { @class = "text-danger" })
         </div>
 
-        <!-- 2. 密码（关键修改：用TextBoxFor+type="password"支持回显） -->
+        <!-- 密码 -->
         <div class="form-group">
             @Html.TextBoxFor(m => m.Password, new
             {
@@ -83,7 +88,7 @@
             @Html.ValidationMessageFor(m => m.Password, null, new { @class = "text-danger" })
         </div>
 
-        <!-- 3. 确认密码（同密码框修改） -->
+        <!-- 确认密码 -->
         <div class="form-group">
             @Html.TextBoxFor(m => m.ConfirmPassword, new
             {
@@ -96,7 +101,7 @@
             @Html.ValidationMessageFor(m => m.ConfirmPassword, null, new { @class = "text-danger" })
         </div>
 
-        <!-- 4. 手机号（错误时保留值，无需修改） -->
+        <!-- 手机号 -->
         <div class="form-group">
             @Html.TextBoxFor(m => m.PhoneNumber, new
             {
@@ -107,7 +112,7 @@
             @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "text-danger" })
         </div>
 
-        <!-- 5. 邮箱（错误时保留值，无需修改） -->
+        <!-- 邮箱 -->
         <div class="form-group">
             @Html.TextBoxFor(m => m.Email, new
             {
@@ -125,48 +130,55 @@
     }
 </div>
 
+<!-- 5. 纯客户端JS（无任何Razor嵌入，彻底隔离） -->
 <script>
-  // 3. 延迟跳转逻辑（仅注册成功时执行）
-    @if (isRegisterSuccess)
-    {
-        <text>
-            // 倒计时功能（可选，增强用户感知）
+    // 页面加载完成后执行（确保DOM元素已存在）
+    document.addEventListener('DOMContentLoaded', function () {
+        // 读取服务器端状态（从隐藏域获取，避免Razor解析）
+        const isSuccess = document.getElementById('isRegisterSuccess').value === 'True';
+        const loginUrl = document.getElementById('loginUrl').value;
+
+        // 注册成功：执行倒计时和跳转
+        if (isSuccess) {
             let countdown = 2;
             const countdownEl = document.getElementById('countdown');
+
+            // 倒计时定时器
             const timer = setInterval(() => {
                 countdown--;
                 countdownEl.textContent = countdown;
                 if (countdown <= 0) {
                     clearInterval(timer);
-                    window.location.href = '@Url.Action("Login", "User")'; // 跳转登录页
+                    window.location.href = loginUrl;
                 }
             }, 1000);
 
-            // 保险起见：若定时器失效，3秒后强制跳转
+            // 3秒强制跳转（保险）
             setTimeout(() => {
-                window.location.href = '@Url.Action("Login", "User")';
+                window.location.href = loginUrl;
             }, 3000);
-        </text>
-    }
-    // 取消按钮跳转登录页
-    document.getElementById('cancelBtn').addEventListener('click', function() {
-        window.location.href = '@Url.Action("Login", "User")';
-    });
+        }
 
-    // 密码显示/隐藏切换（逻辑不变，适配修改后的输入框）
-    function togglePasswordVisibility(inputId, buttonId) {
-        const input = document.getElementById(inputId);
-        const button = document.getElementById(buttonId);
-        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-        input.setAttribute('type', type);
-        button.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
-    }
+        // 取消按钮跳转
+        document.getElementById('cancelBtn').addEventListener('click', function () {
+            window.location.href = loginUrl;
+        });
 
-    document.getElementById('togglePassword').addEventListener('click', function() {
-        togglePasswordVisibility('Password', 'togglePassword');
-    });
+        // 密码显示/隐藏切换
+        function togglePasswordVisibility(inputId, buttonId) {
+            const input = document.getElementById(inputId);
+            const button = document.getElementById(buttonId);
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            button.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+        }
 
-    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
-        togglePasswordVisibility('ConfirmPassword', 'toggleConfirmPassword');
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            togglePasswordVisibility('Password', 'togglePassword');
+        });
+
+        document.getElementById('toggleConfirmPassword').addEventListener('click', function () {
+            togglePasswordVisibility('ConfirmPassword', 'toggleConfirmPassword');
+        });
     });
 </script>
