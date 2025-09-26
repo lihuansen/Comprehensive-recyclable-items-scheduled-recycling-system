@@ -29,6 +29,12 @@
     padding-right: 40px;
 }
 
+.form-control:focus {
+    outline: none; /* 移除默认轮廓 */
+    border-color: #66afe9; /* 焦点边框蓝色 */
+    box-shadow: 0 0 8px rgba(102, 175, 233, 0.6); /* 焦点阴影 */
+}
+
 .toggle-password {
     position: absolute;
     right: 10px;
@@ -76,4 +82,19 @@
 .btn-cancel:hover {
     background-color: #c9302c;
     border-color: #ac2925;
+}
+
+.text-danger {
+    color: #d9534f; /* 错误文字红色 */
+    font-size: 12px;
+    margin-top: 5px;
+    display: block; /* 错误信息独占一行 */
+}
+
+.error-message {
+    padding: 10px 15px;
+    background-color: #f2dede; /* 错误提示背景色 */
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 1px solid #ebccd1;
 }
