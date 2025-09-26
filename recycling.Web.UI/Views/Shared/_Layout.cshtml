@@ -9,7 +9,7 @@
     <title>@ViewBag.Title - 圾时达约</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
-    <style>
+<style>
         body {
             padding-top: 120px; /* 调整上边距以适应导航栏 */
         }
@@ -196,7 +196,41 @@
                 margin-top: 10px;
             }
         }
-    </style>
+        /* 修改：登录状态样式 */
+        .navbar-user-info {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            z-index: 1001;
+            color: #9d9d9d;
+        }
+
+        .navbar-user-info a {
+            color: #9d9d9d !important;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 5px 10px;
+            margin-left: 10px;
+            border: 1px solid #9d9d9d;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        .navbar-user-info a:hover {
+            color: white !important;
+            border-color: white;
+        }
+
+        @@media (max-width: 768px) {
+            /* 移动设备上调整登录信息位置 */
+            .navbar-user-info {
+                position: static;
+                text-align: center;
+                margin-top: 10px;
+                padding-bottom: 10px;
+            }
+        }
+</style>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -209,9 +243,19 @@
                 </button>
             </div>
 
-            <!-- 添加登录提示链接到导航栏右上角 -->
-            <div class="navbar-login-prompt">
-                @Html.ActionLink("操作前，请先登录", "Login", "User")
+            <!-- 根据登录状态显示不同内容 -->
+            <div class="navbar-user-info">
+                @if (Session["LoginUser"] != null)
+                {
+                    // 已登录状态
+                    var user = (recycling.Model.Users)Session["LoginUser"];
+        <span>您好，@user.Username</span>
+                        @Html.ActionLink("退出登录", "Logout", "User") }
+                                    else
+                                    {
+                                        // 未登录状态
+                        @Html.ActionLink("登录", "Login", "User")
+                                        @Html.ActionLink("注册", "Register", "User")}
             </div>
 
             <div class="navbar-collapse collapse">
