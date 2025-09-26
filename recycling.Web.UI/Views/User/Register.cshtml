@@ -1,98 +1,78 @@
-﻿@{
+﻿@model recycling.Model.RegisterViewModel 
+@{
     ViewBag.Title = "用户注册";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- 引入外部CSS文件，媒体查询写在外部文件中 -->
-<link href="~/Content/register.css" rel="stylesheet" />
-
 <div class="register-container">
     <h2 class="register-title">用户注册</h2>
 
-    <form id="registerForm">
+    @* 显示错误信息 *@
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="error-message text-danger">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+    }
+
+    @using (Html.BeginForm("Register", "User", FormMethod.Post, new { id = "registerForm", @class = "form-horizontal" }))
+    {
+        @Html.AntiForgeryToken()
+
         <div class="form-group">
-            <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "请输入用户名", required = "required" })
+            @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
         </div>
 
         <div class="form-group">
-            <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "请输入密码", required = "required" })
             <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+            @Html.ValidationMessageFor(m => m.Password, null , new { @class = "text-danger" })
         </div>
 
         <div class="form-group">
-            <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入密码" required>
+            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "请再次输入密码", required = "required" })
             <button type="button" class="toggle-password" id="toggleConfirmPassword">👁️</button>
+            @Html.ValidationMessageFor(m => m.ConfirmPassword, null , new { @class = "text-danger" })
         </div>
 
         <div class="form-group">
-            <input type="text" class="form-control" id="phoneNumber" placeholder="请输入手机号" required>
+            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "请输入手机号", required = "required" })
+            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
         </div>
 
         <div class="form-group">
-            <input type="email" class="form-control" id="email" placeholder="请输入邮箱" required>
+            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "请输入邮箱", required = "required" })
+            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
         </div>
 
         <div class="register-buttons">
             <button type="submit" class="btn btn-primary btn-register">注册</button>
             <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
         </div>
-    </form>
+    }
 </div>
 
 <script>
-    // 取消按钮事件
+    // 取消按钮事件 - 返回登录页面
     document.getElementById('cancelBtn').addEventListener('click', function() {
         window.location.href = '@Url.Action("Login", "User")';
     });
 
-    // 密码显示/隐藏切换
-    function togglePasswordVisibility(inputId, buttonId) {
-        const input = document.getElementById(inputId);
-        const button = document.getElementById(buttonId);
+    // 密码显示/隐藏切换功能
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('Password');
+        togglePasswordVisibility(passwordInput, this);
+    });
+
+    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+        const confirmPasswordInput = document.getElementById('ConfirmPassword');
+        togglePasswordVisibility(confirmPasswordInput, this);
+    });
+
+    function togglePasswordVisibility(input, button) {
         const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
         input.setAttribute('type', type);
         button.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
     }
-
-    document.getElementById('togglePassword').addEventListener('click', function() {
-        togglePasswordVisibility('password', 'togglePassword');
-    });
-
-    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
-        togglePasswordVisibility('confirmPassword', 'toggleConfirmPassword');
-    });
-
-    // 表单提交处理
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-
-        if (password !== confirmPassword) {
-            alert('两次输入的密码不一致，请重新输入');
-            return;
-        }
-
-        // 模拟注册成功
-        alert('注册成功！');
-        window.location.href = '@Url.Action("Login", "User")';
-    });
-
-    // JavaScript动态调整响应式样式（替代CSS媒体查询）
-    function adjustLayout() {
-        const container = document.querySelector('.register-container');
-        if (window.innerWidth <= 480) {
-            container.style.margin = '20px 15px';
-            container.style.padding = '20px';
-        } else {
-            container.style.margin = '40px auto';
-            container.style.padding = '30px';
-        }
-    }
-
-    // 初始化时调整一次
-    adjustLayout();
-    // 窗口大小变化时重新调整
-    window.addEventListener('resize', adjustLayout);
 </script>
