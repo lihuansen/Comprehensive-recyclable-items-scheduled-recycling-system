@@ -2,11 +2,49 @@
 @{
     ViewBag.Title = "用户注册";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    // 判断是否注册成功（默认false）
+    bool isRegisterSuccess = ViewBag.RegisterSuccess ?? false;
 }
 
 <link href="~/Content/register.css" rel="stylesheet" type="text/css" />
 
-<div class="register-container">
+<!-- 1. 注册成功提示框（默认隐藏，成功时显示） -->
+@if (isRegisterSuccess)
+{
+    <div style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 40px 60px;
+        background-color: #dff0d8;
+        border: 2px solid #3c763d;
+        border-radius: 10px;
+        text-align: center;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    ">
+        <h2 style="color: #3c763d; margin-bottom: 20px;">注册成功！</h2>
+        <p style="font-size: 18px; color: #333;">请登录系统继续操作</p>
+        <p style="font-size: 14px; color: #666; margin-top: 30px;">
+            即将跳转至登录页... <span id="countdown">2</span> 秒
+        </p>
+    </div>
+
+    <!-- 半透明遮罩（让提示框更突出，禁止操作其他元素） -->
+    <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.3);
+        z-index: 999;
+    "></div>
+}
+
+<!-- 2. 原注册表单（注册成功时隐藏表单） -->
+<div class="register-container" @(isRegisterSuccess ? "style='display: none;'" : "")>
     <h2 class="register-title">用户注册</h2>
 
     @* 显示错误信息 *@
@@ -39,7 +77,7 @@
                 @class = "form-control",
                 placeholder = "请输入密码",
                 required = "required",
-                type = "password" 
+                type = "password"
             })
             <button type="button" class="toggle-password" id="togglePassword">👁️</button>
             @Html.ValidationMessageFor(m => m.Password, null, new { @class = "text-danger" })
@@ -52,7 +90,7 @@
                 @class = "form-control",
                 placeholder = "请再次输入密码",
                 required = "required",
-                type = "password" 
+                type = "password"
             })
             <button type="button" class="toggle-password" id="toggleConfirmPassword">👁️</button>
             @Html.ValidationMessageFor(m => m.ConfirmPassword, null, new { @class = "text-danger" })
@@ -88,6 +126,28 @@
 </div>
 
 <script>
+  // 3. 延迟跳转逻辑（仅注册成功时执行）
+    @if (isRegisterSuccess)
+    {
+        <text>
+            // 倒计时功能（可选，增强用户感知）
+            let countdown = 2;
+            const countdownEl = document.getElementById('countdown');
+            const timer = setInterval(() => {
+                countdown--;
+                countdownEl.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    window.location.href = '@Url.Action("Login", "User")'; // 跳转登录页
+                }
+            }, 1000);
+
+            // 保险起见：若定时器失效，3秒后强制跳转
+            setTimeout(() => {
+                window.location.href = '@Url.Action("Login", "User")';
+            }, 3000);
+        </text>
+    }
     // 取消按钮跳转登录页
     document.getElementById('cancelBtn').addEventListener('click', function() {
         window.location.href = '@Url.Action("Login", "User")';
