@@ -16,11 +16,61 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
-
+        [HttpGet]
         public ActionResult Login()
         {
+            //如果已登录，直接跳转到首页
+            if (Session["LoginUser"] != null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             ViewBag.LoginType = "password";
-            return View();
+            return View(new LoginViewModel());
+        }
+        // POST: User/Login - 处理密码登录
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(LoginViewModel model)
+        {
+            ViewBag.LoginType = "password";
+
+            // 模型验证
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // 调用BLL层验证登录
+            string errorMsg = _userBLL.Login(model);
+            if (errorMsg != null)
+            {
+                // 根据错误类型清空对应字段
+                if (errorMsg.Contains("验证码"))
+                {
+                    model.Captcha = ""; // 验证码错误，清空验证码
+                }
+                else if (errorMsg.Contains("密码"))
+                {
+                    model.Password = ""; // 密码错误，清空密码
+                }
+
+                ModelState.AddModelError("", errorMsg);
+                return View(model);
+            }
+
+            // 登录成功，获取用户信息并存储到Session
+            Users user = new UserDAL().GetUserByUsername(model.Username);
+            Session["LoginUser"] = user;
+            Session.Timeout = 30; // 设置会话超时时间为30分钟
+
+            return RedirectToAction("Index", "Home");
+        }
+        // 退出登录
+        public ActionResult Logout()
+        {
+            Session.Clear(); // 清除所有会话数据
+            Session.Abandon(); // 终止当前会话
+            return RedirectToAction("Index", "Home");
         }
         public ActionResult PhoneLogin()
         {
