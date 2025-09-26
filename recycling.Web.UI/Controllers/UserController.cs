@@ -32,9 +32,10 @@ namespace recycling.Web.UI.Controllers
             ViewBag.LoginType = "email";
             return View("Login");
         }   
+        [HttpGet]
         public ActionResult Register()
         {
-            return View();
+            return View(new RegisterViewModel());
         }
 
         // POST: User/Register
