@@ -10,46 +10,81 @@
 
 <div class="register-container">
     <h2 class="text-center">用户注册</h2>
-    
-    @Html.ValidationSummary(true, "注册失败，请检查以下问题：", new { @class = "validation-summary-errors" })
+
+    @* 显示错误信息 *@
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="error-message text-danger">
+            @Html.ValidationSummary(true, "注册失败，请检查以下错误：", new { @class = "text-danger" })
+        </div>
+    }
 
     @using (Html.BeginForm("Register", "User", FormMethod.Post, new { id = "registerForm" }))
     {
         @Html.AntiForgeryToken()
 
+        <!-- 用户名 -->
         <div class="form-group">
-            @Html.LabelFor(m => m.Username)
-            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "请输入用户名", required = "required" })
-            @Html.ValidationMessageFor(m => m.Username, null, new { @class = "field-validation-error" })
+            @Html.TextBoxFor(m => m.Username, new
+            {
+                @class = "form-control",
+                placeholder = "请输入用户名",
+                required = "required"
+            })
+            @Html.ValidationMessageFor(m => m.Username, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 密码 -->
         <div class="form-group">
-            @Html.LabelFor(m => m.Password)
-            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "请输入密码", required = "required" })
-            @Html.ValidationMessageFor(m => m.Password, null, new { @class = "field-validation-error" })
+            @Html.TextBoxFor(m => m.Password, new
+            {
+                @class = "form-control",
+                placeholder = "请输入密码",
+                required = "required",
+                type = "password"
+            })
+            <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+            @Html.ValidationMessageFor(m => m.Password, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 确认密码 -->
         <div class="form-group">
-            @Html.LabelFor(m => m.ConfirmPassword)
-            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "请确认密码", required = "required" })
-            @Html.ValidationMessageFor(m => m.ConfirmPassword, null, new { @class = "field-validation-error" })
+            @Html.TextBoxFor(m => m.ConfirmPassword, new
+            {
+                @class = "form-control",
+                placeholder = "请再次输入密码",
+                required = "required",
+                type = "password"
+            })
+            <button type="button" class="toggle-password" id="toggleConfirmPassword">👁️</button>
+            @Html.ValidationMessageFor(m => m.ConfirmPassword, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 手机号 -->
         <div class="form-group">
-            @Html.LabelFor(m => m.PhoneNumber)
-            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "请输入手机号", required = "required" })
-            @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "field-validation-error" })
+            @Html.TextBoxFor(m => m.PhoneNumber, new
+            {
+                @class = "form-control",
+                placeholder = "请输入手机号",
+                required = "required"
+            })
+            @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 邮箱 -->
         <div class="form-group">
-            @Html.LabelFor(m => m.Email)
-            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "请输入邮箱", type = "email", required = "required" })
-            @Html.ValidationMessageFor(m => m.Email, null, new { @class = "field-validation-error" })
+            @Html.TextBoxFor(m => m.Email, new
+            {
+                @class = "form-control",
+                placeholder = "请输入邮箱",
+                required = "required"
+            })
+            @Html.ValidationMessageFor(m => m.Email, null, new { @class = "text-danger" })
         </div>
 
         <div class="register-buttons">
-            <button type="submit" class="btn btn-success btn-register">注册</button>
-            <button type="button" class="btn btn-default btn-back" onclick="window.location.href='@Url.Action("Login", "User")'">返回登录</button>
+            <button type="submit" class="btn btn-primary btn-register">注册</button>
+            <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
         </div>
     }
 </div>
