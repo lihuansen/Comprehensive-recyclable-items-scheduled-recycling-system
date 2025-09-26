@@ -81,6 +81,44 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 用户登录验证
+        /// </summary>
+        /// <param name="model">登录视图模型</param>
+        /// <returns>错误信息（null表示验证通过）</returns>
+        public string Login(LoginViewModel model)
+        {
+            // 1. 验证用户名是否存在
+            if (!_userDAL.IsUsernameExists(model.Username))
+            {
+                return "用户名不存在，请先注册";
+            }
+
+            // 2. 获取用户信息并验证密码
+            Users user = _userDAL.GetUserByUsername(model.Username);
+            if (user == null)
+            {
+                return "用户名不存在，请先注册"; // 双重验证，确保安全性
+            }
+
+            // 计算输入密码的哈希值（与注册时算法一致）
+            string inputPasswordHash = HashPassword(model.Password);
+            if (inputPasswordHash != user.PasswordHash)
+            {
+                return "密码错误，请重新输入";
+            }
+
+            // 3. 验证验证码
+            if (string.IsNullOrEmpty(model.GeneratedCaptcha) ||
+                !string.Equals(model.Captcha, model.GeneratedCaptcha, StringComparison.OrdinalIgnoreCase))
+            {
+                return "验证码不正确";
+            }
+
+            // 所有验证通过
+            return null;
+        }
+
+        /// <summary>
         /// 密码哈希处理（使用SHA256）
         /// </summary>
         private string HashPassword(string password)
