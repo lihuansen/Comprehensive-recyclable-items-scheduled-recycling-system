@@ -152,9 +152,8 @@ namespace recycling.Web.UI.Controllers
                 return View(model); // 回传清空错误字段后的模型
             }
 
-            // 3. 注册成功：传递状态给视图，不直接跳转
-            ViewBag.RegisterSuccess = true; // 标记注册成功
-            return View(model);
+            // 3. 注册成功：直接跳转到登录界面（移除停留逻辑）
+            return RedirectToAction("Login");
         }
 
         public ActionResult Forgot()
