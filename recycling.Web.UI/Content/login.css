@@ -1,2 +1,244 @@
-﻿body {
+﻿.login-container {
+    max-width: 450px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    height: 45px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    font-size: 16px;
+}
+
+.captcha-container {
+    display: flex;
+    align-items: center;
+}
+
+.captcha-input {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.captcha-image {
+    height: 45px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    min-width: 100px;
+}
+
+.error-message {
+    color: #d9534f;
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    border-radius: 4px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+/* 验证错误样式 */
+.validation-summary-errors {
+    color: #d9534f;
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    border-radius: 4px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+}
+
+.field-validation-error {
+    color: #d9534f;
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+}
+
+.login-links {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+    .login-links a {
+        color: #337ab7;
+        text-decoration: none;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+        .login-links a.active {
+            color: #23527c;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .login-links a:hover {
+            text-decoration: underline;
+        }
+
+.role-selection {
+    margin-bottom: 25px;
+}
+
+.role-options {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.role-option {
+    display: flex;
+    align-items: center;
+}
+
+    .role-option input {
+        margin-right: 5px;
+    }
+
+    .role-option label {
+        margin-bottom: 0;
+        font-weight: normal;
+        font-size: 16px;
+    }
+
+.staff-role-dropdown {
+    display: none;
+    margin-top: 10px;
+}
+
+    .staff-role-dropdown.active {
+        display: block;
+    }
+
+    .staff-role-dropdown select {
+        width: 100%;
+        height: 40px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        padding: 0 10px;
+        font-size: 14px;
+    }
+
+.login-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn-login {
+    flex: 1;
+    margin-right: 10px;
+    height: 45px;
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.btn-cancel {
+    flex: 1;
+    margin-left: 10px;
+    height: 45px;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+    color: white;
+    font-size: 16px;
+}
+
+.btn-login:hover {
+    background-color: #449d44;
+    border-color: #398439;
+}
+
+.btn-cancel:hover {
+    background-color: #c9302c;
+    border-color: #ac2925;
+}
+
+.login-form {
+    display: none;
+}
+
+    .login-form.active {
+        display: block;
+    }
+
+.send-code-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 8px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .send-code-btn:hover {
+        background-color: #e0e0e0;
+    }
+
+    .send-code-btn.disabled {
+        background-color: #f5f5f5;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+.staff-login-form {
+    display: none;
+}
+
+    .staff-login-form.active {
+        display: block;
+    }
+
+/* 响应式调整 */
+@@media (max-width: 480px) {
+    .login-container {
+        margin: 20px 15px;
+        padding: 20px;
+    }
+
+    .role-options {
+        flex-direction: column;
+    }
+
+    .role-option {
+        margin-bottom: 10px;
+    }
+
+    .login-links {
+        flex-direction: column;
+    }
+
+        .login-links a {
+            margin-bottom: 8px;
+        }
 }
