@@ -9,13 +9,7 @@
 <div class="register-container">
     <h2 class="register-title">用户注册</h2>
 
-    @* 显示错误信息 *@
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="error-message text-danger">
-            @Html.ValidationSummary(true, "注册失败，请检查以下错误：", new { @class = "text-danger" })
-        </div>
-    }
+    @Html.ValidationSummary(true, "注册失败，请检查以下问题：", new { @class = "validation-summary-errors" })
 
     @using (Html.BeginForm("Register", "User", FormMethod.Post, new { id = "registerForm" }))
     {
@@ -39,7 +33,7 @@
                 @class = "form-control",
                 placeholder = "请输入密码",
                 required = "required",
-                type = "password" 
+                type = "password"
             })
             <button type="button" class="toggle-password" id="togglePassword">👁️</button>
             @Html.ValidationMessageFor(m => m.Password, null, new { @class = "text-danger" })
@@ -52,7 +46,7 @@
                 @class = "form-control",
                 placeholder = "请再次输入密码",
                 required = "required",
-                type = "password" 
+                type = "password"
             })
             <button type="button" class="toggle-password" id="toggleConfirmPassword">👁️</button>
             @Html.ValidationMessageFor(m => m.ConfirmPassword, null, new { @class = "text-danger" })
