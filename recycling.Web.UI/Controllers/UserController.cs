@@ -58,8 +58,8 @@ namespace recycling.Web.UI.Controllers
                 return View(model);
             }
 
-            // 登录成功，获取用户信息并存储到Session
-            Users user = new UserDAL().GetUserByUsername(model.Username);
+            // 登录成功，通过BLL层获取用户信息（不再直接调用DAL层）
+            Users user = _userBLL.GetUserByUsername(model.Username);
             Session["LoginUser"] = user;
             Session.Timeout = 30; // 设置会话超时时间为30分钟
 
