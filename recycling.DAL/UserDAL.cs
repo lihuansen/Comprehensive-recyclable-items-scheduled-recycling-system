@@ -87,5 +87,48 @@ namespace recycling.DAL
                 return Convert.ToInt32(cmd.ExecuteScalar());
             }
         }
+
+        /// <summary>
+        /// 根据用户名查询用户信息（已修正实体类名）
+        /// </summary>
+        public Users GetUserByUsername(string username)  // 改为Users，与InsertUser的实体类一致
+        {
+            Users user = null;  // 实体类名统一为Users
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate 
+                                  FROM Users 
+                                  WHERE Username = @Username";
+
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@Username", username);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            user = new Users  // 实例化时使用统一的实体类名
+                            {
+                                UserID = Convert.ToInt32(reader["UserID"]),
+                                Username = reader["Username"].ToString(),
+                                PasswordHash = reader["PasswordHash"].ToString(),
+                                PhoneNumber = reader["PhoneNumber"].ToString(),
+                                Email = reader["Email"].ToString(),
+                                RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"])
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // 建议使用日志框架记录错误，而非直接抛出
+                    throw new Exception("查询用户失败：" + ex.Message);
+                }
+            }
+            return user;
+        }
     }
 }
