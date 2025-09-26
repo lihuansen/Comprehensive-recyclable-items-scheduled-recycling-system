@@ -4,7 +4,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- 引入register.css（路径必须正确！） -->
 <link href="~/Content/register.css" rel="stylesheet" type="text/css" />
 
 <div class="register-container">
@@ -14,39 +13,71 @@
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="error-message text-danger">
-            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            @Html.ValidationSummary(true, "注册失败，请检查以下错误：", new { @class = "text-danger" })
         </div>
     }
 
-    @using (Html.BeginForm("Register", "User", FormMethod.Post, new { id = "registerForm", @class = "form-horizontal" }))
+    @using (Html.BeginForm("Register", "User", FormMethod.Post, new { id = "registerForm" }))
     {
         @Html.AntiForgeryToken()
 
+        <!-- 1. 用户名（错误时保留值，无需修改） -->
         <div class="form-group">
-            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "请输入用户名", required = "required" })
-            @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
+            @Html.TextBoxFor(m => m.Username, new
+            {
+                @class = "form-control",
+                placeholder = "请输入用户名",
+                required = "required"
+            })
+            @Html.ValidationMessageFor(m => m.Username, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 2. 密码（关键修改：用TextBoxFor+type="password"支持回显） -->
         <div class="form-group">
-            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "请输入密码", required = "required" })
+            @Html.TextBoxFor(m => m.Password, new
+            {
+                @class = "form-control",
+                placeholder = "请输入密码",
+                required = "required",
+                type = "password" 
+            })
             <button type="button" class="toggle-password" id="togglePassword">👁️</button>
             @Html.ValidationMessageFor(m => m.Password, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 3. 确认密码（同密码框修改） -->
         <div class="form-group">
-            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "请再次输入密码", required = "required" })
+            @Html.TextBoxFor(m => m.ConfirmPassword, new
+            {
+                @class = "form-control",
+                placeholder = "请再次输入密码",
+                required = "required",
+                type = "password" 
+            })
             <button type="button" class="toggle-password" id="toggleConfirmPassword">👁️</button>
             @Html.ValidationMessageFor(m => m.ConfirmPassword, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 4. 手机号（错误时保留值，无需修改） -->
         <div class="form-group">
-            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "请输入手机号", required = "required" })
-            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+            @Html.TextBoxFor(m => m.PhoneNumber, new
+            {
+                @class = "form-control",
+                placeholder = "请输入手机号",
+                required = "required"
+            })
+            @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 5. 邮箱（错误时保留值，无需修改） -->
         <div class="form-group">
-            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "请输入邮箱", required = "required" })
-            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+            @Html.TextBoxFor(m => m.Email, new
+            {
+                @class = "form-control",
+                placeholder = "请输入邮箱",
+                required = "required"
+            })
+            @Html.ValidationMessageFor(m => m.Email, null, new { @class = "text-danger" })
         </div>
 
         <div class="register-buttons">
@@ -57,25 +88,25 @@
 </div>
 
 <script>
-    // 取消按钮事件 - 返回登录页面
+    // 取消按钮跳转登录页
     document.getElementById('cancelBtn').addEventListener('click', function() {
         window.location.href = '@Url.Action("Login", "User")';
     });
 
-    // 密码显示/隐藏切换功能
-    document.getElementById('togglePassword').addEventListener('click', function() {
-        const passwordInput = document.getElementById('Password');
-        togglePasswordVisibility(passwordInput, this);
-    });
-
-    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
-        const confirmPasswordInput = document.getElementById('ConfirmPassword');
-        togglePasswordVisibility(confirmPasswordInput, this);
-    });
-
-    function togglePasswordVisibility(input, button) {
+    // 密码显示/隐藏切换（逻辑不变，适配修改后的输入框）
+    function togglePasswordVisibility(inputId, buttonId) {
+        const input = document.getElementById(inputId);
+        const button = document.getElementById(buttonId);
         const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
         input.setAttribute('type', type);
         button.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
     }
+
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        togglePasswordVisibility('Password', 'togglePassword');
+    });
+
+    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+        togglePasswordVisibility('ConfirmPassword', 'toggleConfirmPassword');
+    });
 </script>
