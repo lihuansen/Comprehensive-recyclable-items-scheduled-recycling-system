@@ -108,7 +108,7 @@ namespace recycling.BLL
             }
 
             // 3. 验证验证码
-            if (string.IsNullOrEmpty(model.GeneratedCaptcha) ||
+            if (string.IsNullOrEmpty(model.GeneratedCaptcha) || 
                 !string.Equals(model.Captcha, model.GeneratedCaptcha, StringComparison.OrdinalIgnoreCase))
             {
                 return "验证码不正确";
