@@ -237,10 +237,10 @@
 <div class="login-container">
     <h2 class="login-title">登录</h2>
 
-    <!-- 错误提示区域 -->
-    <div class="error-message" id="errorMessage">
-        登录信息有误，请重新输入！
-    </div>
+    <!-- 显示后端验证错误 -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+    @Html.ValidationSummary(true, "", new { @class = "validation-summary-errors" })}
 
     <!-- 角色选择 -->
     <div class="role-selection">
@@ -405,6 +405,8 @@
             newCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         this.textContent = newCaptcha;
+        // 更新隐藏域中的验证码值
+        document.getElementById('generatedCaptcha').value = newCaptcha;
     }
 
     function refreshStaffCaptcha() {
@@ -415,6 +417,21 @@
         }
         this.textContent = newCaptcha;
     }
+
+    // 页面加载时初始化验证码隐藏域
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置初始验证码值到隐藏域
+        var initialCaptcha = document.getElementById('captchaImage').textContent;
+        document.getElementById('generatedCaptcha').value = initialCaptcha;
+
+        // 如果有验证码错误，自动刷新验证码
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any(e => e.ErrorMessage.Contains("验证码"))))
+        {
+            <text>
+                refreshCaptcha.call(document.getElementById('captchaImage'));
+            </text>
+        }
+    });
 
     // 发送手机验证码
     document.getElementById('sendPhoneCode').addEventListener('click', function() {
@@ -500,17 +517,4 @@
         e.preventDefault();
         handleStaffLogin();
     });
-
-    function handleUserLogin(type) {
-        // 这里只是演示，实际应该发送到后端验证
-        alert('用户登录成功！登录方式：' + type);
-        window.location.href = '@Url.Action("Index", "Home")';
-    }
-
-    function handleStaffLogin() {
-        var staffRole = document.getElementById('staffRole').value;
-        // 这里只是演示，实际应该发送到后端验证
-        alert('工作人员登录成功！角色：' + staffRole);
-        window.location.href = '@Url.Action("Index", "Home")';
-    }
 </script>
