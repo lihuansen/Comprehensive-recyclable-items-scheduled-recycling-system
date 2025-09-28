@@ -7,12 +7,15 @@ using System.Security.Cryptography;
 using recycling.Model;
 using recycling.DAL;
 using System.Web;
+using System.Collections;
 
 namespace recycling.BLL
 {
     public class UserBLL
     {
         private UserDAL _userDAL = new UserDAL();
+        // 用于存储验证码的临时缓存（实际项目中可替换为Redis等）
+        private static Hashtable _verificationCodes = new Hashtable();
 
         /// <summary>
         /// 注册新用户，返回错误信息（按优先级排序）
@@ -179,5 +182,70 @@ namespace recycling.BLL
             }
         }
 
+        /// <summary>
+        /// 生成验证码并存储
+        /// </summary>
+        /// <param name="phoneNumber">手机号</param>
+        /// <returns>生成的验证码</returns>
+        public string GenerateVerificationCode(string phoneNumber)
+        {
+            // 生成6位数字验证码
+            Random random = new Random();
+            string code = random.Next(100000, 999999).ToString();
+
+            // 存储验证码，有效期5分钟，使用手机号作为键
+            _verificationCodes[phoneNumber] = new Tuple<string, DateTime>(code, DateTime.Now.AddMinutes(5));
+
+            return code;
+        }
+
+        /// <summary>
+        /// 验证验证码是否有效
+        /// </summary>
+        /// <param name="phoneNumber">手机号</param>
+        /// <param name="code">验证码</param>
+        /// <returns>是否有效</returns>
+        public bool VerifyVerificationCode(string phoneNumber, string code)
+        {
+            if (!_verificationCodes.ContainsKey(phoneNumber))
+            {
+                return false; // 验证码不存在
+            }
+
+            var codeInfo = (Tuple<string, DateTime>)_verificationCodes[phoneNumber];
+
+            // 验证验证码是否正确且未过期
+            bool isValid = codeInfo.Item1 == code && DateTime.Now <= codeInfo.Item2;
+
+            // 验证码使用一次后失效
+            if (isValid)
+            {
+                _verificationCodes.Remove(phoneNumber);
+            }
+
+            return isValid;
+        }
+
+        /// <summary>
+        /// 重置密码
+        /// </summary>
+        /// <param name="phoneNumber">手机号</param>
+        /// <param name="newPassword">新密码</param>
+        /// <returns>是否成功</returns>
+        public bool ResetPassword(string phoneNumber, string newPassword)
+        {
+            try
+            {
+                // 密码哈希处理
+                string passwordHash = HashPassword(newPassword);
+
+                // 调用DAL层更新密码
+                return _userDAL.UpdatePasswordByPhone(phoneNumber, passwordHash);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("重置密码失败：" + ex.Message);
+            }
+        }
     }
 }
