@@ -4,6 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<!-- 引入Font Awesome保持图标一致性 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="~/Content/register.css" rel="stylesheet" type="text/css" />
 
 <div class="register-container">
@@ -15,7 +17,7 @@
     {
         @Html.AntiForgeryToken()
 
-        <!-- 1. 用户名（错误时保留值，无需修改） -->
+        <!-- 1. 用户名 -->
         <div class="form-group">
             @Html.TextBoxFor(m => m.Username, new
             {
@@ -26,33 +28,43 @@
             @Html.ValidationMessageFor(m => m.Username, null, new { @class = "text-danger" })
         </div>
 
-        <!-- 2. 密码（关键修改：用TextBoxFor+type="password"支持回显） -->
-        <div class="form-group">
-            @Html.TextBoxFor(m => m.Password, new
-            {
-                @class = "form-control",
-                placeholder = "请输入密码",
-                required = "required",
-                type = "password"
-            })
-            <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+        <!-- 2. 密码（统一样式） -->
+        <div class="form-group password-group">
+            <div class="password-input-container">
+                @Html.TextBoxFor(m => m.Password, new
+                {
+                    @class = "form-control password-input",
+                    placeholder = "请输入密码",
+                    required = "required",
+                    type = "password",
+                    id = "passwordInput"
+                })
+                <button type="button" class="toggle-password" id="togglePassword">
+                    <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                </button>
+            </div>
             @Html.ValidationMessageFor(m => m.Password, null, new { @class = "text-danger" })
         </div>
 
-        <!-- 3. 确认密码（同密码框修改） -->
-        <div class="form-group">
-            @Html.TextBoxFor(m => m.ConfirmPassword, new
-            {
-                @class = "form-control",
-                placeholder = "请再次输入密码",
-                required = "required",
-                type = "password"
-            })
-            <button type="button" class="toggle-password" id="toggleConfirmPassword">👁️</button>
+        <!-- 3. 确认密码（统一样式） -->
+        <div class="form-group password-group">
+            <div class="password-input-container">
+                @Html.TextBoxFor(m => m.ConfirmPassword, new
+                {
+                    @class = "form-control password-input",
+                    placeholder = "请再次输入密码",
+                    required = "required",
+                    type = "password",
+                    id = "confirmPasswordInput"
+                })
+                <button type="button" class="toggle-password" id="toggleConfirmPassword">
+                    <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                </button>
+            </div>
             @Html.ValidationMessageFor(m => m.ConfirmPassword, null, new { @class = "text-danger" })
         </div>
 
-        <!-- 4. 手机号（错误时保留值，无需修改） -->
+        <!-- 4. 手机号 -->
         <div class="form-group">
             @Html.TextBoxFor(m => m.PhoneNumber, new
             {
@@ -63,7 +75,7 @@
             @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "text-danger" })
         </div>
 
-        <!-- 5. 邮箱（错误时保留值，无需修改） -->
+        <!-- 5. 邮箱 -->
         <div class="form-group">
             @Html.TextBoxFor(m => m.Email, new
             {
@@ -82,25 +94,39 @@
 </div>
 
 <script>
+    // 复用登录页面的密码切换逻辑，保持一致性
+    function setupPasswordToggle(toggleBtnId, passwordInputId) {
+        const toggleBtn = document.getElementById(toggleBtnId);
+        const passwordInput = document.getElementById(passwordInputId);
+
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function() {
+                // 切换密码可见性
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+
+                // 切换图标（与登录页逻辑完全一致）
+                const icon = this.querySelector('i');
+                if (type === 'password') {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        }
+    }
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化密码显示/隐藏功能（使用与登录页相同的方法）
+        setupPasswordToggle('togglePassword', 'passwordInput');
+        setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput');
+    });
+
     // 取消按钮跳转登录页
     document.getElementById('cancelBtn').addEventListener('click', function() {
         window.location.href = '@Url.Action("Login", "User")';
-    });
-
-    // 密码显示/隐藏切换（逻辑不变，适配修改后的输入框）
-    function togglePasswordVisibility(inputId, buttonId) {
-        const input = document.getElementById(inputId);
-        const button = document.getElementById(buttonId);
-        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-        input.setAttribute('type', type);
-        button.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
-    }
-
-    document.getElementById('togglePassword').addEventListener('click', function() {
-        togglePasswordVisibility('Password', 'togglePassword');
-    });
-
-    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
-        togglePasswordVisibility('ConfirmPassword', 'toggleConfirmPassword');
     });
 </script>
