@@ -140,5 +140,25 @@ namespace recycling.BLL
                 return builder.ToString();
             }
         }
+
+        /// <summary>
+        /// 更新用户最后登录时间（登录成功后调用）
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        public void UpdateLastLoginDate(int userId)
+        {
+            // 使用当前时间作为最后登录时间（与注册时间RegistrationDate保持时间格式一致）
+            DateTime loginTime = DateTime.Now;
+            try
+            {
+                _userDAL.UpdateLastLoginDate(userId, loginTime);
+            }
+            catch (Exception ex)
+            {
+                // 传递异常到UI层处理
+                throw new Exception("更新登录记录失败：" + ex.Message);
+            }
+        }
+
     }
 }
