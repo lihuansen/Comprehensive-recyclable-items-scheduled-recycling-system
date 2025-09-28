@@ -130,5 +130,38 @@ namespace recycling.DAL
             }
             return user;
         }
+
+        /// <summary>
+        /// 更新用户最后登录时间
+        /// </summary>
+        /// <param name="userId">用户ID（对应Users表的UserID）</param>
+        /// <param name="lastLoginDate">最后登录时间</param>
+        public void UpdateLastLoginDate(int userId, DateTime lastLoginDate)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                // 匹配Users表字段：UserID（主键）和LastLoginDate
+                string sql = @"UPDATE Users 
+                       SET LastLoginDate = @LastLoginDate 
+                       WHERE UserID = @UserID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                // 参数化查询，确保与datetime2类型匹配
+                cmd.Parameters.AddWithValue("@LastLoginDate", lastLoginDate);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                try
+                {
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    // 保持与现有DAL异常处理风格一致
+                    throw new Exception("更新最后登录时间失败：" + ex.Message);
+                }
+            }
+        }
+
     }
 }
