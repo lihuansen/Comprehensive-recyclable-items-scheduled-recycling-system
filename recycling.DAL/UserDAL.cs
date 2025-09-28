@@ -163,5 +163,28 @@ namespace recycling.DAL
             }
         }
 
+        /// <summary>
+        /// 根据手机号更新密码
+        /// </summary>
+        public bool UpdatePasswordByPhone(string phoneNumber, string newPasswordHash)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Users 
+                               SET PasswordHash = @PasswordHash,
+                                   LastPasswordChangeDate = @LastPasswordChangeDate
+                               WHERE PhoneNumber = @PhoneNumber";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PasswordHash", newPasswordHash);
+                cmd.Parameters.AddWithValue("@LastPasswordChangeDate", DateTime.Now);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+        }
+
     }
 }
