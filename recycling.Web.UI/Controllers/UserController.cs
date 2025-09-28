@@ -60,8 +60,26 @@ namespace recycling.Web.UI.Controllers
 
             // 登录成功，通过BLL层获取用户信息（不再直接调用DAL层）
             Users user = _userBLL.GetUserByUsername(model.Username);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "登录异常，请重试");
+                return View(model);
+            }
+            // 关键：更新最后登录时间（新增代码）
+            try
+            {
+                _userBLL.UpdateLastLoginDate(user.UserID); // 使用UserID字段（与Model层一致）
+            }
+            catch (Exception ex)
+            {
+                // 捕获更新失败的异常，不阻断登录但记录错误
+                ModelState.AddModelError("", "登录成功，但更新登录记录失败：" + ex.Message);
+                // 仍允许登录成功，仅提示异常
+            }
+
+            // 存储会话信息
             Session["LoginUser"] = user;
-            Session.Timeout = 30; // 设置会话超时时间为30分钟
+            Session.Timeout = 30;
 
             return RedirectToAction("Index", "Home");
         }
