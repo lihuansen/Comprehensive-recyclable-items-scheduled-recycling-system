@@ -1,126 +1,190 @@
-﻿@{
+﻿@model recycling.Model.ForgotPasswordViewModel
+@{
     ViewBag.Title = "忘记密码";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    .forgot-password-container {
-        max-width: 450px;
-        margin: 40px auto;
-        padding: 30px;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .forgot-password-title {
-        text-align: center;
-        margin-bottom: 25px;
-        color: #333;
-        font-size: 24px;
-        font-weight: bold;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-control {
-        height: 45px;
-        border-radius: 4px;
-        border: 1px solid #ddd;
-        padding: 10px 15px;
-        font-size: 16px;
-    }
-
-    .forgot-password-buttons {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 30px;
-    }
-
-    .btn-confirm {
-        flex: 1;
-        margin-right: 10px;
-        height: 45px;
-        background-color: #5cb85c;
-        border-color: #4cae4c;
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-    }
-
-    .btn-cancel {
-        flex: 1;
-        margin-left: 10px;
-        height: 45px;
-        background-color: #d9534f;
-        border-color: #d43f3a;
-        color: white;
-        font-size: 16px;
-    }
-
-    .btn-confirm:hover {
-        background-color: #449d44;
-        border-color: #398439;
-    }
-
-    .btn-cancel:hover {
-        background-color: #c9302c;
-        border-color: #ac2925;
-    }
-
-    @@media (max-width: 480px) {
-        .forgot-password-container {
-            margin: 20px 15px;
-            padding: 20px;
-        }
-    }
-</style>
+<!-- 引入Font Awesome用于眼睛图标 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="~/Content/forgot.css" rel="stylesheet" type="text/css" />
 
 <div class="forgot-password-container">
     <h2 class="forgot-password-title">忘记密码</h2>
 
-    <form id="forgotPasswordForm">
+    @Html.ValidationSummary(true, "操作失败，请检查以下问题：", new { @class = "validation-summary-errors" })
+
+    @using (Html.BeginForm("ResetPassword", "User", FormMethod.Post, new { id = "forgotPasswordForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <!-- 手机号输入 -->
         <div class="form-group">
-            <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+            @Html.LabelFor(m => m.PhoneNumber)
+            <div class="phone-input-container">
+                @Html.TextBoxFor(m => m.PhoneNumber, new
+                {
+                    @class = "form-control",
+                    placeholder = "请输入手机号",
+                    required = "required",
+                    maxlength = "11"
+                })
+                <button type="button" class="send-code-btn" id="sendCodeBtn">发送验证码</button>
+            </div>
+            @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 验证码输入 -->
         <div class="form-group">
-            <input type="password" class="form-control" id="newPassword" placeholder="请输入新密码" required>
+            @Html.LabelFor(m => m.VerificationCode)
+            @Html.TextBoxFor(m => m.VerificationCode, new
+            {
+                @class = "form-control",
+                placeholder = "请输入验证码",
+                required = "required",
+                maxlength = "6"
+            })
+            @Html.ValidationMessageFor(m => m.VerificationCode, null, new { @class = "text-danger" })
         </div>
 
-        <div class="form-group">
-            <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入新密码" required>
+        <!-- 新密码输入 -->
+        <div class="form-group password-group">
+            @Html.LabelFor(m => m.NewPassword)
+            <div class="password-input-container">
+                @Html.TextBoxFor(m => m.NewPassword, new
+                {
+                    @class = "form-control password-input",
+                    placeholder = "请输入新密码",
+                    required = "required",
+                    type = "password",
+                    id = "newPassword"
+                })
+                <button type="button" class="toggle-password" id="toggleNewPassword">
+                    <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                </button>
+            </div>
+            @Html.ValidationMessageFor(m => m.NewPassword, null, new { @class = "text-danger" })
+        </div>
+
+        <!-- 确认新密码输入 -->
+        <div class="form-group password-group">
+            @Html.LabelFor(m => m.ConfirmNewPassword)
+            <div class="password-input-container">
+                @Html.TextBoxFor(m => m.ConfirmNewPassword, new
+                {
+                    @class = "form-control password-input",
+                    placeholder = "请再次输入新密码",
+                    required = "required",
+                    type = "password",
+                    id = "confirmNewPassword"
+                })
+                <button type="button" class="toggle-password" id="toggleConfirmPassword">
+                    <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                </button>
+            </div>
+            @Html.ValidationMessageFor(m => m.ConfirmNewPassword, null, new { @class = "text-danger" })
         </div>
 
         <div class="forgot-password-buttons">
             <button type="submit" class="btn btn-primary btn-confirm">确认修改</button>
             <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
         </div>
-    </form>
+    }
 </div>
 
 <script>
-    // 取消按钮点击事件 - 返回登录页面
-    document.getElementById('cancelBtn').addEventListener('click', function() {
-        window.location.href = '@Url.Action("Login", "User")';
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+        // 密码显示/隐藏切换功能
+        setupPasswordToggle('toggleNewPassword', 'newPassword');
+        setupPasswordToggle('toggleConfirmPassword', 'confirmNewPassword');
+
+        // 发送验证码按钮点击事件
+        document.getElementById('sendCodeBtn').addEventListener('click', sendVerificationCode);
+
+        // 取消按钮点击事件
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            window.location.href = '@Url.Action("Login", "User")';
+        });
     });
 
-    // 表单提交事件
-    document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    // 密码显示/隐藏切换
+    function setupPasswordToggle(toggleBtnId, passwordInputId) {
+        const toggleBtn = document.getElementById(toggleBtnId);
+        const passwordInput = document.getElementById(passwordInputId);
 
-        var newPassword = document.getElementById('newPassword').value;
-        var confirmPassword = document.getElementById('confirmPassword').value;
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function() {
+                // 切换密码可见性
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
 
-        if (newPassword !== confirmPassword) {
-            alert('两次输入的密码不一致，请重新输入');
+                // 切换图标
+                const icon = this.querySelector('i');
+                if (type === 'password') {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        }
+    }
+
+    // 发送验证码
+    function sendVerificationCode() {
+        const phoneNumber = document.getElementById('PhoneNumber').value;
+        const sendBtn = document.getElementById('sendCodeBtn');
+
+        // 简单验证手机号
+        if (!phoneNumber || phoneNumber.length !== 11) {
+            alert('请输入有效的手机号');
             return;
         }
 
-        // 模拟密码修改成功
-        alert('密码修改成功！');
-        window.location.href = '@Url.Action("Login", "User")';
-    });
+        // 禁用发送按钮
+        sendBtn.disabled = true;
+        sendBtn.textContent = '发送中...';
+
+        // 发送AJAX请求
+        fetch('@Url.Action("SendVerificationCode", "User")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'phoneNumber=' + encodeURIComponent(phoneNumber)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+
+            // 如果成功发送，开始倒计时
+            if (data.success) {
+                let countdown = 60;
+                sendBtn.textContent = countdown + '秒后重发';
+
+                const timer = setInterval(function() {
+                    countdown--;
+                    sendBtn.textContent = countdown + '秒后重发';
+
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = '发送验证码';
+                    }
+                }, 1000);
+            } else {
+                // 失败则重新启用按钮
+                sendBtn.disabled = false;
+                sendBtn.textContent = '发送验证码';
+            }
+        })
+        .catch(error => {
+            console.error('发送验证码失败:', error);
+            alert('发送验证码失败，请稍后重试');
+            sendBtn.disabled = false;
+            sendBtn.textContent = '发送验证码';
+        });
+    }
 </script>
