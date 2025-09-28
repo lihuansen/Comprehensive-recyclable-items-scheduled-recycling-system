@@ -251,5 +251,24 @@ namespace recycling.BLL
 
             return null; // 重置成功
         }
+
+        /// <summary>
+        /// 检查手机号是否已注册（封装DAL方法）
+        /// </summary>
+        /// <param name="phoneNumber">手机号</param>
+        /// <returns>是否存在</returns>
+        public bool IsPhoneExists(string phoneNumber)
+        {
+            try
+            {
+                // 调用DAL层的IsPhoneExists方法
+                return _userDAL.IsPhoneExists(phoneNumber);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("验证手机号时发生错误，请稍后重试", ex);
+            }
+        }
+
     }
 }
