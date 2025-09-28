@@ -33,13 +33,19 @@
             @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "text-danger" })
         </div>
 
+        <!-- 验证码显示区域（明确标识为测试用） -->
+        <div id="verificationCodeDisplay" class="verification-code-display">
+            <div class="code-info">📌 测试验证码：<span id="codeValue" class="code-value">未发送</span></div>
+            <div class="code-note">（实际环境中验证码将发送至您的手机）</div>
+        </div>
+
         <!-- 验证码输入 -->
         <div class="form-group">
             @Html.LabelFor(m => m.VerificationCode)
             @Html.TextBoxFor(m => m.VerificationCode, new
             {
                 @class = "form-control",
-                placeholder = "请输入验证码",
+                placeholder = "请输入上方显示的验证码",
                 required = "required",
                 maxlength = "6"
             })
@@ -105,6 +111,28 @@
         document.getElementById('cancelBtn').addEventListener('click', function() {
             window.location.href = '@Url.Action("Login", "User")';
         });
+
+        // 表单提交前验证密码一致性
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('两次输入的密码不一致，请重新输入');
+                e.preventDefault();
+                return false;
+            }
+
+            // 验证码未输入验证
+            const verificationCode = document.getElementById('VerificationCode').value;
+            if (!verificationCode) {
+                alert('请输入验证码');
+                e.preventDefault();
+                return false;
+            }
+
+            return true;
+        });
     });
 
     // 密码显示/隐藏切换
@@ -135,12 +163,18 @@
     function sendVerificationCode() {
         const phoneNumber = document.getElementById('PhoneNumber').value;
         const sendBtn = document.getElementById('sendCodeBtn');
+        const codeDisplay = document.getElementById('verificationCodeDisplay');
+        const codeValue = document.getElementById('codeValue');
 
         // 简单验证手机号
         if (!phoneNumber || phoneNumber.length !== 11) {
-            alert('请输入有效的手机号');
+            alert('请输入有效的11位手机号');
             return;
         }
+
+        // 显示验证码区域（发送前确保可见）
+        codeDisplay.style.display = 'block';
+        codeValue.textContent = '生成中...';
 
         // 禁用发送按钮
         sendBtn.disabled = true;
@@ -155,9 +189,27 @@
             },
             body: 'phoneNumber=' + encodeURIComponent(phoneNumber)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('网络请求失败');
+            }
+            return response.json();
+        })
         .then(data => {
-            alert(data.message);
+            // 显示返回的验证码
+            if (data.debugCode) {
+                codeValue.textContent = data.debugCode;
+                // 自动选择验证码文本，方便用户复制
+                const range = document.createRange();
+                range.selectNode(codeValue);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+            } else {
+                codeValue.textContent = '获取失败，请重试';
+            }
+
+            // 显示操作消息
+            alert(data.message || '验证码发送成功');
 
             // 如果成功发送，开始倒计时
             if (data.success) {
@@ -185,6 +237,7 @@
             alert('发送验证码失败，请稍后重试');
             sendBtn.disabled = false;
             sendBtn.textContent = '发送验证码';
+            codeValue.textContent = '获取失败';
         });
     }
 </script>
