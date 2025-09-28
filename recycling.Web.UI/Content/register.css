@@ -98,3 +98,37 @@
     margin-bottom: 20px;
     border: 1px solid #ebccd1;
 }
+/* 密码框样式与登录页面完全一致，避免冲突 */
+.password-group {
+    position: relative;
+}
+
+.password-input-container {
+    position: relative;
+}
+
+.password-input {
+    padding-right: 40px !important; /* 为图标预留空间 */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 16px;
+    padding: 5px;
+    z-index: 10;
+}
+
+    .toggle-password:hover {
+        color: #333; /* 悬停效果与登录页一致 */
+    }
+
+    .toggle-password:focus {
+        outline: none; /* 移除焦点边框 */
+    }
