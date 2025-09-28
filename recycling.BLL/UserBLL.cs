@@ -13,9 +13,6 @@ namespace recycling.BLL
     public class UserBLL
     {
         private UserDAL _userDAL = new UserDAL();
-        // 使用静态字典临时存储验证码，实际项目中可考虑使用Redis等分布式缓存
-        private static Dictionary<string, VerificationCodeModel> _verificationCodes =
-            new Dictionary<string, VerificationCodeModel>();
 
         /// <summary>
         /// 注册新用户，返回错误信息（按优先级排序）
@@ -162,94 +159,6 @@ namespace recycling.BLL
                 // 传递异常到UI层处理
                 throw new Exception("更新登录记录失败：" + ex.Message);
             }
-        }
-
-        /// <summary>
-        /// 生成验证码并存储
-        /// </summary>
-        public string GenerateVerificationCode(string phoneNumber)
-        {
-            // 生成6位数字验证码
-            Random random = new Random();
-            string code = random.Next(100000, 999999).ToString();
-
-            // 存储验证码，有效期5分钟
-            var verificationCode = new VerificationCodeModel
-            {
-                PhoneNumber = phoneNumber,
-                Code = code,
-                ExpireTime = DateTime.Now.AddMinutes(5)
-            };
-
-            // 移除已存在的验证码
-            if (_verificationCodes.ContainsKey(phoneNumber))
-            {
-                _verificationCodes.Remove(phoneNumber);
-            }
-
-            _verificationCodes.Add(phoneNumber, verificationCode);
-
-            return code;
-        }
-
-        /// <summary>
-        /// 验证验证码
-        /// </summary>
-        public bool VerifyVerificationCode(string phoneNumber, string code)
-        {
-            if (!_verificationCodes.ContainsKey(phoneNumber))
-            {
-                return false;
-            }
-
-            var verificationCode = _verificationCodes[phoneNumber];
-
-            // 检查验证码是否过期或不正确
-            if (DateTime.Now > verificationCode.ExpireTime ||
-                verificationCode.Code != code)
-            {
-                return false;
-            }
-
-            // 验证成功后移除验证码，使其只能使用一次
-            _verificationCodes.Remove(phoneNumber);
-            return true;
-        }
-
-        /// <summary>
-        /// 重置密码
-        /// </summary>
-        public string ResetPassword(ForgotPasswordViewModel model)
-        {
-            // 1. 检查手机号格式
-            if (!System.Text.RegularExpressions.Regex.IsMatch(model.PhoneNumber, @"^1[3-9]\d{9}$"))
-            {
-                return "请输入正确的手机号格式";
-            }
-
-            // 2. 验证验证码
-            if (!VerifyVerificationCode(model.PhoneNumber, model.VerificationCode))
-            {
-                return "验证码不正确或已过期，请重新获取";
-            }
-
-            // 3. 检查两次密码是否一致
-            if (model.NewPassword != model.ConfirmNewPassword)
-            {
-                return "两次输入的密码不一致，请重新输入";
-            }
-
-            // 4. 密码哈希处理
-            string passwordHash = HashPassword(model.NewPassword);
-
-            // 5. 更新密码
-            bool updateResult = _userDAL.UpdatePasswordByPhone(model.PhoneNumber, passwordHash);
-            if (!updateResult)
-            {
-                return "密码重置失败，请稍后重试";
-            }
-
-            return null; // 重置成功
         }
 
         /// <summary>
