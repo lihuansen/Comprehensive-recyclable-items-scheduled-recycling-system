@@ -182,7 +182,7 @@ namespace recycling.Web.UI.Controllers
             return View(new ForgotPasswordViewModel());
         }
 
-         /// <summary>
+        /// <summary>
         /// 发送验证码
         /// </summary>
         [HttpPost]
@@ -214,7 +214,7 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "发送验证码失败，请稍后重试" });
+                return Json(new { success = false, message = "发送验证码失败，请稍后重试",ex });
             }
         }
         
