@@ -51,8 +51,27 @@
     color: #333;
     cursor: pointer;
     min-width: 100px;
+    /* 添加干扰线和噪点样式 */
+    position: relative;
+    overflow: hidden;
 }
+    .captcha-image::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        background-color: #999;
+        transform: rotate(-15deg);
+    }
 
+    .captcha-image::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        background-color: #666;
+        transform: rotate(15deg);
+    }
 .error-message {
     color: #d9534f;
     background-color: #f2dede;
