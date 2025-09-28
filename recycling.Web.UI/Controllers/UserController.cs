@@ -180,6 +180,84 @@ namespace recycling.Web.UI.Controllers
         public ActionResult Forgot()
         {
             return View(new ForgotPasswordViewModel());
-        }       
+        }
+
+        /// <summary>
+        /// 发送验证码
+        /// </summary>
+        [HttpPost]
+        public JsonResult SendVerificationCode(string phoneNumber)
+        {
+            try
+            {
+                // 验证手机号格式
+                if (!System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^1[3-9]\d{9}$"))
+                {
+                    return Json(new { success = false, message = "请输入有效的手机号" });
+                }
+
+                // 检查手机号是否存在
+                bool exists = _userBLL.IsPhoneExists(phoneNumber);
+
+                // 生成验证码（仅当手机号存在时）
+                string code = exists ? _userBLL.GenerateVerificationCode(phoneNumber) : "";
+
+                // 中性提示，不泄露手机号是否存在
+                string message = "若该手机号已注册，验证码已发送，5分钟内有效";
+
+                // 返回验证码用于前端显示（测试环境）
+                return Json(new
+                {
+                    success = true,
+                    message = message,
+                    debugCode = code // 实际生产环境应移除这一行
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "发送验证码失败：" + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 重置密码
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ResetPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("Forgot", model);
+            }
+
+            try
+            {
+                // 验证验证码
+                bool isCodeValid = _userBLL.VerifyVerificationCode(model.PhoneNumber, model.VerificationCode);
+                if (!isCodeValid)
+                {
+                    ModelState.AddModelError("VerificationCode", "验证码不正确或已过期");
+                    return View("Forgot", model);
+                }
+
+                // 重置密码
+                bool isSuccess = _userBLL.ResetPassword(model.PhoneNumber, model.NewPassword);
+                if (isSuccess)
+                {
+                    // 密码重置成功，跳转到登录页并显示提示
+                    TempData["Message"] = "密码已成功重置，请使用新密码登录";
+                    return RedirectToAction("Login");
+                }
+
+                ModelState.AddModelError("", "密码重置失败，请稍后重试");
+                return View("Forgot", model);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "操作失败：" + ex.Message);
+                return View("Forgot", model);
+            }
+        }
     }
 }
