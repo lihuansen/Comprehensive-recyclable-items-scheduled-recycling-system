@@ -89,7 +89,6 @@
                         @Html.ValidationMessageFor(m => m.Captcha, null, new { @class = "field-validation-error" })
 
                         <div class="captcha-image" id="captchaImage" title="点击刷新验证码">
-                            A3B7
                         </div>
                     </div>
                     @Html.HiddenFor(m => m.GeneratedCaptcha, new { id = "generatedCaptcha" })
@@ -164,9 +163,9 @@
                 <div class="captcha-container">
                     <input type="text" class="form-control captcha-input" id="staffCaptcha" placeholder="请输入验证码" maxlength="4" required>
                     <div class="captcha-image" id="staffCaptchaImage" title="点击刷新验证码">
-                        X8Y2
                     </div>
                 </div>
+                <input type="hidden" id="staffGeneratedCaptcha" />
             </div>
 
             <div class="login-buttons">
@@ -189,79 +188,150 @@
                 document.getElementById('userLoginArea').style.display = 'none';
                 document.getElementById('staffLoginArea').style.display = 'block';
                 document.getElementById('staffRoleDropdown').classList.add('active');
+                // 切换到工作人员登录时刷新验证码
+                refreshStaffCaptcha();
             }
         });
     });
 
-    // 验证码点击刷新
-    document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
-    document.getElementById('staffCaptchaImage').addEventListener('click', refreshStaffCaptcha);
+    // 验证码字符集（移除容易混淆的字符：0和O，1和I，l）
+    const captchaChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
+    // 生成随机验证码
+    function generateCaptcha() {
+        let captcha = '';
+        for (let i = 0; i < 4; i++) {
+            const randomIndex = Math.floor(Math.random() * captchaChars.length);
+            captcha += captchaChars[randomIndex];
+        }
+        return captcha;
+    }
+
+    // 刷新用户登录验证码
     function refreshCaptcha() {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        var newCaptcha = '';
-        for (var i = 0; i < 4; i++) {
-            newCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        this.textContent = newCaptcha;
-        var generatedCaptcha = document.getElementById('generatedCaptcha');
-        if (generatedCaptcha) {
-            generatedCaptcha.value = newCaptcha;
+        const captcha = generateCaptcha();
+        const captchaElement = document.getElementById('captchaImage');
+        const hiddenField = document.getElementById('generatedCaptcha');
+
+        if (captchaElement && hiddenField) {
+            captchaElement.textContent = captcha;
+            hiddenField.value = captcha;
+
+            // 添加随机颜色效果增强安全性
+            const colors = ['#333', '#e74c3c', '#27ae60', '#3498db', '#8e44ad', '#f39c12'];
+            captchaElement.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+            // 清空输入框
+            document.getElementById('@Html.IdFor(m => m.Captcha)').value = '';
         }
     }
 
+    // 刷新工作人员登录验证码
     function refreshStaffCaptcha() {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        var newCaptcha = '';
-        for (var i = 0; i < 4; i++) {
-            newCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
+        const captcha = generateCaptcha();
+        const captchaElement = document.getElementById('staffCaptchaImage');
+        const hiddenField = document.getElementById('staffGeneratedCaptcha');
+
+        if (captchaElement && hiddenField) {
+            captchaElement.textContent = captcha;
+            hiddenField.value = captcha;
+
+            // 添加随机颜色效果
+            const colors = ['#333', '#e74c3c', '#27ae60', '#3498db', '#8e44ad', '#f39c12'];
+            captchaElement.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+            // 清空输入框
+            document.getElementById('staffCaptcha').value = '';
         }
-        this.textContent = newCaptcha;
     }
 
-    // 页面加载时初始化验证码隐藏域
+    // 页面加载时初始化验证码
     document.addEventListener('DOMContentLoaded', function() {
-        var initialCaptcha = document.getElementById('captchaImage').textContent;
-        var generatedCaptcha = document.getElementById('generatedCaptcha');
-        if (generatedCaptcha) {
-            generatedCaptcha.value = initialCaptcha;
-        }
+        // 初始化用户登录验证码（解决首次加载无验证码问题）
+        refreshCaptcha();
 
-        // 修复：将Razor表达式从JavaScript lambda中移出，避免动态类型冲突
+        // 初始化工作人员登录验证码
+        refreshStaffCaptcha();
+
+        // 绑定验证码点击刷新事件
+        document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
+        document.getElementById('staffCaptchaImage').addEventListener('click', refreshStaffCaptcha);
+
+        // 处理验证错误后的验证码刷新
         @if (!ViewData.ModelState.IsValid)
         {
             bool hasCaptchaError = ViewData.ModelState.Values.Any(v => v.Errors.Any(e => e.ErrorMessage.Contains("验证码")));
             if (hasCaptchaError)
             {
-                @:refreshCaptcha.call(document.getElementById('captchaImage'));
+                @:refreshCaptcha();
             }
         }
 
-        // 确保密码登录表单可以正常提交
-        var passwordForm = document.getElementById('passwordLoginForm');
+        // 密码登录表单提交验证
+        const passwordForm = document.getElementById('passwordLoginForm');
         if (passwordForm) {
-            passwordForm.removeEventListener('submit', preventDefaultSubmit);
             passwordForm.addEventListener('submit', function(e) {
-                var generatedCaptcha = document.getElementById('generatedCaptcha');
-                if (!generatedCaptcha || !generatedCaptcha.value) {
-                    alert('验证码生成失败，请刷新页面重试');
+                const userInput = document.getElementById('@Html.IdFor(m => m.Captcha)').value;
+                const generatedCaptcha = document.getElementById('generatedCaptcha').value;
+
+                // 客户端先验证一次，提升用户体验
+                if (!userInput) {
+                    alert('请输入验证码');
                     e.preventDefault();
                     return false;
                 }
+
+                if (userInput.toUpperCase() !== generatedCaptcha.toUpperCase()) {
+                    alert('验证码不正确，请重新输入');
+                    refreshCaptcha();
+                    e.preventDefault();
+                    return false;
+                }
+
                 return true;
+            });
+        }
+
+        // 工作人员登录表单提交验证
+        const staffForm = document.getElementById('staffLoginForm');
+        if (staffForm) {
+            staffForm.addEventListener('submit', function(e) {
+                const userInput = document.getElementById('staffCaptcha').value;
+                const generatedCaptcha = document.getElementById('staffGeneratedCaptcha').value;
+
+                if (!userInput) {
+                    alert('请输入验证码');
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (userInput.toUpperCase() !== generatedCaptcha.toUpperCase()) {
+                    alert('验证码不正确，请重新输入');
+                    refreshStaffCaptcha();
+                    e.preventDefault();
+                    return false;
+                }
+
+                // 这里可以添加实际登录逻辑
+                alert('工作人员登录功能即将实现');
+                e.preventDefault();
+                return false;
             });
         }
     });
 
-    function preventDefaultSubmit(e) {
-        e.preventDefault();
-    }
-
     // 发送手机验证码
     document.getElementById('sendPhoneCode').addEventListener('click', function() {
-        var phoneNumber = document.getElementById('phoneNumber').value;
+        const phoneNumber = document.getElementById('phoneNumber').value;
+        const phoneRegex = /^1[3-9]\d{9}$/;
+
         if (!phoneNumber) {
             alert('请输入手机号');
+            return;
+        }
+
+        if (!phoneRegex.test(phoneNumber)) {
+            alert('请输入正确的手机号格式');
             return;
         }
 
@@ -269,8 +339,8 @@
         this.textContent = '60秒后重新发送';
         this.classList.add('disabled');
 
-        var countdown = 60;
-        var timer = setInterval(function() {
+        let countdown = 60;
+        const timer = setInterval(function() {
             countdown--;
             document.getElementById('sendPhoneCode').textContent = countdown + '秒后重新发送';
 
@@ -281,13 +351,23 @@
                 document.getElementById('sendPhoneCode').classList.remove('disabled');
             }
         }, 1000);
+
+        // 实际项目中这里应该有AJAX请求发送验证码
+        console.log(`向手机号 ${phoneNumber} 发送验证码`);
     });
 
     // 发送邮箱验证码
     document.getElementById('sendEmailCode').addEventListener('click', function() {
-        var emailAddress = document.getElementById('emailAddress').value;
+        const emailAddress = document.getElementById('emailAddress').value;
+        const emailRegex = /^[^\s]+[^\s]+\.[^\s]+$/;
+
         if (!emailAddress) {
             alert('请输入邮箱');
+            return;
+        }
+
+        if (!emailRegex.test(emailAddress)) {
+            alert('请输入正确的邮箱格式');
             return;
         }
 
@@ -295,8 +375,8 @@
         this.textContent = '60秒后重新发送';
         this.classList.add('disabled');
 
-        var countdown = 60;
-        var timer = setInterval(function() {
+        let countdown = 60;
+        const timer = setInterval(function() {
             countdown--;
             document.getElementById('sendEmailCode').textContent = countdown + '秒后重新发送';
 
@@ -307,6 +387,9 @@
                 document.getElementById('sendEmailCode').classList.remove('disabled');
             }
         }, 1000);
+
+        // 实际项目中这里应该有AJAX请求发送验证码
+        console.log(`向邮箱 ${emailAddress} 发送验证码`);
     });
 
     // 取消按钮点击事件
@@ -322,16 +405,53 @@
     // 其他登录方式提交处理
     document.getElementById('phoneLoginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        alert('手机号登录功能暂未实现');
+
+        const username = document.getElementById('phoneUsername').value;
+        const phone = document.getElementById('phoneNumber').value;
+        const code = document.getElementById('phoneCode').value;
+
+        if (!username) {
+            alert('请输入用户名');
+            return;
+        }
+
+        if (!phone) {
+            alert('请输入手机号');
+            return;
+        }
+
+        if (!code) {
+            alert('请输入手机验证码');
+            return;
+        }
+
+        // 实际项目中这里应该有AJAX登录请求
+        alert('手机号登录功能即将实现');
     });
 
     document.getElementById('emailLoginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        alert('邮箱登录功能暂未实现');
-    });
 
-    document.getElementById('staffLoginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('工作人员登录功能暂未实现');
+        const username = document.getElementById('emailUsername').value;
+        const email = document.getElementById('emailAddress').value;
+        const code = document.getElementById('emailCode').value;
+
+        if (!username) {
+            alert('请输入用户名');
+            return;
+        }
+
+        if (!email) {
+            alert('请输入邮箱');
+            return;
+        }
+
+        if (!code) {
+            alert('请输入邮箱验证码');
+            return;
+        }
+
+        // 实际项目中这里应该有AJAX登录请求
+        alert('邮箱登录功能即将实现');
     });
 </script>
