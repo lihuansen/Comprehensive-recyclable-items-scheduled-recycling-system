@@ -180,66 +180,6 @@ namespace recycling.Web.UI.Controllers
         public ActionResult Forgot()
         {
             return View(new ForgotPasswordViewModel());
-        }
-
-        /// <summary>
-        /// 发送验证码
-        /// </summary>
-        [HttpPost]
-        public JsonResult SendVerificationCode(string phoneNumber)
-        {
-            try
-            {
-                // 验证手机号格式
-                if (!System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^1[3-9]\d{9}$"))
-                {
-                    return Json(new { success = false, message = "请输入正确的手机号格式" });
-                }
-                
-                // 检查手机号是否存在（但返回中性提示）
-                bool isExists = _userBLL.IsPhoneExists(phoneNumber);
-                
-                // 无论手机号是否存在，都生成验证码（实际发送只对存在的手机号）
-                string code = _userBLL.GenerateVerificationCode(phoneNumber);
-                
-                // 模拟发送验证码，实际项目中应调用短信服务API
-                if (isExists)
-                {
-                    // 这里只是模拟发送，实际项目中需要集成短信服务
-                    System.Diagnostics.Debug.WriteLine($"向手机号 {phoneNumber} 发送验证码：{code}");
-                }
-                
-                // 返回中性提示，不泄露手机号是否存在
-                return Json(new { success = true, message = "验证码已发送，请注意查收（有效期5分钟）" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "发送验证码失败，请稍后重试",ex });
-            }
-        }
-        
-        /// <summary>
-        /// 处理密码重置
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult ResetPassword(ForgotPasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View("Forgot", model);
-            }
-            
-            string errorMsg = _userBLL.ResetPassword(model);
-            if (errorMsg != null)
-            {
-                ModelState.AddModelError("", errorMsg);
-                return View("Forgot", model);
-            }
-            
-            // 密码重置成功，跳转到登录页并显示提示
-            TempData["Message"] = "密码重置成功，请使用新密码登录";
-            return RedirectToAction("Login");
-        }
+        }       
     }
 }
