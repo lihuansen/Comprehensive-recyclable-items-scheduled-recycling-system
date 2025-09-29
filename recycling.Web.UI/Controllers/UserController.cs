@@ -201,7 +201,7 @@ namespace recycling.Web.UI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View("Login", model);
+                return View(model);
             }
 
             try
@@ -215,7 +215,7 @@ namespace recycling.Web.UI.Controllers
                         model.VerificationCode = "";
                     }
                     ModelState.AddModelError("", errorMsg);
-                    return View("Login", model);
+                    return View(model);
                 }
 
                 // 更新最后登录时间
@@ -230,7 +230,7 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "登录失败：" + ex.Message);
-                return View("Login", model);
+                return View(model);
             }
         }
 
