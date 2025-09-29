@@ -16,15 +16,17 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
+
+        /// <summary>
+        /// 显示密码登录页面（主登录界面）
+        /// </summary>
         [HttpGet]
         public ActionResult Login()
         {
-            //如果已登录，直接跳转到首页
             if (Session["LoginUser"] != null)
             {
                 return RedirectToAction("Index", "Home");
             }
-            ViewBag.LoginType = "password";
             return View(new LoginViewModel());
         }
         // POST: User/Login - 处理密码登录
@@ -32,8 +34,6 @@ namespace recycling.Web.UI.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginViewModel model)
         {
-            ViewBag.LoginType = "password";
-
             // 模型验证
             if (!ModelState.IsValid)
             {
@@ -98,12 +98,10 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult PhoneLogin()
         {
-            // 如果已登录，直接跳转到首页
             if (Session["LoginUser"] != null)
             {
                 return RedirectToAction("Index", "Home");
             }
-            ViewBag.LoginType = "phone";
             return View(new PhoneLoginViewModel());
         }
 
@@ -114,8 +112,6 @@ namespace recycling.Web.UI.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult PhoneLogin(PhoneLoginViewModel model)
         {
-            ViewBag.LoginType = "phone";
-
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -193,8 +189,7 @@ namespace recycling.Web.UI.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            ViewBag.LoginType = "email";
-            return View("Login", new EmailLoginViewModel());
+            return View(new EmailLoginViewModel());
         }
 
         /// <summary>
@@ -204,8 +199,6 @@ namespace recycling.Web.UI.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult EmailLogin(EmailLoginViewModel model)
         {
-            ViewBag.LoginType = "email";
-
             if (!ModelState.IsValid)
             {
                 return View("Login", model);
