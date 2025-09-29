@@ -236,5 +236,48 @@ namespace recycling.DAL
             }
             return user;
         }
+
+        /// <summary>
+        /// 新增：通过邮箱查询用户（用于邮箱登录）
+        /// </summary>
+        public Users GetUserByEmail(string email)
+        {
+            Users user = null;
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate, LastLoginDate 
+                                  FROM Users 
+                                  WHERE Email = @Email";
+
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@Email", email);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            user = new Users
+                            {
+                                UserID = Convert.ToInt32(reader["UserID"]),
+                                Username = reader["Username"].ToString(),
+                                PasswordHash = reader["PasswordHash"].ToString(),
+                                PhoneNumber = reader["PhoneNumber"].ToString(),
+                                Email = reader["Email"].ToString(),
+                                RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
+                                LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("通过邮箱查询用户失败：" + ex.Message);
+                }
+            }
+            return user;
+        }
     }
 }
