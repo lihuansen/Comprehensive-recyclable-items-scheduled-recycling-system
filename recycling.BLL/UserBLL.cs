@@ -8,14 +8,16 @@ using recycling.Model;
 using recycling.DAL;
 using System.Web;
 using System.Collections;
+using System.Collections.Concurrent;
 
 namespace recycling.BLL
 {
     public class UserBLL
     {
         private UserDAL _userDAL = new UserDAL();
-        // 用于存储验证码的临时缓存（实际项目中可替换为Redis等）
-        private static Hashtable _verificationCodes = new Hashtable();
+        // 线程安全的验证码存储（手机号 -> 验证码+过期时间）
+        private static readonly ConcurrentDictionary<string, (string Code, DateTime ExpireTime)> _verificationCodes =
+            new ConcurrentDictionary<string, (string, DateTime)>();
 
         /// <summary>
         /// 注册新用户，返回错误信息（按优先级排序）
@@ -183,69 +185,57 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 生成验证码并存储
+        /// 生成验证码（有效期5分钟）
         /// </summary>
-        /// <param name="phoneNumber">手机号</param>
-        /// <returns>生成的验证码</returns>
         public string GenerateVerificationCode(string phoneNumber)
         {
-            // 生成6位数字验证码
-            Random random = new Random();
-            string code = random.Next(100000, 999999).ToString();
-
-            // 存储验证码，有效期5分钟，使用手机号作为键
-            _verificationCodes[phoneNumber] = new Tuple<string, DateTime>(code, DateTime.Now.AddMinutes(5));
-
+            var random = new Random();
+            string code = random.Next(100000, 999999).ToString(); // 6位数字
+            _verificationCodes[phoneNumber] = (code, DateTime.Now.AddMinutes(5));
             return code;
         }
 
         /// <summary>
-        /// 验证验证码是否有效
+        /// 验证验证码有效性（一次有效）
         /// </summary>
-        /// <param name="phoneNumber">手机号</param>
-        /// <param name="code">验证码</param>
-        /// <returns>是否有效</returns>
-        public bool VerifyVerificationCode(string phoneNumber, string code)
+        public bool VerifyVerificationCode(string phoneNumber, string inputCode)
         {
-            if (!_verificationCodes.ContainsKey(phoneNumber))
+            if (_verificationCodes.TryGetValue(phoneNumber, out var storedData))
             {
-                return false; // 验证码不存在
+                // 验证验证码是否正确且未过期
+                bool isValid = storedData.Code == inputCode && DateTime.Now <= storedData.ExpireTime;
+
+                // 无论验证成功与否，都移除验证码（一次有效）
+                _verificationCodes.TryRemove(phoneNumber, out _);
+
+                return isValid;
             }
-
-            var codeInfo = (Tuple<string, DateTime>)_verificationCodes[phoneNumber];
-
-            // 验证验证码是否正确且未过期
-            bool isValid = codeInfo.Item1 == code && DateTime.Now <= codeInfo.Item2;
-
-            // 验证码使用一次后失效
-            if (isValid)
-            {
-                _verificationCodes.Remove(phoneNumber);
-            }
-
-            return isValid;
+            return false;
         }
 
         /// <summary>
-        /// 重置密码
+        /// 重置密码（包含新密码与原密码不同的验证）
         /// </summary>
-        /// <param name="phoneNumber">手机号</param>
-        /// <param name="newPassword">新密码</param>
-        /// <returns>是否成功</returns>
-        public bool ResetPassword(string phoneNumber, string newPassword)
+        public string ResetUserPassword(string phoneNumber, string newPassword)
         {
-            try
+            // 1. 检查手机号是否存在
+            if (!_userDAL.IsPhoneExists(phoneNumber))
             {
-                // 密码哈希处理
-                string passwordHash = HashPassword(newPassword);
+                return "系统中未找到该手机号的注册信息";
+            }
 
-                // 调用DAL层更新密码
-                return _userDAL.UpdatePasswordByPhone(phoneNumber, passwordHash);
-            }
-            catch (Exception ex)
+            // 2. 获取原密码哈希并与新密码哈希比对
+            string originalHash = _userDAL.GetOriginalPasswordHash(phoneNumber);
+            string newHash = HashPassword(newPassword);
+
+            if (originalHash == newHash)
             {
-                throw new Exception("重置密码失败：" + ex.Message);
+                return "新密码不能与原密码相同，请重新设置";
             }
+
+            // 3. 执行密码更新
+            bool updateSuccess = _userDAL.UpdatePasswordByPhone(phoneNumber, newHash);
+            return updateSuccess ? null : "密码重置失败，请稍后重试";
         }
     }
 }
