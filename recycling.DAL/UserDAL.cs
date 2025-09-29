@@ -202,5 +202,39 @@ namespace recycling.DAL
             }
         }
 
+        /// <summary>
+        /// 新增：通过手机号获取用户信息
+        /// </summary>
+        public Users GetUserByPhone(string phoneNumber)
+        {
+            Users user = null;
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate 
+                              FROM Users 
+                              WHERE PhoneNumber = @PhoneNumber";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        user = new Users
+                        {
+                            UserID = Convert.ToInt32(reader["UserID"]),
+                            Username = reader["Username"].ToString(),
+                            PasswordHash = reader["PasswordHash"].ToString(),
+                            PhoneNumber = reader["PhoneNumber"].ToString(),
+                            Email = reader["Email"].ToString(),
+                            RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"])
+                        };
+                    }
+                }
+            }
+            return user;
+        }
     }
 }
