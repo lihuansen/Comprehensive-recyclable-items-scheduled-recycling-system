@@ -235,28 +235,35 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 邮箱登录专用 - 发送验证码
+        /// 邮箱登录专用 - 发送验证码（真实发送到邮箱）
         /// </summary>
         [HttpPost]
         public JsonResult SendEmailLoginCode(string email)
         {
             try
             {
-                // 验证邮箱格式
+                // 1. 验证邮箱格式
                 if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^\s]+@[^\s]+\.[^\s]+$"))
                 {
                     return Json(new { success = false, message = "请输入有效的邮箱地址" });
                 }
 
-                // 检查邮箱是否注册（中性提示）
-                bool isRegistered = _userBLL.IsEmailExists(email); // 需要在BLL层实现IsEmailExists方法
-                string code = isRegistered ? _userBLL.GenerateEmailVerificationCode(email) : "";
+                // 2. 调用BLL层生成并发送验证码（真实发送到邮箱）
+                bool isSent = _userBLL.GenerateAndSendEmailCode(email);
+
+                // 3. 中性提示（不泄露邮箱是否注册）
+                string message = isSent
+                    ? "若该邮箱已注册，验证码已发送至您的邮箱（5分钟内有效）"
+                    : "发送失败，请稍后重试";
+
+                // 4. 测试环境仍返回验证码（便于调试）
+                string debugCode = _userBLL.GetVerificationCodeForTest(email);  // 需要在BLL层新增一个测试用方法
 
                 return Json(new
                 {
-                    success = true,
-                    message = "若该邮箱已注册，验证码已生成（5分钟内有效）",
-                    debugCode = code // 测试环境显示验证码
+                    success = true,  // 无论是否注册，前端都显示相同提示
+                    message = message,
+                    debugCode = debugCode  // 测试用，生产环境可移除
                 });
             }
             catch (Exception ex)
@@ -264,6 +271,7 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = "发送验证码失败：" + ex.Message });
             }
         }
+
 
         [HttpGet]
         public ActionResult Register()
