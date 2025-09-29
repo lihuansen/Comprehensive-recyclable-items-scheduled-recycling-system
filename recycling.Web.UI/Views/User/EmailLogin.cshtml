@@ -70,59 +70,6 @@
     }
 </div>
 
-<style>
-    /* 验证码显示区域样式 */
-    .verification-code-display {
-        margin: 15px 0;
-        padding: 10px 15px;
-        background-color: #fff8e1;
-        border-left: 4px solid #ffc107;
-        border-radius: 4px;
-    }
-
-    .code-info {
-        font-size: 15px;
-        color: #e65100;
-        margin-bottom: 5px;
-    }
-
-    .code-value {
-        font-weight: bold;
-        font-size: 16px;
-        letter-spacing: 2px;
-        padding: 0 5px;
-    }
-
-    .code-note {
-        font-size: 12px;
-        color: #795548;
-        font-style: italic;
-    }
-    /* 邮箱输入容器样式 */
-    .email-input-container {
-        position: relative;
-    }
-
-    .send-code-btn {
-        position: absolute;
-        right: 5px;
-        top: 50%;
-        transform: translateY(-50%);
-        padding: 5px 10px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-        .send-code-btn:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
-</style>
-
 <script>
     // 发送邮箱验证码
     function sendEmailVerificationCode() {
