@@ -185,6 +185,37 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 手机号登录验证
+        /// </summary>
+        /// <param name="phoneNumber">手机号</param>
+        /// <param name="verificationCode">验证码</param>
+        /// <returns>验证结果：null表示成功，否则为错误信息</returns>
+        public (string ErrorMessage, Users User) PhoneLogin(string phoneNumber, string verificationCode)
+        {
+            // 1. 检查手机号是否已注册
+            if (!_userDAL.IsPhoneExists(phoneNumber))
+            {
+                return ("该手机号未注册，请先注册", null);
+            }
+
+            // 2. 验证验证码
+            if (!VerifyVerificationCode(phoneNumber, verificationCode))
+            {
+                return ("验证码不正确或已过期", null);
+            }
+
+            // 3. 获取用户信息
+            Users user = _userDAL.GetUserByPhone(phoneNumber);
+            if (user == null)
+            {
+                return ("用户信息获取失败，请重试", null);
+            }
+
+            // 4. 验证成功
+            return (null, user);
+        }
+
+        /// <summary>
         /// 生成验证码（有效期5分钟）
         /// </summary>
         public string GenerateVerificationCode(string phoneNumber)
