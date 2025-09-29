@@ -1,7 +1,150 @@
-﻿
+﻿@model recycling.Model.PhoneLoginViewModel
 @{
-    ViewBag.Title = "PhoneLogin";
+    ViewBag.Title = "手机号登录";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>PhoneLogin</h2>
+<!-- 引入Font Awesome用于图标 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="~/Content/login.css" rel="stylesheet" type="text/css" />
 
+<div class="login-container">
+    <h2 class="login-title">手机号登录</h2>
+
+    @Html.ValidationSummary(true, "登录失败，请检查以下问题：", new { @class = "validation-summary-errors" })
+
+    @using (Html.BeginForm("PhoneLogin", "User", FormMethod.Post, new { id = "phoneLoginForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <!-- 手机号输入 -->
+        <div class="form-group">
+            @Html.LabelFor(m => m.PhoneNumber)
+            <div class="phone-input-container">
+                @Html.TextBoxFor(m => m.PhoneNumber, new
+                {
+                    @class = "form-control",
+                    placeholder = "请输入手机号",
+                    required = "required",
+                    maxlength = "11"
+                })
+                <button type="button" class="send-code-btn" id="sendCodeBtn">发送验证码</button>
+            </div>
+            @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "text-danger" })
+        </div>
+
+        <!-- 验证码显示区域（测试用） -->
+        <div id="verificationCodeDisplay" class="verification-code-display">
+            <div class="code-info">📌 测试验证码：<span id="codeValue" class="code-value">未发送</span></div>
+            <div class="code-note">（实际环境中验证码将发送至您的手机）</div>
+        </div>
+
+        <!-- 验证码输入 -->
+        <div class="form-group">
+            @Html.LabelFor(m => m.VerificationCode)
+            @Html.TextBoxFor(m => m.VerificationCode, new
+            {
+                @class = "form-control",
+                placeholder = "请输入验证码",
+                required = "required",
+                maxlength = "6"
+            })
+            @Html.ValidationMessageFor(m => m.VerificationCode, null, new { @class = "text-danger" })
+        </div>
+
+        <div class="login-buttons">
+            <button type="submit" class="btn btn-primary btn-login">登录</button>
+            <button type="button" class="btn btn-secondary btn-switch" onclick="window.location.href='@Url.Action("Login", "User")'">
+                切换至密码登录
+            </button>
+        </div>
+    }
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 发送验证码按钮点击事件
+        document.getElementById('sendCodeBtn').addEventListener('click', sendVerificationCode);
+    });
+
+    // 发送验证码
+    function sendVerificationCode() {
+        const phoneNumber = document.getElementById('PhoneNumber').value;
+        const sendBtn = document.getElementById('sendCodeBtn');
+        const codeDisplay = document.getElementById('verificationCodeDisplay');
+        const codeValue = document.getElementById('codeValue');
+
+        // 验证手机号
+        if (!phoneNumber || phoneNumber.length !== 11) {
+            alert('请输入有效的11位手机号');
+            return;
+        }
+
+        // 显示验证码区域
+        codeDisplay.style.display = 'block';
+        codeValue.textContent = '生成中...';
+
+        // 禁用发送按钮
+        sendBtn.disabled = true;
+        sendBtn.textContent = '发送中...';
+
+        // 发送AJAX请求
+        fetch('@Url.Action("SendLoginCode", "User")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'phoneNumber=' + encodeURIComponent(phoneNumber)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('网络请求失败');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // 显示验证码
+            if (data.debugCode) {
+                codeValue.textContent = data.debugCode;
+                // 自动选择验证码文本
+                const range = document.createRange();
+                range.selectNode(codeValue);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+            } else {
+                codeValue.textContent = '获取失败，请重试';
+            }
+
+            // 显示消息
+            alert(data.message || '验证码发送成功');
+
+            // 倒计时
+            if (data.success) {
+                let countdown = 60;
+                sendBtn.textContent = countdown + '秒后重发';
+
+                const timer = setInterval(() => {
+                    countdown--;
+                    sendBtn.textContent = countdown + '秒后重发';
+
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = '发送验证码';
+                    }
+                }, 1000);
+            } else {
+                sendBtn.disabled = false;
+                sendBtn.textContent = '发送验证码';
+            }
+        })
+        .catch(error => {
+            console.error('发送验证码失败:', error);
+            alert('发送验证码失败，请稍后重试');
+            sendBtn.disabled = false;
+            sendBtn.textContent = '发送验证码';
+            codeValue.textContent = '获取失败';
+        });
+    }
+</script>
