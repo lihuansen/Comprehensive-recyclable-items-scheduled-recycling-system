@@ -83,6 +83,7 @@ namespace recycling.Web.UI.Controllers
 
             return RedirectToAction("Index", "Home");
         }
+
         // 退出登录
         public ActionResult Logout()
         {
@@ -90,6 +91,11 @@ namespace recycling.Web.UI.Controllers
             Session.Abandon(); // 终止当前会话
             return RedirectToAction("Index", "Home");
         }
+
+        /// <summary>
+        /// 显示手机号登录页面
+        /// </summary>
+        [HttpGet]
         public ActionResult PhoneLogin()
         {
             ViewBag.LoginType = "phone";
@@ -97,9 +103,91 @@ namespace recycling.Web.UI.Controllers
         }
         public ActionResult EmailLogin()
         {
-            ViewBag.LoginType = "email";
-            return View("Login");
-        }   
+            // 如果已登录，直接跳转到首页
+            if (Session["LoginUser"] != null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            ViewBag.LoginType = "phone";
+            return View(new PhoneLoginViewModel());
+        }
+
+        /// <summary>
+        /// 处理手机号登录提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult PhoneLogin(PhoneLoginViewModel model)
+        {
+            ViewBag.LoginType = "phone";
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                // 调用BLL层验证手机号登录
+                var (errorMsg, user) = _userBLL.PhoneLogin(model.PhoneNumber, model.VerificationCode);
+                if (errorMsg != null)
+                {
+                    // 验证码错误时清空验证码输入
+                    if (errorMsg.Contains("验证码"))
+                    {
+                        model.VerificationCode = "";
+                    }
+                    ModelState.AddModelError("", errorMsg);
+                    return View(model);
+                }
+
+                // 登录成功，更新最后登录时间
+                _userBLL.UpdateLastLoginDate(user.UserID);
+
+                // 存储会话信息
+                Session["LoginUser"] = user;
+                Session.Timeout = 30;
+
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "登录失败：" + ex.Message);
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// 手机号登录专用 - 发送验证码
+        /// </summary>
+        [HttpPost]
+        public JsonResult SendLoginCode(string phoneNumber)
+        {
+            try
+            {
+                // 验证手机号格式
+                if (!System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^1[3-9]\d{9}$"))
+                {
+                    return Json(new { success = false, message = "请输入有效的11位手机号" });
+                }
+
+                // 检查手机号是否存在（中性提示）
+                bool isRegistered = _userBLL.IsPhoneExists(phoneNumber);
+                string code = isRegistered ? _userBLL.GenerateVerificationCode(phoneNumber) : "";
+
+                return Json(new
+                {
+                    success = true,
+                    message = "若该手机号已注册，验证码已生成（5分钟内有效）",
+                    debugCode = code // 测试环境显示验证码
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "发送验证码失败：" + ex.Message });
+            }
+        }
+
         [HttpGet]
         public ActionResult Register()
         {
