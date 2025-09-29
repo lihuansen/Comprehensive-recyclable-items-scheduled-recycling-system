@@ -164,25 +164,41 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 根据手机号更新密码
+        /// 根据手机号更新密码（完全移除LastPasswordChangeDate字段）
         /// </summary>
         public bool UpdatePasswordByPhone(string phoneNumber, string newPasswordHash)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
+                // 确保SQL语句中没有LastPasswordChangeDate字段
                 string sql = @"UPDATE Users 
-                               SET PasswordHash = @PasswordHash,
-                                   LastPasswordChangeDate = @LastPasswordChangeDate
+                               SET PasswordHash = @PasswordHash
                                WHERE PhoneNumber = @PhoneNumber";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@PasswordHash", newPasswordHash);
-                cmd.Parameters.AddWithValue("@LastPasswordChangeDate", DateTime.Now);
                 cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
 
                 conn.Open();
                 int rowsAffected = cmd.ExecuteNonQuery();
                 return rowsAffected > 0;
+            }
+        }
+
+        /// <summary>
+        /// 新增：通过手机号获取原密码哈希（用于验证新密码是否与原密码相同）
+        /// </summary>
+        public string GetOriginalPasswordHash(string phoneNumber)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT PasswordHash FROM Users WHERE PhoneNumber = @PhoneNumber";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+
+                conn.Open();
+                object result = cmd.ExecuteScalar();
+                return result != null ? result.ToString() : null;
             }
         }
 
