@@ -9,6 +9,7 @@ using recycling.DAL;
 using System.Web;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace recycling.BLL
 {
@@ -267,6 +268,49 @@ namespace recycling.BLL
             // 3. 执行密码更新
             bool updateSuccess = _userDAL.UpdatePasswordByPhone(phoneNumber, newHash);
             return updateSuccess ? null : "密码重置失败，请稍后重试";
+        }
+
+        /// <summary>
+        /// 新增：邮箱登录逻辑
+        /// </summary>
+        /// <param name="email">邮箱地址</param>
+        /// <param name="verificationCode">验证码</param>
+        /// <returns>错误信息（null表示成功）+ 用户对象</returns>
+        public (string ErrorMsg, Users User) EmailLogin(string email, string verificationCode)
+        {
+            // 1. 验证邮箱格式
+            if (!Regex.IsMatch(email, @"^[^\s]+@[^\s]+\.[^\s]+$"))
+            {
+                return ("请输入有效的邮箱地址", null);
+            }
+
+            // 2. 验证验证码
+            bool isCodeValid = VerifyVerificationCode(email, verificationCode);
+            if (!isCodeValid)
+            {
+                return ("验证码不正确或已过期", null);
+            }
+
+            // 3. 通过邮箱查询用户
+            Users user = _userDAL.GetUserByEmail(email);
+            if (user == null)
+            {
+                return ("该邮箱未注册，请先注册", null);
+            }
+
+            // 4. 验证通过
+            return (null, user);
+        }
+
+        /// <summary>
+        /// 新增：发送邮箱验证码
+        /// </summary>
+        public string GenerateEmailVerificationCode(string email)
+        {
+            var random = new Random();
+            string code = random.Next(100000, 999999).ToString();
+            _verificationCodes[email] = (code, DateTime.Now.AddMinutes(5)); // 邮箱作为key存储
+            return code;
         }
     }
 }
