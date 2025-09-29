@@ -193,34 +193,30 @@ namespace recycling.Web.UI.Controllers
                 // 验证手机号格式
                 if (!System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^1[3-9]\d{9}$"))
                 {
-                    return Json(new { success = false, message = "请输入有效的手机号" });
+                    return Json(new { success = false, message = "请输入有效的11位手机号" });
                 }
 
-                // 检查手机号是否存在
-                bool exists = _userBLL.IsPhoneExists(phoneNumber);
+                // 检查手机号是否存在（但不泄露结果）
+                bool isRegistered = _userBLL.IsPhoneExists(phoneNumber);
+                string code = isRegistered ? _userBLL.GenerateVerificationCode(phoneNumber) : "";
 
-                // 生成验证码（仅当手机号存在时）
-                string code = exists ? _userBLL.GenerateVerificationCode(phoneNumber) : "";
-
-                // 中性提示，不泄露手机号是否存在
-                string message = "若该手机号已注册，验证码已发送，5分钟内有效";
-
-                // 返回验证码用于前端显示（测试环境）
+                // 中性提示语，不泄露手机号是否注册
                 return Json(new
                 {
                     success = true,
-                    message = message,
-                    debugCode = code // 实际生产环境应移除这一行
+                    message = "若该手机号已注册，验证码已生成（5分钟内有效）",
+                    debugCode = code // 测试环境显示验证码
                 });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "发送验证码失败：" + ex.Message });
+                return Json(new { success = false, message = "生成验证码失败：" + ex.Message });
             }
         }
 
+
         /// <summary>
-        /// 重置密码
+        /// 处理密码重置提交
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -233,7 +229,7 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // 验证验证码
+                // 1. 验证验证码
                 bool isCodeValid = _userBLL.VerifyVerificationCode(model.PhoneNumber, model.VerificationCode);
                 if (!isCodeValid)
                 {
@@ -241,17 +237,17 @@ namespace recycling.Web.UI.Controllers
                     return View("Forgot", model);
                 }
 
-                // 重置密码
-                bool isSuccess = _userBLL.ResetPassword(model.PhoneNumber, model.NewPassword);
-                if (isSuccess)
+                // 2. 执行密码重置（包含与原密码比对）
+                string errorMessage = _userBLL.ResetUserPassword(model.PhoneNumber, model.NewPassword);
+                if (errorMessage != null)
                 {
-                    // 密码重置成功，跳转到登录页并显示提示
-                    TempData["Message"] = "密码已成功重置，请使用新密码登录";
-                    return RedirectToAction("Login");
+                    ModelState.AddModelError("", errorMessage);
+                    return View("Forgot", model);
                 }
 
-                ModelState.AddModelError("", "密码重置失败，请稍后重试");
-                return View("Forgot", model);
+                // 3. 重置成功，跳转登录页并提示
+                TempData["SuccessMessage"] = "密码已成功重置，请使用新密码登录";
+                return RedirectToAction("Login");
             }
             catch (Exception ex)
             {
