@@ -186,6 +186,24 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 检查邮箱是否已注册（封装DAL方法）
+        /// </summary>
+        /// <param name="email">邮箱</param>
+        /// <returns>是否存在</returns>
+        public bool IsEmailExists(string email)
+        {
+            try
+            {
+                // 调用DAL层的IsEmailExists方法
+                return _userDAL.IsEmailExists(email);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("验证邮箱时发生错误，请稍后重试", ex);
+            }
+        }
+
+        /// <summary>
         /// 手机号登录验证
         /// </summary>
         /// <param name="phoneNumber">手机号</param>

@@ -98,11 +98,6 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult PhoneLogin()
         {
-            ViewBag.LoginType = "phone";
-            return View("Login"); 
-        }
-        public ActionResult EmailLogin()
-        {
             // 如果已登录，直接跳转到首页
             if (Session["LoginUser"] != null)
             {
@@ -179,6 +174,95 @@ namespace recycling.Web.UI.Controllers
                 {
                     success = true,
                     message = "若该手机号已注册，验证码已生成（5分钟内有效）",
+                    debugCode = code // 测试环境显示验证码
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "发送验证码失败：" + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 显示邮箱登录页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult EmailLogin()
+        {
+            if (Session["LoginUser"] != null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            ViewBag.LoginType = "email";
+            return View("Login", new EmailLoginViewModel());
+        }
+
+        /// <summary>
+        /// 处理邮箱登录提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EmailLogin(EmailLoginViewModel model)
+        {
+            ViewBag.LoginType = "email";
+
+            if (!ModelState.IsValid)
+            {
+                return View("Login", model);
+            }
+
+            try
+            {
+                // 调用BLL层验证邮箱登录
+                var (errorMsg, user) = _userBLL.EmailLogin(model.Email, model.VerificationCode);
+                if (errorMsg != null)
+                {
+                    if (errorMsg.Contains("验证码"))
+                    {
+                        model.VerificationCode = "";
+                    }
+                    ModelState.AddModelError("", errorMsg);
+                    return View("Login", model);
+                }
+
+                // 更新最后登录时间
+                _userBLL.UpdateLastLoginDate(user.UserID);
+
+                // 存储会话
+                Session["LoginUser"] = user;
+                Session.Timeout = 30;
+
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "登录失败：" + ex.Message);
+                return View("Login", model);
+            }
+        }
+
+        /// <summary>
+        /// 邮箱登录专用 - 发送验证码
+        /// </summary>
+        [HttpPost]
+        public JsonResult SendEmailLoginCode(string email)
+        {
+            try
+            {
+                // 验证邮箱格式
+                if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^\s]+@[^\s]+\.[^\s]+$"))
+                {
+                    return Json(new { success = false, message = "请输入有效的邮箱地址" });
+                }
+
+                // 检查邮箱是否注册（中性提示）
+                bool isRegistered = _userBLL.IsEmailExists(email); // 需要在BLL层实现IsEmailExists方法
+                string code = isRegistered ? _userBLL.GenerateEmailVerificationCode(email) : "";
+
+                return Json(new
+                {
+                    success = true,
+                    message = "若该邮箱已注册，验证码已生成（5分钟内有效）",
                     debugCode = code // 测试环境显示验证码
                 });
             }
