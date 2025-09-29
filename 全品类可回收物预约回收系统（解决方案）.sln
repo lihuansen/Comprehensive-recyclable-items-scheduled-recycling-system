@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "recycling.DAL", "recycling.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "recycling.Model", "recycling.Model\recycling.Model.csproj", "{6DA7DF6C-412A-4297-A76A-30321E6243C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "recycling.Common", "recycling.Common\recycling.Common.csproj", "{C76793C6-756E-4C3C-8834-B265A97669C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{6DA7DF6C-412A-4297-A76A-30321E6243C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DA7DF6C-412A-4297-A76A-30321E6243C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DA7DF6C-412A-4297-A76A-30321E6243C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C76793C6-756E-4C3C-8834-B265A97669C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C76793C6-756E-4C3C-8834-B265A97669C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C76793C6-756E-4C3C-8834-B265A97669C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C76793C6-756E-4C3C-8834-B265A97669C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
