@@ -1,7 +1,239 @@
-﻿
+﻿@model recycling.Model.EmailLoginViewModel
+
 @{
-    ViewBag.Title = "EmailLogin";
+    ViewBag.Title = "邮箱登录";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>EmailLogin</h2>
+<!-- 引入Font Awesome用于图标 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="~/Content/login.css" rel="stylesheet" type="text/css" />
 
+<div class="login-container">
+    <h2 class="login-title">邮箱登录</h2>
+
+    <!-- 显示后端验证错误 -->
+    @Html.ValidationSummary(true, "登录失败，请检查以下问题：", new { @class = "validation-summary-errors" })
+
+    <!-- 登录方式链接 -->
+    <div class="login-links">
+        <a href="@Url.Action("Login", "User")">密码登录</a>
+        <a href="@Url.Action("PhoneLogin", "User")">手机号登录</a>
+        <a href="@Url.Action("EmailLogin", "User")" class="active">邮箱登录</a>
+        <a href="@Url.Action("Forgot", "User")">忘记密码</a>
+        <a href="@Url.Action("Register", "User")">前往注册</a>
+    </div>
+
+    @using (Html.BeginForm("EmailLogin", "User", FormMethod.Post, new { id = "emailLoginForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <!-- 邮箱输入 -->
+        <div class="form-group">
+            @Html.LabelFor(m => m.Email)
+            <div class="email-input-container">
+                @Html.TextBoxFor(m => m.Email, new
+                {
+                    @class = "form-control",
+                    placeholder = "请输入邮箱",
+                    required = "required",
+                    type = "email"
+                })
+                <button type="button" class="send-code-btn" id="sendEmailCode">发送验证码</button>
+            </div>
+            @Html.ValidationMessageFor(m => m.Email, null, new { @class = "text-danger" })
+        </div>
+
+        <!-- 验证码显示区域（测试用） -->
+        <div id="emailCodeDisplay" class="verification-code-display" style="display:none;">
+            <div class="code-info">📌 测试验证码：<span id="emailCodeValue" class="code-value">未发送</span></div>
+            <div class="code-note">（实际环境中验证码将发送至您的邮箱）</div>
+        </div>
+
+        <!-- 验证码输入 -->
+        <div class="form-group">
+            @Html.LabelFor(m => m.VerificationCode)
+            @Html.TextBoxFor(m => m.VerificationCode, new
+            {
+                @class = "form-control",
+                placeholder = "请输入验证码",
+                required = "required",
+                maxlength = "6"
+            })
+            @Html.ValidationMessageFor(m => m.VerificationCode, null, new { @class = "text-danger" })
+        </div>
+
+        <div class="login-buttons">
+            <button type="submit" class="btn btn-primary btn-login">登录</button>
+            <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
+        </div>
+    }
+</div>
+
+<style>
+    /* 验证码显示区域样式 */
+    .verification-code-display {
+        margin: 15px 0;
+        padding: 10px 15px;
+        background-color: #fff8e1;
+        border-left: 4px solid #ffc107;
+        border-radius: 4px;
+    }
+
+    .code-info {
+        font-size: 15px;
+        color: #e65100;
+        margin-bottom: 5px;
+    }
+
+    .code-value {
+        font-weight: bold;
+        font-size: 16px;
+        letter-spacing: 2px;
+        padding: 0 5px;
+    }
+
+    .code-note {
+        font-size: 12px;
+        color: #795548;
+        font-style: italic;
+    }
+    /* 邮箱输入容器样式 */
+    .email-input-container {
+        position: relative;
+    }
+
+    .send-code-btn {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .send-code-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+</style>
+
+<script>
+    // 发送邮箱验证码
+    function sendEmailVerificationCode() {
+        const email = document.getElementById('Email').value;
+        const sendBtn = document.getElementById('sendEmailCode');
+        const codeDisplay = document.getElementById('emailCodeDisplay');
+        const codeValue = document.getElementById('emailCodeValue');
+
+        // 验证邮箱格式
+        if (!email || !/^[^\s]+@[^\s]+\.[^\s]+$/.test(email)) {
+            alert('请输入有效的邮箱地址');
+            return;
+        }
+
+        // 显示验证码区域
+        codeDisplay.style.display = 'block';
+        codeValue.textContent = '生成中...';
+
+        // 禁用发送按钮
+        sendBtn.disabled = true;
+        sendBtn.textContent = '发送中...';
+
+        // 发送AJAX请求
+        fetch('@Url.Action("SendEmailLoginCode", "User")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'email=' + encodeURIComponent(email)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('网络请求失败');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // 显示验证码
+            if (data.debugCode) {
+                codeValue.textContent = data.debugCode;
+                // 自动选择验证码文本
+                const range = document.createRange();
+                range.selectNode(codeValue);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+            } else {
+                codeValue.textContent = '获取失败，请重试';
+            }
+
+            // 显示消息
+            alert(data.message || '验证码发送成功');
+
+            // 倒计时
+            if (data.success) {
+                let countdown = 60;
+                sendBtn.textContent = countdown + '秒后重发';
+
+                const timer = setInterval(() => {
+                    countdown--;
+                    sendBtn.textContent = countdown + '秒后重发';
+
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = '发送验证码';
+                    }
+                }, 1000);
+            } else {
+                sendBtn.disabled = false;
+                sendBtn.textContent = '发送验证码';
+            }
+        })
+        .catch(error => {
+            console.error('发送验证码失败:', error);
+            alert('发送验证码失败，请稍后重试');
+            sendBtn.disabled = false;
+            sendBtn.textContent = '发送验证码';
+            codeValue.textContent = '获取失败';
+        });
+    }
+
+    // 页面加载初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 绑定发送验证码事件
+        document.getElementById('sendEmailCode').addEventListener('click', sendEmailVerificationCode);
+
+        // 取消按钮事件
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            window.location.href = '@Url.Action("Index", "Home")';
+        });
+
+        // 表单提交前验证
+        document.getElementById('emailLoginForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('Email').value;
+            const verificationCode = document.getElementById('VerificationCode').value;
+
+            // 简单前端验证
+            if (!email || !/^[^\s]+@[^\s]+\.[^\s]+$/.test(email)) {
+                alert('请输入有效的邮箱地址');
+                e.preventDefault();
+                return false;
+            }
+
+            if (!verificationCode || verificationCode.length !== 6) {
+                alert('请输入6位验证码');
+                e.preventDefault();
+                return false;
+            }
+
+            return true;
+        });
+    });
+</script>
