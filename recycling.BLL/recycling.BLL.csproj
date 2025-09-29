@@ -45,6 +45,10 @@
     <Compile Include="UserBLL.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\recycling.Common\recycling.Common.csproj">
+      <Project>{c76793c6-756e-4c3c-8834-b265a97669c9}</Project>
+      <Name>recycling.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\recycling.DAL\recycling.DAL.csproj">
       <Project>{3bbcb9cc-26f0-4e3f-8535-81a919d03f8e}</Project>
       <Name>recycling.DAL</Name>

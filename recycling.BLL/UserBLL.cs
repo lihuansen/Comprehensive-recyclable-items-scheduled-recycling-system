@@ -10,6 +10,7 @@ using System.Web;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using recycling.Common;
 
 namespace recycling.BLL
 {
@@ -19,6 +20,7 @@ namespace recycling.BLL
         // 线程安全的验证码存储（手机号 -> 验证码+过期时间）
         private static readonly ConcurrentDictionary<string, (string Code, DateTime ExpireTime)> _verificationCodes =
             new ConcurrentDictionary<string, (string, DateTime)>();
+        private EmailService _emailService = new EmailService();  // 实例化邮件服务
 
         /// <summary>
         /// 注册新用户，返回错误信息（按优先级排序）
@@ -321,14 +323,25 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 新增：发送邮箱验证码
+        /// 生成并发送邮箱验证码
         /// </summary>
-        public string GenerateEmailVerificationCode(string email)
+        public bool GenerateAndSendEmailCode(string email)
         {
+            // 1. 验证邮箱是否已注册
+            if (!IsEmailExists(email))
+            {
+                return false;  // 邮箱未注册，不发送验证码（但前端提示保持中性）
+            }
+
+            // 2. 生成6位验证码
             var random = new Random();
             string code = random.Next(100000, 999999).ToString();
-            _verificationCodes[email] = (code, DateTime.Now.AddMinutes(5)); // 邮箱作为key存储
-            return code;
+
+            // 3. 存储验证码（5分钟有效期）
+            _verificationCodes[email] = (code, DateTime.Now.AddMinutes(5));
+
+            // 4. 调用邮件服务发送验证码
+            return _emailService.SendVerificationCode(email, code);
         }
     }
 }
