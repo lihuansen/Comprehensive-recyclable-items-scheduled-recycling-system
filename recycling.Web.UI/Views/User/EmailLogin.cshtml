@@ -168,7 +168,7 @@
             const verificationCode = document.getElementById('VerificationCode').value;
 
             // 简单前端验证
-            if (!email || !/^[^\s]+@[^\s]+\.[^\s]+$/.test(email)) {
+            if (!email || !/^[^\s]+[^\s]+\.[^\s]+$/.test(email)) {
                 alert('请输入有效的邮箱地址');
                 e.preventDefault();
                 return false;
