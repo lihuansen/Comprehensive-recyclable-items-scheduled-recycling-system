@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace recycling.Common
 {
-    public class Class1
+    class EmailService
     {
     }
 }
