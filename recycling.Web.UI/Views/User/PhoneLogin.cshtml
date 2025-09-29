@@ -1,4 +1,5 @@
 ﻿@model recycling.Model.PhoneLoginViewModel
+
 @{
     ViewBag.Title = "手机号登录";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -11,7 +12,17 @@
 <div class="login-container">
     <h2 class="login-title">手机号登录</h2>
 
+    <!-- 显示后端验证错误 -->
     @Html.ValidationSummary(true, "登录失败，请检查以下问题：", new { @class = "validation-summary-errors" })
+
+    <!-- 登录方式链接 -->
+    <div class="login-links">
+        <a href="@Url.Action("Login", "User")">密码登录</a>
+        <a href="@Url.Action("PhoneLogin", "User")" class="active">手机号登录</a>
+        <a href="@Url.Action("EmailLogin", "User")">邮箱登录</a>
+        <a href="@Url.Action("Forgot", "User")">忘记密码</a>
+        <a href="@Url.Action("Register", "User")">前往注册</a>
+    </div>
 
     @using (Html.BeginForm("PhoneLogin", "User", FormMethod.Post, new { id = "phoneLoginForm" }))
     {
@@ -28,14 +39,14 @@
                     required = "required",
                     maxlength = "11"
                 })
-                <button type="button" class="send-code-btn" id="sendCodeBtn">发送验证码</button>
+                <button type="button" class="send-code-btn" id="sendPhoneCode">发送验证码</button>
             </div>
             @Html.ValidationMessageFor(m => m.PhoneNumber, null, new { @class = "text-danger" })
         </div>
 
         <!-- 验证码显示区域（测试用） -->
-        <div id="verificationCodeDisplay" class="verification-code-display">
-            <div class="code-info">📌 测试验证码：<span id="codeValue" class="code-value">未发送</span></div>
+        <div id="phoneCodeDisplay" class="verification-code-display" style="display:none;">
+            <div class="code-info">📌 测试验证码：<span id="phoneCodeValue" class="code-value">未发送</span></div>
             <div class="code-note">（实际环境中验证码将发送至您的手机）</div>
         </div>
 
@@ -54,28 +65,74 @@
 
         <div class="login-buttons">
             <button type="submit" class="btn btn-primary btn-login">登录</button>
-            <button type="button" class="btn btn-secondary btn-switch" onclick="window.location.href='@Url.Action("Login", "User")'">
-                切换至密码登录
-            </button>
+            <button type="button" class="btn btn-danger btn-cancel" id="cancelBtn">取消</button>
         </div>
     }
 </div>
 
+<style>
+    /* 验证码显示区域样式 */
+    .verification-code-display {
+        margin: 15px 0;
+        padding: 10px 15px;
+        background-color: #fff8e1;
+        border-left: 4px solid #ffc107;
+        border-radius: 4px;
+    }
+
+    .code-info {
+        font-size: 15px;
+        color: #e65100;
+        margin-bottom: 5px;
+    }
+
+    .code-value {
+        font-weight: bold;
+        font-size: 16px;
+        letter-spacing: 2px;
+        padding: 0 5px;
+    }
+
+    .code-note {
+        font-size: 12px;
+        color: #795548;
+        font-style: italic;
+    }
+    /* 手机号输入容器样式 */
+    .phone-input-container {
+        position: relative;
+    }
+
+    .send-code-btn {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .send-code-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+</style>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // 发送验证码按钮点击事件
-        document.getElementById('sendCodeBtn').addEventListener('click', sendVerificationCode);
-    });
-
-    // 发送验证码
-    function sendVerificationCode() {
+    // 发送手机验证码
+    function sendPhoneVerificationCode() {
         const phoneNumber = document.getElementById('PhoneNumber').value;
-        const sendBtn = document.getElementById('sendCodeBtn');
-        const codeDisplay = document.getElementById('verificationCodeDisplay');
-        const codeValue = document.getElementById('codeValue');
+        const sendBtn = document.getElementById('sendPhoneCode');
+        const codeDisplay = document.getElementById('phoneCodeDisplay');
+        const codeValue = document.getElementById('phoneCodeValue');
 
-        // 验证手机号
-        if (!phoneNumber || phoneNumber.length !== 11) {
+        // 验证手机号格式
+        if (!phoneNumber || !/^1[3-9]\d{9}$/.test(phoneNumber)) {
             alert('请输入有效的11位手机号');
             return;
         }
@@ -147,4 +204,36 @@
             codeValue.textContent = '获取失败';
         });
     }
+
+    // 页面加载初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 绑定发送验证码事件
+        document.getElementById('sendPhoneCode').addEventListener('click', sendPhoneVerificationCode);
+
+        // 取消按钮事件
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            window.location.href = '@Url.Action("Index", "Home")';
+        });
+
+        // 表单提交前验证
+        document.getElementById('phoneLoginForm').addEventListener('submit', function(e) {
+            const phoneNumber = document.getElementById('PhoneNumber').value;
+            const verificationCode = document.getElementById('VerificationCode').value;
+
+            // 简单前端验证
+            if (!phoneNumber || phoneNumber.length !== 11) {
+                alert('请输入有效的11位手机号');
+                e.preventDefault();
+                return false;
+            }
+
+            if (!verificationCode || verificationCode.length !== 6) {
+                alert('请输入6位验证码');
+                e.preventDefault();
+                return false;
+            }
+
+            return true;
+        });
+    });
 </script>
