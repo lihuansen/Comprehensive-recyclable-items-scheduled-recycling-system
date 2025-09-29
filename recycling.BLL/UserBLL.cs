@@ -343,5 +343,21 @@ namespace recycling.BLL
             // 4. 调用邮件服务发送验证码
             return _emailService.SendVerificationCode(email, code);
         }
+
+        /// <summary>
+        /// 测试专用：获取指定邮箱的验证码（仅用于调试，生产环境需移除）
+        /// </summary>
+        public string GetVerificationCodeForTest(string email)
+        {
+            if (_verificationCodes.TryGetValue(email, out var codeInfo))
+            {
+                // 检查验证码是否过期
+                if (codeInfo.ExpireTime > DateTime.Now)
+                {
+                    return codeInfo.Code;
+                }
+            }
+            return ""; // 验证码不存在或已过期
+        }
     }
 }
