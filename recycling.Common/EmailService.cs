@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Mail;
+using System.Configuration;
 
 namespace recycling.Common
 {
@@ -13,11 +14,11 @@ namespace recycling.Common
     /// </summary>
     public class EmailService
     {
-        // 邮件服务器配置（建议从Web.config读取，此处为示例）
-        private readonly string _smtpServer = "smtp.qq.com";  // 例如QQ邮箱SMTP服务器
-        private readonly int _smtpPort = 587;                 // 端口（QQ邮箱587）
-        private readonly string _fromEmail = "424447025@qq.com";  // 发件人邮箱
-        private readonly string _fromPassword = "xbhdgonczqkubhjh";  // 邮箱授权码（非登录密码）
+        // 从配置文件读取参数（避免硬编码）
+        private readonly string _smtpServer = ConfigurationManager.AppSettings["SmtpServer"];
+        private readonly int _smtpPort = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
+        private readonly string _fromEmail = ConfigurationManager.AppSettings["FromEmail"];
+        private readonly string _fromPassword = ConfigurationManager.AppSettings["FromPassword"];
 
         /// <summary>
         /// 发送验证码到指定邮箱
