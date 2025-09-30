@@ -1,7 +1,142 @@
-﻿
+﻿@model recycling.Model.StaffLoginViewModel
+
 @{
-    ViewBag.Title = "Login";
+    ViewBag.Title = "工作人员登录";
+    Layout = "~/Views/Shared/_LoginLayout.cshtml";
 }
 
-<h2>Login</h2>
+<div class="login-container">
+    <h2 class="login-title">工作人员登录</h2>
 
+    <!-- 登录角色切换链接 -->
+    <div class="login-role-switch">
+        <span>不是工作人员？</span>
+        <a href="@Url.Action("Login", "User")" class="role-switch-link">用户登录</a>
+    </div>
+
+    <!-- 显示后端验证错误 -->
+    @Html.ValidationSummary(true, "登录失败，请检查以下问题：", new { @class = "validation-summary-errors" })
+
+    <!-- 工作人员角色下拉菜单 -->
+    <div class="staff-role-dropdown" id="staffRoleDropdown">
+        <select id="staffRole" name="staffRole" class="form-control">
+            <option value="collector">回收员</option>
+            <option value="admin">管理员</option>
+            <option value="superadmin">超级管理员</option>
+        </select>
+    </div>
+
+    <!-- 工作人员登录表单 -->
+    <div id="staffLoginArea" class="staff-login-form">
+        @using (Html.BeginForm("Login", "Staff", FormMethod.Post, new { id = "staffLoginForm" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                @Html.Label("用户名")
+                <input type="text" class="form-control" id="staffUsername" name="username"
+                       placeholder="请输入工作人员账号" required>
+                @Html.ValidationMessage("username", null, new { @class = "field-validation-error" })
+            </div>
+
+            <div class="form-group password-group">
+                @Html.Label("密码")
+                <div class="password-input-container">
+                    <input type="password" class="form-control password-input" id="staffPassword" name="password"
+                           placeholder="请输入密码" required>
+                    <button type="button" class="toggle-password" id="toggleStaffPassword">
+                        <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                    </button>
+                </div>
+                @Html.ValidationMessage("password", null, new { @class = "field-validation-error" })
+            </div>
+
+            <div class="form-group">
+                @Html.Label("验证码")
+                <div class="captcha-container">
+                    <input type="text" class="form-control captcha-input" id="staffCaptcha" name="captcha"
+                           placeholder="请输入验证码" maxlength="4" required>
+                    @Html.ValidationMessage("captcha", null, new { @class = "field-validation-error" })
+
+                    <div class="captcha-image" id="staffCaptchaImage" title="点击刷新验证码">
+                    </div>
+                </div>
+                <input type="hidden" id="staffGeneratedCaptcha" name="generatedCaptcha" />
+            </div>
+
+            <div class="login-buttons">
+                <button type="submit" class="btn btn-primary btn-login">登录</button>
+                <button type="button" class="btn btn-danger btn-cancel" id="staffCancelBtn" onclick="goToHome()">取消</button>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 刷新工作人员登录验证码
+        function refreshStaffCaptcha() {
+            const captcha = generateCaptcha();
+            const captchaElement = document.getElementById('staffCaptchaImage');
+            const hiddenField = document.getElementById('staffGeneratedCaptcha');
+
+            if (captchaElement && hiddenField) {
+                captchaElement.textContent = captcha;
+                hiddenField.value = captcha;
+
+                // 添加随机颜色效果
+                const colors = ['#333', '#e74c3c', '#27ae60', '#3498db', '#8e44ad', '#f39c12'];
+                captchaElement.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+                // 清空输入框
+                document.getElementById('staffCaptcha').value = '';
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化验证码
+            refreshStaffCaptcha();
+
+            // 初始化密码显示/隐藏功能
+            setupPasswordToggle('toggleStaffPassword', 'staffPassword');
+
+            // 绑定验证码点击刷新事件
+            document.getElementById('staffCaptchaImage').addEventListener('click', refreshStaffCaptcha);
+
+            // 处理验证错误后的验证码刷新
+            @if (!ViewData.ModelState.IsValid)
+            {
+                bool hasCaptchaError = ViewData.ModelState.Values.Any(v => v.Errors.Any(e => e.ErrorMessage.Contains("验证码")));
+                if (hasCaptchaError)
+                {
+                    @:refreshStaffCaptcha();
+                }
+            }
+
+            // 工作人员登录表单提交验证
+            const staffForm = document.getElementById('staffLoginForm');
+            if (staffForm) {
+                staffForm.addEventListener('submit', function(e) {
+                    const userInput = document.getElementById('staffCaptcha').value;
+                    const generatedCaptcha = document.getElementById('staffGeneratedCaptcha').value;
+
+                    if (!userInput) {
+                        alert('请输入验证码');
+                        e.preventDefault();
+                        return false;
+                    }
+
+                    if (userInput.toUpperCase() !== generatedCaptcha.toUpperCase()) {
+                        alert('验证码不正确，请重新输入');
+                        refreshStaffCaptcha();
+                        e.preventDefault();
+                        return false;
+                    }
+
+                    return true;
+                });
+            }
+        });
+    </script>
+}
