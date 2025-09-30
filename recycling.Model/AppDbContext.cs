@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Entity;
+using System.Data.Entity.ModelConfiguration.Conventions;
 using System.Linq;
 
 namespace recycling.Model
@@ -13,7 +14,7 @@ namespace recycling.Model
         //如果您想要针对其他数据库和/或数据库提供程序，请在应用程序配置文件中修改“AppDbContext”
         //连接字符串。
         public AppDbContext()
-            : base("name=AppDbContext")
+            : base("name=RecyclingDB")
         {
         }
 
@@ -21,6 +22,16 @@ namespace recycling.Model
         //的详细信息，请参阅 http://go.microsoft.com/fwlink/?LinkId=390109。
 
         // public virtual DbSet<MyEntity> MyEntities { get; set; }
+        // 关联三个工作人员表
+        public DbSet<Recyclers> Recyclers{get;set;}
+        public DbSet<Admins> Admins { get; set; }
+        public DbSet<SuperAdmins> SuperAdmins { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            // 禁用默认级联删除
+            modelBuilder.Conventions.Remove<OneToManyCascadeDeleteConvention>();
+        }
     }
 
     //public class MyEntity
