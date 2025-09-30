@@ -1,7 +1,67 @@
-﻿
-@{
-    ViewBag.Title = "_LoginLayout";
+﻿@{
+    Layout = null;
 }
 
-<h2>_LoginLayout</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - 登录</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入Font Awesome用于图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="~/Content/login.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div class="container">
+        <!-- 登录视图内容将插入此处 -->
+        @RenderBody()
+    </div>
 
+    <script src="~/Scripts/jquery-3.6.0.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <!-- 验证码通用脚本 -->
+    <script>
+        // 验证码字符集（移除容易混淆的字符）
+        const captchaChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+        // 生成随机验证码
+        function generateCaptcha() {
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                const randomIndex = Math.floor(Math.random() * captchaChars.length);
+                captcha += captchaChars[randomIndex];
+            }
+            return captcha;
+        }
+
+        // 密码显示/隐藏切换功能
+        function setupPasswordToggle(toggleBtnId, passwordInputId) {
+            const toggleBtn = document.getElementById(toggleBtnId);
+            const passwordInput = document.getElementById(passwordInputId);
+
+            if (toggleBtn && passwordInput) {
+                toggleBtn.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+
+                    const icon = this.querySelector('i');
+                    if (type === 'password') {
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            }
+        }
+
+        // 取消按钮跳转首页
+        function goToHome() {
+            window.location.href = '@Url.Action("Index", "Home")';
+        }
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
