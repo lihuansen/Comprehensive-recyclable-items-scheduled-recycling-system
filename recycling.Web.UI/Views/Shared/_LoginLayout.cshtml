@@ -1,338 +1,193 @@
-﻿@model recycling.Model.LoginViewModel
-
-@{
-    ViewBag.Title = "登录";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    var loginType = ViewBag.LoginType ?? "password";
+﻿@{
+    Layout = null;
 }
 
-<!-- 引入Font Awesome用于眼睛图标 -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="~/Content/login.css" rel="stylesheet" type="text/css" />
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - 登录</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="~/Content/login.css" rel="stylesheet" type="text/css" />
+    <style>
+        /* 核心样式：控制表单显示/隐藏 */
+        .login-form {
+            display: none;
+        }
 
-<div class="login-container">
-    <h2 class="login-title">登录</h2>
+            .login-form.active {
+                display: block;
+            }
 
-    <!-- 显示后端验证错误 -->
-    @Html.ValidationSummary(true, "登录失败，请检查以下问题：", new { @class = "validation-summary-errors" })
+        .staff-login-form {
+            display: none;
+        }
+        /* 密码输入框样式 */
+        .password-group {
+            position: relative;
+        }
 
-    <!-- 角色选择（与原代码完全一致） -->
-    <div class="role-selection">
-        <div class="role-options">
-            <div class="role-option">
-                <input type="radio" id="roleUser" name="userRole" value="user" checked>
-                <label for="roleUser">用户</label>
-            </div>
-            <div class="role-option">
-                <input type="radio" id="roleStaff" name="userRole" value="staff">
-                <label for="roleStaff">工作人员</label>
-            </div>
-        </div>
+        .password-input-container {
+            position: relative;
+        }
 
-        <!-- 工作人员角色下拉菜单 -->
-        <div class="staff-role-dropdown" id="staffRoleDropdown">
-            <select id="staffRole">
-                <option value="collector">回收员</option>
-                <option value="admin">管理员</option>
-                <option value="superadmin">超级管理员</option>
-            </select>
-        </div>
+        .password-input {
+            padding-right: 40px !important;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 16px;
+            padding: 5px;
+            z-index: 10;
+        }
+
+            .toggle-password:hover {
+                color: #333;
+            }
+
+            .toggle-password:focus {
+                outline: none;
+            }
+        /* 验证码样式 */
+        .captcha-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .captcha-input {
+            flex: 1;
+        }
+
+        .captcha-image {
+            width: 100px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        /* 登录链接样式 */
+        .login-links {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+            .login-links a {
+                text-decoration: none;
+                color: #337ab7;
+            }
+
+                .login-links a.active {
+                    color: #e74c3c;
+                    font-weight: bold;
+                }
+
+                .login-links a:hover {
+                    text-decoration: underline;
+                }
+        /* 角色选择样式 */
+        .role-selection {
+            margin: 20px 0;
+        }
+
+        .role-options {
+            margin-bottom: 10px;
+        }
+
+        .role-option {
+            display: inline-block;
+            margin-right: 15px;
+        }
+
+        .staff-role-dropdown {
+            display: none;
+            margin-top: 10px;
+        }
+
+            .staff-role-dropdown.active {
+                display: block;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        @RenderBody()
     </div>
 
-    <!-- 加载用户登录部分视图 -->
-    @Html.Partial("_UserLogin", Model)
+    <script src="~/Scripts/jquery-3.6.0.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script>
+        // 验证码字符集
+        const captchaChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-    <!-- 加载工作人员登录部分视图 -->
-    @Html.Partial("_StaffLogin")
-</div>
-
-<!-- 原有样式保留不变 -->
-<style>
-    .password-group {
-        position: relative;
-    }
-
-    .password-input-container {
-        position: relative;
-    }
-
-    .password-input {
-        padding-right: 40px !important;
-    }
-
-    .toggle-password {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #666;
-        font-size: 16px;
-        padding: 5px;
-        z-index: 10;
-    }
-
-        .toggle-password:hover {
-            color: #333;
-        }
-
-        .toggle-password:focus {
-            outline: none;
-        }
-</style>
-
-<!-- 原有JavaScript逻辑保留不变（控制切换和交互） -->
-<script>
-    // 角色选择切换（与原代码完全一致）
-    document.querySelectorAll('input[name="userRole"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'user') {
-                document.getElementById('userLoginArea').style.display = 'block';
-                document.getElementById('staffLoginArea').style.display = 'none';
-                document.getElementById('staffRoleDropdown').classList.remove('active');
-            } else {
-                document.getElementById('userLoginArea').style.display = 'none';
-                document.getElementById('staffLoginArea').style.display = 'block';
-                document.getElementById('staffRoleDropdown').classList.add('active');
-                refreshStaffCaptcha();
+        // 生成验证码
+        function generateCaptcha() {
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                captcha += captchaChars[Math.floor(Math.random() * captchaChars.length)];
             }
-        });
-    });
-
-    // 验证码字符集（与原代码完全一致）
-    const captchaChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-    // 生成随机验证码（与原代码完全一致）
-    function generateCaptcha() {
-        let captcha = '';
-        for (let i = 0; i < 4; i++) {
-            const randomIndex = Math.floor(Math.random() * captchaChars.length);
-            captcha += captchaChars[randomIndex];
+            return captcha;
         }
-        return captcha;
-    }
 
-    // 刷新用户登录验证码（与原代码完全一致）
-    function refreshCaptcha() {
-        const captcha = generateCaptcha();
-        const captchaElement = document.getElementById('captchaImage');
-        const hiddenField = document.getElementById('generatedCaptcha');
-
-        if (captchaElement && hiddenField) {
-            captchaElement.textContent = captcha;
-            hiddenField.value = captcha;
-            const colors = ['#333', '#e74c3c', '#27ae60', '#3498db', '#8e44ad', '#f39c12'];
-            captchaElement.style.color = colors[Math.floor(Math.random() * colors.length)];
-            document.getElementById('@Html.IdFor(m => m.Captcha)').value = '';
-        }
-    }
-
-    // 刷新工作人员登录验证码（与原代码完全一致）
-    function refreshStaffCaptcha() {
-        const captcha = generateCaptcha();
-        const captchaElement = document.getElementById('staffCaptchaImage');
-        const hiddenField = document.getElementById('staffGeneratedCaptcha');
-
-        if (captchaElement && hiddenField) {
-            captchaElement.textContent = captcha;
-            hiddenField.value = captcha;
-            const colors = ['#333', '#e74c3c', '#27ae60', '#3498db', '#8e44ad', '#f39c12'];
-            captchaElement.style.color = colors[Math.floor(Math.random() * colors.length)];
-            document.getElementById('staffCaptcha').value = '';
-        }
-    }
-
-    // 密码显示/隐藏切换功能（与原代码完全一致）
-    function setupPasswordToggle(toggleBtnId, passwordInputId) {
-        const toggleBtn = document.getElementById(toggleBtnId);
-        const passwordInput = document.getElementById(passwordInputId);
-
-        if (toggleBtn && passwordInput) {
-            toggleBtn.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                const icon = this.querySelector('i');
-                if (type === 'password') {
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                } else {
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                }
-            });
-        }
-    }
-
-    // 页面加载时初始化（与原代码完全一致）
-    document.addEventListener('DOMContentLoaded', function() {
-        refreshCaptcha();
-        refreshStaffCaptcha();
-        setupPasswordToggle('togglePassword', 'passwordInput');
-        setupPasswordToggle('toggleStaffPassword', 'staffPassword');
-        document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
-        document.getElementById('staffCaptchaImage').addEventListener('click', refreshStaffCaptcha);
-
-        // 验证错误处理
-        @if (!ViewData.ModelState.IsValid)
-        {
-            bool hasCaptchaError = ViewData.ModelState.Values.Any(v => v.Errors.Any(e => e.ErrorMessage.Contains("验证码")));
-            if (hasCaptchaError)
-            {
-                @:refreshCaptcha();
+        // 密码显示切换
+        function setupPasswordToggle(toggleBtnId, passwordInputId) {
+            const toggleBtn = document.getElementById(toggleBtnId);
+            const passwordInput = document.getElementById(passwordInputId);
+            if (toggleBtn && passwordInput) {
+                toggleBtn.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                });
             }
         }
 
-        // 密码登录表单提交验证
-        const passwordForm = document.getElementById('passwordLoginForm');
-        if (passwordForm) {
-            passwordForm.addEventListener('submit', function(e) {
-                const userInput = document.getElementById('@Html.IdFor(m => m.Captcha)').value;
-                const generatedCaptcha = document.getElementById('generatedCaptcha').value;
-                if (!userInput) {
-                    alert('请输入验证码');
-                    e.preventDefault();
-                    return false;
-                }
-                if (userInput.toUpperCase() !== generatedCaptcha.toUpperCase()) {
-                    alert('验证码不正确，请重新输入');
-                    refreshCaptcha();
-                    e.preventDefault();
-                    return false;
-                }
-                return true;
+        // 跳转首页
+        function goToHome() {
+            window.location.href = '@Url.Action("Index", "Home")';
+        }
+
+        // 角色切换通用逻辑
+        function initRoleSwitch() {
+            const roleRadios = document.querySelectorAll('input[name="userRole"]');
+            roleRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const isUser = this.value === 'user';
+                    document.getElementById('userLoginArea').style.display = isUser ? 'block' : 'none';
+                    document.getElementById('staffLoginArea').style.display = isUser ? 'none' : 'block';
+                    document.getElementById('staffRoleDropdown').classList.toggle('active', !isUser);
+
+                    // 切换时刷新对应验证码
+                    if (isUser) {
+                        if (window.refreshCaptcha) refreshCaptcha();
+                    } else {
+                        if (window.refreshStaffCaptcha) refreshStaffCaptcha();
+                    }
+                });
             });
         }
 
-        // 工作人员登录表单提交验证
-        const staffForm = document.getElementById('staffLoginForm');
-        if (staffForm) {
-            staffForm.addEventListener('submit', function(e) {
-                const userInput = document.getElementById('staffCaptcha').value;
-                const generatedCaptcha = document.getElementById('staffGeneratedCaptcha').value;
-                if (!userInput) {
-                    alert('请输入验证码');
-                    e.preventDefault();
-                    return false;
-                }
-                if (userInput.toUpperCase() !== generatedCaptcha.toUpperCase()) {
-                    alert('验证码不正确，请重新输入');
-                    refreshStaffCaptcha();
-                    e.preventDefault();
-                    return false;
-                }
-                return true;
-            });
-        }
-
-        // 发送手机验证码
-        document.getElementById('sendPhoneCode').addEventListener('click', function() {
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            const phoneRegex = /^1[3-9]\d{9}$/;
-            if (!phoneNumber) {
-                alert('请输入手机号');
-                return;
-            }
-            if (!phoneRegex.test(phoneNumber)) {
-                alert('请输入正确的手机号格式');
-                return;
-            }
-            this.disabled = true;
-            this.textContent = '60秒后重新发送';
-            this.classList.add('disabled');
-            let countdown = 60;
-            const timer = setInterval(function() {
-                countdown--;
-                document.getElementById('sendPhoneCode').textContent = countdown + '秒后重新发送';
-                if (countdown <= 0) {
-                    clearInterval(timer);
-                    document.getElementById('sendPhoneCode').disabled = false;
-                    document.getElementById('sendPhoneCode').textContent = '发送验证码';
-                    document.getElementById('sendPhoneCode').classList.remove('disabled');
-                }
-            }, 1000);
-            console.log(`向手机号 ${phoneNumber} 发送验证码`);
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initRoleSwitch();
         });
-
-        // 发送邮箱验证码
-        document.getElementById('sendEmailCode').addEventListener('click', function() {
-            const emailAddress = document.getElementById('emailAddress').value;
-            const emailRegex = /^[^\s]+[^\s]+\.[^\s]+$/;
-            if (!emailAddress) {
-                alert('请输入邮箱');
-                return;
-            }
-            if (!emailRegex.test(emailAddress)) {
-                alert('请输入正确的邮箱格式');
-                return;
-            }
-            this.disabled = true;
-            this.textContent = '60秒后重新发送';
-            this.classList.add('disabled');
-            let countdown = 60;
-            const timer = setInterval(function() {
-                countdown--;
-                document.getElementById('sendEmailCode').textContent = countdown + '秒后重新发送';
-                if (countdown <= 0) {
-                    clearInterval(timer);
-                    document.getElementById('sendEmailCode').disabled = false;
-                    document.getElementById('sendEmailCode').textContent = '发送验证码';
-                    document.getElementById('sendEmailCode').classList.remove('disabled');
-                }
-            }, 1000);
-            console.log(`向邮箱 ${emailAddress} 发送验证码`);
-        });
-
-        // 取消按钮点击事件
-        document.getElementById('cancelBtn').addEventListener('click', goToHome);
-        document.getElementById('cancelBtn2').addEventListener('click', goToHome);
-        document.getElementById('cancelBtn3').addEventListener('click', goToHome);
-        document.getElementById('staffCancelBtn').addEventListener('click', goToHome);
-    });
-
-    function goToHome() {
-        window.location.href = '@Url.Action("Index", "Home")';
-    }
-
-    // 其他登录方式提交处理
-    document.getElementById('phoneLoginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const username = document.getElementById('phoneUsername').value;
-        const phone = document.getElementById('phoneNumber').value;
-        const code = document.getElementById('phoneCode').value;
-        if (!username) {
-            alert('请输入用户名');
-            return;
-        }
-        if (!phone) {
-            alert('请输入手机号');
-            return;
-        }
-        if (!code) {
-            alert('请输入手机验证码');
-            return;
-        }
-        alert('手机号登录功能即将实现');
-    });
-
-    document.getElementById('emailLoginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const username = document.getElementById('emailUsername').value;
-        const email = document.getElementById('emailAddress').value;
-        const code = document.getElementById('emailCode').value;
-        if (!username) {
-            alert('请输入用户名');
-            return;
-        }
-        if (!email) {
-            alert('请输入邮箱');
-            return;
-        }
-        if (!code) {
-            alert('请输入邮箱验证码');
-            return;
-        }
-        alert('邮箱登录功能即将实现');
-    });
-</script>
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
