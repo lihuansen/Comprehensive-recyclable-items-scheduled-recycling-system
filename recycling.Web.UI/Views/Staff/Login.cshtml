@@ -1,29 +1,29 @@
 ﻿@model recycling.Model.StaffLoginViewModel
 @{
     ViewBag.Title = "工作人员登录";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<!-- 引入与用户登录一致的样式和图标库 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="~/Content/login.css" rel="stylesheet" type="text/css" />
 
 <div class="login-container">
     <h2 class="login-title">工作人员登录</h2>
 
-    @* 错误提示 *@
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="validation-summary-errors">
-            <ul>
-                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    <li>@error.ErrorMessage</li>
-                }
-            </ul>
-        </div>
-    }
+    <!-- 错误提示（与用户登录样式一致） -->
+    @Html.ValidationSummary(true, "登录失败，请检查以下问题：", new { @class = "validation-summary-errors" })
 
-    @using (Html.BeginForm("Login", "Staff", FormMethod.Post, new { @class = "staff-login-form active" }))
+    <!-- 登录方式链接区域（保持布局一致性，可根据需要隐藏） -->
+    <div class="login-links" style="margin-bottom: 20px;">
+        <span class="active">工作人员登录</span>
+    </div>
+
+    @using (Html.BeginForm("Login", "Staff", FormMethod.Post, new { @class = "login-form active" }))
     {
         @Html.AntiForgeryToken()
 
-        @* 角色选择 *@
+        <!-- 角色选择（保持原有功能，优化样式） -->
         <div class="form-group role-selection">
             @Html.LabelFor(m => m.StaffRole, new { @class = "control-label" })
             <div class="role-options">
@@ -36,46 +36,45 @@
                 @Html.RadioButtonFor(m => m.StaffRole, "superadmin", new { id = "role-superadmin" })
                 <label for="role-superadmin">超级管理员</label>
             </div>
-            @Html.ValidationMessageFor(m => m.StaffRole, "", new { @class = "text-danger" })
+            @Html.ValidationMessageFor(m => m.StaffRole, "", new { @class = "field-validation-error" })
         </div>
 
-        @* 用户名 *@
+        <!-- 用户名（与用户登录样式一致） -->
         <div class="form-group">
             @Html.LabelFor(m => m.Username, new { @class = "control-label" })
-            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "请输入账号" })
-            @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
+            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "请输入账号", required = "required" })
+            @Html.ValidationMessageFor(m => m.Username, "", new { @class = "field-validation-error" })
         </div>
 
-        @* 密码（带小眼睛图标）*@
+        <!-- 密码（使用与用户登录一致的Font Awesome图标） -->
         <div class="form-group password-group">
             @Html.LabelFor(m => m.Password, new { @class = "control-label" })
             <div class="password-input-container">
-                @Html.PasswordFor(m => m.Password, new { @class = "form-control password-input", placeholder = "请输入密码" })
-                <button type="button" class="toggle-password" aria-label="切换密码可见性">
-                    <span class="glyphicon glyphicon-eye-open"></span>
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control password-input", placeholder = "请输入密码", required = "required", id = "passwordInput" })
+                <button type="button" class="toggle-password" id="togglePassword" aria-label="切换密码可见性">
+                    <i class="fas fa-eye-slash" aria-hidden="true"></i>
                 </button>
             </div>
-            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "field-validation-error" })
         </div>
 
-        @* 验证码 *@
-        <div class="form-group captcha-container">
-            <div class="captcha-input">
-                @Html.LabelFor(m => m.Captcha, new { @class = "control-label" })
-                @Html.TextBoxFor(m => m.Captcha, new { @class = "form-control", placeholder = "请输入验证码" })
-                @Html.ValidationMessageFor(m => m.Captcha, "", new { @class = "text-danger" })
+        <!-- 验证码（与用户登录样式一致） -->
+        <div class="form-group">
+            @Html.LabelFor(m => m.Captcha, new { @class = "control-label" })
+            <div class="captcha-container">
+                @Html.TextBoxFor(m => m.Captcha, new { @class = "form-control captcha-input", placeholder = "请输入验证码", maxlength = 4, required = "required" })
+                @Html.ValidationMessageFor(m => m.Captcha, "", new { @class = "field-validation-error" })
+
+                <div class="captcha-image" id="captchaImage" title="点击刷新验证码">
+                    @* 验证码文本通过JS生成 *@
+                </div>
             </div>
-            <div class="captcha-image" id="captchaImage">
-                @* 验证码图片/文本将通过JS生成 *@
-            </div>
+            @Html.HiddenFor(m => m.GeneratedCaptcha, new { id = "generatedCaptcha" })
         </div>
 
-        @* 隐藏字段：存储服务器生成的验证码 *@
-        @Html.HiddenFor(m => m.GeneratedCaptcha)
-
-        @* 登录按钮 *@
+        <!-- 登录按钮（与用户登录样式一致） -->
         <div class="login-buttons">
-            <button type="submit" class="btn btn-login">登录</button>
+            <button type="submit" class="btn btn-primary btn-login">登录</button>
             <a href="@Url.Action("LoginSelect", "Home")" class="btn btn-cancel">取消</a>
         </div>
     }
@@ -84,37 +83,63 @@
 @section Scripts {
     @Scripts.Render("~/bundles/jquery")
     <script>
-        // 密码可见性切换（与文档样式一致）
-        $(document).on('click', '.toggle-password', function () {
-            const passwordInput = $(this).closest('.password-input-container').find('.password-input');
-            const icon = $(this).find('span');
+        // 验证码字符集（与用户登录保持一致，移除易混淆字符）
+        const captchaChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+        // 生成验证码（与用户登录逻辑一致）
+        function generateCaptcha() {
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                const randomIndex = Math.floor(Math.random() * captchaChars.length);
+                captcha += captchaChars[randomIndex];
+            }
+            // 显示验证码并添加随机颜色
+            const captchaElement = $('#captchaImage');
+            const hiddenField = $('#generatedCaptcha');
+            captchaElement.text(captcha);
+            hiddenField.val(captcha);
+
+            // 随机颜色增强安全性（与用户登录一致）
+            const colors = ['#333', '#e74c3c', '#27ae60', '#3498db', '#8e44ad', '#f39c12'];
+            captchaElement.css('color', colors[Math.floor(Math.random() * colors.length)]);
+
+            // 清空输入框
+            $('#@Html.IdFor(m => m.Captcha)').val('');
+        }
+
+        // 密码可见性切换（使用Font Awesome图标，与用户登录一致）
+        $(document).on('click', '#togglePassword', function () {
+            const passwordInput = $('#passwordInput');
+            const icon = $(this).find('i');
 
             // 切换输入类型
             const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
             passwordInput.attr('type', type);
 
-            // 切换图标（使用bootstrap glyphicon，与文档一致）
-            icon.toggleClass('glyphicon-eye-open glyphicon-eye-close');
+            // 切换图标（与用户登录保持一致）
+            if (type === 'password') {
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
         });
 
-        // 生成验证码
-        function generateCaptcha() {
-            const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            let captcha = '';
-            for (let i = 0; i < 4; i++) {
-                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            // 显示验证码
-            $('#captchaImage').text(captcha);
-            // 存储到隐藏字段
-            $('#GeneratedCaptcha').val(captcha);
-        }
-
-        // 初始化验证码
+        // 页面初始化
         $(function () {
+            // 初始化验证码
             generateCaptcha();
             // 点击刷新验证码
             $('#captchaImage').click(generateCaptcha);
+
+            // 验证错误时刷新验证码
+            @if (!ViewData.ModelState.IsValid)
+            {
+                bool hasCaptchaError = ViewData.ModelState.Values.Any(v => v.Errors.Any(e => e.ErrorMessage.Contains("验证码")));
+                if (hasCaptchaError)
+                {
+                    @:generateCaptcha();
+                }
+            }
         });
     </script>
 }
