@@ -17,27 +17,26 @@
     @Html.ValidationSummary(true, "登录失败，请检查以下问题：", new { @class = "validation-summary-errors" })
 
     <!-- 角色选择 -->
-    <!--<div class="role-selection">
-        <div class="role-options">
-            <div class="role-option">
-                <input type="radio" id="roleUser" name="userRole" value="user" checked>
-                <label for="roleUser">用户</label>
-            </div>
-            <div class="role-option">
-                <input type="radio" id="roleStaff" name="userRole" value="staff">
-                <label for="roleStaff">工作人员</label>
-            </div>
-        </div>-->
-
-        <!-- 工作人员角色下拉菜单 -->
-        <!--<div class="staff-role-dropdown" id="staffRoleDropdown">
-            <select id="staffRole">
-                <option value="collector">回收员</option>
-                <option value="admin">管理员</option>
-                <option value="superadmin">超级管理员</option>
-            </select>
+<div class="role-selection">
+    <div class="role-options">
+        <div class="role-option">
+            <input type="radio" id="roleUser" name="userRole" value="user" checked>
+            <label for="roleUser">用户</label>
         </div>
-    </div>-->
+        <div class="role-option">
+            <input type="radio" id="roleStaff" name="userRole" value="staff">
+            <label for="roleStaff">工作人员</label>
+        </div>
+    </div>
+    <!-- 工作人员角色下拉菜单 -->
+    <div class="staff-role-dropdown" id="staffRoleDropdown">
+        <select id="staffRole">
+            <option value="collector">回收员</option>
+            <option value="admin">管理员</option>
+            <option value="superadmin">超级管理员</option>
+        </select>
+    </div>
+</div>
 
     <!-- 用户登录区域 -->
     <div id="userLoginArea">
