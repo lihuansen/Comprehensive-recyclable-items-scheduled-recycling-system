@@ -1,7 +1,87 @@
-﻿
+﻿@model recycling.Model.StaffLoginViewModel
 @{
-    ViewBag.Title = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Login</h2>
+<div class="login-container">
+    <h2 class="login-title">工作人员登录</h2>
 
+    @using (Html.BeginForm("Login", "Staff", FormMethod.Post, new { @class = "staff-login-form active" }))
+    {
+        @Html.AntiForgeryToken()
+
+        if (ViewData.ModelState[""] != null && ViewData.ModelState[""].Errors.Count > 0)
+        {
+            <div class="validation-summary-errors">
+                @Html.ValidationSummary()
+            </div>
+        }
+
+        <!-- 角色选择 -->
+        <div class="role-selection">
+            <div class="form-group">
+                @Html.LabelFor(m => m.StaffRole)
+                @Html.DropDownListFor(m => m.StaffRole, new List<SelectListItem>
+                {
+                    new SelectListItem { Value = "recycler", Text = "回收员" },
+                    new SelectListItem { Value = "admin", Text = "管理员" },
+                    new SelectListItem { Value = "superadmin", Text = "超级管理员" }
+                }, "请选择角色", new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.StaffRole)
+            </div>
+        </div>
+
+        <!-- 用户名 -->
+        <div class="form-group">
+            @Html.LabelFor(m => m.Username)
+            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "请输入账号" })
+            @Html.ValidationMessageFor(m => m.Username)
+        </div>
+
+        <!-- 密码 -->
+        <div class="form-group password-group">
+            @Html.LabelFor(m => m.Password)
+            <div class="password-input-container">
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control password-input", placeholder = "请输入密码" })
+                <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+            </div>
+            @Html.ValidationMessageFor(m => m.Password)
+        </div>
+
+        <!-- 验证码 -->
+        <div class="form-group">
+            @Html.LabelFor(m => m.Captcha)
+            <div class="captcha-container">
+                @Html.TextBoxFor(m => m.Captcha, new { @class = "form-control captcha-input", placeholder = "请输入验证码" })
+                <div class="captcha-image" id="captchaImage">
+                    @Model.GeneratedCaptcha
+                </div>
+            </div>
+            @Html.ValidationMessageFor(m => m.Captcha)
+            @Html.HiddenFor(m => m.GeneratedCaptcha)
+        </div>
+
+        <!-- 登录按钮 -->
+        <div class="login-buttons">
+            <button type="submit" class="btn btn-login">登录</button>
+            <button type="reset" class="btn btn-cancel">取消</button>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // 密码显示/隐藏切换
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.querySelector('.password-input');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+        });
+
+        // 验证码刷新
+        document.getElementById('captchaImage').addEventListener('click', function () {
+            window.location.reload();
+        });
+    </script>
+}
