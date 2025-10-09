@@ -32,5 +32,9 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
+        public ActionResult LoginSelect()
+        {
+            return View();
+        }
     }
 }
