@@ -22,30 +22,54 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult Login()
         {
-            return View();
+            // 生成验证码
+            var model = new StaffLoginViewModel
+            {
+                GeneratedCaptcha = GenerateCaptcha()
+            };
+            return View(model);
         }
 
-        // 处理登录提交
+        private string GenerateCaptcha()
+        {
+            throw new NotImplementedException();
+        }
+
+        // POST: Staff/Login - 处理工作人员登录提交
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(string role, string username, string password)
+        public ActionResult Login(StaffLoginViewModel model)
         {
+            // 验证码验证
+            if (!string.Equals(model.Captcha, model.GeneratedCaptcha, StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError("", "验证码不正确");
+                model.GeneratedCaptcha = GenerateCaptcha(); // 重新生成验证码
+                return View(model);
+            }
+
+            // 模型验证
+            if (!ModelState.IsValid)
+            {
+                model.GeneratedCaptcha = GenerateCaptcha();
+                return View(model);
+            }
+
             // 调用BLL验证登录
-            var (errorMsg, user) = _staffBLL.Login(role, username, password);
+            var (errorMsg, user) = _staffBLL.Login(model.StaffRole, model.Username, model.Password);
 
             if (!string.IsNullOrEmpty(errorMsg))
             {
-                // 登录失败，返回错误信息
                 ModelState.AddModelError("", errorMsg);
-                return View();
+                model.GeneratedCaptcha = GenerateCaptcha();
+                return View(model);
             }
 
             // 登录成功，存储用户信息到Session
-            Session["StaffRole"] = role;  // 存储角色类型
-            Session["LoginStaff"] = user;  // 存储用户实体
-            Session.Timeout = 30;  // 30分钟过期
+            Session["StaffRole"] = model.StaffRole;
+            Session["LoginStaff"] = user;
+            Session.Timeout = 30;
 
-            // 所有角色均跳转到用户首页
             return RedirectToAction("Index", "Home");
         }
 
@@ -54,7 +78,7 @@ namespace recycling.Web.UI.Controllers
         {
             Session["StaffRole"] = null;
             Session["LoginStaff"] = null;
-            return RedirectToAction("Login");
+            return RedirectToAction("Login","Staff");
         }
     }
 }
