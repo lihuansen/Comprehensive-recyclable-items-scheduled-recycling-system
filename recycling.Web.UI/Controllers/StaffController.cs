@@ -22,50 +22,35 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult Login()
         {
-            // 生成验证码
-            var model = new StaffLoginViewModel
-            {
-                GeneratedCaptcha = GenerateCaptcha()
-            };
-            return View(model);
+            return View(new StaffLoginViewModel());
         }
 
-        private string GenerateCaptcha()
-        {
-            throw new NotImplementedException();
-        }
-
-        // POST: Staff/Login - 处理工作人员登录提交
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Login(StaffLoginViewModel model)
         {
-            // 验证码验证
-            if (!string.Equals(model.Captcha, model.GeneratedCaptcha, StringComparison.OrdinalIgnoreCase))
-            {
-                ModelState.AddModelError("", "验证码不正确");
-                model.GeneratedCaptcha = GenerateCaptcha(); // 重新生成验证码
-                return View(model);
-            }
-
-            // 模型验证
+            // 1. 模型验证
             if (!ModelState.IsValid)
             {
-                model.GeneratedCaptcha = GenerateCaptcha();
                 return View(model);
             }
 
-            // 调用BLL验证登录
-            var (errorMsg, user) = _staffBLL.Login(model.StaffRole, model.Username, model.Password);
+            // 2. 验证码验证
+            if (!string.Equals(model.Captcha?.Trim().ToUpper(), model.GeneratedCaptcha?.Trim().ToUpper()))
+            {
+                ModelState.AddModelError(nameof(model.Captcha), "验证码错误");
+                return View(model);
+            }
 
+            // 3. 调用BLL验证登录
+            var (errorMsg, user) = _staffBLL.Login(model.StaffRole, model.Username, model.Password);
             if (!string.IsNullOrEmpty(errorMsg))
             {
                 ModelState.AddModelError("", errorMsg);
-                model.GeneratedCaptcha = GenerateCaptcha();
                 return View(model);
             }
 
-            // 登录成功，存储用户信息到Session
+            // 4. 登录成功，存储用户信息
             Session["StaffRole"] = model.StaffRole;
             Session["LoginStaff"] = user;
             Session.Timeout = 30;
@@ -73,12 +58,12 @@ namespace recycling.Web.UI.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+
         // 退出登录
         public ActionResult Logout()
         {
-            Session["StaffRole"] = null;
-            Session["LoginStaff"] = null;
-            return RedirectToAction("Login","Staff");
+            Session.Clear();
+            return RedirectToAction("Login");
         }
     }
 }
