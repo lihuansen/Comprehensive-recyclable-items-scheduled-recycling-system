@@ -17,7 +17,7 @@
     @Html.ValidationSummary(true, "登录失败，请检查以下问题：", new { @class = "validation-summary-errors" })
 
     <!-- 角色选择 -->
-    <div class="role-selection">
+    <!--<div class="role-selection">
         <div class="role-options">
             <div class="role-option">
                 <input type="radio" id="roleUser" name="userRole" value="user" checked>
@@ -27,17 +27,17 @@
                 <input type="radio" id="roleStaff" name="userRole" value="staff">
                 <label for="roleStaff">工作人员</label>
             </div>
-        </div>
+        </div>-->
 
         <!-- 工作人员角色下拉菜单 -->
-        <div class="staff-role-dropdown" id="staffRoleDropdown">
+        <!--<div class="staff-role-dropdown" id="staffRoleDropdown">
             <select id="staffRole">
                 <option value="collector">回收员</option>
                 <option value="admin">管理员</option>
                 <option value="superadmin">超级管理员</option>
             </select>
         </div>
-    </div>
+    </div>-->
 
     <!-- 用户登录区域 -->
     <div id="userLoginArea">
@@ -158,7 +158,7 @@
     </div>
 
     <!-- 工作人员登录区域 -->
-    <div id="staffLoginArea" class="staff-login-form">
+    <!--<div id="staffLoginArea" class="staff-login-form">
         <form id="staffLoginForm">
             <div class="form-group">
                 <input type="text" class="form-control" id="staffUsername" placeholder="请输入工作人员账号" required>
@@ -185,7 +185,7 @@
                 <button type="button" class="btn btn-danger btn-cancel" id="staffCancelBtn">取消</button>
             </div>
         </form>
-    </div>
+    </div>-->
 </div>
 
 <script>
