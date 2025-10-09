@@ -22,9 +22,7 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult Login()
         {
-            if (Session["LoginStaff"] != null)
-                return RedirectToAction("Index", "Home");
-            return View(new StaffLoginViewModel());
+            return View();
         }
 
         // 处理登录提交
