@@ -1,2 +1,27 @@
-﻿body {
+﻿/* 工作人员登录表单样式 */
+.staff-login-form {
+    display: none;
 }
+
+    .staff-login-form.active {
+        display: block;
+    }
+/* 工作人员角色选择样式 */
+.staff-role-selection {
+    margin-bottom: 25px;
+}
+
+.staff-role-options {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.staff-role-dropdown {
+    display: none;
+    margin-top: 10px;
+}
+
+    .staff-role-dropdown.active {
+        display: block;
+    }
