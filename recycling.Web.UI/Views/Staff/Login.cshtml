@@ -1,87 +1,120 @@
 ﻿@model recycling.Model.StaffLoginViewModel
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "工作人员登录";
 }
 
 <div class="login-container">
     <h2 class="login-title">工作人员登录</h2>
 
+    @* 错误提示 *@
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="validation-summary-errors">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
     @using (Html.BeginForm("Login", "Staff", FormMethod.Post, new { @class = "staff-login-form active" }))
     {
         @Html.AntiForgeryToken()
 
-        if (ViewData.ModelState[""] != null && ViewData.ModelState[""].Errors.Count > 0)
-        {
-            <div class="validation-summary-errors">
-                @Html.ValidationSummary()
-            </div>
-        }
+        @* 角色选择 *@
+        <div class="form-group role-selection">
+            @Html.LabelFor(m => m.StaffRole, new { @class = "control-label" })
+            <div class="role-options">
+                @Html.RadioButtonFor(m => m.StaffRole, "recycler", new { id = "role-recycler" })
+                <label for="role-recycler">回收员</label>
 
-        <!-- 角色选择 -->
-        <div class="role-selection">
-            <div class="form-group">
-                @Html.LabelFor(m => m.StaffRole)
-                @Html.DropDownListFor(m => m.StaffRole, new List<SelectListItem>
-                {
-                    new SelectListItem { Value = "recycler", Text = "回收员" },
-                    new SelectListItem { Value = "admin", Text = "管理员" },
-                    new SelectListItem { Value = "superadmin", Text = "超级管理员" }
-                }, "请选择角色", new { @class = "form-control" })
-                @Html.ValidationMessageFor(m => m.StaffRole)
+                @Html.RadioButtonFor(m => m.StaffRole, "admin", new { id = "role-admin" })
+                <label for="role-admin">管理员</label>
+
+                @Html.RadioButtonFor(m => m.StaffRole, "superadmin", new { id = "role-superadmin" })
+                <label for="role-superadmin">超级管理员</label>
             </div>
+            @Html.ValidationMessageFor(m => m.StaffRole, "", new { @class = "text-danger" })
         </div>
 
-        <!-- 用户名 -->
+        @* 用户名 *@
         <div class="form-group">
-            @Html.LabelFor(m => m.Username)
+            @Html.LabelFor(m => m.Username, new { @class = "control-label" })
             @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "请输入账号" })
-            @Html.ValidationMessageFor(m => m.Username)
+            @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
         </div>
 
-        <!-- 密码 -->
+        @* 密码（带小眼睛图标）*@
         <div class="form-group password-group">
-            @Html.LabelFor(m => m.Password)
+            @Html.LabelFor(m => m.Password, new { @class = "control-label" })
             <div class="password-input-container">
                 @Html.PasswordFor(m => m.Password, new { @class = "form-control password-input", placeholder = "请输入密码" })
-                <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+                <button type="button" class="toggle-password" aria-label="切换密码可见性">
+                    <span class="glyphicon glyphicon-eye-open"></span>
+                </button>
             </div>
-            @Html.ValidationMessageFor(m => m.Password)
+            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
         </div>
 
-        <!-- 验证码 -->
-        <div class="form-group">
-            @Html.LabelFor(m => m.Captcha)
-            <div class="captcha-container">
-                @Html.TextBoxFor(m => m.Captcha, new { @class = "form-control captcha-input", placeholder = "请输入验证码" })
-                <div class="captcha-image" id="captchaImage">
-                    @Model.GeneratedCaptcha
-                </div>
+        @* 验证码 *@
+        <div class="form-group captcha-container">
+            <div class="captcha-input">
+                @Html.LabelFor(m => m.Captcha, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.Captcha, new { @class = "form-control", placeholder = "请输入验证码" })
+                @Html.ValidationMessageFor(m => m.Captcha, "", new { @class = "text-danger" })
             </div>
-            @Html.ValidationMessageFor(m => m.Captcha)
-            @Html.HiddenFor(m => m.GeneratedCaptcha)
+            <div class="captcha-image" id="captchaImage">
+                @* 验证码图片/文本将通过JS生成 *@
+            </div>
         </div>
 
-        <!-- 登录按钮 -->
+        @* 隐藏字段：存储服务器生成的验证码 *@
+        @Html.HiddenFor(m => m.GeneratedCaptcha)
+
+        @* 登录按钮 *@
         <div class="login-buttons">
             <button type="submit" class="btn btn-login">登录</button>
-            <button type="reset" class="btn btn-cancel">取消</button>
+            <button type="reset" class="btn btn-cancel">重置</button>
         </div>
     }
 </div>
 
 @section Scripts {
+    @Scripts.Render("~/bundles/jquery")
     <script>
-        // 密码显示/隐藏切换
-        document.getElementById('togglePassword').addEventListener('click', function () {
-            const passwordInput = document.querySelector('.password-input');
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+        // 密码可见性切换（与文档样式一致）
+        $(document).on('click', '.toggle-password', function () {
+            const passwordInput = $(this).closest('.password-input-container').find('.password-input');
+            const icon = $(this).find('span');
+
+            // 切换输入类型
+            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+            passwordInput.attr('type', type);
+
+            // 切换图标（使用bootstrap glyphicon，与文档一致）
+            icon.toggleClass('glyphicon-eye-open glyphicon-eye-close');
         });
 
-        // 验证码刷新
-        document.getElementById('captchaImage').addEventListener('click', function () {
-            window.location.reload();
+        // 生成验证码
+        function generateCaptcha() {
+            const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            // 显示验证码
+            $('#captchaImage').text(captcha);
+            // 存储到隐藏字段
+            $('#GeneratedCaptcha').val(captcha);
+        }
+
+        // 初始化验证码
+        $(function () {
+            generateCaptcha();
+            // 点击刷新验证码
+            $('#captchaImage').click(generateCaptcha);
         });
     </script>
 }
