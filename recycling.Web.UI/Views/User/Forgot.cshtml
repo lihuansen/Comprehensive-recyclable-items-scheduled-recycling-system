@@ -181,7 +181,7 @@
         sendBtn.textContent = '发送中...';
 
         // 发送AJAX请求
-        fetch('@Url.Action("Login", "User")', {
+        fetch('@Url.Action("SendVerificationCode", "User")', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
