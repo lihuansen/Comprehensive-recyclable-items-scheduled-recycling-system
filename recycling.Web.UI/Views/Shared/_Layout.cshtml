@@ -98,6 +98,9 @@
         .left-navs, .right-navs {
             display: flex;
             align-items: center;
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
         .navbar-collapse.collapse {
@@ -107,30 +110,6 @@
         .container.body-content {
             margin-top: 0;
         }
-
-        /* 修改：将登录提示链接放在导航栏右下角 */
-        .navbar-login-prompt {
-            position: absolute;
-            right: 15px;
-            top: 15px;
-            z-index: 1001;
-        }
-
-            .navbar-login-prompt a {
-                color: #9d9d9d !important;
-                text-decoration: none;
-                font-size: 14px;
-                padding: 5px 10px;
-                border: 1px solid #9d9d9d;
-                border-radius: 3px;
-                transition: all 0.3s;
-            }
-
-                .navbar-login-prompt a:hover {
-                    color: white !important;
-                    border-color: white;
-                    text-decoration: none;
-                }
 
         /* 修改：登录状态样式 */
         .navbar-user-info {
@@ -173,11 +152,6 @@
                 font-size: 20px;
             }
 
-            .navbar-login-prompt {
-                top: 10px;
-                right: 10px;
-            }
-
             .navbar-user-info {
                 top: 10px;
                 right: 10px;
@@ -218,12 +192,6 @@
 
             .container.body-content {
                 margin-top: 0;
-            }
-            /* 移动设备上调整登录提示位置 */
-            .navbar-login-prompt {
-                position: static;
-                text-align: center;
-                margin-top: 10px;
             }
             /* 移动设备上调整登录信息位置 */
             .navbar-user-info {
@@ -293,28 +261,26 @@
             </div>
 
             <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li class="nav-container">
-                        <ul class="left-navs">
-                            <li class="normal-nav">@Html.ActionLink("首页", "Index", "Home")</li>
-                            <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
-                            <li class="normal-nav">@Html.ActionLink("我的消息", "Message", "Home")</li>
-                        </ul>
+                <div class="nav-container">
+                    <ul class="left-navs">
+                        <li class="normal-nav">@Html.ActionLink("首页", "Index", "Home")</li>
+                        <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
+                        <li class="normal-nav">@Html.ActionLink("我的消息", "Message", "Home")</li>
+                    </ul>
 
-                        <div class="diamond-nav">
-                            <a href="@Url.Action("Index", "Home")" class="diamond-text">
-                                <span>圾时</span>
-                                <span>达约</span>
-                            </a>
-                        </div>
+                    <div class="diamond-nav">
+                        <a href="@Url.Action("Index", "Home")" class="diamond-text">
+                            <span>圾时</span>
+                            <span>达约</span>
+                        </a>
+                    </div>
 
-                        <ul class="right-navs">
-                            <li class="normal-nav">@Html.ActionLink("帮助中心", "Help", "Home")</li>
-                            <li class="normal-nav">@Html.ActionLink("问题反馈", "Feedback", "Home")</li>
-                            <li class="normal-nav">@Html.ActionLink("个人中心", "Profile", "Home")</li>
-                        </ul>
-                    </li>
-                </ul>
+                    <ul class="right-navs">
+                        <li class="normal-nav">@Html.ActionLink("帮助中心", "Help", "Home")</li>
+                        <li class="normal-nav">@Html.ActionLink("问题反馈", "Feedback", "Home")</li>
+                        <li class="normal-nav">@Html.ActionLink("个人中心", "Profile", "Home")</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
