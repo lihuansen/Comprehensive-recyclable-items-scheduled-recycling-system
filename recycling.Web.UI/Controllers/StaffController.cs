@@ -95,5 +95,15 @@ namespace recycling.Web.UI.Controllers
             return new string(Enumerable.Repeat(chars, 4)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+
+        /// <summary>
+        /// 新增：验证码刷新接口（供前端AJAX调用）
+        /// </summary>
+        [HttpGet]
+        public ActionResult RefreshCaptcha()
+        {
+            string newCaptcha = GenerateCaptcha();
+            return Content(newCaptcha);
+        }
     }
 }
