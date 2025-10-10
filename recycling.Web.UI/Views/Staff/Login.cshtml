@@ -12,17 +12,18 @@
     {
         @Html.AntiForgeryToken()
 
-        if (ModelState.IsValid == false)
+        @* 修正错误：将ModelState.IsValid改为ViewData.ModelState.IsValid *@
+        if (ViewData.ModelState.IsValid == false)
         {
             <div class="validation-summary-errors">
                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
             </div>
         }
 
-        <!-- 角色选择区域 - 仅工作人员登录有此部分 -->
-        <div class="role-selection">
-            <label class="control-label">@Html.DisplayNameFor(model => model.StaffRole)</label>
-            <div class="role-options">
+        <!-- 角色选择区域 -->
+        <div class="form-group staff-role-selection">
+            @Html.LabelFor(model => model.StaffRole, new { @class = "control-label" })
+            <div class="staff-role-options">
                 <label class="role-option">
                     @Html.RadioButtonFor(model => model.StaffRole, "recycler", new { @checked = "checked" }) 回收员
                 </label>
@@ -36,14 +37,14 @@
             @Html.ValidationMessageFor(model => model.StaffRole, "", new { @class = "text-danger" })
         </div>
 
-        <!-- 用户名输入框（与用户登录一致） -->
+        <!-- 用户名输入框 -->
         <div class="form-group">
             @Html.LabelFor(model => model.Username, new { @class = "control-label" })
             @Html.TextBoxFor(model => model.Username, new { @class = "form-control", @placeholder = "请输入用户名" })
             @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
         </div>
 
-        <!-- 密码输入框（带小眼睛，与用户登录一致） -->
+        <!-- 密码输入框（带小眼睛） -->
         <div class="form-group password-group">
             @Html.LabelFor(model => model.Password, new { @class = "control-label" })
             <div class="password-input-container">
@@ -55,7 +56,7 @@
             @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
         </div>
 
-        <!-- 验证码（与用户登录一致） -->
+        <!-- 验证码 -->
         <div class="form-group">
             @Html.LabelFor(model => model.Captcha, new { @class = "control-label" })
             <div class="captcha-container">
@@ -68,7 +69,7 @@
             @Html.HiddenFor(model => model.GeneratedCaptcha)
         </div>
 
-        <!-- 登录按钮（与用户登录一致） -->
+        <!-- 登录按钮 -->
         <div class="login-buttons">
             <input type="submit" value="登录" class="btn btn-login" />
             <input type="reset" value="取消" class="btn btn-cancel" />
@@ -79,7 +80,7 @@
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
     <script>
-        // 验证码刷新功能（与用户登录一致）
+        // 验证码刷新功能
         $('#captchaImage').click(function () {
             $.get('@Url.Action("Login", "Staff")', function (data) {
                 var newCaptcha = $(data).find('#GeneratedCaptcha').val();
@@ -89,7 +90,7 @@
             });
         });
 
-        // 密码显示/隐藏功能（与用户登录一致）
+        // 密码显示/隐藏功能
         $('.toggle-password').click(function () {
             var passwordInput = $(this).closest('.password-input-container').find('input');
             var type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
