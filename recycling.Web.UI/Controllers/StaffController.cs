@@ -12,19 +12,13 @@ namespace recycling.Web.UI.Controllers
     {
         private readonly StaffBLL _staffBLL = new StaffBLL();
 
-        // GET: Staff
-        public ActionResult Index()
-        {
-            return View();
-        }
-
         /// <summary>
-        /// 显示工作人员登录页
+        /// 显示工作人员登录页（与用户登录页逻辑一致）
         /// </summary>
         [HttpGet]
         public ActionResult Login()
         {
-            // 已登录则跳转首页
+            // 已登录则跳转首页（与用户登录逻辑一致）
             if (Session["LoginStaff"] != null)
                 return RedirectToAction("Index", "Home");
 
@@ -37,7 +31,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 处理工作人员登录提交
+        /// 处理工作人员登录提交（与用户登录处理逻辑一致）
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -106,8 +100,9 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         private string GenerateCaptcha()
         {
+            // 使用与用户登录完全相同的字符集和生成逻辑
             var random = new Random();
-            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 移除易混淆字符
             return new string(Enumerable.Repeat(chars, 4)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
