@@ -14,24 +14,26 @@ namespace recycling.BLL
         private readonly StaffDAL _staffDAL = new StaffDAL();
 
         /// <summary>
-        /// 工作人员登录通用方法
+        /// 工作人员登录验证（根据角色区分处理）
         /// </summary>
-        /// <param name="role">角色类型：Recycler/Admin/SuperAdmin</param>
-        /// <param name="username">用户名</param>
-        /// <param name="password">密码</param>
-        /// <returns>登录结果（错误信息+用户实体）</returns>
-        public (string ErrorMsg, object User) Login(string role, string username, string password)
+        /// <param name="role">角色（recycler/admin/superadmin）</param>
+        /// <param name="username">账号</param>
+        /// <param name="password">密码（明文）</param>
+        /// <returns>返回值：(错误信息, 工作人员实体)；错误信息为null表示登录成功</returns>
+        public (string ErrorMsg, object Staff) Login(string role, string username, string password)
         {
-            // 1. 验证输入
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                return ("用户名和密码不能为空", null);
-            }
+            // 1. 基础验证
+            if (string.IsNullOrWhiteSpace(username))
+                return ("请输入工作人员账号", null);
+            if (string.IsNullOrWhiteSpace(password))
+                return ("请输入密码", null);
+            if (string.IsNullOrWhiteSpace(role))
+                return ("请选择角色", null);
 
-            // 2. 密码哈希处理（与存储时一致）
+            // 2. 密码哈希（与UserBLL保持一致的哈希算法）
             string passwordHash = HashPassword(password);
 
-            // 3. 根据角色验证
+            // 3. 根据角色调用DAL查询并验证
             switch (role.ToLower())
             {
                 case "recycler":
@@ -41,65 +43,83 @@ namespace recycling.BLL
                 case "superadmin":
                     return ValidateSuperAdmin(username, passwordHash);
                 default:
-                    return ("请选择正确的角色", null);
+                    return ("无效的角色", null);
             }
         }
 
-        #region 角色验证私有方法
-        private (string, object) ValidateRecycler(string username, string passwordHash)
+        #region 角色验证逻辑（调用DAL层）
+        /// <summary>
+        /// 验证回收员登录
+        /// </summary>
+        private (string ErrorMsg, Recyclers Staff) ValidateRecycler(string username, string passwordHash)
         {
-            var recycler = _staffDAL.GetRecyclerByUsername(username);
-            if (recycler == null)
-                return ("回收员用户名不存在", null);
+            try
+            {
+                var recycler = _staffDAL.GetRecyclerByUsername(username);
+                if (recycler == null)
+                    return ("回收员账号不存在", null);
+                if (recycler.PasswordHash != passwordHash)
+                    return ("密码错误", null);
 
-            if (!recycler.IsActive)
-                return ("账号已被禁用", null);
-
-            if (recycler.PasswordHash != passwordHash)
-                return ("密码错误", null);
-
-            // 更新登录时间
-            _staffDAL.UpdateRecyclerLastLogin(recycler.RecyclerID);
-            return (null, recycler);
+                // 登录成功，更新最后登录时间
+                _staffDAL.UpdateRecyclerLastLogin(recycler.RecyclerID);
+                return (null, recycler);
+            }
+            catch (Exception ex)
+            {
+                return ($"登录失败：{ex.Message}", null);
+            }
         }
 
-        private (string, object) ValidateAdmin(string username, string passwordHash)
+        /// <summary>
+        /// 验证管理员登录
+        /// </summary>
+        private (string ErrorMsg, Admins Staff) ValidateAdmin(string username, string passwordHash)
         {
-            var admin = _staffDAL.GetAdminByUsername(username);
-            if (admin == null)
-                return ("管理员用户名不存在", null);
+            try
+            {
+                var admin = _staffDAL.GetAdminByUsername(username);
+                if (admin == null)
+                    return ("管理员账号不存在", null);
+                if (admin.PasswordHash != passwordHash)
+                    return ("密码错误", null);
 
-            if (!admin.IsActive)
-                return ("账号已被禁用", null);
-
-            if (admin.PasswordHash != passwordHash)
-                return ("密码错误", null);
-
-            // 更新登录时间
-            _staffDAL.UpdateAdminLastLogin(admin.AdminID);
-            return (null, admin);
+                // 登录成功，更新最后登录时间
+                _staffDAL.UpdateAdminLastLogin(admin.AdminID);
+                return (null, admin);
+            }
+            catch (Exception ex)
+            {
+                return ($"登录失败：{ex.Message}", null);
+            }
         }
 
-        private (string, object) ValidateSuperAdmin(string username, string passwordHash)
+        /// <summary>
+        /// 验证超级管理员登录
+        /// </summary>
+        private (string ErrorMsg, SuperAdmins Staff) ValidateSuperAdmin(string username, string passwordHash)
         {
-            var superAdmin = _staffDAL.GetSuperAdminByUsername(username);
-            if (superAdmin == null)
-                return ("超级管理员用户名不存在", null);
+            try
+            {
+                var superAdmin = _staffDAL.GetSuperAdminByUsername(username);
+                if (superAdmin == null)
+                    return ("超级管理员账号不存在", null);
+                if (superAdmin.PasswordHash != passwordHash)
+                    return ("密码错误", null);
 
-            if (!superAdmin.IsActive)
-                return ("账号已被禁用", null);
-
-            if (superAdmin.PasswordHash != passwordHash)
-                return ("密码错误", null);
-
-            // 更新登录时间
-            _staffDAL.UpdateSuperAdminLastLogin(superAdmin.SuperAdminID);
-            return (null, superAdmin);
+                // 登录成功，更新最后登录时间
+                _staffDAL.UpdateSuperAdminLastLogin(superAdmin.SuperAdminID);
+                return (null, superAdmin);
+            }
+            catch (Exception ex)
+            {
+                return ($"登录失败：{ex.Message}", null);
+            }
         }
         #endregion
 
         /// <summary>
-        /// 密码SHA256哈希（与数据库存储一致）
+        /// 密码哈希算法（与UserBLL保持完全一致）
         /// </summary>
         private string HashPassword(string password)
         {
@@ -109,7 +129,7 @@ namespace recycling.BLL
                 StringBuilder builder = new StringBuilder();
                 foreach (byte b in bytes)
                 {
-                    builder.Append(b.ToString("x2"));
+                    builder.Append(b.ToString("x2")); // 转为16进制字符串
                 }
                 return builder.ToString();
             }
