@@ -31,6 +31,7 @@ namespace recycling.Model
         /// 用户输入的验证码
         /// </summary>
         [Required(ErrorMessage = "请输入验证码")]
+        [StringLength(4, MinimumLength = 4, ErrorMessage = "验证码必须为4位")] // 新增：与用户登录保持一致的长度验证
         [Display(Name = "验证码")]
         public string Captcha { get; set; }
 
