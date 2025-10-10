@@ -22,18 +22,18 @@ namespace recycling.BLL
         /// <returns>返回值：(错误信息, 工作人员实体)；错误信息为null表示登录成功</returns>
         public (string ErrorMsg, object Staff) Login(string role, string username, string password)
         {
-            // 1. 基础验证
+            // 1. 基础验证（与UserBLL保持一致）
             if (string.IsNullOrWhiteSpace(username))
-                return ("请输入工作人员账号", null);
+                return ("请输入用户名", null);
             if (string.IsNullOrWhiteSpace(password))
                 return ("请输入密码", null);
             if (string.IsNullOrWhiteSpace(role))
                 return ("请选择角色", null);
 
-            // 2. 密码哈希（与UserBLL保持一致的哈希算法）
+            // 2. 密码哈希（与UserBLL完全一致）
             string passwordHash = HashPassword(password);
 
-            // 3. 根据角色调用DAL查询并验证
+            // 3. 根据角色验证（保持原有逻辑）
             switch (role.ToLower())
             {
                 case "recycler":
