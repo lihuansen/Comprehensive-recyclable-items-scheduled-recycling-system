@@ -32,7 +32,6 @@ namespace recycling.Model
         /// </summary>
         [Required(ErrorMessage = "请输入验证码")]
         [Display(Name = "验证码")]
-        [MaxLength(4, ErrorMessage = "验证码长度为4位")]
         public string Captcha { get; set; }
 
         /// <summary>
