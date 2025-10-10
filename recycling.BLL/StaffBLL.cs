@@ -58,7 +58,9 @@ namespace recycling.BLL
                 var recycler = _staffDAL.GetRecyclerByUsername(username);
                 if (recycler == null)
                     return ("回收员账号不存在", null);
-                if (recycler.PasswordHash != passwordHash)
+
+                // 修复：不区分大小写比较哈希值
+                if (!string.Equals(recycler.PasswordHash, passwordHash, StringComparison.OrdinalIgnoreCase))
                     return ("密码错误", null);
 
                 // 登录成功，更新最后登录时间
@@ -81,7 +83,8 @@ namespace recycling.BLL
                 var admin = _staffDAL.GetAdminByUsername(username);
                 if (admin == null)
                     return ("管理员账号不存在", null);
-                if (admin.PasswordHash != passwordHash)
+                // 修复：不区分大小写比较哈希值
+                if (!string.Equals(admin.PasswordHash, passwordHash, StringComparison.OrdinalIgnoreCase))
                     return ("密码错误", null);
 
                 // 登录成功，更新最后登录时间
@@ -104,7 +107,8 @@ namespace recycling.BLL
                 var superAdmin = _staffDAL.GetSuperAdminByUsername(username);
                 if (superAdmin == null)
                     return ("超级管理员账号不存在", null);
-                if (superAdmin.PasswordHash != passwordHash)
+                // 修复：不区分大小写比较哈希值
+                if (!string.Equals(superAdmin.PasswordHash, passwordHash, StringComparison.OrdinalIgnoreCase))
                     return ("密码错误", null);
 
                 // 登录成功，更新最后登录时间
@@ -129,7 +133,7 @@ namespace recycling.BLL
                 StringBuilder builder = new StringBuilder();
                 foreach (byte b in bytes)
                 {
-                    builder.Append(b.ToString("x2")); // 转为16进制字符串
+                    builder.Append(b.ToString("x2")); 
                 }
                 return builder.ToString();
             }
