@@ -19,7 +19,7 @@ namespace recycling.Model
         [StringLength(255)]
         public string PasswordHash { get; set; }
 
-        public bool Available { get; set; } = true;
+        public bool Available { get; set; }
 
         [Required]
         [StringLength(20)]
@@ -38,7 +38,7 @@ namespace recycling.Model
 
         public DateTime? LastLoginDate { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
 
         [StringLength(255)]
         public string AvatarURL { get; set; }
