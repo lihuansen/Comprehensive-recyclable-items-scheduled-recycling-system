@@ -9,7 +9,7 @@
     <title>@ViewBag.Title - 圾时达约</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
-<style>
+    <style>
         body {
             padding-top: 120px; /* 调整上边距以适应导航栏 */
         }
@@ -132,6 +132,31 @@
                     text-decoration: none;
                 }
 
+        /* 修改：登录状态样式 */
+        .navbar-user-info {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            z-index: 1001;
+            color: #9d9d9d;
+        }
+
+            .navbar-user-info a {
+                color: #9d9d9d !important;
+                text-decoration: none;
+                font-size: 14px;
+                padding: 5px 10px;
+                margin-left: 10px;
+                border: 1px solid #9d9d9d;
+                border-radius: 3px;
+                transition: all 0.3s;
+            }
+
+                .navbar-user-info a:hover {
+                    color: white !important;
+                    border-color: white;
+                }
+
         @@media (max-width: 992px) {
             .normal-nav a {
                 font-size: 16px;
@@ -149,6 +174,11 @@
             }
 
             .navbar-login-prompt {
+                top: 10px;
+                right: 10px;
+            }
+
+            .navbar-user-info {
                 top: 10px;
                 right: 10px;
             }
@@ -195,33 +225,6 @@
                 text-align: center;
                 margin-top: 10px;
             }
-        }
-        /* 修改：登录状态样式 */
-        .navbar-user-info {
-            position: absolute;
-            right: 15px;
-            top: 15px;
-            z-index: 1001;
-            color: #9d9d9d;
-        }
-
-        .navbar-user-info a {
-            color: #9d9d9d !important;
-            text-decoration: none;
-            font-size: 14px;
-            padding: 5px 10px;
-            margin-left: 10px;
-            border: 1px solid #9d9d9d;
-            border-radius: 3px;
-            transition: all 0.3s;
-        }
-
-        .navbar-user-info a:hover {
-            color: white !important;
-            border-color: white;
-        }
-
-        @@media (max-width: 768px) {
             /* 移动设备上调整登录信息位置 */
             .navbar-user-info {
                 position: static;
@@ -230,7 +233,7 @@
                 padding-bottom: 10px;
             }
         }
-</style>
+    </style>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -291,30 +294,29 @@
 
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <div class="nav-container">
-                        <div class="left-navs">
-                    <li class="normal-nav">@Html.ActionLink("首页", "Index", "Home")</li>
-                    <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
-                    <li class="normal-nav">@Html.ActionLink("我的消息", "Message", "Home")</li>
-            </div>
+                    <li class="nav-container">
+                        <ul class="left-navs">
+                            <li class="normal-nav">@Html.ActionLink("首页", "Index", "Home")</li>
+                            <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
+                            <li class="normal-nav">@Html.ActionLink("我的消息", "Message", "Home")</li>
+                        </ul>
 
-            <li class="diamond-nav">
-                <a href="@Url.Action("Index", "Home")" class="diamond-text">
-                    <span>圾时</span>
-                    <span>达约</span>
-                </a>
-            </li>
+                        <div class="diamond-nav">
+                            <a href="@Url.Action("Index", "Home")" class="diamond-text">
+                                <span>圾时</span>
+                                <span>达约</span>
+                            </a>
+                        </div>
 
-            <div class="right-navs">
-                <li class="normal-nav">@Html.ActionLink("帮助中心", "Help", "Home")</li>
-                <li class="normal-nav">@Html.ActionLink("问题反馈", "Feedback", "Home")</li>
-                <li class="normal-nav">@Html.ActionLink("个人中心", "Profile", "Home")</li>
+                        <ul class="right-navs">
+                            <li class="normal-nav">@Html.ActionLink("帮助中心", "Help", "Home")</li>
+                            <li class="normal-nav">@Html.ActionLink("问题反馈", "Feedback", "Home")</li>
+                            <li class="normal-nav">@Html.ActionLink("个人中心", "Profile", "Home")</li>
+                        </ul>
+                    </li>
+                </ul>
             </div>
         </div>
-        </div>
-        </ul>
-    </div>
-    </div>
     </div>
 
     <div class="container body-content">
