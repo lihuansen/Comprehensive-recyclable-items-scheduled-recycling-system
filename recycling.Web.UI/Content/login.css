@@ -253,3 +253,30 @@
     .toggle-password:focus {
         outline: none;
     }
+
+/* 在login.css中添加以下内容，替代原staff-login.css */
+/* 工作人员角色选择样式（保持与用户登录页风格一致） */
+.staff-role-selection {
+    margin-bottom: 25px;
+}
+
+.staff-role-options {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.staff-role-option {
+    display: flex;
+    align-items: center;
+}
+
+    .staff-role-option input {
+        margin-right: 5px;
+    }
+
+    .staff-role-option label {
+        margin-bottom: 0;
+        font-weight: normal;
+        font-size: 16px;
+    }

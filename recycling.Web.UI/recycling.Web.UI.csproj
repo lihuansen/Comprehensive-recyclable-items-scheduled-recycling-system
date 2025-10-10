@@ -136,7 +136,6 @@
     <Content Include="Content\forgot.css" />
     <Content Include="Content\login.css" />
     <Content Include="Content\register.css" />
-    <Content Include="Content\staff-login.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
