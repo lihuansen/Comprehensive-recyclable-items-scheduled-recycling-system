@@ -96,7 +96,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT AdminID, Username, PasswordHash, Email, LastLoginDate 
+                    string sql = @"SELECT AdminID, Username, PasswordHash, LastLoginDate 
                                   FROM Admins 
                                   WHERE Username = @Username";
 
