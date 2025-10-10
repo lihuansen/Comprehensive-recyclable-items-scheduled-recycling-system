@@ -254,7 +254,6 @@
         outline: none;
     }
 
-/* 在login.css中添加以下内容，替代原staff-login.css */
 /* 工作人员角色选择样式（保持与用户登录页风格一致） */
 .staff-role-selection {
     margin-bottom: 25px;
@@ -280,3 +279,14 @@
         font-weight: normal;
         font-size: 16px;
     }
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .staff-role-options {
+        flex-direction: column;
+    }
+
+    .staff-role-option {
+        margin-bottom: 10px;
+    }
+}
