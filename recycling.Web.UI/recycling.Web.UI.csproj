@@ -175,8 +175,6 @@
     <Content Include="Views\User\Forgot.cshtml" />
     <Content Include="Views\User\EmailLogin.cshtml" />
     <Content Include="Views\User\PhoneLogin.cshtml" />
-    <Content Include="Views\User\_RoleSelection.cshtml" />
-    <Content Include="Views\User\_LoginButtons.cshtml" />
     <Content Include="Views\Staff\Login.cshtml" />
     <Content Include="Views\Home\LoginSelect.cshtml" />
   </ItemGroup>
