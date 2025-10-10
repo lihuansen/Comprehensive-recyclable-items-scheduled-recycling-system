@@ -28,7 +28,7 @@ namespace recycling.Web.UI.Controllers
             if (Session["LoginStaff"] != null)
                 return RedirectToAction("Index", "Home");
 
-            // 生成验证码并传递到视图
+            // 生成验证码并传递到视图（与用户登录逻辑一致）
             var model = new StaffLoginViewModel
             {
                 GeneratedCaptcha = GenerateCaptcha()
@@ -43,17 +43,24 @@ namespace recycling.Web.UI.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(StaffLoginViewModel model)
         {
-            // 1. 验证码验证
-            if (!string.Equals(model.Captcha, model.GeneratedCaptcha, StringComparison.OrdinalIgnoreCase))
+            // 1. 验证码验证（与用户登录逻辑一致）
+            if (string.IsNullOrEmpty(model.GeneratedCaptcha) ||
+                !string.Equals(model.Captcha, model.GeneratedCaptcha, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError("", "验证码不正确");
                 model.GeneratedCaptcha = GenerateCaptcha(); // 重新生成验证码
+                model.Captcha = ""; // 清空错误的验证码输入
                 return View(model);
             }
 
             // 2. 模型验证
             if (!ModelState.IsValid)
             {
+                // 清空错误的密码输入（与用户登录逻辑一致）
+                if (ModelState.Keys.Any(k => k == "Password" && ModelState[k].Errors.Count > 0))
+                {
+                    model.Password = "";
+                }
                 model.GeneratedCaptcha = GenerateCaptcha();
                 return View(model);
             }
@@ -63,30 +70,39 @@ namespace recycling.Web.UI.Controllers
             if (!string.IsNullOrEmpty(errorMsg))
             {
                 ModelState.AddModelError("", errorMsg);
+                // 根据错误类型清空对应字段（与用户登录逻辑一致）
+                if (errorMsg.Contains("密码"))
+                {
+                    model.Password = "";
+                }
+                else if (errorMsg.Contains("验证码"))
+                {
+                    model.Captcha = "";
+                }
                 model.GeneratedCaptcha = GenerateCaptcha();
                 return View(model);
             }
 
-            // 4. 登录成功，存储Session
-            Session["LoginStaff"] = staff; // 存储工作人员实体
-            Session["StaffRole"] = model.StaffRole; // 存储角色（用于权限判断）
-            Session.Timeout = 30; // 30分钟过期
+            // 4. 登录成功，存储Session（与用户登录逻辑一致）
+            Session["LoginStaff"] = staff;
+            Session["StaffRole"] = model.StaffRole;
+            Session.Timeout = 30;
 
             return RedirectToAction("Index", "Home");
         }
 
         /// <summary>
-        /// 工作人员退出登录
+        /// 工作人员退出登录（与用户退出逻辑一致）
         /// </summary>
         public ActionResult Logout()
         {
-            Session["LoginStaff"] = null;
-            Session["StaffRole"] = null;
+            Session.Clear();
+            Session.Abandon();
             return RedirectToAction("Login", "Staff");
         }
 
         /// <summary>
-        /// 生成4位随机验证码（与User登录保持一致）
+        /// 生成4位随机验证码（与User登录保持完全一致）
         /// </summary>
         private string GenerateCaptcha()
         {
@@ -94,16 +110,6 @@ namespace recycling.Web.UI.Controllers
             const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             return new string(Enumerable.Repeat(chars, 4)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-        /// <summary>
-        /// 新增：验证码刷新接口（供前端AJAX调用）
-        /// </summary>
-        [HttpGet]
-        public ActionResult RefreshCaptcha()
-        {
-            string newCaptcha = GenerateCaptcha();
-            return Content(newCaptcha);
         }
     }
 }
