@@ -157,9 +157,9 @@
         // 绑定发送验证码事件
         document.getElementById('sendPhoneCode').addEventListener('click', sendPhoneVerificationCode);
 
-        // 取消按钮事件
+        // 取消按钮事件 - 修复为返回登录选择页
         document.getElementById('cancelBtn').addEventListener('click', function() {
-            window.location.href = '@Url.Action("Index", "Home")';
+            window.location.href = '@Url.Action("LoginSelect", "Home")';
         });
 
         // 表单提交前验证
