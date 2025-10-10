@@ -247,15 +247,46 @@
             <div class="navbar-user-info">
                 @if (Session["LoginUser"] != null)
                 {
-                    // 已登录状态
+                    // 用户已登录状态
                     var user = (recycling.Model.Users)Session["LoginUser"];
-        <span>您好，@user.Username</span>
-                        @Html.ActionLink("退出登录", "Logout", "User") }
-                                    else
-                                    {
-                                        // 未登录状态
-                        @Html.ActionLink("登录", "LoginSelect", "Home")
-                                        @Html.ActionLink("注册", "Register", "User")}
+                    <span>您好，@user.Username</span>
+                    @Html.ActionLink("退出登录", "Logout", "User")
+                }
+                else if (Session["LoginStaff"] != null)
+                {
+                    // 工作人员已登录状态
+                    var staffRole = Session["StaffRole"] as string;
+                    string staffName = "";
+                    string displayName = "";
+
+                    if (staffRole == "recycler")
+                    {
+                        var recycler = (recycling.Model.Recyclers)Session["LoginStaff"];
+                        staffName = recycler.Username;
+                        displayName = "回收员";
+                    }
+                    else if (staffRole == "admin")
+                    {
+                        var admin = (recycling.Model.Admins)Session["LoginStaff"];
+                        staffName = admin.Username;
+                        displayName = "管理员";
+                    }
+                    else if (staffRole == "superadmin")
+                    {
+                        var superAdmin = (recycling.Model.SuperAdmins)Session["LoginStaff"];
+                        staffName = superAdmin.Username;
+                        displayName = "超级管理员";
+                    }
+
+                    <span>您好，@displayName：@staffName</span>
+                    @Html.ActionLink("退出登录", "Logout", "Staff")
+                }
+                else
+                {
+                    // 未登录状态
+                    @Html.ActionLink("登录", "LoginSelect", "Home")
+                    @Html.ActionLink("注册", "Register", "User")
+                }
             </div>
 
             <div class="navbar-collapse collapse">
@@ -279,6 +310,7 @@
                 <li class="normal-nav">@Html.ActionLink("问题反馈", "Feedback", "Home")</li>
                 <li class="normal-nav">@Html.ActionLink("个人中心", "Profile", "Home")</li>
             </div>
+        </div>
         </div>
         </ul>
     </div>
