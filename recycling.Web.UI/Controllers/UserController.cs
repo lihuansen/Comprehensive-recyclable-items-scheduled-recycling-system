@@ -428,5 +428,88 @@ namespace recycling.Web.UI.Controllers
                 return View("Forgot", model);
             }
         }
+
+        /// <summary>
+        /// 显示预约上门页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult Appointment()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            var model = new AppointmentViewModel
+            {
+                AppointmentDate = DateTime.Today.AddDays(1) // 默认明天
+            };
+
+            // 设置视图数据
+            ViewBag.AppointmentTypes = AppointmentTypes.AllTypes;
+            ViewBag.RecyclingCategories = RecyclingCategories.AllCategories;
+            ViewBag.TimeSlots = TimeSlots.AllSlots;
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// 处理预约提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Appointment(AppointmentViewModel model)
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            // 设置视图数据（POST请求也需要）
+            ViewBag.AppointmentTypes = AppointmentTypes.AllTypes;
+            ViewBag.RecyclingCategories = RecyclingCategories.AllCategories;
+            ViewBag.TimeSlots = TimeSlots.AllSlots;
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                // 这里将来会实现预约数据的保存逻辑
+                // 暂时只是模拟成功
+
+                // 获取当前登录用户
+                var user = (Users)Session["LoginUser"];
+
+                // 模拟保存成功
+                TempData["SuccessMessage"] = "预约成功！我们将在24小时内与您确认。";
+
+                // 重定向到成功页面或返回首页
+                return RedirectToAction("AppointmentSuccess");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"预约失败：{ex.Message}");
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// 预约成功页面
+        /// </summary>
+        public ActionResult AppointmentSuccess()
+        {
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            ViewBag.SuccessMessage = TempData["SuccessMessage"] ?? "预约提交成功！";
+            return View();
+        }
     }
 }
