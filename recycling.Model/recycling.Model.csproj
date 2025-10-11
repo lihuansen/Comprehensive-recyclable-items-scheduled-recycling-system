@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Admins.cs" />
+    <Compile Include="AppointmentViewModel.cs" />
     <Compile Include="EmailLoginViewModel.cs" />
     <Compile Include="ForgotPasswordViewModel.cs" />
     <Compile Include="LoginViewModel.cs" />
