@@ -36,5 +36,20 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
+        /// <summary>
+        /// 检查用户登录状态（AJAX调用）
+        /// </summary>
+        [HttpPost]
+        public JsonResult CheckLoginStatus()
+        {
+            bool isLoggedIn = Session["LoginUser"] != null || Session["LoginStaff"] != null;
+
+            return Json(new
+            {
+                isLoggedIn = isLoggedIn,
+                userType = Session["LoginUser"] != null ? "user" :
+                          Session["LoginStaff"] != null ? "staff" : "none"
+            });
+        }
     }
 }
