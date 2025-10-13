@@ -18,7 +18,7 @@
     .details-header {
         text-align: center;
         margin-bottom: 40px;
-        padding-bottom: 15px; /* 增加底部内边距 */
+        padding-bottom: 15px;
     }
 
     .details-title {
@@ -39,15 +39,15 @@
         padding: 40px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         margin-top: 20px;
-        overflow: hidden; /* 确保内部元素不溢出 */
+        overflow: hidden;
     }
 
     .basic-info-summary {
         background: #e8f4fd;
         border-radius: 10px;
         padding: 20px;
-        margin-bottom: 40px; /* 增加摘要底部间距 */
-        clear: both; /* 确保不与其他元素重叠 */
+        margin-bottom: 40px;
+        clear: both;
     }
 
     .summary-title {
@@ -83,7 +83,7 @@
     .summary-value {
         font-weight: 600;
         color: #2c3e50;
-        word-wrap: break-word; /* 防止长文本溢出 */
+        word-wrap: break-word;
     }
 
     .category-section {
@@ -92,7 +92,7 @@
         border-radius: 10px;
         padding: 25px;
         background: #fafafa;
-        clear: both; /* 确保不与其他元素重叠 */
+        clear: both;
     }
 
     .category-header {
@@ -161,9 +161,9 @@
         padding: 30px;
         color: white;
         text-align: center;
-        margin: 40px 0; /* 增加价格区域上下间距 */
+        margin: 40px 0;
         display: none;
-        clear: both; /* 确保不与其他元素重叠 */
+        clear: both;
     }
 
     .price-visible {
@@ -211,7 +211,7 @@
     }
 
     .btn-back {
-        flex: 1;
+        flex: 1; /* 与提交按钮宽度一致 */
         height: 60px;
         background: #95a5a6;
         border: none;
@@ -223,13 +223,14 @@
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: center; /* 文字居中 */
         gap: 10px;
         text-decoration: none;
+        white-space: nowrap; /* 防止文字换行 */
     }
 
     .btn-calculate {
-        width: 100%;
+        flex: 1; /* 与返回按钮宽度一致 */
         height: 60px;
         background: linear-gradient(45deg, #3498db, #2980b9);
         border: none;
@@ -243,7 +244,6 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
-        margin-bottom: 20px;
     }
 
         .btn-submit:hover, .btn-calculate:hover {
@@ -258,16 +258,11 @@
         text-decoration: none;
     }
 
-    .action-buttons {
+    .action-buttons, .pre-calculate-actions {
         display: flex;
         gap: 15px;
         margin-top: 30px;
-    }
-
-    .pre-calculate-actions {
-        display: flex;
-        gap: 15px;
-        margin-top: 30px;
+        width: 100%; /* 确保按钮组占满宽度 */
     }
 
     @@media (max-width: 768px) {
@@ -344,65 +339,66 @@
             </div>
         </div>
 
-        @using (Html.BeginForm("CategoryDetails", "User", FormMethod.Post, new { id = "categoryDetailsForm" }))
-        {
-            @Html.AntiForgeryToken()
-
-            <!-- 动态生成品类问题 -->
-            foreach (var categoryEntry in Model.CategoryQuestions)
+        <!-- 独立的返回按钮表单（不受计算表单限制） -->
+        <div class="pre-calculate-actions">
+            @using (Html.BeginForm("BackToAppointment", "User", FormMethod.Post))
             {
-                var category = categoryEntry.Key;
-                var categoryInfo = categoryEntry.Value;
-                var categoryNames = recycling.Model.RecyclingCategories.AllCategories;
-                var categoryName = categoryNames.ContainsKey(category) ? categoryNames[category] : category;
-
-                <div class="category-section" data-category="@category">
-                    <div class="category-header">
-                        <i class="fas fa-box"></i>@categoryName - 详细信息
-                    </div>
-
-                    @for (int i = 0; i < categoryInfo.Questions.Count; i++)
-                    {
-                        var question = categoryInfo.Questions[i];
-
-                        <div class="question-group">
-                            <div class="question-text">@question.Text</div>
-                            <div class="options-group">
-                                @foreach (var option in question.Options)
-                                {
-                                    <label class="option-label">
-                                        <input type="radio"
-                                               name="CategoryQuestions[@category].Questions[@i].SelectedValue"
-                                               value="@option.Value"
-                                               @(question.SelectedValue == option.Value ? "checked" : "")
-                                               required />
-                                        <span>@option.Text</span>
-                                    </label>
-                                }
-                            </div>
-                            <!-- 隐藏字段用于传递问题ID和权重 -->
-                            <input type="hidden" name="CategoryQuestions[@category].Questions[@i].Id" value="@question.Id" />
-                            <input type="hidden" name="CategoryQuestions[@category].Questions[@i].Weight" value="@question.Weight" />
-                        </div>
-                    }
-                </div>
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>上一步
+                </button>
             }
 
-            <!-- 计算前的操作按钮：上一步和计算价格 -->
-            <div class="pre-calculate-actions">
-                @using (Html.BeginForm("BackToAppointment", "User", FormMethod.Post))
+            <!-- 计算价格表单 -->
+            @using (Html.BeginForm("CategoryDetails", "User", FormMethod.Post, new { id = "categoryDetailsForm" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <!-- 动态生成品类问题 -->
+                foreach (var categoryEntry in Model.CategoryQuestions)
                 {
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn-back">
-                        <i class="fas fa-arrow-left"></i>上一步
-                    </button>
+                    var category = categoryEntry.Key;
+                    var categoryInfo = categoryEntry.Value;
+                    var categoryNames = recycling.Model.RecyclingCategories.AllCategories;
+                    var categoryName = categoryNames.ContainsKey(category) ? categoryNames[category] : category;
+
+                    <div class="category-section" data-category="@category">
+                        <div class="category-header">
+                            <i class="fas fa-box"></i>@categoryName - 详细信息
+                        </div>
+
+                        @for (int i = 0; i < categoryInfo.Questions.Count; i++)
+                        {
+                            var question = categoryInfo.Questions[i];
+
+                            <div class="question-group">
+                                <div class="question-text">@question.Text</div>
+                                <div class="options-group">
+                                    @foreach (var option in question.Options)
+                                    {
+                                        <label class="option-label">
+                                            <input type="radio"
+                                                   name="CategoryQuestions[@category].Questions[@i].SelectedValue"
+                                                   value="@option.Value"
+                                                   @(question.SelectedValue == option.Value ? "checked" : "")
+                                                   required />
+                                            <span>@option.Text</span>
+                                        </label>
+                                    }
+                                </div>
+                                <!-- 隐藏字段用于传递问题ID和权重 -->
+                                <input type="hidden" name="CategoryQuestions[@category].Questions[@i].Id" value="@question.Id" />
+                                <input type="hidden" name="CategoryQuestions[@category].Questions[@i].Weight" value="@question.Weight" />
+                            </div>
+                        }
+                    </div>
                 }
 
                 <button type="submit" class="btn-calculate" id="calculateBtn">
                     <i class="fas fa-calculator"></i>计算预估价格
                 </button>
-            </div>
-        }
+            }
+        </div>
 
         <!-- 价格显示区域 -->
         <div class="price-section @(Model.EstimatedPrice > 0 ? "price-visible" : "")" id="priceSection">
@@ -462,7 +458,7 @@
                 }
             });
 
-            // 修复表单提交处理
+            // 计算表单提交处理
             const form = document.getElementById('categoryDetailsForm');
             const calculateBtn = document.getElementById('calculateBtn');
 
@@ -478,7 +474,7 @@
                         return;
                     }
 
-                    // 验证通过后才禁用按钮
+                    // 验证通过后禁用按钮
                     calculateBtn.disabled = true;
                     calculateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
                 });
@@ -493,7 +489,7 @@
                 });
             }
 
-            // 如果有价格显示，显示操作按钮并隐藏计算前的按钮
+            // 显示逻辑控制
             const priceSection = document.getElementById('priceSection');
             const actionButtons = document.getElementById('actionButtons');
             const preCalculateActions = document.querySelector('.pre-calculate-actions');
