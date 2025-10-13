@@ -31,8 +31,52 @@
         line-height: 1.6;
     }
 
-    .next-steps {
+    .appointment-details {
         background: #f8f9fa;
+        border-radius: 10px;
+        padding: 25px;
+        margin: 30px 0;
+        text-align: left;
+    }
+
+    .details-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+
+        .details-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: #7f8c8d;
+        margin-bottom: 5px;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .next-steps {
+        background: #e8f4fd;
         border-radius: 10px;
         padding: 25px;
         margin: 30px 0;
@@ -128,6 +172,10 @@
         .btn {
             justify-content: center;
         }
+
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -142,6 +190,28 @@
         @ViewBag.SuccessMessage
     </div>
 
+    <!-- 预约详情 -->
+    <div class="appointment-details">
+        <div class="details-title">
+            <i class="fas fa-clipboard-list"></i>预约详情
+        </div>
+        <div class="details-grid">
+            <div class="detail-item">
+                <span class="detail-label">预约编号</span>
+                <span class="detail-value">@DateTime.Now.ToString("yyyyMMddHHmmss")</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">提交时间</span>
+                <span class="detail-value">@DateTime.Now.ToString("yyyy年MM月dd日 HH:mm")</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">服务状态</span>
+                <span class="detail-value" style="color: #27ae60;">待确认</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 后续流程 -->
     <div class="next-steps">
         <div class="next-steps-title">
             <i class="fas fa-list-alt"></i>后续流程
