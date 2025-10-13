@@ -467,15 +467,21 @@
                 }
             });
 
-            // 表单提交处理
+            // 修复表单提交处理 - 只在验证通过时禁用按钮
             const form = document.getElementById('appointmentForm');
-            if (form) {
+            const nextBtn = document.getElementById('nextBtn');
+
+            if (form && nextBtn) {
                 form.addEventListener('submit', function (e) {
-                    const nextBtn = document.getElementById('nextBtn');
-                    if (nextBtn) {
-                        nextBtn.disabled = true;
-                        nextBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+                    // 先进行jQuery验证
+                    if (!$(form).valid()) {
+                        e.preventDefault();
+                        return;
                     }
+
+                    // 验证通过后才禁用按钮
+                    nextBtn.disabled = true;
+                    nextBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
                 });
             }
         });
@@ -539,4 +545,5 @@
             button.parentElement.remove();
         }
     </script>
+}
 }
