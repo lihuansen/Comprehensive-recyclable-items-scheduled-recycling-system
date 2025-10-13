@@ -1,7 +1,529 @@
-﻿
+﻿@model recycling.Model.CategoryDetailViewModel
+
 @{
-    ViewBag.Title = "CategoryDetails";
+    ViewBag.Title = "预约上门回收 - 第二步";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>CategoryDetails</h2>
+<!-- 引入Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+<style>
+    .category-details-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .details-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .details-title {
+        font-size: 32px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .details-subtitle {
+        font-size: 16px;
+        color: #7f8c8d;
+    }
+
+    .details-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .progress-bar {
+        display: flex;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .progress-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #bdc3c7;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .step-text {
+        font-size: 14px;
+        color: #7f8c8d;
+    }
+
+    .step-active .step-number {
+        background: #3498db;
+    }
+
+    .step-completed .step-number {
+        background: #27ae60;
+    }
+
+    .step-active .step-text {
+        color: #3498db;
+        font-weight: bold;
+    }
+
+    .step-completed .step-text {
+        color: #27ae60;
+    }
+
+    .progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 10%;
+        right: 10%;
+        height: 3px;
+        background: #ecf0f1;
+        z-index: 1;
+    }
+
+    .category-section {
+        margin-bottom: 40px;
+        border: 2px solid #ecf0f1;
+        border-radius: 10px;
+        padding: 25px;
+        background: #fafafa;
+    }
+
+    .category-header {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+        .category-header i {
+            margin-right: 10px;
+            color: #e67e22;
+        }
+
+    .question-group {
+        margin-bottom: 25px;
+    }
+
+    .question-text {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+
+    .options-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .option-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex: 1;
+        min-width: 120px;
+    }
+
+        .option-label:hover {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .option-label.selected {
+            border-color: #27ae60;
+            background: #e8f5e8;
+        }
+
+        .option-label input[type="radio"] {
+            width: 18px;
+            height: 18px;
+        }
+
+    .price-section {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        border-radius: 10px;
+        padding: 30px;
+        color: white;
+        text-align: center;
+        margin: 30px 0;
+        display: none;
+    }
+
+    .price-visible {
+        display: block;
+    }
+
+    .price-label {
+        font-size: 16px;
+        margin-bottom: 10px;
+        opacity: 0.9;
+    }
+
+    .price-value {
+        font-size: 36px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .price-note {
+        font-size: 14px;
+        opacity: 0.8;
+    }
+
+    .form-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn-submit {
+        flex: 1;
+        height: 60px;
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-back {
+        flex: 1;
+        height: 60px;
+        background: #95a5a6;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .btn-calculate {
+        width: 100%;
+        height: 60px;
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+        .btn-submit:hover, .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+        }
+
+    .btn-back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(149, 165, 166, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .basic-info-summary {
+        background: #e8f4fd;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+
+        .summary-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .summary-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-label {
+        font-size: 12px;
+        color: #7f8c8d;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    @@media (max-width: 768px) {
+        .category-details-container {
+            padding: 20px;
+        }
+
+        .details-card {
+            padding: 20px;
+        }
+
+        .details-title {
+            font-size: 24px;
+        }
+
+        .options-group {
+            flex-direction: column;
+        }
+
+        .form-buttons {
+            flex-direction: column;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="category-details-container">
+    <div class="details-header">
+        <h1 class="details-title">
+            <i class="fas fa-clipboard-list"></i>品类详细信息
+        </h1>
+        <p class="details-subtitle">步骤2/2：请根据实际情况回答问题，获得准确价格预估</p>
+    </div>
+
+    <div class="details-card">
+        <!-- 进度条 -->
+        <div class="progress-bar">
+            <div class="progress-step step-completed">
+                <div class="step-number">1</div>
+                <div class="step-text">基本信息</div>
+            </div>
+            <div class="progress-step step-active">
+                <div class="step-number">2</div>
+                <div class="step-text">品类详情</div>
+            </div>
+        </div>
+
+        <!-- 基本信息摘要 -->
+        <div class="basic-info-summary">
+            <div class="summary-title">
+                <i class="fas fa-info-circle"></i>预约信息摘要
+            </div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="summary-label">预约类型</span>
+                    <span class="summary-value">
+                        @{
+                            var appointmentTypes = recycling.Model.AppointmentTypes.AllTypes;
+                            var appointmentType = appointmentTypes.ContainsKey(Model.BasicInfo.AppointmentType) ?
+                                appointmentTypes[Model.BasicInfo.AppointmentType] : Model.BasicInfo.AppointmentType;
+                        }
+                        @appointmentType
+                    </span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">预估重量</span>
+                    <span class="summary-value">@Model.BasicInfo.EstimatedWeight 公斤</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">预约时间</span>
+                    <span class="summary-value">@Model.BasicInfo.AppointmentDate.ToString("yyyy年MM月dd日")</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">联系人</span>
+                    <span class="summary-value">@Model.BasicInfo.ContactName</span>
+                </div>
+            </div>
+        </div>
+
+        @using (Html.BeginForm("CategoryDetails", "User", FormMethod.Post, new { id = "categoryDetailsForm" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <!-- 动态生成品类问题 -->
+            foreach (var categoryEntry in Model.CategoryQuestions)
+            {
+                var category = categoryEntry.Key;
+                var categoryInfo = categoryEntry.Value;
+                var categoryNames = recycling.Model.RecyclingCategories.AllCategories;
+                var categoryName = categoryNames.ContainsKey(category) ? categoryNames[category] : category;
+
+                <div class="category-section" data-category="@category">
+                    <div class="category-header">
+                        <i class="fas fa-box"></i>@categoryName - 详细信息
+                    </div>
+
+                    @for (int i = 0; i < categoryInfo.Questions.Count; i++)
+                    {
+                        var question = categoryInfo.Questions[i];
+
+                        <div class="question-group">
+                            <div class="question-text">@question.Text</div>
+                            <div class="options-group">
+                                @foreach (var option in question.Options)
+                                {
+                                    <label class="option-label">
+                                        <input type="radio"
+                                               name="CategoryQuestions[@category].Questions[@i].SelectedValue"
+                                               value="@option.Value"
+                                               @(question.SelectedValue == option.Value ? "checked" : "") />
+                                        <span>@option.Text</span>
+                                    </label>
+                                }
+                            </div>
+                            <!-- 隐藏字段用于传递问题ID和权重 -->
+                            <input type="hidden" name="CategoryQuestions[@category].Questions[@i].Id" value="@question.Id" />
+                            <input type="hidden" name="CategoryQuestions[@category].Questions[@i].Weight" value="@question.Weight" />
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- 计算价格按钮 -->
+            <button type="submit" class="btn-calculate" id="calculateBtn">
+                <i class="fas fa-calculator"></i>计算预估价格
+            </button>
+
+            <!-- 价格显示区域 -->
+            <div class="price-section @(Model.EstimatedPrice > 0 ? "price-visible" : "")" id="priceSection">
+                <div class="price-label">预估回收价格</div>
+                <div class="price-value">¥@Model.EstimatedPrice.ToString("F2")</div>
+                <div class="price-note">
+                    <i class="fas fa-info-circle"></i>
+                    此为预估价格，实际价格以上门评估为准
+                    @if (Model.BasicInfo.IsUrgent)
+                    {
+                        <br><i class="fas fa-bolt">已包含加急服务费用</i>
+                        }
+                </div>
+            </div>
+
+            <!-- 提交和返回按钮 -->
+            <div class="form-buttons" id="actionButtons" style="@(Model.EstimatedPrice > 0 ? "display:flex" : "display:none")">
+                @using (Html.BeginForm("BackToAppointment", "User", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>返回修改
+                    </button>
+                }
+
+                @using (Html.BeginForm("SubmitAppointment", "User", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i>提交预约
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 选项选择样式
+            const radioInputs = document.querySelectorAll('.option-label input[type="radio"]');
+            radioInputs.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const label = this.closest('.option-label');
+                    // 清除同组其他选项的选中样式
+                    const groupName = this.name;
+                    document.querySelectorAll(`input[name="${groupName}"]`).forEach(otherRadio => {
+                        otherRadio.closest('.option-label').classList.remove('selected');
+                    });
+                    // 添加当前选项的选中样式
+                    label.classList.add('selected');
+                });
+
+                // 初始化样式
+                if (radio.checked) {
+                    radio.closest('.option-label').classList.add('selected');
+                }
+            });
+
+            // 表单提交处理
+            const form = document.getElementById('categoryDetailsForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const calculateBtn = document.getElementById('calculateBtn');
+                    if (calculateBtn) {
+                        calculateBtn.disabled = true;
+                        calculateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
+                    }
+                });
+            }
+
+            // 最终提交处理
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+                });
+            }
+
+            // 如果有价格显示，显示操作按钮
+            const priceSection = document.getElementById('priceSection');
+            const actionButtons = document.getElementById('actionButtons');
+            if (priceSection && priceSection.classList.contains('price-visible')) {
+                actionButtons.style.display = 'flex';
+            }
+        });
+    </script>
+}
