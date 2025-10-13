@@ -404,7 +404,7 @@
             @Html.AntiForgeryToken()
 
             <!-- 动态生成品类问题 -->
-            @foreach (var categoryEntry in Model.CategoryQuestions)
+            foreach (var categoryEntry in Model.CategoryQuestions)
             {
                 var category = categoryEntry.Key;
                 var categoryInfo = categoryEntry.Value;
@@ -458,7 +458,7 @@
                 此为预估价格，实际价格以上门评估为准
                 @if (Model.BasicInfo.IsUrgent)
                 {
-                    <br><i class="fas fa-bolt"></i>已包含加急服务费用
+                    <br><i class="fas fa-bolt">已包含加急服务费用</i>
                         }
             </div>
         </div>
