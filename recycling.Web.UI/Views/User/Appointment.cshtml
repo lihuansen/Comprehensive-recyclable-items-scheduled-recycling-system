@@ -1,7 +1,7 @@
 ﻿@model recycling.Model.AppointmentViewModel
 
 @{
-    ViewBag.Title = "预约上门回收";
+    ViewBag.Title = "预约上门回收 - 第一步";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -9,6 +9,101 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
+    /* 基础样式保持不变，只修改按钮部分 */
+    .form-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn-next {
+        flex: 1;
+        height: 60px;
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        height: 60px;
+        background: #95a5a6;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .btn-next:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+    }
+
+    .btn-cancel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(149, 165, 166, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* 多选样式 */
+    .checkbox-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .category-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .category-checkbox:hover {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .category-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .category-checkbox.selected {
+            border-color: #27ae60;
+            background: #e8f5e8;
+        }
+
+    .category-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    /* 其他样式保持不变 */
     .appointment-container {
         max-width: 800px;
         margin: 0 auto;
@@ -137,35 +232,6 @@
         color: #95a5a6;
     }
 
-    .submit-btn {
-        width: 100%;
-        height: 60px;
-        background: linear-gradient(45deg, #27ae60, #2ecc71);
-        border: none;
-        border-radius: 10px;
-        color: white;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
-        }
-
-        .submit-btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
     .form-note {
         background: #e8f4fd;
         border-left: 4px solid #3498db;
@@ -198,6 +264,14 @@
         .appointment-title {
             font-size: 24px;
         }
+
+        .checkbox-list {
+            flex-direction: column;
+        }
+
+        .form-buttons {
+            flex-direction: column;
+        }
     }
 </style>
 
@@ -206,7 +280,7 @@
         <h1 class="appointment-title">
             <i class="fas fa-calendar-check"></i>预约上门回收
         </h1>
-        <p class="appointment-subtitle">填写预约信息，我们将尽快为您安排上门服务</p>
+        <p class="appointment-subtitle">步骤1/2：填写基本信息</p>
     </div>
 
     <div class="appointment-card">
@@ -229,24 +303,32 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label required-field">回收品类</label>
-                        @Html.DropDownListFor(m => m.Category, new SelectList(ViewBag.RecyclingCategories, "Key", "Value"), "请选择回收品类", new { @class = "form-control" })
-                        @Html.ValidationMessageFor(m => m.Category, "", new { @class = "text-danger" })
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
                         <label class="form-label required-field">预估重量 (公斤)</label>
                         @Html.TextBoxFor(m => m.EstimatedWeight, new { @class = "form-control", type = "number", step = "0.1", min = "0.1", max = "1000", placeholder = "例如：5.5" })
                         @Html.ValidationMessageFor(m => m.EstimatedWeight, "", new { @class = "text-danger" })
                     </div>
+                </div>
+            </div>
 
-                    <div class="form-group">
-                        <label class="form-label">期望价格 (元)</label>
-                        @Html.TextBoxFor(m => m.ExpectedPrice, new { @class = "form-control", type = "number", step = "0.01", min = "0", max = "100000", placeholder = "选填" })
-                        @Html.ValidationMessageFor(m => m.ExpectedPrice, "", new { @class = "text-danger" })
+            <!-- 回收品类多选 -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-list"></i>回收品类
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required-field">请选择回收品类（可多选）</label>
+                    <div class="checkbox-list" id="categoryCheckboxes">
+                        @foreach (var category in ViewBag.RecyclingCategories)
+                        {
+                            <label class="category-checkbox">
+                                <input type="checkbox" name="SelectedCategories" value="@category.Key"
+                                       @(Model.SelectedCategories != null && Model.SelectedCategories.Contains(category.Key) ? "checked" : "") />
+                                <span class="category-name">@category.Value</span>
+                            </label>
+                        }
                     </div>
+                    @Html.ValidationMessage("SelectedCategories", new { @class = "text-danger" })
                 </div>
             </div>
 
@@ -332,13 +414,18 @@
                 </div>
             </div>
 
-            <!-- 提交按钮 -->
-            <button type="submit" class="submit-btn" id="submitBtn">
-                <i class="fas fa-paper-plane"></i>提交预约
-            </button>
+            <!-- 按钮区域 -->
+            <div class="form-buttons">
+                <a href="@Url.Action("Index", "Home")" class="btn-cancel">
+                    <i class="fas fa-times"></i>取消
+                </a>
+                <button type="submit" class="btn-next" id="nextBtn">
+                    <i class="fas fa-arrow-right"></i>下一步
+                </button>
+            </div>
 
             <div class="form-note">
-                <p><i class="fas fa-info-circle"></i> 提交预约后，我们的客服人员将在24小时内与您联系确认具体事宜。</p>
+                <p><i class="fas fa-info-circle"></i> 下一步将根据您选择的品类，询问详细情况以获得更准确的价格预估。</p>
             </div>
         }
     </div>
@@ -348,7 +435,7 @@
     @Scripts.Render("~/bundles/jqueryval")
     <script>
         // 设置最小日期为明天
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);
@@ -362,20 +449,38 @@
                 }
             }
 
+            // 品类多选样式
+            const checkboxes = document.querySelectorAll('.category-checkbox input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const label = this.closest('.category-checkbox');
+                    if (this.checked) {
+                        label.classList.add('selected');
+                    } else {
+                        label.classList.remove('selected');
+                    }
+                });
+
+                // 初始化样式
+                if (checkbox.checked) {
+                    checkbox.closest('.category-checkbox').classList.add('selected');
+                }
+            });
+
             // 表单提交处理
             const form = document.getElementById('appointmentForm');
             if (form) {
-                form.addEventListener('submit', function(e) {
-                    const submitBtn = document.getElementById('submitBtn');
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+                form.addEventListener('submit', function (e) {
+                    const nextBtn = document.getElementById('nextBtn');
+                    if (nextBtn) {
+                        nextBtn.disabled = true;
+                        nextBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
                     }
                 });
             }
         });
 
-        // 图片选择处理
+        // 图片选择处理（保持不变）
         function handleImageSelection(input) {
             const preview = document.getElementById('imagePreview');
             preview.innerHTML = '';
@@ -390,7 +495,6 @@
                 for (let i = 0; i < input.files.length; i++) {
                     const file = input.files[i];
 
-                    // 检查文件大小（5MB）
                     if (file.size > 5 * 1024 * 1024) {
                         alert(`文件 "${file.name}" 大小超过5MB限制`);
                         input.value = '';
@@ -398,32 +502,31 @@
                         return;
                     }
 
-                    // 创建预览
                     const reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = function (e) {
                         const imgContainer = document.createElement('div');
                         imgContainer.style.cssText = `
-                            display: inline-block;
-                            margin: 5px;
-                            position: relative;
-                        `;
+                                display: inline-block;
+                                margin: 5px;
+                                position: relative;
+                            `;
 
                         imgContainer.innerHTML = `
-                            <img src="${e.target.result}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
-                            <button type="button" onclick="removeImage(this)" style="
-                                position: absolute;
-                                top: -5px;
-                                right: -5px;
-                                background: #e74c3c;
-                                color: white;
-                                border: none;
-                                border-radius: 50%;
-                                width: 20px;
-                                height: 20px;
-                                cursor: pointer;
-                                font-size: 12px;
-                            ">×</button>
-                        `;
+                                <img src="${e.target.result}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
+                                <button type="button" onclick="removeImage(this)" style="
+                                    position: absolute;
+                                    top: -5px;
+                                    right: -5px;
+                                    background: #e74c3c;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 50%;
+                                    width: 20px;
+                                    height: 20px;
+                                    cursor: pointer;
+                                    font-size: 12px;
+                                ">×</button>
+                            `;
 
                         preview.appendChild(imgContainer);
                     };
@@ -432,7 +535,6 @@
             }
         }
 
-        // 移除图片
         function removeImage(button) {
             button.parentElement.remove();
         }
