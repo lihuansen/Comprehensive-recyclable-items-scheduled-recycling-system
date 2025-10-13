@@ -37,6 +37,7 @@
         border-radius: 15px;
         padding: 40px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-top: 20px; /* 增加顶部间距 */
     }
 
     .progress-bar {
@@ -49,6 +50,7 @@
         flex: 1;
         text-align: center;
         position: relative;
+        z-index: 2; /* 确保进度条在顶部 */
     }
 
     .step-number {
@@ -96,6 +98,48 @@
         height: 3px;
         background: #ecf0f1;
         z-index: 1;
+    }
+
+    .basic-info-summary {
+        background: #e8f4fd;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+
+        .summary-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .summary-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-label {
+        font-size: 12px;
+        color: #7f8c8d;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-weight: 600;
+        color: #2c3e50;
     }
 
     .category-section {
@@ -268,46 +312,10 @@
         text-decoration: none;
     }
 
-    .basic-info-summary {
-        background: #e8f4fd;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 30px;
-    }
-
-    .summary-title {
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 15px;
+    .action-buttons {
         display: flex;
-        align-items: center;
-    }
-
-        .summary-title i {
-            margin-right: 10px;
-            color: #3498db;
-        }
-
-    .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 15px;
-    }
-
-    .summary-item {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .summary-label {
-        font-size: 12px;
-        color: #7f8c8d;
-        margin-bottom: 5px;
-    }
-
-    .summary-value {
-        font-weight: 600;
-        color: #2c3e50;
+        margin-top: 30px;
     }
 
     @@media (max-width: 768px) {
@@ -317,6 +325,7 @@
 
         .details-card {
             padding: 20px;
+            margin-top: 10px;
         }
 
         .details-title {
@@ -327,7 +336,7 @@
             flex-direction: column;
         }
 
-        .form-buttons {
+        .form-buttons, .action-buttons {
             flex-direction: column;
         }
 
