@@ -18,6 +18,7 @@
     .details-header {
         text-align: center;
         margin-bottom: 40px;
+        padding-bottom: 15px; /* 增加底部内边距 */
     }
 
     .details-title {
@@ -37,74 +38,16 @@
         border-radius: 15px;
         padding: 40px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        margin-top: 20px; /* 增加顶部间距 */
-    }
-
-    .progress-bar {
-        display: flex;
-        margin-bottom: 30px;
-        position: relative;
-    }
-
-    .progress-step {
-        flex: 1;
-        text-align: center;
-        position: relative;
-        z-index: 2; /* 确保进度条在顶部 */
-    }
-
-    .step-number {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #bdc3c7;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 10px;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-
-    .step-text {
-        font-size: 14px;
-        color: #7f8c8d;
-    }
-
-    .step-active .step-number {
-        background: #3498db;
-    }
-
-    .step-completed .step-number {
-        background: #27ae60;
-    }
-
-    .step-active .step-text {
-        color: #3498db;
-        font-weight: bold;
-    }
-
-    .step-completed .step-text {
-        color: #27ae60;
-    }
-
-    .progress-bar::before {
-        content: '';
-        position: absolute;
-        top: 20px;
-        left: 10%;
-        right: 10%;
-        height: 3px;
-        background: #ecf0f1;
-        z-index: 1;
+        margin-top: 20px;
+        overflow: hidden; /* 确保内部元素不溢出 */
     }
 
     .basic-info-summary {
         background: #e8f4fd;
         border-radius: 10px;
         padding: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 40px; /* 增加摘要底部间距 */
+        clear: both; /* 确保不与其他元素重叠 */
     }
 
     .summary-title {
@@ -140,6 +83,7 @@
     .summary-value {
         font-weight: 600;
         color: #2c3e50;
+        word-wrap: break-word; /* 防止长文本溢出 */
     }
 
     .category-section {
@@ -148,6 +92,7 @@
         border-radius: 10px;
         padding: 25px;
         background: #fafafa;
+        clear: both; /* 确保不与其他元素重叠 */
     }
 
     .category-header {
@@ -216,8 +161,9 @@
         padding: 30px;
         color: white;
         text-align: center;
-        margin: 30px 0;
+        margin: 40px 0; /* 增加价格区域上下间距 */
         display: none;
+        clear: both; /* 确保不与其他元素重叠 */
     }
 
     .price-visible {
@@ -318,6 +264,12 @@
         margin-top: 30px;
     }
 
+    .pre-calculate-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
     @@media (max-width: 768px) {
         .category-details-container {
             padding: 20px;
@@ -336,12 +288,16 @@
             flex-direction: column;
         }
 
-        .form-buttons, .action-buttons {
+        .form-buttons, .action-buttons, .pre-calculate-actions {
             flex-direction: column;
         }
 
         .summary-grid {
             grid-template-columns: 1fr;
+        }
+
+        .basic-info-summary {
+            margin-bottom: 30px;
         }
     }
 </style>
@@ -355,17 +311,6 @@
     </div>
 
     <div class="details-card">
-        <!-- 进度条 -->
-        <div class="progress-bar">
-            <div class="progress-step step-completed">
-                <div class="step-number">1</div>
-                <div class="step-text">基本信息</div>
-            </div>
-            <div class="progress-step step-active">
-                <div class="step-number">2</div>
-                <div class="step-text">品类详情</div>
-            </div>
-        </div>
 
         <!-- 基本信息摘要 -->
         <div class="basic-info-summary">
@@ -443,10 +388,20 @@
                 </div>
             }
 
-            <!-- 计算价格按钮 -->
-            <button type="submit" class="btn-calculate" id="calculateBtn">
-                <i class="fas fa-calculator"></i>计算预估价格
-            </button>
+            <!-- 计算前的操作按钮：上一步和计算价格 -->
+            <div class="pre-calculate-actions">
+                @using (Html.BeginForm("BackToAppointment", "User", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>上一步
+                    </button>
+                }
+
+                <button type="submit" class="btn-calculate" id="calculateBtn">
+                    <i class="fas fa-calculator"></i>计算预估价格
+                </button>
+            </div>
         }
 
         <!-- 价格显示区域 -->
@@ -459,11 +414,11 @@
                 @if (Model.BasicInfo.IsUrgent)
                 {
                     <br><i class="fas fa-bolt">已包含加急服务费用</i>
-                        }
+                }
             </div>
         </div>
 
-        <!-- 操作按钮区域 -->
+        <!-- 计算后的操作按钮区域 -->
         <div class="action-buttons" id="actionButtons" style="@(Model.EstimatedPrice > 0 ? "display:flex" : "display:none")">
             @using (Html.BeginForm("BackToAppointment", "User", FormMethod.Post))
             {
@@ -538,11 +493,16 @@
                 });
             }
 
-            // 如果有价格显示，显示操作按钮
+            // 如果有价格显示，显示操作按钮并隐藏计算前的按钮
             const priceSection = document.getElementById('priceSection');
             const actionButtons = document.getElementById('actionButtons');
+            const preCalculateActions = document.querySelector('.pre-calculate-actions');
+
             if (priceSection && priceSection.classList.contains('price-visible')) {
                 actionButtons.style.display = 'flex';
+                if (preCalculateActions) {
+                    preCalculateActions.style.display = 'none';
+                }
             }
         });
     </script>
