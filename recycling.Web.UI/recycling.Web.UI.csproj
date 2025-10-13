@@ -179,6 +179,7 @@
     <Content Include="Views\Home\LoginSelect.cshtml" />
     <Content Include="Views\User\Appointment.cshtml" />
     <Content Include="Views\User\AppointmentSuccess.cshtml" />
+    <Content Include="Views\User\CategoryDetails.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
