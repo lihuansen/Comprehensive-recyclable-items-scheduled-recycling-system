@@ -430,7 +430,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 显示预约上门页面
+        /// 显示预约上门页面 - 第一步
         /// </summary>
         [HttpGet]
         public ActionResult Appointment()
@@ -443,7 +443,8 @@ namespace recycling.Web.UI.Controllers
 
             var model = new AppointmentViewModel
             {
-                AppointmentDate = DateTime.Today.AddDays(1) // 默认明天
+                AppointmentDate = DateTime.Today.AddDays(1), // 默认明天
+                SelectedCategories = new List<string>()
             };
 
             // 设置视图数据
@@ -455,7 +456,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 处理预约提交
+        /// 处理第一步提交，跳转到品类详情页面
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -467,10 +468,16 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("LoginSelect", "Home");
             }
 
-            // 设置视图数据（POST请求也需要）
+            // 设置视图数据
             ViewBag.AppointmentTypes = AppointmentTypes.AllTypes;
             ViewBag.RecyclingCategories = RecyclingCategories.AllCategories;
             ViewBag.TimeSlots = TimeSlots.AllSlots;
+
+            // 验证至少选择一个品类
+            if (model.SelectedCategories == null || !model.SelectedCategories.Any())
+            {
+                ModelState.AddModelError("SelectedCategories", "请至少选择一个回收品类");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -479,23 +486,200 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // 这里将来会实现预约数据的保存逻辑
-                // 暂时只是模拟成功
+                // 创建品类详情视图模型
+                var detailModel = new CategoryDetailViewModel
+                {
+                    BasicInfo = model
+                };
 
+                // 为每个选中的品类加载问题
+                foreach (var category in model.SelectedCategories)
+                {
+                    var questions = RecyclingCategories.GetCategoryQuestions();
+                    if (questions.ContainsKey(category))
+                    {
+                        detailModel.CategoryQuestions[category] = questions[category];
+                    }
+                }
+
+                // 存储到Session中，用于后续步骤
+                Session["AppointmentBasicInfo"] = model;
+                Session["CategoryDetailModel"] = detailModel;
+
+                return RedirectToAction("CategoryDetails");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"处理预约信息失败：{ex.Message}");
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// 显示品类详情页面 - 第二步
+        /// </summary>
+        [HttpGet]
+        public ActionResult CategoryDetails()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            // 检查是否从第一步跳转过来
+            var detailModel = Session["CategoryDetailModel"] as CategoryDetailViewModel;
+            if (detailModel == null)
+            {
+                return RedirectToAction("Appointment");
+            }
+
+            return View(detailModel);
+        }
+
+        /// <summary>
+        /// 处理品类详情提交，计算预估价格
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CategoryDetails(CategoryDetailViewModel model)
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            // 从Session中获取基础信息
+            var basicInfo = Session["AppointmentBasicInfo"] as AppointmentViewModel;
+            if (basicInfo == null)
+            {
+                return RedirectToAction("Appointment");
+            }
+
+            model.BasicInfo = basicInfo;
+
+            try
+            {
+                // 计算预估价格
+                decimal totalPrice = CalculateEstimatedPrice(model);
+                model.EstimatedPrice = totalPrice;
+
+                // 更新Session中的模型
+                Session["CategoryDetailModel"] = model;
+
+                return View("CategoryDetails", model);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"计算价格失败：{ex.Message}");
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// 最终提交预约
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SubmitAppointment()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            // 从Session中获取完整信息
+            var basicInfo = Session["AppointmentBasicInfo"] as AppointmentViewModel;
+            var detailModel = Session["CategoryDetailModel"] as CategoryDetailViewModel;
+
+            if (basicInfo == null || detailModel == null)
+            {
+                return RedirectToAction("Appointment");
+            }
+
+            try
+            {
                 // 获取当前登录用户
                 var user = (Users)Session["LoginUser"];
 
-                // 模拟保存成功
-                TempData["SuccessMessage"] = "预约成功！我们将在24小时内与您确认。";
+                // 这里将来会实现预约数据的保存逻辑
+                // 暂时只是模拟成功
 
-                // 重定向到成功页面或返回首页
+                // 清除Session中的临时数据
+                Session.Remove("AppointmentBasicInfo");
+                Session.Remove("CategoryDetailModel");
+
+                TempData["SuccessMessage"] = $"预约成功！预估价格：{detailModel.EstimatedPrice:C}。我们将在24小时内与您确认。";
+
                 return RedirectToAction("AppointmentSuccess");
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"预约失败：{ex.Message}");
-                return View(model);
+                ModelState.AddModelError("", $"提交预约失败：{ex.Message}");
+                return View("CategoryDetails", detailModel);
             }
+        }
+
+        /// <summary>
+        /// 计算预估价格
+        /// </summary>
+        private decimal CalculateEstimatedPrice(CategoryDetailViewModel model)
+        {
+            decimal totalPrice = 0m;
+
+            foreach (var category in model.BasicInfo.SelectedCategories)
+            {
+                // 获取该品类的基础价格
+                decimal basePrice = BasePrices.Prices[category];
+
+                // 计算该品类的重量占比
+                decimal categoryWeight = model.BasicInfo.EstimatedWeight / model.BasicInfo.SelectedCategories.Count;
+
+                // 基础价格
+                decimal categoryBasePrice = basePrice * categoryWeight;
+
+                // 根据问题答案调整价格
+                if (model.CategoryQuestions.ContainsKey(category))
+                {
+                    var questions = model.CategoryQuestions[category];
+                    decimal adjustmentFactor = 1.0m;
+
+                    foreach (var question in questions.Questions)
+                    {
+                        if (!string.IsNullOrEmpty(question.SelectedValue))
+                        {
+                            var selectedOption = question.Options.FirstOrDefault(o => o.Value == question.SelectedValue);
+                            if (selectedOption != null)
+                            {
+                                adjustmentFactor *= (selectedOption.PriceEffect * question.Weight + (1 - question.Weight));
+                            }
+                        }
+                    }
+
+                    categoryBasePrice *= adjustmentFactor;
+                }
+
+                totalPrice += categoryBasePrice;
+            }
+
+            // 应用紧急服务加成
+            if (model.BasicInfo.IsUrgent)
+            {
+                totalPrice *= 1.2m; // 紧急服务加价20%
+            }
+
+            return Math.Round(totalPrice, 2);
+        }
+
+        /// <summary>
+        /// 返回上一步
+        /// </summary>
+        [HttpPost]
+        public ActionResult BackToAppointment()
+        {
+            return RedirectToAction("Appointment");
         }
 
         /// <summary>
