@@ -1,20 +1,23 @@
 ﻿@{
     ViewBag.Title = "首页";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    // 确保实体类名称与Model层一致
+    var pageResult = Model as recycling.Model.PagedResult<recycling.Model.RecyclableItems> ?? new recycling.Model.PagedResult<recycling.Model.RecyclableItems>();
+    var queryModel = ViewBag.QueryModel as recycling.Model.RecyclableQueryModel ?? new recycling.Model.RecyclableQueryModel();
+    var categoryList = ViewBag.CategoryList as Dictionary<string, string> ?? new Dictionary<string, string>();
 }
 
 <!-- 引入Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    /* 首页专用样式 */
+    /* 保留原有样式 */
     .home-container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
     }
 
-    /* 轮播图区域 */
     .carousel-section {
         height: 300px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -36,15 +39,14 @@
         z-index: 2;
     }
 
-        .carousel-placeholder i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            display: block;
-        }
+    .carousel-placeholder i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        display: block;
+    }
 
-    /* 内容区域 */
     .content-section {
-        height: 700px;
+        min-height: 700px;
         background: #f8f9fa;
         border-radius: 15px;
         padding: 30px;
@@ -52,7 +54,6 @@
         position: relative;
     }
 
-    /* 搜索筛选区域 */
     .search-filter-row {
         display: flex;
         gap: 20px;
@@ -60,19 +61,15 @@
         flex-wrap: wrap;
     }
 
-    .search-column {
-        flex: 1;
-        min-width: 250px;
-    }
-
-    .filter-column {
+    .search-column, .filter-column, .price-column, .button-column {
         flex: 1;
         min-width: 200px;
     }
 
-    .price-column {
-        flex: 1;
-        min-width: 300px;
+    .button-column {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
     }
 
     .form-group {
@@ -87,10 +84,10 @@
         transition: all 0.3s ease;
     }
 
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
 
     .price-range-group {
         display: flex;
@@ -107,7 +104,128 @@
         font-weight: bold;
     }
 
-    /* 预约按钮 */
+    .btn {
+        height: 50px;
+        border-radius: 10px;
+        padding: 0 20px;
+        font-size: 16px;
+    }
+
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .item-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        transition: transform 0.3s;
+    }
+
+    .item-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .item-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .item-category {
+        font-size: 14px;
+        color: #667eea;
+        background: rgba(102, 126, 234, 0.1);
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    .item-price {
+        color: #28a745;
+        font-weight: bold;
+        margin: 10px 0;
+        font-size: 16px;
+    }
+
+    .item-desc {
+        color: #6c757d;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 60px 0;
+        color: #6c757d;
+    }
+
+    .empty-message i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .pagination-control {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+    }
+
+    .pagination {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        gap: 5px;
+    }
+
+    .pagination li {
+        display: inline-block;
+    }
+
+    .pagination a, .pagination span {
+        display: block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 40px;
+        text-decoration: none;
+        color: #667eea;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s;
+    }
+
+    .pagination a:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .pagination .active span {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .pagination .disabled a {
+        color: #ccc;
+        border-color: #eee;
+        cursor: not-allowed;
+    }
+
+    .pagination .disabled a:hover {
+        background: transparent;
+        color: #ccc;
+    }
+
     .appointment-section {
         position: absolute;
         bottom: 40px;
@@ -136,28 +254,49 @@
         text-decoration: none;
     }
 
-        .appointment-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
-            color: white;
-            text-decoration: none;
-        }
+    .appointment-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
+        color: white;
+        text-decoration: none;
+    }
 
-        .appointment-btn i {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
+    .appointment-btn i {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
 
-    /* 响应式设计 */
+    .error-alert {
+        background: #fff5f5;
+        border-left: 4px solid #ff6b6b;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        color: #721c24;
+    }
+
+    @@media (max-width: 992px) {
+        .items-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
     @@media (max-width: 768px) {
         .search-filter-row {
             flex-direction: column;
         }
 
-        .search-column,
-        .filter-column,
-        .price-column {
+        .search-column, .filter-column, .price-column, .button-column {
             min-width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .button-column {
+            justify-content: flex-end;
+        }
+
+        .items-grid {
+            grid-template-columns: 1fr;
         }
 
         .carousel-section {
@@ -166,18 +305,11 @@
         }
 
         .content-section {
-            height: auto;
             min-height: 500px;
-        }
-
-        .appointment-btn {
-            width: 100px;
-            height: 100px;
-            font-size: 14px;
+            padding: 20px;
         }
     }
 
-    /* 加载动画 */
     .carousel-section::before {
         content: '';
         position: absolute;
@@ -190,13 +322,8 @@
     }
 
     @@keyframes shimmer {
-        0% {
-            left: -100%;
-        }
-
-        100% {
-            left: 100%;
-        }
+        0% { left: -100%; }
+        100% { left: 100%; }
     }
 </style>
 
@@ -214,56 +341,178 @@
 
     <!-- 内容区域 -->
     <div class="content-section">
-        <!-- 搜索筛选行 -->
-        <div class="search-filter-row">
-            <!-- 第一列：模糊搜索 -->
-            <div class="search-column">
-                <div class="form-group">
-                    <label for="searchInput" class="form-label">
-                        <i class="fas fa-search"></i> 关键词搜索
-                    </label>
-                    <input type="text" class="form-control" id="searchInput" placeholder="输入物品名称、描述等信息...">
-                </div>
+        <!-- 错误提示 -->
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMsg))
+        {
+            <div class="error-alert">
+                <i class="fas fa-exclamation-circle"></i> @ViewBag.ErrorMsg
             </div>
+        }
 
-            <!-- 第二列：品类筛选 -->
-            <div class="filter-column">
-                <div class="form-group">
-                    <label for="categorySelect" class="form-label">
-                        <i class="fas fa-list"></i> 回收品类
-                    </label>
-                    <select class="form-control" id="categorySelect">
-                        <option value="">全部品类</option>
-                        <option value="paper">纸张</option>
-                        <option value="plastic">塑料</option>
-                        <option value="metal">金属</option>
-                        <option value="glass">玻璃</option>
-                        <option value="fabric">纺织品</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- 第三列：价格区间 -->
-            <div class="price-column">
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-tags"></i> 价格区间（元）
-                    </label>
-                    <div class="price-range-group">
-                        <input type="number" class="form-control price-input" id="minPrice" placeholder="最小值" min="0">
-                        <span class="price-separator">-</span>
-                        <input type="number" class="form-control price-input" id="maxPrice" placeholder="最大值" min="0">
+        <!-- 搜索筛选表单（修复CS7036错误：正确使用Html辅助方法） -->
+        @using (Html.BeginForm("Index", "Home", FormMethod.Get, new { @class = "search-form" }))
+        {
+            <div class="search-filter-row">
+                <!-- 模糊搜索 -->
+                <div class="search-column">
+                    <div class="form-group">
+                        <label for="Keyword" class="form-label">
+                            <i class="fas fa-search"></i> 关键词搜索
+                        </label>
+                        <!-- 修正：使用正确的参数绑定方式 -->
+                        @Html.TextBox("Keyword", queryModel.Keyword, new
+                        {
+                            @class = "form-control",
+                            placeholder = "输入物品名称或描述",
+                            id = "Keyword"
+                        })
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 内容展示区域（预留） -->
-        <div style="text-align: center; margin-top: 50px; color: #6c757d;">
-            <i class="fas fa-box-open" style="font-size: 48px; margin-bottom: 15px;"></i>
-            <h4>回收物品展示区域</h4>
-            <p>筛选后的回收物品将在此处展示</p>
-        </div>
+                <!-- 类别筛选 -->
+                <div class="filter-column">
+                    <div class="form-group">
+                        <label for="Category" class="form-label">
+                            <i class="fas fa-list"></i> 回收品类
+                        </label>
+                        @Html.DropDownList("Category",
+                            new SelectList(categoryList, "Key", "Value", queryModel.Category),
+                            "全部品类",
+                            new { @class = "form-control", id = "Category" })
+                    </div>
+                </div>
+
+                <!-- 价格区间 -->
+                <div class="price-column">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-tags"></i> 价格区间（元/公斤）
+                        </label>
+                        <div class="price-range-group">
+                            @Html.TextBox("MinPrice", queryModel.MinPrice, new
+                            {
+                                @class = "form-control price-input",
+                                placeholder = "最小值",
+                                type = "number",
+                                min = "0",
+                                id = "MinPrice"
+                            })
+                            <span class="price-separator">-</span>
+                            @Html.TextBox("MaxPrice", queryModel.MaxPrice, new
+                            {
+                                @class = "form-control price-input",
+                                placeholder = "最大值",
+                                type = "number",
+                                min = "0",
+                                id = "MaxPrice"
+                            })
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 查询按钮 -->
+                <div class="button-column">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> 查询
+                    </button>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-default">
+                        <i class="fas fa-sync-alt"></i> 重置
+                    </a>
+                </div>
+            </div>
+        }
+
+        <!-- 可回收物展示区域（修复CS1955错误：属性不加()） -->
+        @if (pageResult.Items.Count == 0)
+        {
+            <div class="empty-message">
+                <i class="fas fa-box-open"></i>
+                <h4>未找到符合条件的可回收物</h4>
+                <p>请尝试调整筛选条件后重新查询</p>
+            </div>
+        }
+        else
+        {
+            <div class="items-grid">
+                @foreach (var item in pageResult.Items)
+                {
+                    <div class="item-card">
+                        <div class="item-name">
+                            <span>@item.Name</span> <!-- 修正：属性不加() -->
+                            <span class="item-category">@item.CategoryName</span>
+                        </div>
+                        <div class="item-price">
+                            <i class="fas fa-money-bill-wave"></i> 单价：@item.PricePerKg 元/公斤
+                        </div>
+                        <div class="item-desc">
+                            <i class="fas fa-info-circle"></i> @(string.IsNullOrEmpty(item.Description) ? "无描述信息" : item.Description)
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- 分页控件 -->
+            <div class="pagination-control">
+                <ul class="pagination">
+                    <!-- 首页 -->
+                    <li class="@(pageResult.PageIndex == 1 ? "disabled" : "")">
+                        <a href="@Url.Action("Index", new {
+                            Keyword = queryModel.Keyword,
+                            Category = queryModel.Category,
+                            MinPrice = queryModel.MinPrice,
+                            MaxPrice = queryModel.MaxPrice,
+                            PageIndex = 1
+                        })">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+
+                    <!-- 上一页 -->
+                    <li class="@(pageResult.PageIndex == 1 ? "disabled" : "")">
+                        <a href="@Url.Action("Index", new {
+                            Keyword = queryModel.Keyword,
+                            Category = queryModel.Category,
+                            MinPrice = queryModel.MinPrice,
+                            MaxPrice = queryModel.MaxPrice,
+                            PageIndex = pageResult.PageIndex - 1
+                        })">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+
+                    <!-- 当前页/总页数 -->
+                    <li class="active">
+                        <span>@pageResult.PageIndex / @pageResult.TotalPages</span>
+                    </li>
+
+                    <!-- 下一页 -->
+                    <li class="@(pageResult.PageIndex >= pageResult.TotalPages ? "disabled" : "")">
+                        <a href="@Url.Action("Index", new {
+                            Keyword = queryModel.Keyword,
+                            Category = queryModel.Category,
+                            MinPrice = queryModel.MinPrice,
+                            MaxPrice = queryModel.MaxPrice,
+                            PageIndex = pageResult.PageIndex + 1
+                        })">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+
+                    <!-- 最后一页 -->
+                    <li class="@(pageResult.PageIndex >= pageResult.TotalPages ? "disabled" : "")">
+                        <a href="@Url.Action("Index", new {
+                            Keyword = queryModel.Keyword,
+                            Category = queryModel.Category,
+                            MinPrice = queryModel.MinPrice,
+                            MaxPrice = queryModel.MaxPrice,
+                            PageIndex = pageResult.TotalPages
+                        })">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        }
 
         <!-- 预约按钮 -->
         <div class="appointment-section">
@@ -277,34 +526,17 @@
 
 @section Scripts {
     <script>
-        // 页面加载完成后的初始化
+        // 价格区间验证
         document.addEventListener('DOMContentLoaded', function () {
-            // 搜索输入框实时搜索效果
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function () {
-                    console.log('搜索关键词:', this.value);
-                });
-            }
-
-            // 品类筛选变化事件
-            const categorySelect = document.getElementById('categorySelect');
-            if (categorySelect) {
-                categorySelect.addEventListener('change', function () {
-                    console.log('选择品类:', this.value);
-                });
-            }
-
-            // 价格区间验证
-            const minPrice = document.getElementById('minPrice');
-            const maxPrice = document.getElementById('maxPrice');
+            const minPrice = document.getElementById('MinPrice');
+            const maxPrice = document.getElementById('MaxPrice');
 
             if (minPrice && maxPrice) {
-                minPrice.addEventListener('change', validatePriceRange);
-                maxPrice.addEventListener('change', validatePriceRange);
+                minPrice.addEventListener('change', validatePrice);
+                maxPrice.addEventListener('change', validatePrice);
             }
 
-            function validatePriceRange() {
+            function validatePrice() {
                 const min = parseFloat(minPrice.value) || 0;
                 const max = parseFloat(maxPrice.value) || 0;
 
@@ -314,56 +546,37 @@
                 }
             }
 
-            // 预约按钮点击事件
+            // 预约按钮登录验证
             const appointmentBtn = document.querySelector('.appointment-btn');
             if (appointmentBtn) {
                 appointmentBtn.addEventListener('click', function (e) {
-                    e.preventDefault(); // 阻止默认跳转
+                    e.preventDefault();
 
-                    // 检查登录状态
                     checkLoginStatus().then(isLoggedIn => {
                         if (isLoggedIn) {
-                            // 已登录，跳转到预约页面
                             window.location.href = '@Url.Action("Order", "Home")';
                         } else {
-                            // 未登录，显示提示并跳转到登录页
                             showLoginPrompt();
                         }
                     }).catch(error => {
-                        console.error('检查登录状态时出错:', error);
+                        console.error('登录状态检查失败:', error);
                         showLoginPrompt();
                     });
                 });
             }
 
-            // 检查登录状态的函数
             function checkLoginStatus() {
                 return new Promise((resolve, reject) => {
                     try {
                         fetch('@Url.Action("CheckLoginStatus", "Home")', {
                             method: 'POST',
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
                         })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('网络请求失败');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            resolve(data.isLoggedIn);
-                        })
-                        .catch(error => {
-                            console.warn('AJAX检查失败，使用客户端判断:', error);
+                        .then(response => response.ok ? response.json() : Promise.reject())
+                        .then(data => resolve(data.isLoggedIn))
+                        .catch(() => {
                             const userInfo = document.querySelector('.navbar-user-info');
-                            if (userInfo) {
-                                const hasLoginText = userInfo.textContent.includes('您好');
-                                resolve(hasLoginText);
-                            } else {
-                                resolve(false);
-                            }
+                            resolve(userInfo && userInfo.textContent.includes('您好'));
                         });
                     } catch (error) {
                         reject(error);
@@ -371,31 +584,18 @@
                 });
             }
 
-            // 显示登录提示的函数
             function showLoginPrompt() {
                 const modal = document.createElement('div');
                 modal.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.5);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
                     z-index: 9999;
                 `;
 
                 const modalContent = document.createElement('div');
                 modalContent.style.cssText = `
-                    background: white;
-                    padding: 30px;
-                    border-radius: 15px;
-                    text-align: center;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                    max-width: 300px;
-                    width: 90%;
+                    background: white; padding: 30px; border-radius: 15px; text-align: center;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 300px; width: 90%;
                 `;
 
                 modalContent.innerHTML = `
@@ -405,46 +605,25 @@
                     <h4 style="margin-bottom: 15px; color: #333;">请先登录！</h4>
                     <p style="color: #666; margin-bottom: 20px;">您需要登录后才能预约上门服务</p>
                     <div style="display: flex; gap: 10px; justify-content: center;">
-                        <button id="confirmLogin" style="
-                            background: #28a745;
-                            color: white;
-                            border: none;
-                            padding: 10px 20px;
-                            border-radius: 8px;
-                            cursor: pointer;
-                            font-size: 14px;
-                        ">立即登录</button>
-                        <button id="cancelPrompt" style="
-                            background: #6c757d;
-                            color: white;
-                            border: none;
-                            padding: 10px 20px;
-                            border-radius: 8px;
-                            cursor: pointer;
-                            font-size: 14px;
-                        ">稍后再说</button>
+                        <button id="confirmLogin" class="btn btn-success">立即登录</button>
+                        <button id="cancelLogin" class="btn btn-secondary">稍后再说</button>
                     </div>
                 `;
 
                 modal.appendChild(modalContent);
                 document.body.appendChild(modal);
 
-                // 立即登录按钮事件
-                document.getElementById('confirmLogin').addEventListener('click', function() {
+                document.getElementById('confirmLogin').addEventListener('click', () => {
                     document.body.removeChild(modal);
                     window.location.href = '@Url.Action("LoginSelect", "Home")';
                 });
 
-                // 取消按钮事件
-                document.getElementById('cancelPrompt').addEventListener('click', function() {
+                document.getElementById('cancelLogin').addEventListener('click', () => {
                     document.body.removeChild(modal);
                 });
 
-                // 点击背景关闭
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        document.body.removeChild(modal);
-                    }
+                modal.addEventListener('click', e => {
+                    if (e.target === modal) document.body.removeChild(modal);
                 });
             }
         });
