@@ -14,35 +14,28 @@ namespace recycling.Web.UI.Controllers
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
 
         [HttpGet]
-        public ActionResult Index(string keyword, string category, int pageIndex = 1)
+        public ActionResult Index(RecyclableQueryModel query)
         {
-            int pageSize = 10; // 可配置为常量
             try
             {
-                // 获取分类列表并传递到视图
+                // 首次访问检查数据是否初始化
+                _recyclableItemBLL.EnsureDataExists();
+
+                // 1. 获取所有品类（供筛选下拉框）
                 ViewBag.Categories = _recyclableItemBLL.GetAllCategories();
 
-                // 执行查询
-                var pagedResult = _recyclableItemBLL.SearchItems(keyword, category, pageIndex, pageSize);
+                // 2. 调用BLL获取分页数据
+                var result = _recyclableItemBLL.GetPagedItems(query);
 
-                // 保存查询参数用于分页回传
-                ViewBag.CurrentKeyword = keyword;
-                ViewBag.CurrentCategory = category;
-
-                return View(pagedResult);
+                // 3. 传递查询参数到视图（用于回显筛选条件）
+                ViewBag.Query = query;
+                return View(result);
             }
             catch (Exception ex)
             {
-                ViewBag.ErrorMessage = "查询失败：" + ex.Message;
-                // 返回空分页结果避免视图报错
-                return View(new PagedResult<RecyclableItems>
-                {
-                    Items = new List<RecyclableItems>(),
-                    PageIndex = pageIndex,
-                    PageSize = pageSize,
-                    TotalCount = 0,
-                    TotalPages = 0
-                });
+                // 异常处理：与UserController一致，通过ViewBag显示错误
+                ViewBag.ErrorMessage = ex.Message;
+                return View(new PagedResult<RecyclableItems>());
             }
         }
         public ActionResult Order()

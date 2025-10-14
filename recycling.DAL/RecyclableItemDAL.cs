@@ -122,67 +122,31 @@ WHERE RowNum > @Skip AND RowNum <= @Skip + @PageSize";
         public Dictionary<string, string> GetAllCategories()
         {
             var categories = new Dictionary<string, string>();
-            // 先添加默认"全品类"选项
-            categories.Add("All", "全品类");
-
-            try
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
-                {
-                    string sql = @"
+                string sql = @"
 SELECT DISTINCT Category, CategoryName 
 FROM RecyclableItems 
 WHERE IsActive = 1 
 ORDER BY Category";
 
-                    SqlCommand cmd = new SqlCommand(sql, conn);
-                    conn.Open();
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                conn.Open();
 
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
                     {
-                        // 读取数据库分类
-                        while (reader.Read())
+                        string category = reader["Category"].ToString();
+                        string categoryName = reader["CategoryName"].ToString();
+                        if (!categories.ContainsKey(category))
                         {
-                            string category = reader["Category"].ToString();
-                            string categoryName = reader["CategoryName"].ToString();
-                            if (!string.IsNullOrEmpty(category) && !string.IsNullOrEmpty(categoryName)
-                                && !categories.ContainsKey(category))
-                            {
-                                categories[category] = categoryName;
-                            }
+                            categories[category] = categoryName;
                         }
                     }
                 }
-
-                // 若数据库无数据，使用模型中定义的默认分类
-                if (categories.Count <= 1) // 仅包含"全品类"时
-                {
-                    var defaultCats = new Dictionary<string, string>
-            {
-                { "All", "全品类" },
-                { "Glass", "玻璃" },
-                { "Metal", "金属" },
-                { "Plastic", "塑料" },
-                { "Paper", "纸类" },
-                { "Fabric", "纺织品" }
-            };
-                    return defaultCats;
-                }
-                return categories;
             }
-            catch (Exception ex)
-            {
-                // 数据库连接失败时返回默认分类
-                return new Dictionary<string, string>
-        {
-            { "All", "全品类" },
-            { "Glass", "玻璃" },
-            { "Metal", "金属" },
-            { "Plastic", "塑料" },
-            { "Paper", "纸类" },
-            { "Fabric", "纺织品" }
-        };
-            }
+            return categories;
         }
 
         /// <summary>
