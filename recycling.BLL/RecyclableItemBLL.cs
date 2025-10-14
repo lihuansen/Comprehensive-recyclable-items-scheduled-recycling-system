@@ -16,18 +16,20 @@ namespace recycling.BLL
         /// <summary>
         /// 分页查询可回收物（处理参数有效性，调用DAL层）
         /// </summary>
-        public PagedResult<RecyclableItems> GetPagedItems(RecyclableQueryModel query)
+        public PagedResult<RecyclableItems> SearchItems(string keyword, string category, int pageIndex, int pageSize)
         {
-            // 业务参数校验（模仿UserBLL中的参数检查逻辑）
-            if (query == null)
-                throw new ArgumentNullException("查询参数不能为空");
+            // 处理空参数
+            keyword = string.IsNullOrEmpty(keyword) ? "" : keyword.Trim();
+            category = string.IsNullOrEmpty(category) || category == "All" ? "" : category;
 
-            // 确保页码有效（最小为1）
-            if (query.PageIndex < 1)
-                query.PageIndex = 1;
-
-            // 调用DAL层获取数据（与UserBLL调用UserDAL的方式一致）
-            return _recyclableItemDAL.GetPagedItems(query);
+            try
+            {
+                return _recyclableItemDAL.SearchItems(keyword, category, pageIndex, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("查询物品失败：" + ex.Message);
+            }
         }
 
         /// <summary>
