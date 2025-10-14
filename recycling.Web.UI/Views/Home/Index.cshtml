@@ -554,7 +554,7 @@
 
                     checkLoginStatus().then(isLoggedIn => {
                         if (isLoggedIn) {
-                            window.location.href = '@Url.Action("Order", "Home")';
+                            window.location.href = '@Url.Action("Appointment", "User")';
                         } else {
                             showLoginPrompt();
                         }
