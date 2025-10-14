@@ -40,14 +40,7 @@ namespace recycling.Web.UI.Controllers
         }
         public ActionResult Order()
         {
-            // 检查登录状态
-            if (Session["LoginUser"] == null)
-            {
-                return RedirectToAction("LoginSelect", "Home");
-            }
-
-            // 重定向到User控制器的预约页面
-            return RedirectToAction("Appointment", "User");
+            return View();
         }
         public ActionResult Message()
         {
