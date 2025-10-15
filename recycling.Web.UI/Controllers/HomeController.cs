@@ -18,23 +18,27 @@ namespace recycling.Web.UI.Controllers
         {
             try
             {
-                // 首次访问检查数据是否初始化
+                // 确保数据存在
                 _recyclableItemBLL.EnsureDataExists();
 
-                // 1. 获取所有品类（供筛选下拉框）
+                // 获取品类列表供下拉框使用
                 ViewBag.CategoryList = _recyclableItemBLL.GetAllCategories();
 
-                // 2. 调用BLL获取分页数据
-                var result = _recyclableItemBLL.GetPagedItems(query);
+                // 设置默认值
+                if (query.PageIndex < 1) query.PageIndex = 1;
+                if (query.PageSize < 1) query.PageSize = 6;
 
-                // 3. 传递查询参数到视图（用于回显筛选条件）
+                // 获取分页数据
+                var pageResult = _recyclableItemBLL.GetPagedItems(query);
+
+                // 保存查询条件用于视图
                 ViewBag.QueryModel = query;
-                return View(result);
+
+                return View(pageResult);
             }
             catch (Exception ex)
             {
-                // 异常处理：与UserController一致，通过ViewBag显示错误
-                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ErrorMsg = ex.Message;
                 return View(new PagedResult<RecyclableItems>());
             }
         }
