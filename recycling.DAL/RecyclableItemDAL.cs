@@ -15,7 +15,7 @@ namespace recycling.DAL
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         /// <summary>
-        /// 分页查询可回收物（支持多条件筛选）- 修正版
+        /// 分页查询可回收物（支持多条件筛选）- 修正参数重复问题
         /// </summary>
         public PagedResult<RecyclableItems> GetPagedItems(RecyclableQueryModel query)
         {
@@ -27,32 +27,32 @@ namespace recycling.DAL
 
             // 构建查询条件和参数
             var whereConditions = new List<string> { "IsActive = 1" };
-            var cmdParams = new List<SqlParameter>();
+            var parameters = new Dictionary<string, object>();
 
             // 关键词筛选（名称或描述）
             if (!string.IsNullOrEmpty(query.Keyword))
             {
                 whereConditions.Add("(Name LIKE '%' + @Keyword + '%' OR Description LIKE '%' + @Keyword + '%')");
-                cmdParams.Add(new SqlParameter("@Keyword", SqlDbType.NVarChar, 50) { Value = query.Keyword });
+                parameters["@Keyword"] = query.Keyword;
             }
 
             // 品类筛选
             if (!string.IsNullOrEmpty(query.Category))
             {
                 whereConditions.Add("CategoryName = @CategoryName");
-                cmdParams.Add(new SqlParameter("@CategoryName", SqlDbType.NVarChar, 20) { Value = query.Category });
+                parameters["@CategoryName"] = query.Category;
             }
 
             // 价格区间筛选
             if (query.MinPrice.HasValue)
             {
                 whereConditions.Add("PricePerKg >= @MinPrice");
-                cmdParams.Add(new SqlParameter("@MinPrice", SqlDbType.Decimal) { Value = query.MinPrice.Value });
+                parameters["@MinPrice"] = query.MinPrice.Value;
             }
             if (query.MaxPrice.HasValue)
             {
                 whereConditions.Add("PricePerKg <= @MaxPrice");
-                cmdParams.Add(new SqlParameter("@MaxPrice", SqlDbType.Decimal) { Value = query.MaxPrice.Value });
+                parameters["@MaxPrice"] = query.MaxPrice.Value;
             }
 
             string whereClause = whereConditions.Count > 0
@@ -64,7 +64,12 @@ namespace recycling.DAL
             {
                 string countSql = $"SELECT COUNT(1) FROM RecyclableItems {whereClause}";
                 SqlCommand cmd = new SqlCommand(countSql, conn);
-                cmd.Parameters.AddRange(cmdParams.ToArray());
+
+                // 添加参数到命令
+                foreach (var param in parameters)
+                {
+                    cmd.Parameters.AddWithValue(param.Key, param.Value);
+                }
 
                 conn.Open();
                 result.TotalCount = (int)cmd.ExecuteScalar();
@@ -75,23 +80,25 @@ namespace recycling.DAL
             {
                 int skip = (query.PageIndex - 1) * query.PageSize;
                 string dataSql = $@"
-SELECT * FROM (
-    SELECT ROW_NUMBER() OVER (ORDER BY SortOrder ASC, ItemId ASC) AS RowNum, *
-    FROM RecyclableItems
-    {whereClause}
-) AS T
-WHERE RowNum > @Skip AND RowNum <= @Skip + @PageSize";
-
-                // 创建新的参数列表，包含原始查询参数和分页参数
-                var dataParams = new List<SqlParameter>();
-                dataParams.AddRange(cmdParams); // 添加原始查询参数
-                dataParams.Add(new SqlParameter("@Skip", SqlDbType.Int) { Value = skip });
-                dataParams.Add(new SqlParameter("@PageSize", SqlDbType.Int) { Value = query.PageSize });
+                    SELECT * FROM (
+                        SELECT ROW_NUMBER() OVER (ORDER BY SortOrder ASC, ItemId ASC) AS RowNum, *
+                        FROM RecyclableItems
+                        {whereClause}
+                    ) AS T
+                    WHERE RowNum > @Skip AND RowNum <= @Skip + @PageSize";
 
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     SqlCommand cmd = new SqlCommand(dataSql, conn);
-                    cmd.Parameters.AddRange(dataParams.ToArray());
+
+                    // 重新添加所有参数（包括分页参数）
+                    foreach (var param in parameters)
+                    {
+                        cmd.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+                    // 添加分页参数
+                    cmd.Parameters.AddWithValue("@Skip", skip);
+                    cmd.Parameters.AddWithValue("@PageSize", query.PageSize);
 
                     conn.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -118,19 +125,18 @@ WHERE RowNum > @Skip AND RowNum <= @Skip + @PageSize";
         }
 
         /// <summary>
-        /// 获取所有品类（去重，含中文名称）- 修正ORDER BY问题
+        /// 获取所有品类（去重，含中文名称）
         /// </summary>
         public Dictionary<string, string> GetAllCategories()
         {
             var categories = new Dictionary<string, string>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                // 修正：使用子查询或者简化ORDER BY
                 string sql = @"
-SELECT DISTINCT Category, CategoryName 
-FROM RecyclableItems 
-WHERE IsActive = 1 
-ORDER BY Category";  // 简化：直接按Category字段排序
+                    SELECT DISTINCT Category, CategoryName 
+                    FROM RecyclableItems 
+                    WHERE IsActive = 1 
+                    ORDER BY Category";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 conn.Open();
