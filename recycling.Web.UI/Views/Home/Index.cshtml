@@ -352,74 +352,76 @@
         <!-- 搜索筛选表单（修复CS7036错误：正确使用Html辅助方法） -->
         @using (Html.BeginForm("Index", "Home", FormMethod.Get, new { @class = "search-form" }))
         {
-            <div class="search-filter-row">
-                <!-- 模糊搜索 -->
-                <div class="search-column">
-                    <div class="form-group">
-                        <label for="Keyword" class="form-label">
-                            <i class="fas fa-search"></i> 关键词搜索
-                        </label>
-                        <!-- 修正：使用正确的参数绑定方式 -->
-                        @Html.TextBox("Keyword", queryModel.Keyword, new
-                        {
-                            @class = "form-control",
-                            placeholder = "输入物品名称",
-                            id = "Keyword"
-                        })
-                    </div>
-                </div>
+    <div class="search-filter-row">
+        <!-- 模糊搜索 -->
+        <div class="search-column">
+            <div class="form-group">
+                <label for="Keyword" class="form-label">
+                    <i class="fas fa-search"></i> 关键词搜索
+                </label>
+                <!-- 修正：使用正确的参数绑定方式 -->
+                @Html.TextBox("Keyword", queryModel.Keyword, new
+                {
+                    @class = "form-control",
+                    placeholder = "输入物品名称",
+                    id = "Keyword"
+                })
+            </div>
+        </div>
 
-                <!-- 类别筛选 -->
-                <div class="filter-column">
-                    <div class="form-group">
-                        <label for="Category" class="form-label">
-                            <i class="fas fa-list"></i> 回收品类
-                        </label>
-                        @Html.DropDownList("Category",
-                            new SelectList(categoryList, "Value", "Value", queryModel.Category),
-                            "全部品类",
-                            new { @class = "form-control", id = "Category" })
-                    </div>
-                </div>
+        <!-- 类别筛选 -->
+        <div class="filter-column">
+            <div class="form-group">
+                <label for="Category" class="form-label">
+                    <i class="fas fa-list"></i> 回收品类
+                </label>
+                @Html.DropDownList("Category",
+                    new SelectList(categoryList, "Value", "Value", queryModel.Category),
+                    "全部品类",
+                    new { @class = "form-control", id = "Category" })
+            </div>
+        </div>
 
-                <!-- 价格区间 -->
-                <div class="price-column">
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-tags"></i> 价格区间（元/公斤）
-                        </label>
-                        <div class="price-range-group">
-                            @Html.TextBox("MinPrice", queryModel.MinPrice, new
-                            {
-                                @class = "form-control price-input",
-                                placeholder = "最小值",
-                                type = "number",
-                                step = "0.1",
-                                min = "0"
-                            })
-                            <span class="price-separator">-</span>
-                            @Html.TextBox("MaxPrice", queryModel.MaxPrice, new
-                            {
-                                @class = "form-control price-input",
-                                placeholder = "最大值",
-                                type = "number",
-                                step = "0.1",
-                                min = "0"
-                            })
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 查询按钮 -->
-                <div class="button-column">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i> 查询
-                    </button>
-                    <a href="@Url.Action("Index", "Home")" class="btn btn-default">
-                        <i class="fas fa-sync-alt"></i> 重置
-                    </a>
+        <!-- 价格区间 -->
+        <div class="price-column">
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-tags"></i> 价格区间（元/公斤）
+                </label>
+                <div class="price-range-group">
+                    @Html.TextBox("MinPrice", queryModel.MinPrice, new
+                    {
+                        @class = "form-control price-input",
+                        placeholder = "最小值",
+                        type = "number",
+                        step = "0.1",
+                        min = "0",
+                        name = "MinPrice"  // 明确指定name
+                    })
+                    <span class="price-separator">-</span>
+                    @Html.TextBox("MaxPrice", queryModel.MaxPrice, new
+                    {
+                        @class = "form-control price-input",
+                        placeholder = "最大值",
+                        type = "number",
+                        step = "0.1",
+                        min = "0",
+                        name = "MaxPrice"  // 明确指定name
+                    })
                 </div>
             </div>
+        </div>
+
+        <!-- 查询按钮 -->
+        <div class="button-column">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> 查询
+            </button>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-default">
+                <i class="fas fa-sync-alt"></i> 重置
+            </a>
+        </div>
+    </div>
         }
 
         <!-- 可回收物展示区域（修复CS1955错误：属性不加()） -->
