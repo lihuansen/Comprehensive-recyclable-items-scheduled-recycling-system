@@ -394,8 +394,8 @@
                                 @class = "form-control price-input",
                                 placeholder = "最小值",
                                 type = "number",
-                                min = "0",
-                                id = "MinPrice"
+                                step = "0.1",
+                                min = "0"
                             })
                             <span class="price-separator">-</span>
                             @Html.TextBox("MaxPrice", queryModel.MaxPrice, new
@@ -403,8 +403,8 @@
                                 @class = "form-control price-input",
                                 placeholder = "最大值",
                                 type = "number",
-                                min = "0",
-                                id = "MaxPrice"
+                                step = "0.1",
+                                min = "0"
                             })
                         </div>
                     </div>
