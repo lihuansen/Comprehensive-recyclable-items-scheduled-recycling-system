@@ -376,7 +376,7 @@
                             <i class="fas fa-list"></i> 回收品类
                         </label>
                         @Html.DropDownList("Category",
-                            new SelectList(categoryList, "Key", "Value", queryModel.Category),
+                            new SelectList(categoryList, "Value", "Value", queryModel.Category),
                             "全部品类",
                             new { @class = "form-control", id = "Category" })
                     </div>
