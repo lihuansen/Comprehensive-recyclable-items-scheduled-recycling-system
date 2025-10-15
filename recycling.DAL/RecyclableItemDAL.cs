@@ -77,7 +77,7 @@ namespace recycling.DAL
                 int skip = (query.PageIndex - 1) * query.PageSize;
                 string dataSql = $@"
 SELECT * FROM (
-    SELECT ROW_NUMBER() OVER (ORDER BY SortOrder ASC) AS RowNum, *
+    SELECT ROW_NUMBER() OVER (ORDER BY ItemId ASC) AS RowNum, * -- 按主键排序
     FROM RecyclableItems
     {whereClause}
 ) AS T
