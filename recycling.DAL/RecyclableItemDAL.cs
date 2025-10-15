@@ -36,14 +36,14 @@ namespace recycling.DAL
                 cmdParams.Add(new SqlParameter("@Keyword", SqlDbType.NVarChar, 50) { Value = query.Keyword });
             }
 
-            // 品类筛选 - 修正：使用CategoryName进行筛选
+            // 品类筛选
             if (!string.IsNullOrEmpty(query.Category))
             {
                 whereConditions.Add("CategoryName = @CategoryName");
                 cmdParams.Add(new SqlParameter("@CategoryName", SqlDbType.NVarChar, 20) { Value = query.Category });
             }
 
-            // 价格区间筛选 - 修正：明确指定参数类型
+            // 价格区间筛选
             if (query.MinPrice.HasValue)
             {
                 whereConditions.Add("PricePerKg >= @MinPrice");
@@ -70,7 +70,7 @@ namespace recycling.DAL
                 result.TotalCount = (int)cmd.ExecuteScalar();
             }
 
-            // 2. 查询当前页数据 - 修正：创建新的参数集合避免重复
+            // 2. 查询当前页数据
             if (result.TotalCount > 0)
             {
                 int skip = (query.PageIndex - 1) * query.PageSize;
@@ -118,18 +118,19 @@ WHERE RowNum > @Skip AND RowNum <= @Skip + @PageSize";
         }
 
         /// <summary>
-        /// 获取所有品类（去重，含中文名称）- 修正：按SortOrder排序
+        /// 获取所有品类（去重，含中文名称）- 修正ORDER BY问题
         /// </summary>
         public Dictionary<string, string> GetAllCategories()
         {
             var categories = new Dictionary<string, string>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
+                // 修正：使用子查询或者简化ORDER BY
                 string sql = @"
 SELECT DISTINCT Category, CategoryName 
 FROM RecyclableItems 
 WHERE IsActive = 1 
-ORDER BY (SELECT MIN(SortOrder) FROM RecyclableItems ri WHERE ri.Category = RecyclableItems.Category)";
+ORDER BY Category";  // 简化：直接按Category字段排序
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 conn.Open();
@@ -163,6 +164,39 @@ ORDER BY (SELECT MIN(SortOrder) FROM RecyclableItems ri WHERE ri.Category = Recy
                 int count = (int)cmd.ExecuteScalar();
                 return count > 0;
             }
+        }
+
+        /// <summary>
+        /// 获取所有有效数据（用于调试）
+        /// </summary>
+        public List<RecyclableItems> GetAllActiveItems()
+        {
+            var items = new List<RecyclableItems>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT * FROM RecyclableItems WHERE IsActive = 1 ORDER BY SortOrder, ItemId";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                conn.Open();
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        items.Add(new RecyclableItems
+                        {
+                            ItemId = Convert.ToInt32(reader["ItemId"]),
+                            Name = reader["Name"].ToString(),
+                            Category = reader["Category"].ToString(),
+                            CategoryName = reader["CategoryName"].ToString(),
+                            PricePerKg = Convert.ToDecimal(reader["PricePerKg"]),
+                            Description = reader["Description"] != DBNull.Value ? reader["Description"].ToString() : null,
+                            SortOrder = Convert.ToInt32(reader["SortOrder"]),
+                            IsActive = Convert.ToBoolean(reader["IsActive"])
+                        });
+                    }
+                }
+            }
+            return items;
         }
     }
 }
