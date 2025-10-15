@@ -22,13 +22,13 @@ namespace recycling.Web.UI.Controllers
                 _recyclableItemBLL.EnsureDataExists();
 
                 // 1. 获取所有品类（供筛选下拉框）
-                ViewBag.Categories = _recyclableItemBLL.GetAllCategories();
+                ViewBag.CategoryList = _recyclableItemBLL.GetAllCategories();
 
                 // 2. 调用BLL获取分页数据
                 var result = _recyclableItemBLL.GetPagedItems(query);
 
                 // 3. 传递查询参数到视图（用于回显筛选条件）
-                ViewBag.Query = query;
+                ViewBag.QueryModel = query;
                 return View(result);
             }
             catch (Exception ex)
