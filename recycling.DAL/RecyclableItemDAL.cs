@@ -30,18 +30,18 @@ namespace recycling.DAL
             var whereConditions = new List<string> { "IsActive = 1" };
             var cmdParams = new List<SqlParameter>();
 
-            // 关键词筛选（名称或描述）
+            // 关键词筛选（名称）
             if (!string.IsNullOrEmpty(query.Keyword))
             {
-                whereConditions.Add("(Name LIKE @Keyword OR Description LIKE @Keyword)");
+                whereConditions.Add("Name LIKE @Keyword");
                 cmdParams.Add(new SqlParameter("@Keyword", $"%{query.Keyword}%"));
             }
 
             // 品类筛选
             if (!string.IsNullOrEmpty(query.Category))
             {
-                whereConditions.Add("Category = @Category");
-                cmdParams.Add(new SqlParameter("@Category", query.Category));
+                whereConditions.Add("CategoryName = @CategoryName");
+                cmdParams.Add(new SqlParameter("@CategoryName", query.Category));
             }
 
             // 价格区间筛选
