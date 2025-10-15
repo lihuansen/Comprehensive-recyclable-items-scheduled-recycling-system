@@ -65,5 +65,19 @@ namespace recycling.BLL
                 throw new Exception("检查可回收物数据失败：" + ex.Message);
             }
         }
+        /// <summary>
+        /// 获取所有有效数据（用于调试）
+        /// </summary>
+        public List<RecyclableItems> GetAllActiveItems()
+        {
+            try
+            {
+                return _recyclableItemDAL.GetAllActiveItems();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("获取可回收物数据失败：" + ex.Message);
+            }
+        }
     }
 }
