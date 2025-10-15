@@ -33,8 +33,8 @@ namespace recycling.DAL
             // 关键词筛选（名称）
             if (!string.IsNullOrEmpty(query.Keyword))
             {
-                whereConditions.Add("Name LIKE @Keyword");
-                cmdParams.Add(new SqlParameter("@Keyword", $"%{query.Keyword}%"));
+                whereConditions.Add("Name LIKE '%' + @Keyword + '%'");
+                cmdParams.Add(new SqlParameter("@Keyword", query.Keyword));
             }
 
             // 品类筛选
