@@ -24,6 +24,6 @@ namespace recycling.Model
         public string QuestionsAnswers { get; set; }
 
         [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate { get; set; }= DateTime.Now;
     }
 }
