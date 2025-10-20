@@ -361,35 +361,73 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 更新用户基本信息
+        /// 更新用户基本信息（增加与原有信息的对比检查）
         /// </summary>
         public string UpdateUserProfile(int userId, UpdateProfileViewModel model)
         {
-            // 验证用户名是否被其他用户使用
-            var existingUser = _userDAL.GetUserByUsername(model.Username);
-            if (existingUser != null && existingUser.UserID != userId)
+            // 首先获取用户当前信息
+            var currentUser = _userDAL.GetUserById(userId);
+            if (currentUser == null)
             {
-                return "用户名已被其他用户使用，请更换其他用户名";
+                return "用户不存在";
             }
 
-            // 验证手机号是否被其他用户使用
-            if (_userDAL.IsPhoneExists(model.PhoneNumber))
+            // 检查是否有任何修改
+            bool hasChanges = false;
+            string changeDetails = "";
+
+            // 检查用户名是否修改
+            if (currentUser.Username != model.Username)
             {
-                var phoneUser = _userDAL.GetUserByPhone(model.PhoneNumber);
-                if (phoneUser != null && phoneUser.UserID != userId)
+                hasChanges = true;
+                changeDetails += "用户名 ";
+
+                // 验证新用户名是否被其他用户使用
+                var existingUser = _userDAL.GetUserByUsername(model.Username);
+                if (existingUser != null && existingUser.UserID != userId)
                 {
-                    return "手机号已被其他用户使用，请更换其他手机号";
+                    return "用户名已被其他用户使用，请更换其他用户名";
                 }
             }
 
-            // 验证邮箱是否被其他用户使用
-            if (_userDAL.IsEmailExists(model.Email))
+            // 检查手机号是否修改
+            if (currentUser.PhoneNumber != model.PhoneNumber)
             {
-                var emailUser = _userDAL.GetUserByEmail(model.Email);
-                if (emailUser != null && emailUser.UserID != userId)
+                hasChanges = true;
+                changeDetails += "手机号 ";
+
+                // 验证新手机号是否被其他用户使用
+                if (_userDAL.IsPhoneExists(model.PhoneNumber))
                 {
-                    return "邮箱已被其他用户使用，请更换其他邮箱";
+                    var phoneUser = _userDAL.GetUserByPhone(model.PhoneNumber);
+                    if (phoneUser != null && phoneUser.UserID != userId)
+                    {
+                        return "手机号已被其他用户使用，请更换其他手机号";
+                    }
                 }
+            }
+
+            // 检查邮箱是否修改
+            if (currentUser.Email != model.Email)
+            {
+                hasChanges = true;
+                changeDetails += "邮箱 ";
+
+                // 验证新邮箱是否被其他用户使用
+                if (_userDAL.IsEmailExists(model.Email))
+                {
+                    var emailUser = _userDAL.GetUserByEmail(model.Email);
+                    if (emailUser != null && emailUser.UserID != userId)
+                    {
+                        return "邮箱已被其他用户使用，请更换其他邮箱";
+                    }
+                }
+            }
+
+            // 如果没有修改任何信息
+            if (!hasChanges)
+            {
+                return "没有检测到任何修改，请至少修改一项信息";
             }
 
             // 执行更新
