@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppointmentDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecyclableItemDAL.cs" />
     <Compile Include="StaffDAL.cs" />
