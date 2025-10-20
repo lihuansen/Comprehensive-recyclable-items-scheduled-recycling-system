@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Admins.cs" />
+    <Compile Include="Appointments.cs" />
     <Compile Include="AppointmentViewModel.cs" />
     <Compile Include="ChangePasswordViewModel.cs" />
     <Compile Include="EmailLoginViewModel.cs" />
