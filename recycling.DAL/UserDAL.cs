@@ -279,5 +279,105 @@ namespace recycling.DAL
             }
             return user;
         }
+        /// <summary>
+        /// 更新用户基本信息
+        /// </summary>
+        public bool UpdateUserProfile(int userId, string username, string phoneNumber, string email)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Users 
+                      SET Username = @Username, 
+                          PhoneNumber = @PhoneNumber, 
+                          Email = @Email 
+                      WHERE UserID = @UserID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", username);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                cmd.Parameters.AddWithValue("@Email", email);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+        }
+
+        /// <summary>
+        /// 通过用户ID更新密码
+        /// </summary>
+        public bool UpdatePasswordByUserId(int userId, string newPasswordHash)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Users 
+                      SET PasswordHash = @PasswordHash 
+                      WHERE UserID = @UserID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PasswordHash", newPasswordHash);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+        }
+
+        /// <summary>
+        /// 通过用户ID获取原密码哈希
+        /// </summary>
+        public string GetPasswordHashByUserId(int userId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT PasswordHash FROM Users WHERE UserID = @UserID";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                conn.Open();
+                object result = cmd.ExecuteScalar();
+                return result != null ? result.ToString() : null;
+            }
+        }
+
+        /// <summary>
+        /// 通过用户ID获取用户信息
+        /// </summary>
+        public Users GetUserById(int userId)
+        {
+            Users user = null;
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, 
+                              RegistrationDate, LastLoginDate 
+                       FROM Users 
+                       WHERE UserID = @UserID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        user = new Users
+                        {
+                            UserID = Convert.ToInt32(reader["UserID"]),
+                            Username = reader["Username"].ToString(),
+                            PasswordHash = reader["PasswordHash"].ToString(),
+                            PhoneNumber = reader["PhoneNumber"].ToString(),
+                            Email = reader["Email"].ToString(),
+                            RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
+                            LastLoginDate = reader["LastLoginDate"] != DBNull.Value ?
+                                          Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null
+                        };
+                    }
+                }
+            }
+            return user;
+        }
     }
 }
