@@ -359,5 +359,76 @@ namespace recycling.BLL
             }
             return ""; // 验证码不存在或已过期
         }
+
+        /// <summary>
+        /// 更新用户基本信息
+        /// </summary>
+        public string UpdateUserProfile(int userId, UpdateProfileViewModel model)
+        {
+            // 验证用户名是否被其他用户使用
+            var existingUser = _userDAL.GetUserByUsername(model.Username);
+            if (existingUser != null && existingUser.UserID != userId)
+            {
+                return "用户名已被其他用户使用，请更换其他用户名";
+            }
+
+            // 验证手机号是否被其他用户使用
+            if (_userDAL.IsPhoneExists(model.PhoneNumber))
+            {
+                var phoneUser = _userDAL.GetUserByPhone(model.PhoneNumber);
+                if (phoneUser != null && phoneUser.UserID != userId)
+                {
+                    return "手机号已被其他用户使用，请更换其他手机号";
+                }
+            }
+
+            // 验证邮箱是否被其他用户使用
+            if (_userDAL.IsEmailExists(model.Email))
+            {
+                var emailUser = _userDAL.GetUserByEmail(model.Email);
+                if (emailUser != null && emailUser.UserID != userId)
+                {
+                    return "邮箱已被其他用户使用，请更换其他邮箱";
+                }
+            }
+
+            // 执行更新
+            bool success = _userDAL.UpdateUserProfile(userId, model.Username, model.PhoneNumber, model.Email);
+            return success ? null : "更新失败，请稍后重试";
+        }
+
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        public string ChangePassword(int userId, ChangePasswordViewModel model)
+        {
+            // 验证当前密码
+            string currentHash = _userDAL.GetPasswordHashByUserId(userId);
+            string inputCurrentHash = HashPassword(model.CurrentPassword);
+
+            if (currentHash != inputCurrentHash)
+            {
+                return "当前密码不正确";
+            }
+
+            // 验证新密码不能与原密码相同
+            string newHash = HashPassword(model.NewPassword);
+            if (currentHash == newHash)
+            {
+                return "新密码不能与当前密码相同";
+            }
+
+            // 执行密码更新
+            bool success = _userDAL.UpdatePasswordByUserId(userId, newHash);
+            return success ? null : "密码修改失败，请稍后重试";
+        }
+
+        /// <summary>
+        /// 通过用户ID获取用户信息
+        /// </summary>
+        public Users GetUserById(int userId)
+        {
+            return _userDAL.GetUserById(userId);
+        }
     }
 }
