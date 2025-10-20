@@ -10,6 +10,7 @@ namespace recycling.Web.UI.Controllers
 {
     public class HomeController : Controller
     {
+        private UserBLL _userBLL = new UserBLL();
         // 依赖BLL层，与UserController依赖UserBLL的方式一致
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
 
@@ -58,10 +59,149 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
+        /// <summary>
+        /// 个人中心主页
+        /// </summary>
+        [HttpGet]
         public new ActionResult Profile()
         {
-            return View();
+            // 检查登录状态 - 如果未登录，跳转到登录选择页
+            if (Session["LoginUser"] == null)
+            {
+                TempData["ReturnUrl"] = Url.Action("Profile", "Home");
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            var user = (Users)Session["LoginUser"];
+
+            // 从数据库重新获取最新用户信息，确保数据同步
+            var currentUser = _userBLL.GetUserById(user.UserID);
+            if (currentUser != null)
+            {
+                Session["LoginUser"] = currentUser; // 更新Session中的用户信息
+            }
+
+            return View(currentUser ?? user);
         }
+
+        /// <summary>
+        /// 显示编辑个人信息页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult EditProfile()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            var user = (Users)Session["LoginUser"];
+            var model = new UpdateProfileViewModel
+            {
+                Username = user.Username,
+                PhoneNumber = user.PhoneNumber,
+                Email = user.Email
+            };
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// 处理个人信息更新
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditProfile(UpdateProfileViewModel model)
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = (Users)Session["LoginUser"];
+            try
+            {
+                string errorMsg = _userBLL.UpdateUserProfile(user.UserID, model);
+                if (errorMsg != null)
+                {
+                    ModelState.AddModelError("", errorMsg);
+                    return View(model);
+                }
+
+                // 更新成功后，重新从数据库获取用户信息并更新Session
+                var updatedUser = _userBLL.GetUserById(user.UserID);
+                Session["LoginUser"] = updatedUser;
+
+                TempData["SuccessMessage"] = "个人信息更新成功";
+                return RedirectToAction("Profile");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "更新失败：" + ex.Message);
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// 显示修改密码页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult ChangePassword()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            return View(new ChangePasswordViewModel());
+        }
+
+        /// <summary>
+        /// 处理密码修改
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ChangePassword(ChangePasswordViewModel model)
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = (Users)Session["LoginUser"];
+            try
+            {
+                string errorMsg = _userBLL.ChangePassword(user.UserID, model);
+                if (errorMsg != null)
+                {
+                    ModelState.AddModelError("", errorMsg);
+                    return View(model);
+                }
+
+                TempData["SuccessMessage"] = "密码修改成功";
+                return RedirectToAction("Profile");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "密码修改失败：" + ex.Message);
+                return View(model);
+            }
+        }
+
         public ActionResult LoginSelect()
         {
             return View();
