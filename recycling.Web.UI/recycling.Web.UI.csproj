@@ -180,6 +180,7 @@
     <Content Include="Views\User\Appointment.cshtml" />
     <Content Include="Views\User\AppointmentSuccess.cshtml" />
     <Content Include="Views\User\CategoryDetails.cshtml" />
+    <Content Include="Views\Home\EditProfile.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
