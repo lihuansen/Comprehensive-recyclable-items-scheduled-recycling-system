@@ -165,7 +165,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 处理密码修改
+        /// 处理密码修改（修改成功后强制重新登录）
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -192,8 +192,13 @@ namespace recycling.Web.UI.Controllers
                     return View(model);
                 }
 
-                TempData["SuccessMessage"] = "密码修改成功";
-                return RedirectToAction("Profile");
+                // 密码修改成功，清除Session强制重新登录
+                Session.Clear();
+                Session.Abandon();
+
+                // 设置成功消息，并重定向到登录页
+                TempData["SuccessMessage"] = "密码修改成功，请使用新密码重新登录";
+                return RedirectToAction("Login", "User");
             }
             catch (Exception ex)
             {
