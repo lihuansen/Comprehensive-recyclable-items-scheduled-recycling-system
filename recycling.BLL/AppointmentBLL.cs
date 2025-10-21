@@ -74,13 +74,13 @@ namespace recycling.BLL
         private string GetCategoryDisplayName(string categoryKey)
         {
             var categoryMap = new Dictionary<string, string>
-            {
-                { "waste_paper", "废纸" },
-                { "plastic", "塑料" },
-                { "metal", "金属" },
-                { "glass", "玻璃" },
-                { "fabric", "织物" }
-            };
+    {
+        { "glass", "玻璃" },
+        { "metal", "金属" },
+        { "plastic", "塑料" },
+        { "paper", "纸类" },
+        { "fabric", "纺织品" }
+    };
 
             return categoryMap.ContainsKey(categoryKey) ? categoryMap[categoryKey] : categoryKey;
         }
