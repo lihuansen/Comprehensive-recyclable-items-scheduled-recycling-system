@@ -625,6 +625,7 @@ namespace recycling.Web.UI.Controllers
             // 检查登录状态
             if (Session["LoginUser"] == null)
             {
+                System.Diagnostics.Debug.WriteLine("用户未登录，重定向到登录页");
                 return RedirectToAction("LoginSelect", "Home");
             }
 
@@ -632,8 +633,11 @@ namespace recycling.Web.UI.Controllers
             var basicInfo = Session["AppointmentBasicInfo"] as AppointmentViewModel;
             var detailModel = Session["CategoryDetailModel"] as CategoryDetailViewModel;
 
+            System.Diagnostics.Debug.WriteLine($"开始提交预约，basicInfo: {basicInfo != null}, detailModel: {detailModel != null}");
+
             if (basicInfo == null || detailModel == null)
             {
+                System.Diagnostics.Debug.WriteLine("Session数据丢失，重定向到预约页面");
                 TempData["ErrorMessage"] = "预约信息已过期，请重新填写";
                 return RedirectToAction("Appointment");
             }
@@ -642,12 +646,15 @@ namespace recycling.Web.UI.Controllers
             {
                 // 获取当前登录用户
                 var user = (Users)Session["LoginUser"];
+                System.Diagnostics.Debug.WriteLine($"当前用户ID: {user.UserID}, 用户名: {user.Username}");
 
                 // 创建BLL实例
                 var appointmentBLL = new AppointmentBLL();
 
-                // 准备品类答案数据 - 修正数据转换
+                // 准备品类答案数据
                 var categoryAnswers = new Dictionary<string, Dictionary<string, string>>();
+
+                System.Diagnostics.Debug.WriteLine($"开始提取品类答案，共有 {detailModel.CategoryQuestions.Count} 个品类");
 
                 // 从CategoryDetailViewModel中提取问题答案
                 foreach (var categoryEntry in detailModel.CategoryQuestions)
@@ -656,16 +663,24 @@ namespace recycling.Web.UI.Controllers
                     var categoryQuestions = categoryEntry.Value;
                     var answers = new Dictionary<string, string>();
 
+                    System.Diagnostics.Debug.WriteLine($"处理品类: {categoryKey}, 问题数量: {categoryQuestions.Questions.Count}");
+
                     // 遍历该品类下的所有问题，提取用户选择的答案
                     foreach (var question in categoryQuestions.Questions)
                     {
                         if (!string.IsNullOrEmpty(question.SelectedValue))
                         {
                             answers[question.Id] = question.SelectedValue;
+                            System.Diagnostics.Debug.WriteLine($"问题 {question.Id} 答案: {question.SelectedValue}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"问题 {question.Id} 未选择答案");
                         }
                     }
 
                     categoryAnswers[categoryKey] = answers;
+                    System.Diagnostics.Debug.WriteLine($"品类 {categoryKey} 答案数量: {answers.Count}");
                 }
 
                 // 准备提交数据
@@ -676,11 +691,18 @@ namespace recycling.Web.UI.Controllers
                     FinalPrice = detailModel.EstimatedPrice
                 };
 
+                System.Diagnostics.Debug.WriteLine($"提交数据准备完成，预估价格: {detailModel.EstimatedPrice}");
+                System.Diagnostics.Debug.WriteLine($"选中的品类: {string.Join(", ", basicInfo.SelectedCategories)}");
+
                 // 提交到数据库
+                System.Diagnostics.Debug.WriteLine("开始调用BLL层提交数据...");
                 var (success, appointmentId, errorMessage) = appointmentBLL.SubmitAppointment(submission, user.UserID);
+
+                System.Diagnostics.Debug.WriteLine($"BLL层返回结果 - Success: {success}, AppointmentId: {appointmentId}, Error: {errorMessage}");
 
                 if (!success)
                 {
+                    System.Diagnostics.Debug.WriteLine($"提交失败: {errorMessage}");
                     TempData["ErrorMessage"] = errorMessage;
                     return View("CategoryDetails", detailModel);
                 }
@@ -688,6 +710,8 @@ namespace recycling.Web.UI.Controllers
                 // 清除Session中的临时数据
                 Session.Remove("AppointmentBasicInfo");
                 Session.Remove("CategoryDetailModel");
+
+                System.Diagnostics.Debug.WriteLine($"预约提交成功! 预约ID: {appointmentId}");
 
                 // 设置成功消息
                 TempData["SuccessMessage"] = $"预约成功！预约号：#AP{appointmentId:D6}，预估价格：¥{detailModel.EstimatedPrice:F2}。我们将在24小时内与您确认。";
@@ -698,6 +722,8 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"提交预约异常: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"异常堆栈: {ex.StackTrace}");
                 TempData["ErrorMessage"] = $"提交预约失败：{ex.Message}";
                 return View("CategoryDetails", detailModel);
             }
