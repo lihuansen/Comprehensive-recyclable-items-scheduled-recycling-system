@@ -211,7 +211,7 @@
     }
 
     .btn-back {
-        flex: 1; /* 与提交按钮宽度一致 */
+        flex: 1;
         height: 60px;
         background: #95a5a6;
         border: none;
@@ -223,14 +223,14 @@
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
-        justify-content: center; /* 文字居中 */
+        justify-content: center;
         gap: 10px;
         text-decoration: none;
-        white-space: nowrap; /* 防止文字换行 */
+        white-space: nowrap;
     }
 
     .btn-calculate {
-        flex: 1; /* 与返回按钮宽度一致 */
+        flex: 1;
         height: 60px;
         background: linear-gradient(45deg, #3498db, #2980b9);
         border: none;
@@ -262,7 +262,25 @@
         display: flex;
         gap: 15px;
         margin-top: 30px;
-        width: 100%; /* 确保按钮组占满宽度 */
+        width: 100%;
+    }
+
+    .error-message {
+        background: #ffeaa7;
+        border: 1px solid #fdcb6e;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #2d3436;
+    }
+
+    .success-message {
+        background: #55efc4;
+        border: 1px solid #00b894;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #2d3436;
     }
 
     @@media (max-width: 768px) {
@@ -307,6 +325,22 @@
 
     <div class="details-card">
 
+        <!-- 错误消息提示 -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <!-- 成功消息提示 -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            </div>
+        }
+
         <!-- 基本信息摘要 -->
         <div class="basic-info-summary">
             <div class="summary-title">
@@ -336,6 +370,23 @@
                     <span class="summary-label">联系人</span>
                     <span class="summary-value">@Model.BasicInfo.ContactName</span>
                 </div>
+                <div class="summary-item">
+                    <span class="summary-label">联系电话</span>
+                    <span class="summary-value">@Model.BasicInfo.ContactPhone</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">回收品类</span>
+                    <span class="summary-value">
+                        @{
+                            var allCategoryNames = recycling.Model.RecyclingCategories.AllCategories;
+                            var selectedCategoryNames = Model.BasicInfo.SelectedCategories
+                                .Where(c => allCategoryNames.ContainsKey(c))
+                                .Select(c => allCategoryNames[c])
+                                .ToList();
+                        }
+                        @string.Join("、", selectedCategoryNames)
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -359,8 +410,8 @@
                 {
                     var category = categoryEntry.Key;
                     var categoryInfo = categoryEntry.Value;
-                    var categoryNames = recycling.Model.RecyclingCategories.AllCategories;
-                    var categoryName = categoryNames.ContainsKey(category) ? categoryNames[category] : category;
+                    var displayCategoryNames = recycling.Model.RecyclingCategories.AllCategories;
+                    var categoryName = displayCategoryNames.ContainsKey(category) ? displayCategoryNames[category] : category;
 
                     <div class="category-section" data-category="@category">
                         <div class="category-header">
@@ -410,7 +461,7 @@
                 @if (Model.BasicInfo.IsUrgent)
                 {
                     <br><i class="fas fa-bolt">已包含加急服务费用</i>
-                }
+                    }
             </div>
         </div>
 
@@ -424,9 +475,32 @@
                 </button>
             }
 
-            @using (Html.BeginForm("SubmitAppointment", "User", FormMethod.Post))
+            <!-- 修改后的提交预约表单 - 包含所有必要数据 -->
+            @using (Html.BeginForm("SubmitAppointment", "User", FormMethod.Post, new { id = "submitAppointmentForm" }))
             {
                 @Html.AntiForgeryToken()
+
+                <!-- 隐藏字段传递最终价格 -->
+                <input type="hidden" name="FinalEstimatedPrice" value="@Model.EstimatedPrice" />
+
+                <!-- 隐藏字段传递所有品类问题答案 -->
+                foreach (var categoryEntry in Model.CategoryQuestions)
+                {
+                    var category = categoryEntry.Key;
+                    var categoryInfo = categoryEntry.Value;
+
+                    for (int i = 0; i < categoryInfo.Questions.Count; i++)
+                    {
+                        var question = categoryInfo.Questions[i];
+                        if (!string.IsNullOrEmpty(question.SelectedValue))
+                        {
+                            <input type="hidden"
+                                   name="CategoryAnswers[@category].@question.Id"
+                                   value="@question.SelectedValue" />
+                        }
+                    }
+                }
+
                 <button type="submit" class="btn-submit" id="submitBtn">
                     <i class="fas fa-paper-plane"></i>提交预约
                 </button>
@@ -438,6 +512,8 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            console.log('CategoryDetails页面加载完成');
+
             // 选项选择样式
             const radioInputs = document.querySelectorAll('.option-label input[type="radio"]');
             radioInputs.forEach(radio => {
@@ -464,9 +540,13 @@
 
             if (form && calculateBtn) {
                 form.addEventListener('submit', function (e) {
+                    console.log('计算价格表单提交');
+
                     // 检查是否所有问题都已回答
                     const unansweredQuestions = document.querySelectorAll('.question-group input[type="radio"]:checked').length;
                     const totalQuestions = document.querySelectorAll('.question-group').length;
+
+                    console.log(`已回答问题: ${unansweredQuestions}, 总问题: ${totalQuestions}`);
 
                     if (unansweredQuestions < totalQuestions) {
                         e.preventDefault();
@@ -482,10 +562,22 @@
 
             // 最终提交处理
             const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', function (e) {
-                    this.disabled = true;
-                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+            const submitForm = document.getElementById('submitAppointmentForm');
+
+            if (submitBtn && submitForm) {
+                submitForm.addEventListener('submit', function (e) {
+                    console.log('提交预约表单提交');
+
+                    // 检查隐藏字段数量
+                    const hiddenFields = document.querySelectorAll('#submitAppointmentForm input[type="hidden"]');
+                    console.log(`隐藏字段数量: ${hiddenFields.length}`);
+
+                    // 禁用按钮显示加载状态
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+                    // 允许表单正常提交
+                    return true;
                 });
             }
 
@@ -495,11 +587,22 @@
             const preCalculateActions = document.querySelector('.pre-calculate-actions');
 
             if (priceSection && priceSection.classList.contains('price-visible')) {
+                console.log('显示操作按钮');
                 actionButtons.style.display = 'flex';
                 if (preCalculateActions) {
                     preCalculateActions.style.display = 'none';
                 }
             }
+
+            // 自动隐藏消息提示
+            setTimeout(function () {
+                const messages = document.querySelectorAll('.error-message, .success-message');
+                messages.forEach(msg => {
+                    msg.style.transition = 'opacity 0.5s ease';
+                    msg.style.opacity = '0';
+                    setTimeout(() => msg.remove(), 500);
+                });
+            }, 5000);
         });
     </script>
 }
