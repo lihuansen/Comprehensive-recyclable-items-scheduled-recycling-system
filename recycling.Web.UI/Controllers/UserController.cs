@@ -542,7 +542,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CategoryDetails(CategoryDetailViewModel model)
+        public ActionResult CategoryDetails(FormCollection form)
         {
             // 检查登录状态
             if (Session["LoginUser"] == null)
@@ -550,22 +550,60 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("LoginSelect", "Home");
             }
 
-            // 从Session中获取基础信息
+            // 从Session中获取基础信息和原始模型
             var basicInfo = Session["AppointmentBasicInfo"] as AppointmentViewModel;
-            if (basicInfo == null)
+            var originalDetailModel = Session["CategoryDetailModel"] as CategoryDetailViewModel;
+
+            if (basicInfo == null || originalDetailModel == null)
             {
                 return RedirectToAction("Appointment");
             }
 
-            model.BasicInfo = basicInfo;
-
             try
             {
+                // 创建新的详情模型
+                var model = new CategoryDetailViewModel
+                {
+                    BasicInfo = basicInfo,
+                    CategoryQuestions = new Dictionary<string, CategoryQuestions>()
+                };
+
+                // 从FormCollection中提取用户选择的答案
+                foreach (var categoryEntry in originalDetailModel.CategoryQuestions)
+                {
+                    var categoryKey = categoryEntry.Key;
+                    var originalQuestions = categoryEntry.Value;
+                    var updatedQuestions = new CategoryQuestions
+                    {
+                        CategoryName = originalQuestions.CategoryName,
+                        Questions = new List<Question>()
+                    };
+
+                    // 复制原始问题结构，但更新用户选择的答案
+                    foreach (var originalQuestion in originalQuestions.Questions)
+                    {
+                        var questionKey = $"CategoryQuestions[{categoryKey}].Questions[{originalQuestions.Questions.IndexOf(originalQuestion)}].SelectedValue";
+                        var selectedValue = form[questionKey];
+
+                        updatedQuestions.Questions.Add(new Question
+                        {
+                            Id = originalQuestion.Id,
+                            Text = originalQuestion.Text,
+                            Type = originalQuestion.Type,
+                            Options = originalQuestion.Options,
+                            SelectedValue = selectedValue,
+                            Weight = originalQuestion.Weight
+                        });
+                    }
+
+                    model.CategoryQuestions[categoryKey] = updatedQuestions;
+                }
+
                 // 计算预估价格
                 decimal totalPrice = CalculateEstimatedPrice(model);
                 model.EstimatedPrice = totalPrice;
 
-                // 更新Session中的模型
+                // 更新Session中的模型（包含用户选择的答案）
                 Session["CategoryDetailModel"] = model;
 
                 return View("CategoryDetails", model);
@@ -573,12 +611,12 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", $"计算价格失败：{ex.Message}");
-                return View(model);
+                return View("CategoryDetails", originalDetailModel);
             }
         }
 
         /// <summary>
-        /// 最终提交预约
+        /// 最终提交预约（写入数据库）
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -596,6 +634,7 @@ namespace recycling.Web.UI.Controllers
 
             if (basicInfo == null || detailModel == null)
             {
+                TempData["ErrorMessage"] = "预约信息已过期，请重新填写";
                 return RedirectToAction("Appointment");
             }
 
@@ -604,20 +643,62 @@ namespace recycling.Web.UI.Controllers
                 // 获取当前登录用户
                 var user = (Users)Session["LoginUser"];
 
-                // 这里将来会实现预约数据的保存逻辑
-                // 暂时只是模拟成功
+                // 创建BLL实例
+                var appointmentBLL = new AppointmentBLL();
+
+                // 准备品类答案数据 - 修正数据转换
+                var categoryAnswers = new Dictionary<string, Dictionary<string, string>>();
+
+                // 从CategoryDetailViewModel中提取问题答案
+                foreach (var categoryEntry in detailModel.CategoryQuestions)
+                {
+                    var categoryKey = categoryEntry.Key;
+                    var categoryQuestions = categoryEntry.Value;
+                    var answers = new Dictionary<string, string>();
+
+                    // 遍历该品类下的所有问题，提取用户选择的答案
+                    foreach (var question in categoryQuestions.Questions)
+                    {
+                        if (!string.IsNullOrEmpty(question.SelectedValue))
+                        {
+                            answers[question.Id] = question.SelectedValue;
+                        }
+                    }
+
+                    categoryAnswers[categoryKey] = answers;
+                }
+
+                // 准备提交数据
+                var submission = new AppointmentSubmissionModel
+                {
+                    BasicInfo = basicInfo,
+                    CategoryAnswers = categoryAnswers,
+                    FinalPrice = detailModel.EstimatedPrice
+                };
+
+                // 提交到数据库
+                var (success, appointmentId, errorMessage) = appointmentBLL.SubmitAppointment(submission, user.UserID);
+
+                if (!success)
+                {
+                    TempData["ErrorMessage"] = errorMessage;
+                    return View("CategoryDetails", detailModel);
+                }
 
                 // 清除Session中的临时数据
                 Session.Remove("AppointmentBasicInfo");
                 Session.Remove("CategoryDetailModel");
 
-                TempData["SuccessMessage"] = $"预约成功！预估价格：{detailModel.EstimatedPrice:C}。我们将在24小时内与您确认。";
+                // 设置成功消息
+                TempData["SuccessMessage"] = $"预约成功！预约号：#AP{appointmentId:D6}，预估价格：¥{detailModel.EstimatedPrice:F2}。我们将在24小时内与您确认。";
 
-                return RedirectToAction("AppointmentSuccess");
+                // 重定向到首页
+                return RedirectToAction("Index", "Home");
+
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"提交预约失败：{ex.Message}");
+                TempData["ErrorMessage"] = $"提交预约失败：{ex.Message}";
                 return View("CategoryDetails", detailModel);
             }
         }
