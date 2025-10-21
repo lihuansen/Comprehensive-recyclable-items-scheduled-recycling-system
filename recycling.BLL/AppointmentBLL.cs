@@ -21,6 +21,8 @@ namespace recycling.BLL
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("BLL层开始处理预约提交...");
+
                 // 1. 创建预约基础信息对象
                 var appointment = new Appointments
                 {
@@ -40,12 +42,18 @@ namespace recycling.BLL
                     UpdatedDate = DateTime.Now
                 };
 
+                System.Diagnostics.Debug.WriteLine($"创建Appointment对象: UserID={appointment.UserID}, Type={appointment.AppointmentType}");
+
                 // 2. 创建品类详情列表
                 var categories = new List<AppointmentCategories>();
+                System.Diagnostics.Debug.WriteLine($"选中的品类数量: {submission.BasicInfo.SelectedCategories.Count}");
+
                 foreach (var categoryKey in submission.BasicInfo.SelectedCategories)
                 {
                     var categoryAnswers = submission.CategoryAnswers.ContainsKey(categoryKey) ?
                                         submission.CategoryAnswers[categoryKey] : new Dictionary<string, string>();
+
+                    System.Diagnostics.Debug.WriteLine($"处理品类 {categoryKey}, 答案数量: {categoryAnswers.Count}");
 
                     var category = new AppointmentCategories
                     {
@@ -56,14 +64,21 @@ namespace recycling.BLL
                     };
 
                     categories.Add(category);
+                    System.Diagnostics.Debug.WriteLine($"品类 {categoryKey} 创建完成: {category.CategoryName}");
                 }
+
+                System.Diagnostics.Debug.WriteLine($"准备调用DAL层，预约对象和 {categories.Count} 个品类对象");
 
                 // 3. 调用DAL层在事务中插入完整数据
                 var result = _appointmentDAL.InsertCompleteAppointment(appointment, categories);
+                System.Diagnostics.Debug.WriteLine($"DAL层返回: Success={result.Success}, AppointmentId={result.AppointmentId}");
+
                 return result;
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"BLL层异常: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"BLL层异常堆栈: {ex.StackTrace}");
                 return (false, 0, $"提交预约失败：{ex.Message}");
             }
         }
