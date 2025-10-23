@@ -1,7 +1,182 @@
-﻿
-@{
-    ViewBag.Title = "StaffIndex";
+﻿@{
+    ViewBag.Title = "工作人员首页";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>StaffIndex</h2>
+<style>
+    .staff-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
 
+    .staff-welcome {
+        text-align: center;
+        margin-bottom: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+        .staff-welcome h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .staff-welcome p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+    .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-top: 40px;
+    }
+
+    .nav-card {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #333;
+        border: 2px solid transparent;
+    }
+
+        .nav-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            border-color: #667eea;
+            text-decoration: none;
+            color: #333;
+        }
+
+    .nav-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #667eea;
+    }
+
+    .nav-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .nav-desc {
+        color: #666;
+        font-size: 0.9em;
+        line-height: 1.5;
+    }
+
+    .role-badge {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        margin-top: 10px;
+    }
+
+    @@media (max-width: 768px) {
+        .nav-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .staff-welcome h1 {
+            font-size: 2em;
+        }
+
+        .staff-welcome {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<div class="staff-container">
+    <div class="staff-welcome">
+        <h1>欢迎回来，@ViewBag.DisplayName：@ViewBag.StaffName</h1>
+        <p>圾时达约工作人员管理系统</p>
+        <div class="role-badge">@ViewBag.StaffRole.ToUpper()</div>
+    </div>
+
+    <div class="nav-grid">
+        <!-- 用户管理 -->
+        <a href="@Url.Action("UserManagement", "Staff")" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="nav-title">用户管理</div>
+            <div class="nav-desc">管理注册用户信息，查看用户数据统计</div>
+        </a>
+
+        <!-- 订单管理 -->
+        <a href="@Url.Action("OrderManagement", "Staff")" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="nav-title">订单管理</div>
+            <div class="nav-desc">处理预约订单，分配回收任务</div>
+        </a>
+
+        <!-- 首页（返回普通用户首页） -->
+        <a href="@Url.Action("Index", "Home")" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <div class="nav-title">圾时达约</div>
+            <div class="nav-desc">返回普通用户首页查看服务</div>
+        </a>
+
+        <!-- 页面管理 -->
+        <a href="@Url.Action("PageManagement", "Staff")" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="nav-title">页面管理</div>
+            <div class="nav-desc">管理网站页面内容，更新信息</div>
+        </a>
+
+        <!-- 消息管理 -->
+        <a href="@Url.Action("MessageManagement", "Staff")" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-comments"></i>
+            </div>
+            <div class="nav-title">消息管理</div>
+            <div class="nav-desc">处理用户消息和系统通知</div>
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 页面加载完成后的处理
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('工作人员首页加载完成');
+
+            // 检查登录状态
+            fetch('@Url.Action("CheckLoginStatus", "Home")', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.isLoggedIn || data.userType !== 'staff') {
+                    window.location.href = '@Url.Action("Login", "Staff")';
+                }
+            })
+            .catch(error => {
+                console.error('登录状态检查失败:', error);
+            });
+        });
+    </script>
+}
