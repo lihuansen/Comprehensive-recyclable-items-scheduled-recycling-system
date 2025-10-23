@@ -210,8 +210,8 @@
             <div class="navbar-user-info">
                 @if (Session["LoginStaff"] != null)
                 {
-                    var recycler = (recycling.Model.Recyclers)Session["LoginStaff"];
-                    <span>您好，回收员：@recycler.Username</span>
+                    var admin = (recycling.Model.Admins)Session["LoginStaff"];
+                    <span>您好，管理员：@admin.Username</span>
                     @Html.ActionLink("退出登录", "Logout", "Staff")
                 }
             </div>
