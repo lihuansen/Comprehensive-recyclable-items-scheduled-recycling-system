@@ -13,6 +13,17 @@ namespace recycling.Web.UI.Controllers
         private readonly StaffBLL _staffBLL = new StaffBLL();
 
         /// <summary>
+        /// 工作人员首页
+        /// </summary>
+        public ActionResult Index()
+        {
+            if (Session["LoginStaff"] == null)
+                return RedirectToAction("Login", "Staff");
+
+            return View();
+        }
+
+        /// <summary>
         /// 显示工作人员登录页（与用户登录页逻辑一致）
         /// </summary>
         [HttpGet]
@@ -82,7 +93,7 @@ namespace recycling.Web.UI.Controllers
             Session["StaffRole"] = model.StaffRole;
             Session.Timeout = 30;
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Staff_Layout", "Staff");
         }
 
         /// <summary>
