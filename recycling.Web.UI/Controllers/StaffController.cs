@@ -31,7 +31,7 @@ namespace recycling.Web.UI.Controllers
         {
             // 已登录则跳转首页（与用户登录逻辑一致）
             if (Session["LoginStaff"] != null)
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Staff_Layout", "Shared");
 
             // 生成验证码并传递到视图（与用户登录逻辑一致）
             var model = new StaffLoginViewModel
@@ -93,7 +93,7 @@ namespace recycling.Web.UI.Controllers
             Session["StaffRole"] = model.StaffRole;
             Session.Timeout = 30;
 
-            return RedirectToAction("Staff_Layout", "Staff");
+            return RedirectToAction("Staff_Layout", "Shared");
         }
 
         /// <summary>
