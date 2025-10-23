@@ -1,7 +1,261 @@
-﻿
-@{
-    ViewBag.Title = "_StaffLayout";
-}
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - 工作人员系统</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <style>
+        body {
+            padding-top: 120px;
+            background-color: #f5f5f5;
+        }
 
-<h2>_StaffLayout</h2>
+        .staff-navbar {
+            padding-top: 25px;
+            min-height: 100px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-bottom: 4px solid #3498db;
+        }
 
+        .staff-nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .staff-diamond-nav {
+            transform: rotate(45deg);
+            width: 90px;
+            height: 90px;
+            background: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #3498db;
+            margin: 0 25px;
+            position: relative;
+            top: -8px;
+        }
+
+        .staff-diamond-text {
+            transform: rotate(-45deg);
+            color: #ecf0f1;
+            font-weight: bold;
+            font-size: 20px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .staff-diamond-nav:hover {
+            background: #34495e;
+            border-color: #1abc9c;
+        }
+
+        .staff-normal-nav a {
+            font-size: 16px;
+            padding: 12px 20px;
+            font-weight: bold;
+            color: #bdc3c7 !important;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+            .staff-normal-nav a:hover {
+                color: #ecf0f1 !important;
+                background-color: #3498db !important;
+                transform: translateY(-2px);
+            }
+
+        .staff-left-navs, .staff-right-navs {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .staff-user-info {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            z-index: 1001;
+            color: #ecf0f1;
+            background: rgba(52, 73, 94, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #3498db;
+        }
+
+            .staff-user-info a {
+                color: #ecf0f1 !important;
+                text-decoration: none;
+                font-size: 14px;
+                padding: 5px 10px;
+                margin-left: 10px;
+                border: 1px solid #3498db;
+                border-radius: 15px;
+                transition: all 0.3s;
+            }
+
+                .staff-user-info a:hover {
+                    background-color: #e74c3c;
+                    border-color: #e74c3c;
+                }
+
+        .staff-content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        @@media (max-width: 992px) {
+            .staff-normal-nav a {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+
+            .staff-diamond-nav {
+                width: 80px;
+                height: 80px;
+                margin: 0 20px;
+            }
+
+            .staff-diamond-text {
+                font-size: 18px;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            body {
+                padding-top: 80px;
+            }
+
+            .staff-navbar {
+                padding-top: 15px;
+                min-height: auto;
+            }
+
+            .staff-nav-container {
+                flex-direction: column;
+            }
+
+            .staff-diamond-nav {
+                margin: 15px 0;
+                order: -1;
+            }
+
+            .staff-user-info {
+                position: static;
+                text-align: center;
+                margin: 10px auto;
+                width: fit-content;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar navbar-fixed-top staff-navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".staff-navbar-collapse">
+                    <span class="icon-bar" style="background-color: #ecf0f1;"></span>
+                    <span class="icon-bar" style="background-color: #ecf0f1;"></span>
+                    <span class="icon-bar" style="background-color: #ecf0f1;"></span>
+                </button>
+            </div>
+
+            <!-- 工作人员登录信息 -->
+            <div class="staff-user-info">
+                @if (Session["LoginStaff"] != null)
+                {
+                    var staffRole = Session["StaffRole"] as string;
+                    string staffName = "";
+                    string displayName = "";
+
+                    if (staffRole == "recycler")
+                    {
+                        var recycler = (recycling.Model.Recyclers)Session["LoginStaff"];
+                        staffName = recycler.Username;
+                        displayName = "回收员";
+                    }
+                    else if (staffRole == "admin")
+                    {
+                        var admin = (recycling.Model.Admins)Session["LoginStaff"];
+                        staffName = admin.Username;
+                        displayName = "管理员";
+                    }
+                    else if (staffRole == "superadmin")
+                    {
+                        var superAdmin = (recycling.Model.SuperAdmins)Session["LoginStaff"];
+                        staffName = superAdmin.Username;
+                        displayName = "超级管理员";
+                    }
+
+                    <span>@displayName：@staffName</span>
+                    @Html.ActionLink("退出", "Logout", "Staff")
+                }
+                else
+                {
+                    <span>未登录</span>
+                    @Html.ActionLink("登录", "Login", "Staff")
+                }
+            </div>
+
+            <div class="navbar-collapse staff-navbar-collapse">
+                <div class="staff-nav-container">
+                    <!-- 左侧导航 -->
+                    <ul class="staff-left-navs">
+                        <li class="staff-normal-nav">@Html.ActionLink("用户管理", "UserManagement", "Staff")</li>
+                        <li class="staff-normal-nav">@Html.ActionLink("订单管理", "OrderManagement", "Staff")</li>
+                        <li class="staff-normal-nav">@Html.ActionLink("数据统计", "Statistics", "Staff")</li>
+                    </ul>
+
+                    <!-- 中心菱形Logo -->
+                    <div class="staff-diamond-nav">
+                        <a href="@Url.Action("StaffIndex", "Home")" class="staff-diamond-text">
+                            <span>工作</span>
+                            <span>平台</span>
+                        </a>
+                    </div>
+
+                    <!-- 右侧导航 -->
+                    <ul class="staff-right-navs">
+                        <li class="staff-normal-nav">@Html.ActionLink("页面管理", "PageManagement", "Staff")</li>
+                        <li class="staff-normal-nav">@Html.ActionLink("消息中心", "MessageCenter", "Staff")</li>
+                        <li class="staff-normal-nav">@Html.ActionLink("系统设置", "SystemSettings", "Staff")</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+        <div class="staff-content">
+            @RenderBody()
+        </div>
+        <hr />
+        <footer style="text-align: center; color: #7f8c8d;">
+            <p>&copy; @DateTime.Now.Year - 圾时达约工作人员系统</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>
