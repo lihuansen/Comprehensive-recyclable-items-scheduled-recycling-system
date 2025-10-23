@@ -17,6 +17,25 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
         {
+            // 检查是否是工作人员登录
+            if (Session["LoginStaff"] != null)
+            {
+                var staffRole = Session["StaffRole"] as string;
+
+                // 根据角色使用不同的布局
+                switch (staffRole)
+                {
+                    case "recycler":
+                        return RedirectToAction("RecyclerDashboard", "Staff");
+                    case "admin":
+                        return RedirectToAction("AdminDashboard", "Staff");
+                    case "superadmin":
+                        return RedirectToAction("SuperAdminDashboard", "Staff");
+                    default:
+                        break;
+                }
+            }
+
             try
             {
                 // 确保数据存在
@@ -42,48 +61,6 @@ namespace recycling.Web.UI.Controllers
                 ViewBag.ErrorMsg = ex.Message;
                 return View(new PagedResult<RecyclableItems>());
             }
-        }
-
-        /// <summary>
-        /// 工作人员专用首页
-        /// </summary>
-        public ActionResult StaffIndex()
-        {
-            // 检查工作人员登录状态
-            if (Session["LoginStaff"] == null)
-            {
-                return RedirectToAction("Login", "Staff");
-            }
-
-            // 获取工作人员角色和名称
-            var staffRole = Session["StaffRole"] as string;
-            string staffName = "";
-            string displayName = "";
-
-            if (staffRole == "recycler")
-            {
-                var recycler = (Recyclers)Session["LoginStaff"];
-                staffName = recycler.Username;
-                displayName = "回收员";
-            }
-            else if (staffRole == "admin")
-            {
-                var admin = (Admins)Session["LoginStaff"];
-                staffName = admin.Username;
-                displayName = "管理员";
-            }
-            else if (staffRole == "superadmin")
-            {
-                var superAdmin = (SuperAdmins)Session["LoginStaff"];
-                staffName = superAdmin.Username;
-                displayName = "超级管理员";
-            }
-
-            ViewBag.StaffName = staffName;
-            ViewBag.DisplayName = displayName;
-            ViewBag.StaffRole = staffRole;
-
-            return View();
         }
 
         public ActionResult Order()
