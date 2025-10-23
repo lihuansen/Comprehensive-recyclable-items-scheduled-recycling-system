@@ -93,7 +93,7 @@ namespace recycling.Web.UI.Controllers
             Session["StaffRole"] = model.StaffRole;
             Session.Timeout = 30;
 
-            return RedirectToAction("StaffIndex", "Home");
+            return RedirectToAction("Index", "Home");
         }
 
         /// <summary>
@@ -116,6 +116,54 @@ namespace recycling.Web.UI.Controllers
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 移除易混淆字符
             return new string(Enumerable.Repeat(chars, 4)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        /// <summary>
+        /// 回收员工作台
+        /// </summary>
+        public ActionResult RecyclerDashboard()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                return RedirectToAction("Login", "Staff");
+
+            var recycler = (Recyclers)Session["LoginStaff"];
+            ViewBag.StaffName = recycler.Username;
+            ViewBag.DisplayName = "回收员";
+            ViewBag.StaffRole = "recycler";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员工作台
+        /// </summary>
+        public ActionResult AdminDashboard()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "admin")
+                return RedirectToAction("Login", "Staff");
+
+            var admin = (Admins)Session["LoginStaff"];
+            ViewBag.StaffName = admin.Username;
+            ViewBag.DisplayName = "管理员";
+            ViewBag.StaffRole = "admin";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 超级管理员工作台
+        /// </summary>
+        public ActionResult SuperAdminDashboard()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "superadmin")
+                return RedirectToAction("Login", "Staff");
+
+            var superAdmin = (SuperAdmins)Session["LoginStaff"];
+            ViewBag.StaffName = superAdmin.Username;
+            ViewBag.DisplayName = "超级管理员";
+            ViewBag.StaffRole = "superadmin";
+
+            return View();
         }
     }
 }
