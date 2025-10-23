@@ -63,10 +63,174 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 订单管理页面
+        /// </summary>
+        [HttpGet]
         public ActionResult Order()
         {
-            return View();
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            var user = (Users)Session["LoginUser"];
+            var orderBLL = new OrderBLL();
+
+            try
+            {
+                // 获取订单统计信息
+                var statistics = orderBLL.GetOrderStatistics(user.UserID);
+                ViewBag.OrderStatistics = statistics;
+
+                // 获取全部订单（默认显示）
+                var orders = orderBLL.GetUserOrders(user.UserID, "all");
+                ViewBag.CurrentStatus = "all";
+                ViewBag.Orders = orders;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "加载订单失败：" + ex.Message;
+                return View();
+            }
         }
+
+        /// <summary>
+        /// 根据状态筛选订单（AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetOrdersByStatus(string status)
+        {
+            if (Session["LoginUser"] == null)
+            {
+                return Json(new { success = false, message = "请先登录" });
+            }
+
+            try
+            {
+                var user = (Users)Session["LoginUser"];
+                var orderBLL = new OrderBLL();
+                var orders = orderBLL.GetUserOrders(user.UserID, status);
+
+                // 转换为前端需要的格式
+                var result = orders.Select(order => new
+                {
+                    id = order.AppointmentID,
+                    number = $"AP{order.AppointmentID:D6}",
+                    type = GetAppointmentTypeDisplayName(order.AppointmentType),
+                    date = order.AppointmentDate.ToString("yyyy-MM-dd"),
+                    timeSlot = GetTimeSlotDisplayName(order.TimeSlot),
+                    weight = order.EstimatedWeight,
+                    price = order.EstimatedPrice?.ToString("F2") ?? "待评估",
+                    status = order.Status,
+                    statusBadge = GetStatusBadgeClass(order.Status),
+                    categories = order.CategoryNames?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0],
+                    contactName = order.ContactName,
+                    contactPhone = order.ContactPhone,
+                    address = order.Address,
+                    isUrgent = order.IsUrgent,
+                    specialInstructions = order.SpecialInstructions,
+                    createdDate = order.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return Json(new { success = true, orders = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取订单详情
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetOrderDetail(int appointmentId)
+        {
+            if (Session["LoginUser"] == null)
+            {
+                return Json(new { success = false, message = "请先登录" });
+            }
+
+            try
+            {
+                var user = (Users)Session["LoginUser"];
+                var orderBLL = new OrderBLL();
+                var orderDetail = orderBLL.GetOrderDetail(appointmentId, user.UserID);
+
+                // 转换为前端需要的格式
+                var result = new
+                {
+                    success = true,
+                    order = new
+                    {
+                        id = orderDetail.Appointment.AppointmentID,
+                        number = $"AP{orderDetail.Appointment.AppointmentID:D6}",
+                        type = GetAppointmentTypeDisplayName(orderDetail.Appointment.AppointmentType),
+                        date = orderDetail.Appointment.AppointmentDate.ToString("yyyy年MM月dd日"),
+                        timeSlot = GetTimeSlotDisplayName(orderDetail.Appointment.TimeSlot),
+                        weight = orderDetail.Appointment.EstimatedWeight,
+                        price = orderDetail.Appointment.EstimatedPrice?.ToString("F2") ?? "待评估",
+                        status = orderDetail.Appointment.Status,
+                        contactName = orderDetail.Appointment.ContactName,
+                        contactPhone = orderDetail.Appointment.ContactPhone,
+                        address = orderDetail.Appointment.Address,
+                        isUrgent = orderDetail.Appointment.IsUrgent,
+                        specialInstructions = orderDetail.Appointment.SpecialInstructions,
+                        createdDate = orderDetail.Appointment.CreatedDate.ToString("yyyy年MM月dd日 HH:mm"),
+                        updatedDate = orderDetail.Appointment.UpdatedDate.ToString("yyyy年MM月dd日 HH:mm")
+                    },
+                    categories = orderDetail.Categories.Select(c => new
+                    {
+                        name = c.CategoryName,
+                        key = c.CategoryKey,
+                        questionsAnswers = string.IsNullOrEmpty(c.QuestionsAnswers) ?
+                            new Dictionary<string, string>() :
+                            Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(c.QuestionsAnswers)
+                    }).ToList()
+                };
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // 辅助方法
+        private string GetAppointmentTypeDisplayName(string type)
+        {
+            var types = AppointmentTypes.AllTypes;
+            return types.ContainsKey(type) ? types[type] : type;
+        }
+
+        private string GetTimeSlotDisplayName(string timeSlot)
+        {
+            var slots = TimeSlots.AllSlots;
+            return slots.ContainsKey(timeSlot) ? slots[timeSlot] : timeSlot;
+        }
+
+        private string GetStatusBadgeClass(string status)
+        {
+            switch (status)
+            {
+                case "待确认":
+                    return "status-pending-badge";
+                case "进行中":
+                    return "status-confirmed-badge";
+                case "已完成":
+                    return "status-completed-badge";
+                case "已取消":
+                    return "status-cancelled-badge";
+                default:
+                    return "status-pending-badge";
+            }
+        }
+
         public ActionResult Message()
         {
             return View();
