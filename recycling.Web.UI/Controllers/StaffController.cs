@@ -13,14 +13,14 @@ namespace recycling.Web.UI.Controllers
         private readonly StaffBLL _staffBLL = new StaffBLL();
 
         /// <summary>
-        /// 工作人员首页
+        /// 工作人员首页 - 重定向到专用首页
         /// </summary>
         public ActionResult Index()
         {
             if (Session["LoginStaff"] == null)
                 return RedirectToAction("Login", "Staff");
 
-            return View();
+            return RedirectToAction("StaffIndex", "Home");
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace recycling.Web.UI.Controllers
         {
             // 已登录则跳转首页（与用户登录逻辑一致）
             if (Session["LoginStaff"] != null)
-                return RedirectToAction("Staff_Layout", "Shared");
+                return RedirectToAction("StaffIndex", "Home");
 
             // 生成验证码并传递到视图（与用户登录逻辑一致）
             var model = new StaffLoginViewModel
@@ -93,7 +93,7 @@ namespace recycling.Web.UI.Controllers
             Session["StaffRole"] = model.StaffRole;
             Session.Timeout = 30;
 
-            return RedirectToAction("Staff_Layout", "Shared");
+            return RedirectToAction("StaffIndex", "Home");
         }
 
         /// <summary>
