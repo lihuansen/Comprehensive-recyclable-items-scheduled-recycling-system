@@ -186,6 +186,7 @@
     <Content Include="Views\Shared\_SuperAdminLayout.cshtml" />
     <Content Include="Views\Staff\RecyclerDashboard.cshtml" />
     <Content Include="Views\Staff\AdminDashboard.cshtml" />
+    <Content Include="Views\Staff\SuperAdminDashboard.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
