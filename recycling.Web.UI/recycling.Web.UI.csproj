@@ -181,7 +181,7 @@
     <Content Include="Views\User\CategoryDetails.cshtml" />
     <Content Include="Views\Home\EditProfile.cshtml" />
     <Content Include="Views\Home\ChangePassword.cshtml" />
-    <Content Include="Views\Staff\Staff_Layout.cshtml" />
+    <Content Include="Views\Shared\Staff_Layout.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
