@@ -3,10 +3,205 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data;
+using System.Data.SqlClient;
+using System.Configuration;
+using recycling.Model; 
 
 namespace recycling.DAL
 {
-    class RecyclerOrderDAL
+    public class RecyclerOrderDAL
     {
+        private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
+
+        /// <summary>
+        /// 获取回收员订单列表（带分页和筛选）
+        /// </summary>
+        public PagedResult<RecyclerOrderViewModel> GetRecyclerOrders(OrderFilterModel filter, int recyclerId = 0)
+        {
+            var result = new PagedResult<RecyclerOrderViewModel>
+            {
+                Items = new List<RecyclerOrderViewModel>(),
+                PageIndex = filter.PageIndex,
+                PageSize = filter.PageSize
+            };
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                // 构建查询条件
+                var conditions = new List<string>();
+                var parameters = new List<SqlParameter>();
+
+                // 订单编号筛选
+                if (!string.IsNullOrEmpty(filter.OrderNumber))
+                {
+                    conditions.Add("a.AppointmentID = @OrderNumber");
+                    parameters.Add(new SqlParameter("@OrderNumber", filter.OrderNumber.Replace("AP", "")));
+                }
+
+                // 预约日期筛选
+                if (filter.AppointmentDate.HasValue)
+                {
+                    conditions.Add("a.AppointmentDate = @AppointmentDate");
+                    parameters.Add(new SqlParameter("@AppointmentDate", filter.AppointmentDate.Value));
+                }
+
+                // 加急订单筛选
+                if (filter.IsUrgent.HasValue)
+                {
+                    conditions.Add("a.IsUrgent = @IsUrgent");
+                    parameters.Add(new SqlParameter("@IsUrgent", filter.IsUrgent.Value));
+                }
+
+                // 状态筛选
+                if (!string.IsNullOrEmpty(filter.Status))
+                {
+                    conditions.Add("a.Status = @Status");
+                    parameters.Add(new SqlParameter("@Status", filter.Status));
+                }
+
+                // 回收员关联筛选（如果指定了回收员ID）
+                if (recyclerId > 0)
+                {
+                    conditions.Add("a.RecyclerID = @RecyclerID");
+                    parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
+                }
+
+                string whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
+
+                // 获取总数
+                string countSql = $@"
+                    SELECT COUNT(*) 
+                    FROM Appointments a
+                    {whereClause}";
+
+                SqlCommand countCmd = new SqlCommand(countSql, conn);
+                countCmd.Parameters.AddRange(parameters.ToArray());
+
+                conn.Open();
+                result.TotalCount = Convert.ToInt32(countCmd.ExecuteScalar());
+
+                // 获取分页数据
+                string dataSql = $@"
+                    SELECT 
+                        a.AppointmentID,
+                        a.AppointmentType,
+                        a.AppointmentDate,
+                        a.TimeSlot,
+                        a.EstimatedWeight,
+                        a.IsUrgent,
+                        a.Address,
+                        a.ContactName,
+                        a.ContactPhone,
+                        a.Status,
+                        a.CreatedDate,
+                        a.RecyclerID,
+                        r.Username as RecyclerName,
+                        STUFF((
+                            SELECT DISTINCT ', ' + ac.CategoryName
+                            FROM AppointmentCategories ac
+                            WHERE ac.AppointmentID = a.AppointmentID
+                            FOR XML PATH('')
+                        ), 1, 2, '') AS CategoryNames
+                    FROM Appointments a
+                    LEFT JOIN Recyclers r ON a.RecyclerID = r.RecyclerID
+                    {whereClause}
+                    ORDER BY a.CreatedDate DESC
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                SqlCommand dataCmd = new SqlCommand(dataSql, conn);
+                dataCmd.Parameters.AddRange(parameters.ToArray());
+                dataCmd.Parameters.Add(new SqlParameter("@Offset", (filter.PageIndex - 1) * filter.PageSize));
+                dataCmd.Parameters.Add(new SqlParameter("@PageSize", filter.PageSize));
+
+                using (SqlDataReader reader = dataCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var order = new RecyclerOrderViewModel
+                        {
+                            AppointmentID = Convert.ToInt32(reader["AppointmentID"]),
+                            OrderNumber = $"AP{Convert.ToInt32(reader["AppointmentID"]):D6}",
+                            AppointmentType = reader["AppointmentType"].ToString(),
+                            AppointmentDate = Convert.ToDateTime(reader["AppointmentDate"]),
+                            TimeSlot = reader["TimeSlot"].ToString(),
+                            EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
+                            IsUrgent = Convert.ToBoolean(reader["IsUrgent"]),
+                            Address = reader["Address"].ToString(),
+                            ContactName = reader["ContactName"].ToString(),
+                            ContactPhone = reader["ContactPhone"].ToString(),
+                            Status = reader["Status"].ToString(),
+                            CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                            CategoryNames = reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString(),
+                            RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"]),
+                            RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString()
+                        };
+                        result.Items.Add(order);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 获取订单总数统计
+        /// </summary>
+        public OrderStatistics GetOrderStatistics()
+        {
+            var statistics = new OrderStatistics();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    SELECT 
+                        COUNT(*) as Total,
+                        COUNT(CASE WHEN Status = '待确认' THEN 1 END) as Pending,
+                        COUNT(CASE WHEN Status = '进行中' THEN 1 END) as Confirmed,
+                        COUNT(CASE WHEN Status = '已完成' THEN 1 END) as Completed,
+                        COUNT(CASE WHEN Status = '已取消' THEN 1 END) as Cancelled
+                    FROM Appointments";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        statistics.Total = Convert.ToInt32(reader["Total"]);
+                        statistics.Pending = Convert.ToInt32(reader["Pending"]);
+                        statistics.Confirmed = Convert.ToInt32(reader["Confirmed"]);
+                        statistics.Completed = Convert.ToInt32(reader["Completed"]);
+                        statistics.Cancelled = Convert.ToInt32(reader["Cancelled"]);
+                    }
+                }
+            }
+            return statistics;
+        }
+
+        /// <summary>
+        /// 回收员接收订单
+        /// </summary>
+        public bool AcceptOrder(int appointmentId, int recyclerId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    UPDATE Appointments 
+                    SET Status = '进行中', 
+                        RecyclerID = @RecyclerID,
+                        UpdatedDate = @UpdatedDate
+                    WHERE AppointmentID = @AppointmentID 
+                      AND Status = '待确认'";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+        }
     }
 }
