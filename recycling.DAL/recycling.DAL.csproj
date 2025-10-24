@@ -59,6 +59,7 @@
     <Compile Include="OrderDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecyclableItemDAL.cs" />
+    <Compile Include="RecyclerOrderDAL.cs" />
     <Compile Include="StaffDAL.cs" />
     <Compile Include="UserDAL.cs" />
   </ItemGroup>
