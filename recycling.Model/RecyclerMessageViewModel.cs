@@ -6,7 +6,17 @@ using System.Threading.Tasks;
 
 namespace recycling.Model
 {
-    class RecyclerMessageViewModel
+    public class RecyclerMessageViewModel
     {
+        public int MessageID { get; set; }
+        public int OrderID { get; set; }
+        public string OrderNumber { get; set; }
+        public string SenderType { get; set; }
+        public int SenderID { get; set; }
+        public string SenderName { get; set; }
+        public string Content { get; set; }
+        public DateTime SentTime { get; set; }
+        public bool IsRead { get; set; }
+        public string DisplayTime => SentTime.ToString("MM/dd HH:mm");
     }
 }
