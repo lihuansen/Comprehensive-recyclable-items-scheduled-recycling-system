@@ -730,11 +730,12 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log('API响应数据:', data); // 调试信息
                 if (data.success) {
                     renderOrders(data.data);
                     renderPagination(data.data);
                 } else {
-                    showError(data.message);
+                    showError(data.message || '加载订单失败');
                 }
             })
             .catch(error => {
@@ -747,7 +748,9 @@
         function renderOrders(data) {
             const ordersContainer = document.getElementById('ordersContainer');
 
-            if (!data.items || data.items.length === 0) {
+            console.log('渲染订单数据:', data); // 调试信息
+
+            if (!data || !data.Items || data.Items.length === 0) {
                 ordersContainer.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-clipboard-list"></i>
@@ -760,30 +763,32 @@
 
             let ordersHTML = '<div class="order-list">';
 
-            data.items.forEach(order => {
-                const urgentClass = order.isUrgent ? 'urgent' : '';
-                const urgentBadge = order.isUrgent ? '<span class="urgent-badge">加急</span>' : '';
+            data.Items.forEach(order => {
+                console.log('单个订单数据:', order); // 调试信息
+
+                const urgentClass = order.IsUrgent ? 'urgent' : '';
+                const urgentBadge = order.IsUrgent ? '<span class="urgent-badge">加急</span>' : '';
 
                 let actionButtons = '';
 
-                if (order.status === '待确认') {
+                if (order.Status === '待确认') {
                     actionButtons = `
                         <div class="order-actions">
-                            <button class="btn-action success" onclick="acceptOrder(${order.appointmentID})">
+                            <button class="btn-action success" onclick="acceptOrder(${order.AppointmentID})">
                                 <i class="fas fa-check"></i>接收订单
                             </button>
-                            <button class="btn-action primary" onclick="viewOrderDetail(${order.appointmentID})">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                                 <i class="fas fa-eye"></i>查看详情
                             </button>
                         </div>
                     `;
-                } else if (order.status === '进行中') {
+                } else if (order.Status === '进行中') {
                     actionButtons = `
                         <div class="order-actions">
-                            <button class="btn-action warning" onclick="openConversationModal(${order.appointmentID}, '${order.orderNumber}')">
+                            <button class="btn-action warning" onclick="openConversationModal(${order.AppointmentID}, '${order.OrderNumber}')">
                                 <i class="fas fa-comments"></i>联系用户
                             </button>
-                            <button class="btn-action primary" onclick="viewOrderDetail(${order.appointmentID})">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                                 <i class="fas fa-eye"></i>查看详情
                             </button>
                         </div>
@@ -791,7 +796,7 @@
                 } else {
                     actionButtons = `
                         <div class="order-actions">
-                            <button class="btn-action primary" onclick="viewOrderDetail(${order.appointmentID})">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                                 <i class="fas fa-eye"></i>查看详情
                             </button>
                         </div>
@@ -799,32 +804,33 @@
                 }
 
                 // 格式化日期
-                const appointmentDate = new Date(order.appointmentDate).toLocaleDateString('zh-CN');
-                const estimatedPrice = order.estimatedPrice ? `¥${order.estimatedPrice}` : '待评估';
+                const appointmentDate = new Date(order.AppointmentDate).toLocaleDateString('zh-CN');
+                const estimatedPrice = order.EstimatedPrice ? `¥${order.EstimatedPrice}` : '待评估';
+                const categoryNames = order.CategoryNames || '';
 
                 ordersHTML += `
-                    <div class="order-item ${urgentClass}" data-order-id="${order.appointmentID}">
+                    <div class="order-item ${urgentClass}" data-order-id="${order.AppointmentID}">
                         <div class="order-header">
                             <div class="order-number">
-                                ${order.orderNumber} ${urgentBadge}
+                                ${order.OrderNumber} ${urgentBadge}
                             </div>
-                            <div class="order-status status-${order.status.toLowerCase().replace(' ', '-')}">
-                                ${order.status}
+                            <div class="order-status status-${order.Status.toLowerCase().replace(' ', '-')}">
+                                ${order.Status}
                             </div>
                         </div>
 
                         <div class="order-details">
                             <div class="detail-item">
                                 <span class="detail-label">预约类型</span>
-                                <span class="detail-value">${order.appointmentType}</span>
+                                <span class="detail-value">${order.AppointmentType}</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">预约时间</span>
-                                <span class="detail-value">${appointmentDate} ${order.timeSlot}</span>
+                                <span class="detail-value">${appointmentDate} ${order.TimeSlot}</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">预估重量</span>
-                                <span class="detail-value">${order.estimatedWeight} 公斤</span>
+                                <span class="detail-value">${order.EstimatedWeight} 公斤</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">预估价格</span>
@@ -832,17 +838,17 @@
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">联系人</span>
-                                <span class="detail-value">${order.contactName}</span>
+                                <span class="detail-value">${order.ContactName}</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">联系电话</span>
-                                <span class="detail-value">${order.contactPhone}</span>
+                                <span class="detail-value">${order.ContactPhone}</span>
                             </div>
                         </div>
 
-                        ${order.categoryNames ? `
+                        ${categoryNames ? `
                         <div class="order-categories">
-                            ${order.categoryNames.split(', ').map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+                            ${categoryNames.split(', ').map(cat => `<span class="category-tag">${cat}</span>`).join('')}
                         </div>
                         ` : ''}
 
@@ -861,13 +867,15 @@
             const pageInfo = document.getElementById('pageInfo');
             const pagination = document.getElementById('pagination');
 
-            if (data.totalPages <= 1) {
+            console.log('分页数据:', data); // 调试信息
+
+            if (!data || data.TotalPages <= 1) {
                 paginationContainer.style.display = 'none';
                 return;
             }
 
             paginationContainer.style.display = 'flex';
-            pageInfo.textContent = `共 ${data.totalCount} 条记录，第 ${currentPage}/${data.totalPages} 页`;
+            pageInfo.textContent = `共 ${data.TotalCount || 0} 条记录，第 ${currentPage}/${data.TotalPages || 1} 页`;
 
             let paginationHTML = '';
 
@@ -885,7 +893,8 @@
             }
 
             // 页码
-            for (let i = 1; i <= data.totalPages; i++) {
+            const totalPages = data.TotalPages || 1;
+            for (let i = 1; i <= totalPages; i++) {
                 if (i === currentPage) {
                     paginationHTML += `<li class="active"><a href="javascript:void(0)">${i}</a></li>`;
                 } else {
@@ -894,7 +903,7 @@
             }
 
             // 下一页
-            if (currentPage < data.totalPages) {
+            if (currentPage < totalPages) {
                 paginationHTML += `
                     <li>
                         <a href="javascript:void(0)" onclick="loadOrders(${currentPage + 1})">
@@ -1005,23 +1014,23 @@
             let messagesHTML = '';
             messages.forEach(message => {
                 let bubbleClass = '';
-                if (message.senderType === 'recycler') {
+                if (message.SenderType === 'recycler') {
                     bubbleClass = 'message-bubble message-recycler';
-                } else if (message.senderType === 'user') {
+                } else if (message.SenderType === 'user') {
                     bubbleClass = 'message-bubble message-user';
                 } else {
                     bubbleClass = 'message-bubble message-system';
                 }
 
-                const displayTime = new Date(message.sentTime).toLocaleTimeString('zh-CN', {
+                const displayTime = new Date(message.SentTime).toLocaleTimeString('zh-CN', {
                     hour: '2-digit',
                     minute: '2-digit'
                 });
 
                 messagesHTML += `
                     <div class="${bubbleClass}">
-                        <div class="message-sender-name">${message.senderName}</div>
-                        <div class="message-content">${message.content}</div>
+                        <div class="message-sender-name">${message.SenderName}</div>
+                        <div class="message-content">${message.Content}</div>
                         <div class="message-time">${displayTime}</div>
                     </div>
                 `;
