@@ -203,5 +203,184 @@ namespace recycling.DAL
                 return rowsAffected > 0;
             }
         }
+
+        /// <summary>
+        /// 获取回收员订单统计信息
+        /// </summary>
+        public RecyclerOrderStatistics GetRecyclerOrderStatistics(int recyclerId)
+        {
+            var statistics = new RecyclerOrderStatistics();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    SELECT 
+                        COUNT(*) as TotalOrders,
+                        COUNT(CASE WHEN Status = '待确认' THEN 1 END) as PendingOrders,
+                        COUNT(CASE WHEN Status = '进行中' AND RecyclerID = @RecyclerID THEN 1 END) as ConfirmedOrders,
+                        COUNT(CASE WHEN Status = '已完成' AND RecyclerID = @RecyclerID THEN 1 END) as CompletedOrders,
+                        COUNT(CASE WHEN Status = '已取消' THEN 1 END) as CancelledOrders
+                    FROM Appointments";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        statistics.TotalOrders = Convert.ToInt32(reader["TotalOrders"]);
+                        statistics.PendingOrders = Convert.ToInt32(reader["PendingOrders"]);
+                        statistics.ConfirmedOrders = Convert.ToInt32(reader["ConfirmedOrders"]);
+                        statistics.CompletedOrders = Convert.ToInt32(reader["CompletedOrders"]);
+                        statistics.CancelledOrders = Convert.ToInt32(reader["CancelledOrders"]);
+                    }
+                }
+            }
+            return statistics;
+        }
+
+        /// <summary>
+        /// 获取回收员的消息列表
+        /// </summary>
+        public List<RecyclerMessageViewModel> GetRecyclerMessages(int recyclerId, int pageIndex = 1, int pageSize = 20)
+        {
+            var messages = new List<RecyclerMessageViewModel>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    SELECT 
+                        m.MessageID,
+                        m.OrderID,
+                        a.AppointmentID as OrderNumber,
+                        m.SenderType,
+                        m.SenderID,
+                        CASE 
+                            WHEN m.SenderType = 'user' THEN u.Username
+                            WHEN m.SenderType = 'recycler' THEN r.Username
+                            ELSE '系统'
+                        END as SenderName,
+                        m.Content,
+                        m.SentTime,
+                        m.IsRead
+                    FROM Messages m
+                    INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
+                    LEFT JOIN Users u ON m.SenderType = 'user' AND m.SenderID = u.UserID
+                    LEFT JOIN Recyclers r ON m.SenderType = 'recycler' AND m.SenderID = r.RecyclerID
+                    WHERE a.RecyclerID = @RecyclerID
+                    ORDER BY m.SentTime DESC
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var message = new RecyclerMessageViewModel
+                        {
+                            MessageID = Convert.ToInt32(reader["MessageID"]),
+                            OrderID = Convert.ToInt32(reader["OrderID"]),
+                            OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
+                            SenderType = reader["SenderType"].ToString(),
+                            SenderID = Convert.ToInt32(reader["SenderID"]),
+                            SenderName = reader["SenderName"].ToString(),
+                            Content = reader["Content"].ToString(),
+                            SentTime = Convert.ToDateTime(reader["SentTime"]),
+                            IsRead = Convert.ToBoolean(reader["IsRead"])
+                        };
+                        messages.Add(message);
+                    }
+                }
+            }
+            return messages;
+        }
+
+        /// <summary>
+        /// 获取订单的对话消息
+        /// </summary>
+        public List<RecyclerMessageViewModel> GetOrderConversation(int orderId)
+        {
+            var messages = new List<RecyclerMessageViewModel>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    SELECT 
+                        m.MessageID,
+                        m.OrderID,
+                        a.AppointmentID as OrderNumber,
+                        m.SenderType,
+                        m.SenderID,
+                        CASE 
+                            WHEN m.SenderType = 'user' THEN u.Username
+                            WHEN m.SenderType = 'recycler' THEN r.Username
+                            ELSE '系统'
+                        END as SenderName,
+                        m.Content,
+                        m.SentTime,
+                        m.IsRead
+                    FROM Messages m
+                    INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
+                    LEFT JOIN Users u ON m.SenderType = 'user' AND m.SenderID = u.UserID
+                    LEFT JOIN Recyclers r ON m.SenderType = 'recycler' AND m.SenderID = r.RecyclerID
+                    WHERE m.OrderID = @OrderID
+                    ORDER BY m.SentTime ASC";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@OrderID", orderId);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var message = new RecyclerMessageViewModel
+                        {
+                            MessageID = Convert.ToInt32(reader["MessageID"]),
+                            OrderID = Convert.ToInt32(reader["OrderID"]),
+                            OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
+                            SenderType = reader["SenderType"].ToString(),
+                            SenderID = Convert.ToInt32(reader["SenderID"]),
+                            SenderName = reader["SenderName"].ToString(),
+                            Content = reader["Content"].ToString(),
+                            SentTime = Convert.ToDateTime(reader["SentTime"]),
+                            IsRead = Convert.ToBoolean(reader["IsRead"])
+                        };
+                        messages.Add(message);
+                    }
+                }
+            }
+            return messages;
+        }
+
+        /// <summary>
+        /// 标记消息为已读
+        /// </summary>
+        public bool MarkRecyclerMessagesAsRead(int messageId, int recyclerId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    UPDATE Messages 
+                    SET IsRead = 1
+                    FROM Messages m
+                    INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
+                    WHERE m.MessageID = @MessageID 
+                      AND a.RecyclerID = @RecyclerID
+                      AND m.SenderType != 'recycler'";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@MessageID", messageId);
+                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+        }
     }
 }
