@@ -61,5 +61,34 @@ namespace recycling.BLL
 
             return statistics;
         }
+
+        /// <summary>
+        /// 取消订单
+        /// </summary>
+        public (bool Success, string Message) CancelOrder(int appointmentId, int userId)
+        {
+            if (appointmentId <= 0 || userId <= 0)
+            {
+                return (false, "参数无效");
+            }
+
+            try
+            {
+                bool result = _orderDAL.CancelOrder(appointmentId, userId);
+
+                if (result)
+                {
+                    return (true, "订单取消成功");
+                }
+                else
+                {
+                    return (false, "订单取消失败：订单不存在或状态不允许取消");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"订单取消失败：{ex.Message}");
+            }
+        }
     }
 }
