@@ -11,6 +11,8 @@ namespace recycling.Web.UI.Controllers
     public class StaffController : Controller
     {
         private readonly StaffBLL _staffBLL = new StaffBLL();
+        private readonly RecyclerOrderBLL _recyclerOrderBLL = new RecyclerOrderBLL();
+        private readonly MessageBLL _messageBLL = new MessageBLL();
 
         /// <summary>
         /// 工作人员首页 - 重定向到专用首页
@@ -164,6 +166,188 @@ namespace recycling.Web.UI.Controllers
             ViewBag.StaffRole = "superadmin";
 
             return View();
+        }
+
+        /// <summary>
+        /// 回收员订单管理页面
+        /// </summary>
+        public ActionResult Recycler_OrderManagement()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                return RedirectToAction("Login", "Staff");
+
+            var recycler = (Recyclers)Session["LoginStaff"];
+
+            // 通过 BLL 获取订单统计
+            var statistics = _recyclerOrderBLL.GetRecyclerOrderStatistics(recycler.RecyclerID);
+            ViewBag.OrderStatistics = statistics;
+            ViewBag.StaffName = recycler.Username;
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取回收员订单列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetRecyclerOrders(OrderFilterModel filter)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                // 设置分页参数
+                if (filter.PageIndex < 1) filter.PageIndex = 1;
+                if (filter.PageSize < 1) filter.PageSize = 10;
+
+                // 通过 BLL 获取订单数据
+                var result = _recyclerOrderBLL.GetRecyclerOrders(filter, recycler.RecyclerID);
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 接收订单
+        /// </summary>
+        [HttpPost]
+        public JsonResult AcceptOrder(int appointmentId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                // 通过 BLL 接收订单
+                var result = _recyclerOrderBLL.AcceptOrder(appointmentId, recycler.RecyclerID);
+
+                if (result.Success)
+                {
+                    // 发送系统消息通知用户
+                    var systemMessage = new SendMessageRequest
+                    {
+                        OrderID = appointmentId,
+                        SenderType = "system",
+                        SenderID = 0,
+                        Content = $"回收员 {recycler.Username} 已接收您的订单，请保持电话畅通。"
+                    };
+                    _messageBLL.SendMessage(systemMessage);
+
+                    return Json(new { success = true, message = result.Message });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"接收失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 消息中心页面
+        /// </summary>
+        public ActionResult Message_Center()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                return RedirectToAction("Login", "Staff");
+
+            var recycler = (Recyclers)Session["LoginStaff"];
+            ViewBag.StaffName = recycler.Username;
+
+            // 通过 BLL 获取消息列表
+            var messages = _recyclerOrderBLL.GetRecyclerMessages(recycler.RecyclerID);
+            return View(messages);
+        }
+
+        /// <summary>
+        /// 获取订单对话（AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetOrderConversation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                // 通过 BLL 获取对话
+                var messages = _recyclerOrderBLL.GetOrderConversation(orderId);
+                return Json(new { success = true, data = messages });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 发送消息（AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult SendMessageToUser(SendMessageRequest request)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                request.SenderType = "recycler";
+                request.SenderID = recycler.RecyclerID;
+
+                // 通过 BLL 发送消息
+                var result = _messageBLL.SendMessage(request);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"发送失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 标记消息为已读（AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult MarkMessageAsRead(int messageId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                // 通过 BLL 标记消息为已读
+                var result = _recyclerOrderBLL.MarkMessageAsRead(messageId, recycler.RecyclerID);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"操作失败：{ex.Message}" });
+            }
         }
     }
 }
