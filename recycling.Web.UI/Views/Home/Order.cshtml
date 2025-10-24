@@ -774,21 +774,7 @@
             statusTabs.forEach(tab => {
                 tab.addEventListener('click', function () {
                     const status = this.getAttribute('data-status');
-
-                    // 更新标签状态
-                    statusTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-
-                    // 更新内容显示
-                    orderSections.forEach(section => {
-                        section.classList.remove('active');
-                        if (section.id === `${status}-orders`) {
-                            section.classList.add('active');
-                        }
-                    });
-
-                    // 加载对应状态订单数据
-                    loadOrdersByStatus(status);
+                    switchToTab(status);
                 });
             });
 
@@ -827,6 +813,32 @@
                 setTimeout(() => {
                     alertContainer.innerHTML = '';
                 }, 5000);
+            }
+
+            // 切换到指定标签页
+            function switchToTab(status) {
+                const allTabs = document.querySelectorAll('.status-tab');
+                const allSections = document.querySelectorAll('.order-section');
+
+                // 更新标签状态
+                allTabs.forEach(tab => tab.classList.remove('active'));
+                document.querySelector(`.status-tab[data-status="${status}"]`).classList.add('active');
+
+                // 更新内容显示
+                allSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === `${status}-orders`) {
+                        section.classList.add('active');
+                    }
+                });
+
+                // 加载对应状态订单数据
+                loadOrdersByStatus(status);
+            }
+
+            // 切换到已取消标签页
+            function switchToCancelledTab() {
+                switchToTab('cancelled');
             }
 
             // 加载订单数据的函数
@@ -1028,10 +1040,9 @@
             .then(data => {
                 if (data.success) {
                     showAlert('订单取消成功', 'success');
-                    // 重新加载当前状态的订单列表
-                    const activeTab = document.querySelector('.status-tab.active');
-                    const status = activeTab.getAttribute('data-status');
-                    loadOrdersByStatus(status);
+
+                    // 自动切换到"已取消"标签页
+                    switchToCancelledTab();
                 } else {
                     showAlert('取消失败：' + data.message, 'error');
                     cancelBtn.innerHTML = originalText;
@@ -1044,6 +1055,28 @@
                 cancelBtn.innerHTML = originalText;
                 cancelBtn.disabled = false;
             });
+        }
+
+        // 切换到已取消标签页
+        function switchToCancelledTab() {
+            const cancelledTab = document.querySelector('.status-tab[data-status="cancelled"]');
+            const allTabs = document.querySelectorAll('.status-tab');
+            const allSections = document.querySelectorAll('.order-section');
+
+            // 更新标签状态
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            cancelledTab.classList.add('active');
+
+            // 更新内容显示
+            allSections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === 'cancelled-orders') {
+                    section.classList.add('active');
+                }
+            });
+
+            // 加载已取消订单数据
+            loadOrdersByStatus('cancelled');
         }
 
         // 再预约一单功能
