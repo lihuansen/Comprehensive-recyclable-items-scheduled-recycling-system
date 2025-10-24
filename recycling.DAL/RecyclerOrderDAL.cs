@@ -42,7 +42,7 @@ namespace recycling.DAL
                 // 预约日期筛选
                 if (filter.AppointmentDate.HasValue)
                 {
-                    conditions.Add("a.AppointmentDate = @AppointmentDate");
+                    conditions.Add("CONVERT(DATE, a.AppointmentDate) = CONVERT(DATE, @AppointmentDate)");
                     parameters.Add(new SqlParameter("@AppointmentDate", filter.AppointmentDate.Value));
                 }
 
@@ -63,7 +63,7 @@ namespace recycling.DAL
                 // 回收员关联筛选（如果指定了回收员ID）
                 if (recyclerId > 0)
                 {
-                    conditions.Add("a.RecyclerID = @RecyclerID");
+                    conditions.Add("(a.RecyclerID = @RecyclerID OR a.RecyclerID IS NULL)");
                     parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
                 }
 
@@ -75,11 +75,17 @@ namespace recycling.DAL
                     FROM Appointments a
                     {whereClause}";
 
-                SqlCommand countCmd = new SqlCommand(countSql, conn);
-                countCmd.Parameters.AddRange(parameters.ToArray());
+                using (SqlCommand countCmd = new SqlCommand(countSql, conn))
+                {
+                    // 为计数命令创建新的参数实例
+                    foreach (var param in parameters)
+                    {
+                        countCmd.Parameters.Add(new SqlParameter(param.ParameterName, param.Value));
+                    }
 
-                conn.Open();
-                result.TotalCount = Convert.ToInt32(countCmd.ExecuteScalar());
+                    conn.Open();
+                    result.TotalCount = Convert.ToInt32(countCmd.ExecuteScalar());
+                }
 
                 // 获取分页数据
                 string dataSql = $@"
@@ -89,6 +95,7 @@ namespace recycling.DAL
                         a.AppointmentDate,
                         a.TimeSlot,
                         a.EstimatedWeight,
+                        a.EstimatedPrice,
                         a.IsUrgent,
                         a.Address,
                         a.ContactName,
@@ -109,34 +116,43 @@ namespace recycling.DAL
                     ORDER BY a.CreatedDate DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
-                SqlCommand dataCmd = new SqlCommand(dataSql, conn);
-                dataCmd.Parameters.AddRange(parameters.ToArray());
-                dataCmd.Parameters.Add(new SqlParameter("@Offset", (filter.PageIndex - 1) * filter.PageSize));
-                dataCmd.Parameters.Add(new SqlParameter("@PageSize", filter.PageSize));
-
-                using (SqlDataReader reader = dataCmd.ExecuteReader())
+                using (SqlCommand dataCmd = new SqlCommand(dataSql, conn))
                 {
-                    while (reader.Read())
+                    // 为数据命令创建新的参数实例
+                    foreach (var param in parameters)
                     {
-                        var order = new RecyclerOrderViewModel
+                        dataCmd.Parameters.Add(new SqlParameter(param.ParameterName, param.Value));
+                    }
+
+                    // 添加分页参数
+                    dataCmd.Parameters.Add(new SqlParameter("@Offset", (filter.PageIndex - 1) * filter.PageSize));
+                    dataCmd.Parameters.Add(new SqlParameter("@PageSize", filter.PageSize));
+
+                    using (SqlDataReader reader = dataCmd.ExecuteReader())
+                    {
+                        while (reader.Read())
                         {
-                            AppointmentID = Convert.ToInt32(reader["AppointmentID"]),
-                            OrderNumber = $"AP{Convert.ToInt32(reader["AppointmentID"]):D6}",
-                            AppointmentType = reader["AppointmentType"].ToString(),
-                            AppointmentDate = Convert.ToDateTime(reader["AppointmentDate"]),
-                            TimeSlot = reader["TimeSlot"].ToString(),
-                            EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
-                            IsUrgent = Convert.ToBoolean(reader["IsUrgent"]),
-                            Address = reader["Address"].ToString(),
-                            ContactName = reader["ContactName"].ToString(),
-                            ContactPhone = reader["ContactPhone"].ToString(),
-                            Status = reader["Status"].ToString(),
-                            CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                            CategoryNames = reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString(),
-                            RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"]),
-                            RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString()
-                        };
-                        result.Items.Add(order);
+                            var order = new RecyclerOrderViewModel
+                            {
+                                AppointmentID = Convert.ToInt32(reader["AppointmentID"]),
+                                OrderNumber = $"AP{Convert.ToInt32(reader["AppointmentID"]):D6}",
+                                AppointmentType = reader["AppointmentType"].ToString(),
+                                AppointmentDate = Convert.ToDateTime(reader["AppointmentDate"]),
+                                TimeSlot = reader["TimeSlot"].ToString(),
+                                EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
+                                EstimatedPrice = reader["EstimatedPrice"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["EstimatedPrice"]),
+                                IsUrgent = Convert.ToBoolean(reader["IsUrgent"]),
+                                Address = reader["Address"].ToString(),
+                                ContactName = reader["ContactName"].ToString(),
+                                ContactPhone = reader["ContactPhone"].ToString(),
+                                Status = reader["Status"].ToString(),
+                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                                CategoryNames = reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString(),
+                                RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"]),
+                                RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString()
+                            };
+                            result.Items.Add(order);
+                        }
                     }
                 }
             }
@@ -161,17 +177,19 @@ namespace recycling.DAL
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as Cancelled
                     FROM Appointments";
 
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                conn.Open();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    if (reader.Read())
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        statistics.Total = Convert.ToInt32(reader["Total"]);
-                        statistics.Pending = Convert.ToInt32(reader["Pending"]);
-                        statistics.Confirmed = Convert.ToInt32(reader["Confirmed"]);
-                        statistics.Completed = Convert.ToInt32(reader["Completed"]);
-                        statistics.Cancelled = Convert.ToInt32(reader["Cancelled"]);
+                        if (reader.Read())
+                        {
+                            statistics.Total = Convert.ToInt32(reader["Total"]);
+                            statistics.Pending = Convert.ToInt32(reader["Pending"]);
+                            statistics.Confirmed = Convert.ToInt32(reader["Confirmed"]);
+                            statistics.Completed = Convert.ToInt32(reader["Completed"]);
+                            statistics.Cancelled = Convert.ToInt32(reader["Cancelled"]);
+                        }
                     }
                 }
             }
@@ -189,18 +207,19 @@ namespace recycling.DAL
                     UPDATE Appointments 
                     SET Status = '进行中', 
                         RecyclerID = @RecyclerID,
-                        UpdatedDate = @UpdatedDate
+                        UpdatedDate = GETDATE()
                     WHERE AppointmentID = @AppointmentID 
                       AND Status = '待确认'";
 
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
-                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
 
-                conn.Open();
-                int rowsAffected = cmd.ExecuteNonQuery();
-                return rowsAffected > 0;
+                    conn.Open();
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
             }
         }
 
@@ -221,19 +240,21 @@ namespace recycling.DAL
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as CancelledOrders
                     FROM Appointments";
 
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-
-                conn.Open();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    if (reader.Read())
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        statistics.TotalOrders = Convert.ToInt32(reader["TotalOrders"]);
-                        statistics.PendingOrders = Convert.ToInt32(reader["PendingOrders"]);
-                        statistics.ConfirmedOrders = Convert.ToInt32(reader["ConfirmedOrders"]);
-                        statistics.CompletedOrders = Convert.ToInt32(reader["CompletedOrders"]);
-                        statistics.CancelledOrders = Convert.ToInt32(reader["CancelledOrders"]);
+                        if (reader.Read())
+                        {
+                            statistics.TotalOrders = Convert.ToInt32(reader["TotalOrders"]);
+                            statistics.PendingOrders = Convert.ToInt32(reader["PendingOrders"]);
+                            statistics.ConfirmedOrders = Convert.ToInt32(reader["ConfirmedOrders"]);
+                            statistics.CompletedOrders = Convert.ToInt32(reader["CompletedOrders"]);
+                            statistics.CancelledOrders = Convert.ToInt32(reader["CancelledOrders"]);
+                        }
                     }
                 }
             }
@@ -271,29 +292,31 @@ namespace recycling.DAL
                     ORDER BY m.SentTime DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
-                cmd.Parameters.AddWithValue("@PageSize", pageSize);
-
-                conn.Open();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    while (reader.Read())
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                    cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        var message = new RecyclerMessageViewModel
+                        while (reader.Read())
                         {
-                            MessageID = Convert.ToInt32(reader["MessageID"]),
-                            OrderID = Convert.ToInt32(reader["OrderID"]),
-                            OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
-                            SenderType = reader["SenderType"].ToString(),
-                            SenderID = Convert.ToInt32(reader["SenderID"]),
-                            SenderName = reader["SenderName"].ToString(),
-                            Content = reader["Content"].ToString(),
-                            SentTime = Convert.ToDateTime(reader["SentTime"]),
-                            IsRead = Convert.ToBoolean(reader["IsRead"])
-                        };
-                        messages.Add(message);
+                            var message = new RecyclerMessageViewModel
+                            {
+                                MessageID = Convert.ToInt32(reader["MessageID"]),
+                                OrderID = Convert.ToInt32(reader["OrderID"]),
+                                OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
+                                SenderType = reader["SenderType"].ToString(),
+                                SenderID = Convert.ToInt32(reader["SenderID"]),
+                                SenderName = reader["SenderName"].ToString(),
+                                Content = reader["Content"].ToString(),
+                                SentTime = Convert.ToDateTime(reader["SentTime"]),
+                                IsRead = Convert.ToBoolean(reader["IsRead"])
+                            };
+                            messages.Add(message);
+                        }
                     }
                 }
             }
@@ -330,27 +353,29 @@ namespace recycling.DAL
                     WHERE m.OrderID = @OrderID
                     ORDER BY m.SentTime ASC";
 
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@OrderID", orderId);
-
-                conn.Open();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    while (reader.Read())
+                    cmd.Parameters.AddWithValue("@OrderID", orderId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        var message = new RecyclerMessageViewModel
+                        while (reader.Read())
                         {
-                            MessageID = Convert.ToInt32(reader["MessageID"]),
-                            OrderID = Convert.ToInt32(reader["OrderID"]),
-                            OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
-                            SenderType = reader["SenderType"].ToString(),
-                            SenderID = Convert.ToInt32(reader["SenderID"]),
-                            SenderName = reader["SenderName"].ToString(),
-                            Content = reader["Content"].ToString(),
-                            SentTime = Convert.ToDateTime(reader["SentTime"]),
-                            IsRead = Convert.ToBoolean(reader["IsRead"])
-                        };
-                        messages.Add(message);
+                            var message = new RecyclerMessageViewModel
+                            {
+                                MessageID = Convert.ToInt32(reader["MessageID"]),
+                                OrderID = Convert.ToInt32(reader["OrderID"]),
+                                OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
+                                SenderType = reader["SenderType"].ToString(),
+                                SenderID = Convert.ToInt32(reader["SenderID"]),
+                                SenderName = reader["SenderName"].ToString(),
+                                Content = reader["Content"].ToString(),
+                                SentTime = Convert.ToDateTime(reader["SentTime"]),
+                                IsRead = Convert.ToBoolean(reader["IsRead"])
+                            };
+                            messages.Add(message);
+                        }
                     }
                 }
             }
@@ -373,13 +398,15 @@ namespace recycling.DAL
                       AND a.RecyclerID = @RecyclerID
                       AND m.SenderType != 'recycler'";
 
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@MessageID", messageId);
-                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@MessageID", messageId);
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
 
-                conn.Open();
-                int rowsAffected = cmd.ExecuteNonQuery();
-                return rowsAffected > 0;
+                    conn.Open();
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
             }
         }
     }
