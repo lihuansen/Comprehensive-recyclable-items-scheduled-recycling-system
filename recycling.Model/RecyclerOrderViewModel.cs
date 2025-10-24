@@ -14,6 +14,7 @@ namespace recycling.Model
         public DateTime AppointmentDate { get; set; }
         public string TimeSlot { get; set; }
         public decimal EstimatedWeight { get; set; }
+        public decimal? EstimatedPrice { get; set; }
         public bool IsUrgent { get; set; }
         public string Address { get; set; }
         public string ContactName { get; set; }
