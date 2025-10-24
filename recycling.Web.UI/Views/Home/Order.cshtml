@@ -166,7 +166,6 @@
         border-radius: 12px;
         padding: 25px;
         transition: all 0.3s ease;
-        cursor: pointer;
     }
 
         .order-item:hover {
@@ -296,15 +295,161 @@
                 background: #2980b9;
             }
 
-        .btn-action.danger {
-            background: #e74c3c;
-            color: white;
-            border-color: #e74c3c;
+    /* 加载动画 */
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    /* 订单详情模态框样式 */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .modal-overlay.active {
+            display: flex;
         }
 
-            .btn-action.danger:hover {
-                background: #c0392b;
-            }
+    .modal-content {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 800px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #ecf0f1;
+    }
+
+    .modal-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #7f8c8d;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+        .modal-close:hover {
+            background: #f8f9fa;
+            color: #e74c3c;
+        }
+
+    .detail-section {
+        margin-bottom: 25px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .detail-label-large {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .detail-value-large {
+        color: #2c3e50;
+        text-align: right;
+    }
+
+    .category-detail {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #3498db;
+    }
+
+    .category-name {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .question-answers {
+        display: grid;
+        gap: 10px;
+    }
+
+    .question-answer {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed #e9ecef;
+    }
+
+    .question-text {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .answer-text {
+        font-weight: 600;
+        color: #2c3e50;
+    }
 
     /* 动画效果 */
     @@keyframes fadeIn {
@@ -316,6 +461,28 @@
         to {
             opacity: 1;
             transform: translateY(0);
+        }
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
         }
     }
 
@@ -354,6 +521,15 @@
         .btn-action {
             justify-content: center;
         }
+
+        .modal-content {
+            padding: 20px;
+            margin: 20px;
+        }
+
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -372,7 +548,7 @@
                 <i class="fas fa-list"></i>全部订单
             </button>
             <button class="status-tab status-pending" data-status="pending">
-                <i class="fas fa-clock"></i>待上门
+                <i class="fas fa-clock"></i>已预约
             </button>
             <button class="status-tab status-confirmed" data-status="confirmed">
                 <i class="fas fa-check-circle"></i>进行中
@@ -389,50 +565,155 @@
         <div class="order-content">
             <!-- 全部订单 -->
             <div class="order-section active" id="all-orders">
-                <div class="empty-state">
-                    <i class="fas fa-clipboard-list"></i>
-                    <h3>暂无订单</h3>
-                    <p>您还没有创建任何回收预约订单</p>
-                    <a href="@Url.Action("Appointment", "User")" class="btn-new-appointment">
-                        <i class="fas fa-calendar-plus"></i>立即预约
-                    </a>
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载订单数据...</p>
                 </div>
             </div>
 
-            <!-- 待确认订单 -->
+            <!-- 已预约订单 -->
             <div class="order-section" id="pending-orders">
-                <div class="empty-state">
-                    <i class="fas fa-clock"></i>
-                    <h3>暂无待上门订单</h3>
-                    <p>您没有待上门的回收预约</p>
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载已预约订单...</p>
                 </div>
             </div>
 
-            <!-- 已确认订单 -->
+            <!-- 进行中订单 -->
             <div class="order-section" id="confirmed-orders">
-                <div class="empty-state">
-                    <i class="fas fa-check-circle"></i>
-                    <h3>暂无进行中订单</h3>
-                    <p>您没有进行中的回收预约</p>
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载进行中订单...</p>
                 </div>
             </div>
 
             <!-- 已完成订单 -->
             <div class="order-section" id="completed-orders">
-                <div class="empty-state">
-                    <i class="fas fa-flag-checkered"></i>
-                    <h3>暂无已完成订单</h3>
-                    <p>您没有已完成的回收预约</p>
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载已完成订单...</p>
                 </div>
             </div>
 
             <!-- 已取消订单 -->
             <div class="order-section" id="cancelled-orders">
-                <div class="empty-state">
-                    <i class="fas fa-times-circle"></i>
-                    <h3>暂无已取消订单</h3>
-                    <p>您没有已取消的回收预约</p>
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载已取消订单...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 订单详情模态框 -->
+<div class="modal-overlay" id="orderDetailModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fas fa-file-alt"></i>
+                <span id="modalOrderNumber">订单详情</span>
+            </h2>
+            <button class="modal-close" id="closeModal">&times;</button>
+        </div>
+
+        <div id="modalLoading" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>正在加载订单详情...</p>
+        </div>
+
+        <div id="modalContent" style="display: none;">
+            <!-- 基本信息 -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>基本信息
+                </h3>
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label-large">订单编号：</span>
+                        <span class="detail-value-large" id="detailNumber"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">预约类型：</span>
+                        <span class="detail-value-large" id="detailType"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">预约时间：</span>
+                        <span class="detail-value-large" id="detailDateTime"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">预估重量：</span>
+                        <span class="detail-value-large" id="detailWeight"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">预估价格：</span>
+                        <span class="detail-value-large" id="detailPrice"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">订单状态：</span>
+                        <span class="detail-value-large" id="detailStatus"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">是否加急：</span>
+                        <span class="detail-value-large" id="detailUrgent"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 联系信息 -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    <i class="fas fa-user"></i>联系信息
+                </h3>
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label-large">联系人：</span>
+                        <span class="detail-value-large" id="detailContactName"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">联系电话：</span>
+                        <span class="detail-value-large" id="detailContactPhone"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">详细地址：</span>
+                        <span class="detail-value-large" id="detailAddress"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 品类详情 -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    <i class="fas fa-boxes"></i>回收品类详情
+                </h3>
+                <div id="categoryDetails">
+                    <!-- 动态加载品类详情 -->
+                </div>
+            </div>
+
+            <!-- 时间信息 -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    <i class="fas fa-clock"></i>时间信息
+                </h3>
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label-large">创建时间：</span>
+                        <span class="detail-value-large" id="detailCreatedDate"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label-large">更新时间：</span>
+                        <span class="detail-value-large" id="detailUpdatedDate"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 特殊要求 -->
+            <div class="detail-section" id="specialInstructionsSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-edit"></i>特殊要求
+                </h3>
+                <p id="detailSpecialInstructions"></p>
             </div>
         </div>
     </div>
@@ -461,25 +742,328 @@
                         }
                     });
 
-                    // 这里可以添加加载对应状态订单数据的逻辑
+                    // 加载对应状态订单数据
                     loadOrdersByStatus(status);
                 });
             });
 
-            // 加载订单数据的函数（后续实现）
+            // 模态框控制
+            const modal = document.getElementById('orderDetailModal');
+            const closeModal = document.getElementById('closeModal');
+            const modalLoading = document.getElementById('modalLoading');
+            const modalContent = document.getElementById('modalContent');
+
+            closeModal.addEventListener('click', function () {
+                modal.classList.remove('active');
+            });
+
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+
+            // 加载订单数据的函数
             function loadOrdersByStatus(status) {
                 console.log(`加载 ${status} 状态的订单数据`);
-                // 后续将通过AJAX调用后端API加载对应状态的订单
 
-                // 模拟数据加载效果
                 const currentSection = document.getElementById(`${status}-orders`);
-                const emptyState = currentSection.querySelector('.empty-state');
 
-                // 这里可以显示加载动画，然后显示空状态或订单列表
+                // 显示加载状态
+                currentSection.innerHTML = `
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>正在加载订单数据...</p>
+                    </div>
+                `;
+
+                // 调用后端API加载订单数据
+                fetch('@Url.Action("GetOrdersByStatus", "Home")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ status: status })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderOrders(currentSection, data.orders, status);
+                    } else {
+                        showError(currentSection, data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载订单失败:', error);
+                    showError(currentSection, '网络错误，请稍后重试');
+                });
+            }
+
+            // 渲染订单列表
+            function renderOrders(container, orders, status) {
+                if (orders.length === 0) {
+                    let emptyMessage = '';
+                    let emptyIcon = 'fas fa-clipboard-list';
+
+                    switch (status) {
+                        case 'all':
+                            emptyMessage = '您还没有创建任何回收预约订单';
+                            break;
+                        case 'pending':
+                            emptyMessage = '您没有已预约的回收订单';
+                            emptyIcon = 'fas fa-clock';
+                            break;
+                        case 'confirmed':
+                            emptyMessage = '您没有进行中的回收订单';
+                            emptyIcon = 'fas fa-check-circle';
+                            break;
+                        case 'completed':
+                            emptyMessage = '您没有已完成的回收订单';
+                            emptyIcon = 'fas fa-flag-checkered';
+                            break;
+                        case 'cancelled':
+                            emptyMessage = '您没有已取消的回收订单';
+                            emptyIcon = 'fas fa-times-circle';
+                            break;
+                    }
+
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="${emptyIcon}"></i>
+                            <h3>${emptyMessage}</h3>
+                            ${status === 'all' ? '<a href="@Url.Action("Appointment", "User")" class="btn-new-appointment"><i class="fas fa-calendar-plus"></i>立即预约</a>' : ''}
+                        </div>
+                    `;
+                    return;
+                }
+
+                let ordersHTML = '<div class="order-list">';
+
+                orders.forEach(order => {
+                    ordersHTML += `
+                        <div class="order-item" data-order-id="${order.id}">
+                            <div class="order-header-info">
+                                <div class="order-number">${order.number}</div>
+                                <div class="order-status ${order.statusBadge}">${order.status}</div>
+                            </div>
+
+                            <div class="order-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">预约类型</span>
+                                    <span class="detail-value">${order.type}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">预约时间</span>
+                                    <span class="detail-value">${order.date} ${order.timeSlot}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">预估重量</span>
+                                    <span class="detail-value">${order.weight} 公斤</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">预估价格</span>
+                                    <span class="detail-value">¥${order.price}</span>
+                                </div>
+                            </div>
+
+                            ${order.categories.length > 0 ? `
+                            <div class="order-categories">
+                                ${order.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+                            </div>
+                            ` : ''}
+
+                            <div class="order-actions">
+                                <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                    <i class="fas fa-eye"></i>查看详情
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                ordersHTML += '</div>';
+                container.innerHTML = ordersHTML;
+            }
+
+            // 显示错误信息
+            function showError(container, message) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>加载失败</h3>
+                        <p>${message}</p>
+                        <button class="btn-new-appointment" onclick="loadOrdersByStatus('all')">
+                            <i class="fas fa-redo"></i>重新加载
+                        </button>
+                    </div>
+                `;
             }
 
             // 初始化加载全部订单
             loadOrdersByStatus('all');
         });
+
+        // 查看订单详情
+        function viewOrderDetail(orderId) {
+            const modal = document.getElementById('orderDetailModal');
+            const modalLoading = document.getElementById('modalLoading');
+            const modalContent = document.getElementById('modalContent');
+            const modalOrderNumber = document.getElementById('modalOrderNumber');
+
+            // 显示模态框和加载状态
+            modal.classList.add('active');
+            modalLoading.style.display = 'block';
+            modalContent.style.display = 'none';
+            modalOrderNumber.textContent = '订单详情';
+
+            // 加载订单详情
+            fetch('@Url.Action("GetOrderDetail", "Home")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ appointmentId: orderId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                modalLoading.style.display = 'none';
+
+                if (data.success) {
+                    renderOrderDetail(data.order, data.categories);
+                    modalContent.style.display = 'block';
+                } else {
+                    alert('加载订单详情失败：' + data.message);
+                    modal.classList.remove('active');
+                }
+            })
+            .catch(error => {
+                modalLoading.style.display = 'none';
+                alert('网络错误：' + error.message);
+                modal.classList.remove('active');
+            });
+        }
+
+        // 渲染订单详情
+        function renderOrderDetail(order, categories) {
+            // 更新基本信息
+            document.getElementById('modalOrderNumber').textContent = order.number;
+            document.getElementById('detailNumber').textContent = order.number;
+            document.getElementById('detailType').textContent = order.type;
+            document.getElementById('detailDateTime').textContent = `${order.date} ${order.timeSlot}`;
+            document.getElementById('detailWeight').textContent = `${order.weight} 公斤`;
+            document.getElementById('detailPrice').textContent = `¥${order.price}`;
+            document.getElementById('detailStatus').textContent = order.status;
+            document.getElementById('detailUrgent').textContent = order.isUrgent ? '是' : '否';
+            document.getElementById('detailContactName').textContent = order.contactName;
+            document.getElementById('detailContactPhone').textContent = order.contactPhone;
+            document.getElementById('detailAddress').textContent = order.address;
+            document.getElementById('detailCreatedDate').textContent = order.createdDate;
+            document.getElementById('detailUpdatedDate').textContent = order.updatedDate;
+
+            // 特殊要求
+            const specialSection = document.getElementById('specialInstructionsSection');
+            const specialInstructions = document.getElementById('detailSpecialInstructions');
+            if (order.specialInstructions) {
+                specialInstructions.textContent = order.specialInstructions;
+                specialSection.style.display = 'block';
+            } else {
+                specialSection.style.display = 'none';
+            }
+
+            // 渲染品类详情
+            const categoryContainer = document.getElementById('categoryDetails');
+            if (categories && categories.length > 0) {
+                let categoriesHTML = '';
+                categories.forEach(category => {
+                    categoriesHTML += `
+                        <div class="category-detail">
+                            <div class="category-name">${category.name}</div>
+                            <div class="question-answers">
+                    `;
+
+                    if (category.questionsAnswers && Object.keys(category.questionsAnswers).length > 0) {
+                        for (const [question, answer] of Object.entries(category.questionsAnswers)) {
+                            const questionText = getQuestionText(question, category.key);
+                            categoriesHTML += `
+                                <div class="question-answer">
+                                    <span class="question-text">${questionText}：</span>
+                                    <span class="answer-text">${getAnswerText(answer, question, category.key)}</span>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        categoriesHTML += `<div class="question-answer"><span class="question-text">暂无详细问题信息</span></div>`;
+                    }
+
+                    categoriesHTML += `
+                            </div>
+                        </div>
+                    `;
+                });
+                categoryContainer.innerHTML = categoriesHTML;
+            } else {
+                categoryContainer.innerHTML = '<p>暂无品类详情信息</p>';
+            }
+        }
+
+        // 获取问题显示文本（根据问题ID映射）
+        function getQuestionText(questionId, categoryKey) {
+            const questionMap = {
+                'glass_condition': '玻璃瓶子是否完整',
+                'glass_type': '玻璃类型',
+                'glass_clean': '是否清洁干净',
+                'metal_type': '金属类型',
+                'metal_condition': '金属状况',
+                'metal_clean': '是否清洁',
+                'plastic_type': '塑料类型',
+                'plastic_clean': '是否清洁',
+                'plastic_color': '塑料颜色',
+                'paper_type': '纸张类型',
+                'paper_condition': '纸张状况',
+                'paper_clean': '是否干净',
+                'fabric_type': '纺织品类型',
+                'fabric_condition': '纺织品状况',
+                'fabric_clean': '是否清洁'
+            };
+            return questionMap[questionId] || questionId;
+        }
+
+        // 获取答案显示文本（根据答案值映射）
+        function getAnswerText(answerValue, questionId, categoryKey) {
+            const answerMap = {
+                'complete': '完整',
+                'broken': '有破损',
+                'bottle': '瓶子',
+                'window': '窗户玻璃',
+                'other': '其他',
+                'clean': '是',
+                'dirty': '否',
+                'iron': '铁制品',
+                'aluminum': '铝制品',
+                'copper': '铜制品',
+                'mixed': '混合金属',
+                'good': '状况良好',
+                'rusty': '有锈迹',
+                'pet': 'PET（饮料瓶）',
+                'hdpe': 'HDPE（洗发水瓶）',
+                'pvc': 'PVC（管道）',
+                'transparent': '透明',
+                'colored': '有色',
+                'newspaper': '报纸',
+                'cardboard': '纸板箱',
+                'office': '办公用纸',
+                'dry': '干燥',
+                'damp': '潮湿',
+                'soiled': '污染',
+                'cotton': '棉织品',
+                'wool': '毛织品',
+                'synthetic': '化纤',
+                'worn': '有磨损',
+                'damaged': '破损'
+            };
+            return answerMap[answerValue] || answerValue;
+        }
     </script>
 }
