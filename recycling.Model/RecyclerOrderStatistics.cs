@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace recycling.Model
 {
-    class RecyclerOrderStatistics
+    public class RecyclerOrderStatistics
     {
+        public int TotalOrders { get; set; }
+        public int PendingOrders { get; set; }
+        public int ConfirmedOrders { get; set; }
+        public int CompletedOrders { get; set; }
+        public int CancelledOrders { get; set; }
     }
 }
