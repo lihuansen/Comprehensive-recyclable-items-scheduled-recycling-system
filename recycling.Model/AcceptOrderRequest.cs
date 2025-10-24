@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace recycling.Model
 {
-    class AcceptOrderRequest
+    public class AcceptOrderRequest
     {
+        public int AppointmentID { get; set; }
+        public int RecyclerID { get; set; }
     }
 }
