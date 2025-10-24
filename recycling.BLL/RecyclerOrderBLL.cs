@@ -58,5 +58,68 @@ namespace recycling.BLL
                 return (false, $"订单接收失败：{ex.Message}");
             }
         }
+
+        /// <summary>
+        /// 获取回收员订单统计
+        /// </summary>
+        public RecyclerOrderStatistics GetRecyclerOrderStatistics(int recyclerId)
+        {
+            if (recyclerId <= 0)
+            {
+                return new RecyclerOrderStatistics();
+            }
+
+            return _recyclerOrderDAL.GetRecyclerOrderStatistics(recyclerId);
+        }
+
+        /// <summary>
+        /// 获取回收员消息列表
+        /// </summary>
+        public List<RecyclerMessageViewModel> GetRecyclerMessages(int recyclerId, int pageIndex = 1, int pageSize = 20)
+        {
+            if (recyclerId <= 0)
+            {
+                return new List<RecyclerMessageViewModel>();
+            }
+
+            if (pageIndex < 1) pageIndex = 1;
+            if (pageSize < 1) pageSize = 20;
+
+            return _recyclerOrderDAL.GetRecyclerMessages(recyclerId, pageIndex, pageSize);
+        }
+
+        /// <summary>
+        /// 获取订单对话
+        /// </summary>
+        public List<RecyclerMessageViewModel> GetOrderConversation(int orderId)
+        {
+            if (orderId <= 0)
+            {
+                return new List<RecyclerMessageViewModel>();
+            }
+
+            return _recyclerOrderDAL.GetOrderConversation(orderId);
+        }
+
+        /// <summary>
+        /// 标记消息为已读
+        /// </summary>
+        public (bool Success, string Message) MarkMessageAsRead(int messageId, int recyclerId)
+        {
+            if (messageId <= 0 || recyclerId <= 0)
+            {
+                return (false, "参数无效");
+            }
+
+            try
+            {
+                bool result = _recyclerOrderDAL.MarkRecyclerMessagesAsRead(messageId, recyclerId);
+                return (result, result ? "标记成功" : "标记失败");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"标记失败：{ex.Message}");
+            }
+        }
     }
 }
