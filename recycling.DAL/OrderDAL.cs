@@ -177,5 +177,31 @@ ORDER BY ac.CategoryID";
                 }
             }
         }
+
+        /// <summary>
+        /// 取消订单
+        /// </summary>
+        public bool CancelOrder(int appointmentId, int userId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+UPDATE Appointments 
+SET Status = '已取消', 
+    UpdatedDate = @UpdatedDate
+WHERE AppointmentID = @AppointmentID 
+  AND UserID = @UserID 
+  AND Status = '待确认'"; // 只能取消待确认的订单
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+        }
     }
 }
