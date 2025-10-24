@@ -231,6 +231,35 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 取消订单
+        /// </summary>
+        [HttpPost]
+        public JsonResult CancelOrder(int appointmentId)
+        {
+            if (Session["LoginUser"] == null)
+            {
+                return Json(new { success = false, message = "请先登录" });
+            }
+
+            try
+            {
+                var user = (Users)Session["LoginUser"];
+                var orderBLL = new OrderBLL();
+                var result = orderBLL.CancelOrder(appointmentId, user.UserID);
+
+                return Json(new
+                {
+                    success = result.Success,
+                    message = result.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         public ActionResult Message()
         {
             return View();
