@@ -611,6 +611,12 @@
                         </h6>
                         <div id="detailCategories" class="categories-list"></div>
                     </div>
+
+                    <!-- 新增回收员ID字段（默认隐藏） -->
+                    <div class="detail-item" id="detailRecyclerId" style="display: none;">
+                        <span class="detail-label">回收员ID：</span>
+                        <span class="detail-value" id="recyclerID"></span>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1015,6 +1021,19 @@
                 categoriesContainer.innerHTML = categoryTags;
             } else {
                 categoriesContainer.innerHTML = '<span class="text-muted">暂无品类信息</span>';
+            }
+            // 新增：处理回收员ID显示（仅进行中/已完成状态）
+            const recyclerIdElement = document.getElementById('detailRecyclerId');
+            const recyclerIdValue = document.getElementById('recyclerID');
+
+            // 判断订单状态，显示/隐藏回收员ID
+            if (order.status === '进行中' || order.status === '已完成') {
+                // 显示回收员ID（无值时显示“未分配”）
+                recyclerIdValue.textContent = order.recyclerID || '未分配';
+                recyclerIdElement.style.display = 'block';
+            } else {
+                // 其他状态（已预约/已取消）隐藏
+                recyclerIdElement.style.display = 'none';
             }
         }
     </script>
