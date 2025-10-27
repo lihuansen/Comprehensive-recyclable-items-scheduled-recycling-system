@@ -30,7 +30,7 @@ namespace recycling.Model
             {
                 switch (Status)
                 {
-                    case "待确认":
+                    case "已预约":
                         return "status-pending-badge";
                     case "进行中":
                         return "status-confirmed-badge";
