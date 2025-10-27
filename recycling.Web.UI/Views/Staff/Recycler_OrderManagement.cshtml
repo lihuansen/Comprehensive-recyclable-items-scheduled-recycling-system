@@ -546,6 +546,54 @@
             cursor: not-allowed;
             transform: none;
         }
+    /* 在现有样式后面添加 */
+    .detail-section {
+        margin-bottom: 25px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 100px;
+    }
+
+    .detail-value {
+        color: #2c3e50;
+        text-align: right;
+        flex: 1;
+    }
+
+    .detail-text {
+        color: #6c757d;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .categories-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 </style>
 
 <div class="order-management-container">
@@ -636,6 +684,137 @@
         <div id="paginationContainer" class="pagination-container" style="display: none;">
             <div class="pagination-info" id="pageInfo"></div>
             <ul class="pagination" id="pagination"></ul>
+        </div>
+    </div>
+</div>
+
+<!-- 在页面底部，对话模态框之前添加订单详情模态框 -->
+<!-- 订单详情模态框 -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-alt"></i>
+                    <span id="detailOrderNumber">订单详情</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="detailLoading" class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载订单详情...</p>
+                </div>
+                <div id="detailContent" style="display: none;">
+                    <!-- 基本信息 -->
+                    <div class="detail-section">
+                        <h6 class="section-title">
+                            <i class="fas fa-info-circle"></i>基本信息
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">订单编号：</span>
+                                    <span class="detail-value" id="detailOrderNo"></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">预约类型：</span>
+                                    <span class="detail-value" id="detailAppointmentType"></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">预约时间：</span>
+                                    <span class="detail-value" id="detailAppointmentTime"></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">预估重量：</span>
+                                    <span class="detail-value" id="detailEstimatedWeight"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">预估价格：</span>
+                                    <span class="detail-value" id="detailEstimatedPrice"></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">订单状态：</span>
+                                    <span class="detail-value" id="detailStatus"></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">是否加急：</span>
+                                    <span class="detail-value" id="detailIsUrgent"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 联系信息 -->
+                    <div class="detail-section">
+                        <h6 class="section-title">
+                            <i class="fas fa-user"></i>联系信息
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">联系人：</span>
+                                    <span class="detail-value" id="detailContactName"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">联系电话：</span>
+                                    <span class="detail-value" id="detailContactPhone"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">详细地址：</span>
+                            <span class="detail-value" id="detailAddress"></span>
+                        </div>
+                    </div>
+
+                    <!-- 时间信息 -->
+                    <div class="detail-section">
+                        <h6 class="section-title">
+                            <i class="fas fa-clock"></i>时间信息
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">创建时间：</span>
+                                    <span class="detail-value" id="detailCreatedDate"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <span class="detail-label">更新时间：</span>
+                                    <span class="detail-value" id="detailUpdatedDate"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 特殊要求 -->
+                    <div class="detail-section" id="specialInstructionsSection">
+                        <h6 class="section-title">
+                            <i class="fas fa-edit"></i>特殊要求
+                        </h6>
+                        <p id="detailSpecialInstructions" class="detail-text"></p>
+                    </div>
+
+                    <!-- 回收品类 -->
+                    <div class="detail-section">
+                        <h6 class="section-title">
+                            <i class="fas fa-boxes"></i>回收品类
+                        </h6>
+                        <div id="detailCategories" class="categories-list"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
         </div>
     </div>
 </div>
@@ -956,6 +1135,85 @@
             // 这里可以跳转到订单详情页面或打开模态框
             alert('查看订单详情功能：' + appointmentId);
         }
+
+        // 查看订单详情
+function viewOrderDetail(appointmentId) {
+    const modal = $('#orderDetailModal');
+    const loading = document.getElementById('detailLoading');
+    const content = document.getElementById('detailContent');
+
+    // 显示加载状态
+    loading.style.display = 'block';
+    content.style.display = 'none';
+
+    fetch('@Url.Action("GetOrderDetail", "Staff")', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ appointmentId: appointmentId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        loading.style.display = 'none';
+
+        if (data.success) {
+            renderOrderDetail(data.data);
+            content.style.display = 'block';
+            modal.modal('show');
+        } else {
+            alert('加载订单详情失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        loading.style.display = 'none';
+        alert('加载失败：' + error.message);
+    });
+}
+
+// 渲染订单详情
+function renderOrderDetail(order) {
+    // 更新基本信息
+    document.getElementById('detailOrderNumber').textContent = `订单详情 - ${order.OrderNumber}`;
+    document.getElementById('detailOrderNo').textContent = order.OrderNumber;
+    document.getElementById('detailAppointmentType').textContent = order.AppointmentType;
+    document.getElementById('detailAppointmentTime').textContent = `${order.AppointmentDate} ${order.TimeSlot}`;
+    document.getElementById('detailEstimatedWeight').textContent = `${order.EstimatedWeight} 公斤`;
+    document.getElementById('detailEstimatedPrice').textContent = order.EstimatedPrice ? `¥${order.EstimatedPrice}` : '待评估';
+    document.getElementById('detailStatus').textContent = order.Status;
+    document.getElementById('detailIsUrgent').textContent = order.IsUrgent ? '是' : '否';
+
+    // 更新联系信息
+    document.getElementById('detailContactName').textContent = order.ContactName;
+    document.getElementById('detailContactPhone').textContent = order.ContactPhone;
+    document.getElementById('detailAddress').textContent = order.Address;
+
+    // 更新时间信息
+    document.getElementById('detailCreatedDate').textContent = order.CreatedDate;
+    document.getElementById('detailUpdatedDate').textContent = order.UpdatedDate;
+
+    // 更新特殊要求
+    const specialSection = document.getElementById('specialInstructionsSection');
+    const specialInstructions = document.getElementById('detailSpecialInstructions');
+    if (order.SpecialInstructions) {
+        specialInstructions.textContent = order.SpecialInstructions;
+        specialSection.style.display = 'block';
+    } else {
+        specialSection.style.display = 'none';
+    }
+
+    // 更新回收品类
+    const categoriesContainer = document.getElementById('detailCategories');
+    if (order.CategoryNames) {
+        const categories = order.CategoryNames.split(', ');
+        categoriesContainer.innerHTML = categories.map(cat =>
+            `<span class="category-tag">${cat}</span>`
+        ).join('');
+    } else {
+        categoriesContainer.innerHTML = '<span class="text-muted">暂无品类信息</span>';
+    }
+}
 
         // 打开对话模态框
         function openConversationModal(orderId, orderNumber) {
