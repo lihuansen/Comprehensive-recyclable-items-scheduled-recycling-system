@@ -684,7 +684,7 @@ select.form-control::-ms-expand {
             </div>
             <div class="stat-item">
                 <div class="stat-number">@(ViewBag.OrderStatistics?.PendingOrders ?? 0)</div>
-                <div class="stat-label">待确认订单</div>
+                <div class="stat-label">已预约订单</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">@(ViewBag.OrderStatistics?.ConfirmedOrders ?? 0)</div>
@@ -716,7 +716,7 @@ select.form-control::-ms-expand {
                 <label class="filter-label">订单状态</label>
                 <select id="statusFilter" class="form-control">
                     <option value="">全部状态</option>
-                    <option value="待确认">待确认</option>
+                    <option value="已预约">已预约</option>
                     <option value="进行中">进行中</option>
                     <option value="已完成">已完成</option>
                     <option value="已取消">已取消</option>
@@ -1025,7 +1025,7 @@ select.form-control::-ms-expand {
 
                 let actionButtons = '';
 
-                if (order.Status === '待确认') {
+                if (order.Status === '已预约') {
                     actionButtons = `
                 <div class="order-actions">
                     <button class="btn-action success" onclick="acceptOrder(${order.AppointmentID})">
