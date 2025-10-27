@@ -446,5 +446,73 @@ namespace recycling.DAL
                 }
             }
         }
+
+        /// <summary>
+        /// 获取订单详情
+        /// </summary>
+        public OrderDetailModel GetOrderDetail(int appointmentId, int recyclerId)
+        {
+            var orderDetail = new OrderDetailModel();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+            SELECT 
+                a.AppointmentID,
+                a.AppointmentType,
+                a.AppointmentDate,
+                a.TimeSlot,
+                a.EstimatedWeight,
+                a.EstimatedPrice,
+                a.IsUrgent,
+                a.Address,
+                a.ContactName,
+                a.ContactPhone,
+                a.Status,
+                a.CreatedDate,
+                a.UpdatedDate,
+                a.SpecialInstructions,
+                STUFF((
+                    SELECT DISTINCT ', ' + ac.CategoryName
+                    FROM AppointmentCategories ac
+                    WHERE ac.AppointmentID = a.AppointmentID
+                    FOR XML PATH('')
+                ), 1, 2, '') AS CategoryNames
+            FROM Appointments a
+            WHERE a.AppointmentID = @AppointmentID
+              AND (a.RecyclerID = @RecyclerID OR a.RecyclerID IS NULL)";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            orderDetail.OrderNumber = $"AP{Convert.ToInt32(reader["AppointmentID"]):D6}";
+                            orderDetail.AppointmentType = GetAppointmentTypeChinese(reader["AppointmentType"].ToString());
+                            orderDetail.AppointmentDate = Convert.ToDateTime(reader["AppointmentDate"]).ToString("yyyy-MM-dd");
+                            orderDetail.TimeSlot = GetTimeSlotChinese(reader["TimeSlot"].ToString());
+                            orderDetail.EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]);
+                            orderDetail.EstimatedPrice = reader["EstimatedPrice"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["EstimatedPrice"]);
+                            orderDetail.IsUrgent = Convert.ToBoolean(reader["IsUrgent"]);
+                            orderDetail.Address = reader["Address"].ToString();
+                            orderDetail.ContactName = reader["ContactName"].ToString();
+                            orderDetail.ContactPhone = reader["ContactPhone"].ToString();
+                            orderDetail.Status = reader["Status"].ToString();
+                            orderDetail.CreatedDate = Convert.ToDateTime(reader["CreatedDate"]).ToString("yyyy-MM-dd HH:mm");
+                            orderDetail.UpdatedDate = reader["UpdatedDate"] == DBNull.Value ? "" : Convert.ToDateTime(reader["UpdatedDate"]).ToString("yyyy-MM-dd HH:mm");
+                            orderDetail.SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? "" : reader["SpecialInstructions"].ToString();
+                            orderDetail.CategoryNames = reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString();
+                        }
+                    }
+                }
+            }
+
+            return orderDetail;
+        }
     }
 }
