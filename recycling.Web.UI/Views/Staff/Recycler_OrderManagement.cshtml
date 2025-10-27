@@ -1002,7 +1002,7 @@ select.form-control::-ms-expand {
         function renderOrders(data) {
             const ordersContainer = document.getElementById('ordersContainer');
 
-            console.log('渲染订单数据:', data); // 调试信息
+            console.log('渲染订单数据:', data);
 
             if (!data || !data.Items || data.Items.length === 0) {
                 ordersContainer.innerHTML = `
@@ -1018,7 +1018,7 @@ select.form-control::-ms-expand {
             let ordersHTML = '<div class="order-list">';
 
             data.Items.forEach(order => {
-                console.log('单个订单数据:', order); // 调试信息
+                console.log('单个订单数据:', order);
 
                 const urgentClass = order.IsUrgent ? 'urgent' : '';
                 const urgentBadge = order.IsUrgent ? '<span class="urgent-badge">加急</span>' : '';
@@ -1046,8 +1046,33 @@ select.form-control::-ms-expand {
             `;
                 }
 
-                // 格式化日期
-                const appointmentDate = new Date(order.AppointmentDate).toLocaleDateString('zh-CN');
+                // 修复日期格式化 - 确保正确处理日期字符串
+                let appointmentDate = '日期无效';
+                try {
+                    // 方法1: 直接使用字符串分割（最安全）
+                    if (order.AppointmentDate && typeof order.AppointmentDate === 'string') {
+                        const dateStr = order.AppointmentDate.split('T')[0]; // 处理 ISO 格式日期
+                        const [year, month, day] = dateStr.split('-');
+                        if (year && month && day) {
+                            appointmentDate = `${year}年${month}月${day}日`;
+                        }
+                    }
+                    // 方法2: 使用 Date 对象（备选方案）
+                    else if (order.AppointmentDate) {
+                        const date = new Date(order.AppointmentDate);
+                        if (!isNaN(date.getTime())) {
+                            appointmentDate = date.toLocaleDateString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit'
+                            }).replace(/\//g, '年').replace(/\//g, '月') + '日';
+                        }
+                    }
+                } catch (error) {
+                    console.error('日期格式化错误:', error);
+                    appointmentDate = '日期格式错误';
+                }
+
                 const estimatedPrice = order.EstimatedPrice ? `¥${order.EstimatedPrice}` : '待评估';
                 const categoryNames = order.CategoryNames || '';
 
