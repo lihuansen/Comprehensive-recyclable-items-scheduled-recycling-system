@@ -23,5 +23,7 @@ namespace recycling.Model
         public string UpdatedDate { get; set; }
         public string SpecialInstructions { get; set; }
         public string CategoryNames { get; set; }
+        public string RecyclerName { get; set; }
+        public int? RecyclerID { get; set; }
     }
 }
