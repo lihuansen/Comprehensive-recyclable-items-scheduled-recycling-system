@@ -1046,33 +1046,6 @@ select.form-control::-ms-expand {
             `;
                 }
 
-                // 修复日期格式化 - 确保正确处理日期字符串
-                let appointmentDate = '日期无效';
-                try {
-                    // 方法1: 直接使用字符串分割（最安全）
-                    if (order.AppointmentDate && typeof order.AppointmentDate === 'string') {
-                        const dateStr = order.AppointmentDate.split('T')[0]; // 处理 ISO 格式日期
-                        const [year, month, day] = dateStr.split('-');
-                        if (year && month && day) {
-                            appointmentDate = `${year}年${month}月${day}日`;
-                        }
-                    }
-                    // 方法2: 使用 Date 对象（备选方案）
-                    else if (order.AppointmentDate) {
-                        const date = new Date(order.AppointmentDate);
-                        if (!isNaN(date.getTime())) {
-                            appointmentDate = date.toLocaleDateString('zh-CN', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit'
-                            }).replace(/\//g, '年').replace(/\//g, '月') + '日';
-                        }
-                    }
-                } catch (error) {
-                    console.error('日期格式化错误:', error);
-                    appointmentDate = '日期格式错误';
-                }
-
                 const estimatedPrice = order.EstimatedPrice ? `¥${order.EstimatedPrice}` : '待评估';
                 const categoryNames = order.CategoryNames || '';
 
@@ -1094,7 +1067,7 @@ select.form-control::-ms-expand {
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">预约时间</span>
-                        <span class="detail-value">${appointmentDate} ${order.TimeSlot}</span>
+                        <span class="detail-value">${order.TimeSlot}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">预估重量</span>
