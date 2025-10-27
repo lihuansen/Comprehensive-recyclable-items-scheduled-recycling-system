@@ -181,7 +181,8 @@ namespace recycling.Web.UI.Controllers
                         isUrgent = orderDetail.Appointment.IsUrgent,
                         specialInstructions = orderDetail.Appointment.SpecialInstructions,
                         createdDate = orderDetail.Appointment.CreatedDate.ToString("yyyy年MM月dd日 HH:mm"),
-                        updatedDate = orderDetail.Appointment.UpdatedDate.ToString("yyyy年MM月dd日 HH:mm")
+                        updatedDate = orderDetail.Appointment.UpdatedDate.ToString("yyyy年MM月dd日 HH:mm"),
+                        recyclerID = orderDetail.Appointment.RecyclerID
                     },
                     categories = orderDetail.Categories.Select(c => new
                     {
