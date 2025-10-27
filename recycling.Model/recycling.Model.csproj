@@ -64,6 +64,7 @@
     <Compile Include="ForgotPasswordViewModel.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="Messages.cs" />
+    <Compile Include="OrderDetailModel.cs" />
     <Compile Include="OrderFilterModel.cs" />
     <Compile Include="PagedResult.cs" />
     <Compile Include="PhoneLoginViewModel.cs" />
