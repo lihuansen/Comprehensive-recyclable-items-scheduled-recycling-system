@@ -121,5 +121,33 @@ namespace recycling.BLL
                 return (false, $"标记失败：{ex.Message}");
             }
         }
+
+        /// <summary>
+        /// 获取订单详情
+        /// </summary>
+        public (OrderDetailModel Detail, string Message) GetOrderDetail(int appointmentId, int recyclerId)
+        {
+            if (appointmentId <= 0 || recyclerId <= 0)
+            {
+                return (null, "参数无效");
+            }
+
+            try
+            {
+                var detail = _recyclerOrderDAL.GetOrderDetail(appointmentId, recyclerId);
+
+                // 检查是否获取到数据
+                if (string.IsNullOrEmpty(detail.OrderNumber))
+                {
+                    return (null, "订单不存在或无权查看");
+                }
+
+                return (detail, "获取成功");
+            }
+            catch (Exception ex)
+            {
+                return (null, $"获取订单详情失败：{ex.Message}");
+            }
+        }
     }
 }
