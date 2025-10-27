@@ -219,7 +219,7 @@ namespace recycling.DAL
                 string sql = @"
                     SELECT 
                         COUNT(*) as Total,
-                        COUNT(CASE WHEN Status = '待确认' THEN 1 END) as Pending,
+                        COUNT(CASE WHEN Status = '已预约' THEN 1 END) as Pending,
                         COUNT(CASE WHEN Status = '进行中' THEN 1 END) as Confirmed,
                         COUNT(CASE WHEN Status = '已完成' THEN 1 END) as Completed,
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as Cancelled
@@ -257,7 +257,7 @@ namespace recycling.DAL
                         RecyclerID = @RecyclerID,
                         UpdatedDate = GETDATE()
                     WHERE AppointmentID = @AppointmentID 
-                      AND Status = '待确认'";
+                      AND Status = '已预约'";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
@@ -282,7 +282,7 @@ namespace recycling.DAL
                 string sql = @"
                     SELECT 
                         COUNT(*) as TotalOrders,
-                        COUNT(CASE WHEN Status = '待确认' THEN 1 END) as PendingOrders,
+                        COUNT(CASE WHEN Status = '已预约' THEN 1 END) as PendingOrders,
                         COUNT(CASE WHEN Status = '进行中' AND RecyclerID = @RecyclerID THEN 1 END) as ConfirmedOrders,
                         COUNT(CASE WHEN Status = '已完成' AND RecyclerID = @RecyclerID THEN 1 END) as CompletedOrders,
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as CancelledOrders
