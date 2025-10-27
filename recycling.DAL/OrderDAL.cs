@@ -62,7 +62,7 @@ WHERE a.UserID = @UserID";
                 if (status != "all")
                 {
                     // 映射状态名称：前端"已预约"对应数据库"待确认"
-                    string dbStatus = status == "pending" ? "待确认" :
+                    string dbStatus = status == "pending" ? "已预约" :
                                      status == "confirmed" ? "进行中" :
                                      status == "completed" ? "已完成" : "已取消";
                     cmd.Parameters.AddWithValue("@Status", dbStatus);
@@ -191,7 +191,7 @@ SET Status = '已取消',
     UpdatedDate = @UpdatedDate
 WHERE AppointmentID = @AppointmentID 
   AND UserID = @UserID 
-  AND Status = '待确认'"; // 只能取消待确认的订单
+  AND Status = '已预约'"; // 只能取消待确认的订单
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
