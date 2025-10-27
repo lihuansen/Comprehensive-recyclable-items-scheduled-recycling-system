@@ -44,113 +44,135 @@
         font-size: 14px;
         opacity: 0.9;
     }
-    /* 修复筛选控件样式 - 更详细的修复 */
-    .filter-section {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        margin-bottom: 30px;
+   /* 修复筛选控件样式 - 完整修复版本 */
+.filter-section {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    align-items: end;
+}
+
+.filter-group {
+    margin-bottom: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: all 0.3s ease;
+    font-size: 13px;
+    width: 100%;
+    box-sizing: border-box;
+    height: 42px;
+}
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
     }
 
+/* 选择框样式优化 - 修复版本 */
+select.form-control {
+    appearance: none; /* 移除默认样式 */
+    -webkit-appearance: none; /* Safari 和 Chrome */
+    -moz-appearance: none; /* Firefox */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* 针对不同浏览器的兼容性 */
+select.form-control::-ms-expand {
+    display: none; /* 隐藏 IE 的默认箭头 */
+}
+
+/* 修复 Firefox 的边框问题 */
+@@-moz-document url-prefix() {
+    select.form-control {
+        text-indent: 0.01px;
+        text-overflow: '';
+        padding-right: 35px;
+    }
+}
+
+/* 搜索按钮样式优化 */
+.btn-search {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    height: 42px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+/* 响应式调整 */
+@@media (max-width: 1200px) {
     .filter-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* 进一步增加最小宽度 */
-        gap: 20px;
-        align-items: end;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
+}
 
-    .filter-group {
-        margin-bottom: 0;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
+@@media (max-width: 768px) {
+    .filter-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
     }
 
     .filter-label {
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 8px;
-        display: block;
-        font-size: 13px; /* 进一步减小字体大小 */
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 1.2;
+        font-size: 12px;
     }
 
     .form-control {
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        padding: 10px 12px;
-        transition: all 0.3s ease;
-        font-size: 13px; /* 统一使用更小的字体 */
-        width: 100%;
-        box-sizing: border-box;
-        height: 42px; /* 固定高度 */
+        font-size: 12px;
+        padding: 8px 10px;
+        height: 38px;
     }
 
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-
-    /* 选择框样式优化 */
     select.form-control {
-        background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%23333' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        background-size: 10px;
         padding-right: 35px;
+        background-size: 14px;
     }
 
-    /* 搜索按钮样式优化 */
     .btn-search {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        height: 42px; /* 与其他输入框保持一致 */
-        font-size: 13px; /* 统一字体大小 */
-        white-space: nowrap;
+        height: 38px;
+        font-size: 12px;
     }
-
-        .btn-search:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-    /* 响应式调整 */
-    @@media (max-width: 1200px) {
-        .filter-row {
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        }
-    }
-
-    @@media (max-width: 768px) {
-        .filter-row {
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-
-        .filter-label {
-            font-size: 12px;
-        }
-
-        .form-control {
-            font-size: 12px;
-            padding: 8px 10px;
-            height: 38px;
-        }
-
-        .btn-search {
-            height: 38px;
-            font-size: 12px;
-        }
-    }
+}
 
     .orders-section {
         background: white;
