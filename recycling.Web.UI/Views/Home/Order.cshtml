@@ -573,6 +573,136 @@
             grid-template-columns: 1fr;
         }
     }
+    /* 订单详情模态框样式 - 修复版本 */
+    .modal {
+        z-index: 1050; /* 确保在导航栏之上 */
+    }
+
+    .modal-dialog {
+        margin: 80px auto; /* 为固定导航栏留出空间 */
+        max-width: 900px;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        border: none;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 20px 25px;
+        border-bottom: none;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-header .close {
+        color: white;
+        opacity: 0.8;
+        font-size: 28px;
+        margin: -10px -15px -10px auto;
+    }
+
+        .modal-header .close:hover {
+            opacity: 1;
+            color: white;
+        }
+
+    .modal-body {
+        padding: 25px;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .detail-section {
+        margin-bottom: 25px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #3498db;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 100px;
+    }
+
+    .detail-value {
+        color: #2c3e50;
+        text-align: right;
+        flex: 1;
+    }
+
+    .detail-text {
+        color: #6c757d;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .categories-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #e9ecef;
+        padding: 15px 25px;
+    }
+
+    /* 响应式调整 */
+    @@media (max-width: 768px) {
+        .modal-dialog {
+            margin: 60px 15px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .detail-section {
+            padding: 15px;
+        }
+
+        .detail-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+
+        .detail-value {
+            text-align: left;
+        }
+    }
 </style>
 
 <div class="order-container">
@@ -1147,21 +1277,25 @@
         // 渲染订单详情
         function renderOrderDetail(order, categories) {
             // 更新基本信息
-            document.getElementById('modalOrderNumber').textContent = order.number;
+            document.getElementById('modalOrderNumber').textContent = `订单详情 - ${order.number}`;
             document.getElementById('detailNumber').textContent = order.number;
             document.getElementById('detailType').textContent = order.type;
             document.getElementById('detailDateTime').textContent = `${order.date} ${order.timeSlot}`;
             document.getElementById('detailWeight').textContent = `${order.weight} 公斤`;
-            document.getElementById('detailPrice').textContent = `¥${order.price}`;
+            document.getElementById('detailPrice').textContent = order.price ? `¥${order.price}` : '待评估';
             document.getElementById('detailStatus').textContent = order.status;
             document.getElementById('detailUrgent').textContent = order.isUrgent ? '是' : '否';
+
+            // 更新联系信息
             document.getElementById('detailContactName').textContent = order.contactName;
             document.getElementById('detailContactPhone').textContent = order.contactPhone;
             document.getElementById('detailAddress').textContent = order.address;
+
+            // 更新时间信息
             document.getElementById('detailCreatedDate').textContent = order.createdDate;
             document.getElementById('detailUpdatedDate').textContent = order.updatedDate;
 
-            // 特殊要求
+            // 更新特殊要求
             const specialSection = document.getElementById('specialInstructionsSection');
             const specialInstructions = document.getElementById('detailSpecialInstructions');
             if (order.specialInstructions) {
@@ -1171,39 +1305,14 @@
                 specialSection.style.display = 'none';
             }
 
-            // 渲染品类详情
-            const categoryContainer = document.getElementById('categoryDetails');
+            // 更新回收品类
+            const categoriesContainer = document.getElementById('detailCategories');
             if (categories && categories.length > 0) {
-                let categoriesHTML = '';
-                categories.forEach(category => {
-                    categoriesHTML += `
-                        <div class="category-detail">
-                            <div class="category-name">${category.name}</div>
-                            <div class="question-answers">
-                    `;
-
-                    if (category.questionsAnswers && Object.keys(category.questionsAnswers).length > 0) {
-                        for (const [question, answer] of Object.entries(category.questionsAnswers)) {
-                            const questionText = getQuestionText(question, category.key);
-                            categoriesHTML += `
-                                <div class="question-answer">
-                                    <span class="question-text">${questionText}：</span>
-                                    <span class="answer-text">${getAnswerText(answer, question, category.key)}</span>
-                                </div>
-                            `;
-                        }
-                    } else {
-                        categoriesHTML += `<div class="question-answer"><span class="question-text">暂无详细问题信息</span></div>`;
-                    }
-
-                    categoriesHTML += `
-                            </div>
-                        </div>
-                    `;
-                });
-                categoryContainer.innerHTML = categoriesHTML;
+                categoriesContainer.innerHTML = categories.map(cat =>
+                    `<span class="category-tag">${cat}</span>`
+                ).join('');
             } else {
-                categoryContainer.innerHTML = '<p>暂无品类详情信息</p>';
+                categoriesContainer.innerHTML = '<span class="text-muted">暂无品类信息</span>';
             }
         }
 
