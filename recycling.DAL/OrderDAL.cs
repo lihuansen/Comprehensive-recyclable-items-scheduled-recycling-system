@@ -109,12 +109,15 @@ WHERE a.UserID = @UserID";
                 string sql = @"
 SELECT 
     a.*,
+    r.Username as RecyclerName, -- 回收员姓名
+    r.RecyclerID, -- 回收员ID
     ac.CategoryID,
     ac.CategoryName,
     ac.CategoryKey,
     ac.QuestionsAnswers,
     ac.CreatedDate as CategoryCreatedDate
 FROM Appointments a
+LEFT JOIN Recyclers r ON a.RecyclerID = r.RecyclerID -- 关联回收员表
 LEFT JOIN AppointmentCategories ac ON a.AppointmentID = ac.AppointmentID
 WHERE a.AppointmentID = @AppointmentID AND a.UserID = @UserID
 ORDER BY ac.CategoryID";
@@ -151,7 +154,8 @@ ORDER BY ac.CategoryID";
                                     EstimatedPrice = reader["EstimatedPrice"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["EstimatedPrice"]),
                                     Status = reader["Status"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                                    UpdatedDate = Convert.ToDateTime(reader["UpdatedDate"])
+                                    UpdatedDate = Convert.ToDateTime(reader["UpdatedDate"]),
+                                    RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"])
                                 },
                                 Categories = categories
                             };
