@@ -136,9 +136,9 @@ namespace recycling.DAL
                             {
                                 AppointmentID = Convert.ToInt32(reader["AppointmentID"]),
                                 OrderNumber = $"AP{Convert.ToInt32(reader["AppointmentID"]):D6}",
-                                AppointmentType = reader["AppointmentType"].ToString(),
+                                AppointmentType = GetAppointmentTypeChinese(reader["AppointmentType"].ToString()),
                                 AppointmentDate = Convert.ToDateTime(reader["AppointmentDate"]),
-                                TimeSlot = reader["TimeSlot"].ToString(),
+                                TimeSlot = GetTimeSlotChinese(reader["TimeSlot"].ToString()),
                                 EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
                                 EstimatedPrice = reader["EstimatedPrice"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["EstimatedPrice"]),
                                 IsUrgent = Convert.ToBoolean(reader["IsUrgent"]),
@@ -158,6 +158,43 @@ namespace recycling.DAL
             }
 
             return result;
+        }
+
+        // 在 RecyclerOrderDAL 类中添加这两个辅助方法
+        /// <summary>
+        /// 获取预约类型的中文显示
+        /// </summary>
+        private string GetAppointmentTypeChinese(string appointmentType)
+        {
+            switch (appointmentType?.ToLower())
+            {
+                case "household":
+                    return "家庭回收";
+                case "enterprise":
+                    return "企业回收";
+                default:
+                    return appointmentType;
+            }
+        }
+
+        /// <summary>
+        /// 获取时间段的中文显示
+        /// </summary>
+        private string GetTimeSlotChinese(string timeSlot)
+        {
+            switch (timeSlot?.ToLower())
+            {
+                case "morning":
+                    return "上午 (9:00-12:00)";
+                case "afternoon":
+                    return "下午 (13:00-17:00)";
+                case "evening":
+                    return "晚上 (18:00-21:00)";
+                case "all day":
+                    return "全天 (9:00-21:00)";
+                default:
+                    return timeSlot;
+            }
         }
 
         /// <summary>
