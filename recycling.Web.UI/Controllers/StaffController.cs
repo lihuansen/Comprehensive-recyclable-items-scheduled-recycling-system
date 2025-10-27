@@ -363,28 +363,17 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "请先登录" });
                 }
 
-                // 这里需要根据您的数据库结构实现获取订单详情的逻辑
-                // 暂时返回模拟数据
-                var orderDetail = new
-                {
-                    OrderNumber = $"AP{appointmentId:D6}",
-                    AppointmentType = "上门回收",
-                    AppointmentDate = DateTime.Now.ToString("yyyy-MM-dd"),
-                    TimeSlot = "上午 (9:00-12:00)",
-                    EstimatedWeight = 5.5m,
-                    EstimatedPrice = 25.80m,
-                    IsUrgent = true,
-                    Address = "北京市朝阳区xxx街道xxx号",
-                    ContactName = "张三",
-                    ContactPhone = "13800138000",
-                    Status = "进行中",
-                    CreatedDate = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd HH:mm"),
-                    UpdatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-                    SpecialInstructions = "请在上门前电话联系",
-                    CategoryNames = "纸类, 塑料, 玻璃"
-                };
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var result = _recyclerOrderBLL.GetOrderDetail(appointmentId, recycler.RecyclerID);
 
-                return Json(new { success = true, data = orderDetail });
+                if (result.Detail != null)
+                {
+                    return Json(new { success = true, data = result.Detail });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.Message });
+                }
             }
             catch (Exception ex)
             {
