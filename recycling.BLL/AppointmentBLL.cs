@@ -37,7 +37,7 @@ namespace recycling.BLL
                     ContactPhone = submission.BasicInfo.ContactPhone,
                     SpecialInstructions = submission.BasicInfo.SpecialRequirements,
                     EstimatedPrice = submission.FinalPrice,
-                    Status = "待确认",
+                    Status = "已预约",
                     CreatedDate = DateTime.Now,
                     UpdatedDate = DateTime.Now
                 };
