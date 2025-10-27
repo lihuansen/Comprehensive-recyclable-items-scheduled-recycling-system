@@ -752,12 +752,12 @@
 
             if (!data || !data.Items || data.Items.length === 0) {
                 ordersContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-clipboard-list"></i>
-                        <h3>暂无订单数据</h3>
-                        <p>当前筛选条件下没有找到符合条件的订单</p>
-                    </div>
-                `;
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>暂无订单数据</h3>
+                <p>当前筛选条件下没有找到符合条件的订单</p>
+            </div>
+        `;
                 return;
             }
 
@@ -773,34 +773,23 @@
 
                 if (order.Status === '待确认') {
                     actionButtons = `
-                        <div class="order-actions">
-                            <button class="btn-action success" onclick="acceptOrder(${order.AppointmentID})">
-                                <i class="fas fa-check"></i>接收订单
-                            </button>
-                            <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
-                                <i class="fas fa-eye"></i>查看详情
-                            </button>
-                        </div>
-                    `;
-                } else if (order.Status === '进行中') {
-                    actionButtons = `
-                        <div class="order-actions">
-                            <button class="btn-action warning" onclick="openConversationModal(${order.AppointmentID}, '${order.OrderNumber}')">
-                                <i class="fas fa-comments"></i>联系用户
-                            </button>
-                            <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
-                                <i class="fas fa-eye"></i>查看详情
-                            </button>
-                        </div>
-                    `;
+                <div class="order-actions">
+                    <button class="btn-action success" onclick="acceptOrder(${order.AppointmentID})">
+                        <i class="fas fa-check"></i>接收订单
+                    </button>
+                    <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
+                        <i class="fas fa-eye"></i>查看详情
+                    </button>
+                </div>
+            `;
                 } else {
                     actionButtons = `
-                        <div class="order-actions">
-                            <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
-                                <i class="fas fa-eye"></i>查看详情
-                            </button>
-                        </div>
-                    `;
+                <div class="order-actions">
+                    <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
+                        <i class="fas fa-eye"></i>查看详情
+                    </button>
+                </div>
+            `;
                 }
 
                 // 格式化日期
@@ -809,52 +798,52 @@
                 const categoryNames = order.CategoryNames || '';
 
                 ordersHTML += `
-                    <div class="order-item ${urgentClass}" data-order-id="${order.AppointmentID}">
-                        <div class="order-header">
-                            <div class="order-number">
-                                ${order.OrderNumber} ${urgentBadge}
-                            </div>
-                            <div class="order-status status-${order.Status.toLowerCase().replace(' ', '-')}">
-                                ${order.Status}
-                            </div>
-                        </div>
-
-                        <div class="order-details">
-                            <div class="detail-item">
-                                <span class="detail-label">预约类型</span>
-                                <span class="detail-value">${order.AppointmentType}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">预约时间</span>
-                                <span class="detail-value">${appointmentDate} ${order.TimeSlot}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">预估重量</span>
-                                <span class="detail-value">${order.EstimatedWeight} 公斤</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">预估价格</span>
-                                <span class="detail-value">${estimatedPrice}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">联系人</span>
-                                <span class="detail-value">${order.ContactName}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">联系电话</span>
-                                <span class="detail-value">${order.ContactPhone}</span>
-                            </div>
-                        </div>
-
-                        ${categoryNames ? `
-                        <div class="order-categories">
-                            ${categoryNames.split(', ').map(cat => `<span class="category-tag">${cat}</span>`).join('')}
-                        </div>
-                        ` : ''}
-
-                        ${actionButtons}
+            <div class="order-item ${urgentClass}" data-order-id="${order.AppointmentID}">
+                <div class="order-header">
+                    <div class="order-number">
+                        ${order.OrderNumber} ${urgentBadge}
                     </div>
-                `;
+                    <div class="order-status status-${order.Status.toLowerCase().replace(' ', '-')}">
+                        ${order.Status}
+                    </div>
+                </div>
+
+                <div class="order-details">
+                    <div class="detail-item">
+                        <span class="detail-label">预约类型</span>
+                        <span class="detail-value">${order.AppointmentType}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">预约时间</span>
+                        <span class="detail-value">${appointmentDate} ${order.TimeSlot}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">预估重量</span>
+                        <span class="detail-value">${order.EstimatedWeight} 公斤</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">预估价格</span>
+                        <span class="detail-value">${estimatedPrice}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">联系人</span>
+                        <span class="detail-value">${order.ContactName}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">联系电话</span>
+                        <span class="detail-value">${order.ContactPhone}</span>
+                    </div>
+                </div>
+
+                ${categoryNames ? `
+                <div class="order-categories">
+                    ${categoryNames.split(', ').map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+                </div>
+                ` : ''}
+
+                ${actionButtons}
+            </div>
+        `;
             });
 
             ordersHTML += '</div>';
