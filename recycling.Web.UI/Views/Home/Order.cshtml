@@ -331,146 +331,6 @@
         margin: 0 auto 20px;
     }
 
-    /* 订单详情模态框样式 */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-    }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-    .modal-content {
-        background: white;
-        border-radius: 15px;
-        padding: 30px;
-        max-width: 800px;
-        width: 90%;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        animation: modalSlideIn 0.3s ease;
-    }
-
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #ecf0f1;
-    }
-
-    .modal-title {
-        font-size: 24px;
-        font-weight: bold;
-        color: #2c3e50;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .modal-close {
-        background: none;
-        border: none;
-        font-size: 24px;
-        color: #7f8c8d;
-        cursor: pointer;
-        padding: 5px;
-        border-radius: 5px;
-        transition: all 0.3s ease;
-    }
-
-        .modal-close:hover {
-            background: #f8f9fa;
-            color: #e74c3c;
-        }
-
-    .detail-section {
-        margin-bottom: 25px;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
-    }
-
-    .section-title {
-        font-size: 18px;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .detail-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
-    }
-
-    .detail-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #e9ecef;
-    }
-
-    .detail-label-large {
-        font-weight: 600;
-        color: #495057;
-    }
-
-    .detail-value-large {
-        color: #2c3e50;
-        text-align: right;
-    }
-
-    .category-detail {
-        background: white;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 4px solid #3498db;
-    }
-
-    .category-name {
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
-
-    .question-answers {
-        display: grid;
-        gap: 10px;
-    }
-
-    .question-answer {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px dashed #e9ecef;
-    }
-
-    .question-text {
-        color: #6c757d;
-        font-size: 14px;
-    }
-
-    .answer-text {
-        font-weight: 600;
-        color: #2c3e50;
-    }
-
     /* 消息提示 */
     .alert-message {
         padding: 12px 16px;
@@ -516,18 +376,6 @@
         }
     }
 
-    @@keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-50px) scale(0.9);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
     /* 响应式设计 */
     @@media (max-width: 768px) {
         .order-container {
@@ -562,145 +410,6 @@
 
         .btn-action {
             justify-content: center;
-        }
-
-        .modal-content {
-            padding: 20px;
-            margin: 20px;
-        }
-
-        .detail-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    /* 订单详情模态框样式 - 修复版本 */
-    .modal {
-        z-index: 1050; /* 确保在导航栏之上 */
-    }
-
-    .modal-dialog {
-        margin: 80px auto; /* 为固定导航栏留出空间 */
-        max-width: 900px;
-    }
-
-    .modal-content {
-        border-radius: 15px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        border: none;
-    }
-
-    .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px 15px 0 0;
-        padding: 20px 25px;
-        border-bottom: none;
-    }
-
-    .modal-title {
-        font-size: 20px;
-        font-weight: bold;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .modal-header .close {
-        color: white;
-        opacity: 0.8;
-        font-size: 28px;
-        margin: -10px -15px -10px auto;
-    }
-
-        .modal-header .close:hover {
-            opacity: 1;
-            color: white;
-        }
-
-    .modal-body {
-        padding: 25px;
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-
-    .detail-section {
-        margin-bottom: 25px;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        border-left: 4px solid #3498db;
-    }
-
-    .section-title {
-        font-size: 16px;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .detail-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid #e9ecef;
-    }
-
-    .detail-label {
-        font-weight: 600;
-        color: #495057;
-        min-width: 100px;
-    }
-
-    .detail-value {
-        color: #2c3e50;
-        text-align: right;
-        flex: 1;
-    }
-
-    .detail-text {
-        color: #6c757d;
-        line-height: 1.6;
-        margin: 0;
-    }
-
-    .categories-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .modal-footer {
-        border-top: 1px solid #e9ecef;
-        padding: 15px 25px;
-    }
-
-    /* 响应式调整 */
-    @@media (max-width: 768px) {
-        .modal-dialog {
-            margin: 60px 15px;
-        }
-
-        .modal-body {
-            padding: 20px;
-        }
-
-        .detail-section {
-            padding: 15px;
-        }
-
-        .detail-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 5px;
-        }
-
-        .detail-value {
-            text-align: left;
         }
     }
 </style>
@@ -925,22 +634,6 @@
                 });
             });
 
-            // 模态框控制
-            const modal = document.getElementById('orderDetailModal');
-            const closeModal = document.getElementById('closeModal');
-            const modalLoading = document.getElementById('modalLoading');
-            const modalContent = document.getElementById('modalContent');
-
-            closeModal.addEventListener('click', function () {
-                modal.classList.remove('active');
-            });
-
-            modal.addEventListener('click', function (e) {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                }
-            });
-
             // 显示消息提示
             function showAlert(message, type) {
                 const alertContainer = document.getElementById('alertContainer');
@@ -983,11 +676,6 @@
                 loadOrdersByStatus(status);
             }
 
-            // 切换到已取消标签页
-            function switchToCancelledTab() {
-                switchToTab('cancelled');
-            }
-
             // 加载订单数据的函数
             function loadOrdersByStatus(status) {
                 console.log(`加载 ${status} 状态的订单数据`);
@@ -1011,12 +699,18 @@
                     },
                     body: JSON.stringify({ status: status })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应不正常');
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('API响应:', data);
                     if (data.success) {
                         renderOrders(currentSection, data.orders, status);
                     } else {
-                        showError(currentSection, data.message);
+                        showError(currentSection, data.message || '加载订单失败');
                     }
                 })
                 .catch(error => {
@@ -1027,7 +721,7 @@
 
             // 渲染订单列表
             function renderOrders(container, orders, status) {
-                if (orders.length === 0) {
+                if (!orders || orders.length === 0) {
                     let emptyMessage = '';
                     let emptyIcon = 'fas fa-clipboard-list';
 
@@ -1130,7 +824,7 @@
                                 </div>
                             </div>
 
-                            ${order.categories.length > 0 ? `
+                            ${order.categories && order.categories.length > 0 ? `
                             <div class="order-categories">
                                 ${order.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
                             </div>
@@ -1152,7 +846,7 @@
                         <i class="fas fa-exclamation-triangle"></i>
                         <h3>加载失败</h3>
                         <p>${message}</p>
-                        <button class="btn-new-appointment" onclick="loadOrdersByStatus('all')">
+                        <button class="btn-action primary" onclick="loadOrdersByStatus('all')">
                             <i class="fas fa-redo"></i>重新加载
                         </button>
                     </div>
@@ -1187,9 +881,8 @@
             .then(data => {
                 if (data.success) {
                     showAlert('订单取消成功', 'success');
-
-                    // 自动切换到"已取消"标签页
-                    switchToCancelledTab();
+                    // 重新加载当前页面
+                    location.reload();
                 } else {
                     showAlert('取消失败：' + data.message, 'error');
                     cancelBtn.innerHTML = originalText;
@@ -1204,28 +897,6 @@
             });
         }
 
-        // 切换到已取消标签页
-        function switchToCancelledTab() {
-            const cancelledTab = document.querySelector('.status-tab[data-status="cancelled"]');
-            const allTabs = document.querySelectorAll('.status-tab');
-            const allSections = document.querySelectorAll('.order-section');
-
-            // 更新标签状态
-            allTabs.forEach(tab => tab.classList.remove('active'));
-            cancelledTab.classList.add('active');
-
-            // 更新内容显示
-            allSections.forEach(section => {
-                section.classList.remove('active');
-                if (section.id === 'cancelled-orders') {
-                    section.classList.add('active');
-                }
-            });
-
-            // 加载已取消订单数据
-            loadOrdersByStatus('cancelled');
-        }
-
         // 再预约一单功能
         function reAppointment(orderId) {
             if (confirm('确定要重新预约此订单吗？我们将为您跳转到预约页面。')) {
@@ -1235,18 +906,14 @@
 
         // 查看订单详情
         function viewOrderDetail(orderId) {
-            const modal = document.getElementById('orderDetailModal');
-            const modalLoading = document.getElementById('modalLoading');
-            const modalContent = document.getElementById('modalContent');
-            const modalOrderNumber = document.getElementById('modalOrderNumber');
+            const modal = $('#orderDetailModal');
+            const loading = document.getElementById('modalLoading');
+            const content = document.getElementById('modalContent');
 
-            // 显示模态框和加载状态
-            modal.classList.add('active');
-            modalLoading.style.display = 'block';
-            modalContent.style.display = 'none';
-            modalOrderNumber.textContent = '订单详情';
+            // 显示加载状态
+            loading.style.display = 'block';
+            content.style.display = 'none';
 
-            // 加载订单详情
             fetch('@Url.Action("GetOrderDetail", "Home")', {
                 method: 'POST',
                 headers: {
@@ -1257,20 +924,19 @@
             })
             .then(response => response.json())
             .then(data => {
-                modalLoading.style.display = 'none';
+                loading.style.display = 'none';
 
                 if (data.success) {
                     renderOrderDetail(data.order, data.categories);
-                    modalContent.style.display = 'block';
+                    content.style.display = 'block';
+                    modal.modal('show');
                 } else {
                     alert('加载订单详情失败：' + data.message);
-                    modal.classList.remove('active');
                 }
             })
             .catch(error => {
-                modalLoading.style.display = 'none';
-                alert('网络错误：' + error.message);
-                modal.classList.remove('active');
+                loading.style.display = 'none';
+                alert('加载失败：' + error.message);
             });
         }
 
@@ -1305,73 +971,51 @@
                 specialSection.style.display = 'none';
             }
 
-            // 更新回收品类
+            // 修复品类显示 - 处理不同的数据格式
             const categoriesContainer = document.getElementById('detailCategories');
-            if (categories && categories.length > 0) {
-                categoriesContainer.innerHTML = categories.map(cat =>
-                    `<span class="category-tag">${cat}</span>`
-                ).join('');
+            categoriesContainer.innerHTML = ''; // 清空容器
+
+            if (categories) {
+                console.log('原始品类数据:', categories); // 调试信息
+
+                let categoryTags = '';
+
+                // 情况1: categories 是字符串数组
+                if (Array.isArray(categories) && categories.length > 0) {
+                    categoryTags = categories.map(cat => {
+                        if (typeof cat === 'string') {
+                            return `<span class="category-tag">${cat}</span>`;
+                        } else if (cat && cat.name) {
+                            // 情况2: categories 是对象数组，有 name 属性
+                            return `<span class="category-tag">${cat.name}</span>`;
+                        } else {
+                            // 情况3: 其他格式，尝试转换为字符串
+                            return `<span class="category-tag">${String(cat)}</span>`;
+                        }
+                    }).join('');
+                }
+                // 情况4: categories 是逗号分隔的字符串
+                else if (typeof categories === 'string' && categories.trim() !== '') {
+                    const categoryArray = categories.split(',').map(cat => cat.trim()).filter(cat => cat !== '');
+                    categoryTags = categoryArray.map(cat => `<span class="category-tag">${cat}</span>`).join('');
+                }
+                // 情况5: categories 是单个对象
+                else if (categories && typeof categories === 'object' && categories.name) {
+                    categoryTags = `<span class="category-tag">${categories.name}</span>`;
+                }
+                // 情况6: 从 order 对象中获取品类信息
+                else if (order.categoryNames) {
+                    const categoryArray = order.categoryNames.split(',').map(cat => cat.trim()).filter(cat => cat !== '');
+                    categoryTags = categoryArray.map(cat => `<span class="category-tag">${cat}</span>`).join('');
+                }
+                else {
+                    categoryTags = '<span class="text-muted">暂无品类信息</span>';
+                }
+
+                categoriesContainer.innerHTML = categoryTags;
             } else {
                 categoriesContainer.innerHTML = '<span class="text-muted">暂无品类信息</span>';
             }
-        }
-
-        // 获取问题显示文本（根据问题ID映射）
-        function getQuestionText(questionId, categoryKey) {
-            const questionMap = {
-                'glass_condition': '玻璃瓶子是否完整',
-                'glass_type': '玻璃类型',
-                'glass_clean': '是否清洁干净',
-                'metal_type': '金属类型',
-                'metal_condition': '金属状况',
-                'metal_clean': '是否清洁',
-                'plastic_type': '塑料类型',
-                'plastic_clean': '是否清洁',
-                'plastic_color': '塑料颜色',
-                'paper_type': '纸张类型',
-                'paper_condition': '纸张状况',
-                'paper_clean': '是否干净',
-                'fabric_type': '纺织品类型',
-                'fabric_condition': '纺织品状况',
-                'fabric_clean': '是否清洁'
-            };
-            return questionMap[questionId] || questionId;
-        }
-
-        // 获取答案显示文本（根据答案值映射）
-        function getAnswerText(answerValue, questionId, categoryKey) {
-            const answerMap = {
-                'complete': '完整',
-                'broken': '有破损',
-                'bottle': '瓶子',
-                'window': '窗户玻璃',
-                'other': '其他',
-                'clean': '是',
-                'dirty': '否',
-                'iron': '铁制品',
-                'aluminum': '铝制品',
-                'copper': '铜制品',
-                'mixed': '混合金属',
-                'good': '状况良好',
-                'rusty': '有锈迹',
-                'pet': 'PET（饮料瓶）',
-                'hdpe': 'HDPE（洗发水瓶）',
-                'pvc': 'PVC（管道）',
-                'transparent': '透明',
-                'colored': '有色',
-                'newspaper': '报纸',
-                'cardboard': '纸板箱',
-                'office': '办公用纸',
-                'dry': '干燥',
-                'damp': '潮湿',
-                'soiled': '污染',
-                'cotton': '棉织品',
-                'wool': '毛织品',
-                'synthetic': '化纤',
-                'worn': '有磨损',
-                'damaged': '破损'
-            };
-            return answerMap[answerValue] || answerValue;
         }
     </script>
 }
