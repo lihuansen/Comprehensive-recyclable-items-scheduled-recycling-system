@@ -44,7 +44,7 @@
         font-size: 14px;
         opacity: 0.9;
     }
-    /* 修复筛选控件样式 */
+    /* 修复筛选控件样式 - 更详细的修复 */
     .filter-section {
         background: white;
         padding: 25px;
@@ -55,14 +55,16 @@
 
     .filter-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* 增加最小宽度 */
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* 进一步增加最小宽度 */
         gap: 20px;
         align-items: end;
     }
 
     .filter-group {
         margin-bottom: 0;
-        min-width: 0; /* 防止内容溢出 */
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
     }
 
     .filter-label {
@@ -70,20 +72,22 @@
         color: #333;
         margin-bottom: 8px;
         display: block;
-        font-size: 14px; /* 减小字体大小 */
+        font-size: 13px; /* 进一步减小字体大小 */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1.2;
     }
 
     .form-control {
         border: 2px solid #e9ecef;
         border-radius: 8px;
-        padding: 10px 12px; /* 调整内边距 */
+        padding: 10px 12px;
         transition: all 0.3s ease;
-        font-size: 14px; /* 统一字体大小 */
+        font-size: 13px; /* 统一使用更小的字体 */
         width: 100%;
         box-sizing: border-box;
+        height: 42px; /* 固定高度 */
     }
 
         .form-control:focus {
@@ -93,15 +97,39 @@
 
     /* 选择框样式优化 */
     select.form-control {
-        appearance: none;
         background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%23333' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
         background-repeat: no-repeat;
         background-position: right 12px center;
-        background-size: 12px;
+        background-size: 10px;
         padding-right: 35px;
     }
 
+    /* 搜索按钮样式优化 */
+    .btn-search {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        height: 42px; /* 与其他输入框保持一致 */
+        font-size: 13px; /* 统一字体大小 */
+        white-space: nowrap;
+    }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
     /* 响应式调整 */
+    @@media (max-width: 1200px) {
+        .filter-row {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+    }
+
     @@media (max-width: 768px) {
         .filter-row {
             grid-template-columns: 1fr;
@@ -109,30 +137,20 @@
         }
 
         .filter-label {
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .form-control {
-            font-size: 13px;
+            font-size: 12px;
             padding: 8px 10px;
+            height: 38px;
+        }
+
+        .btn-search {
+            height: 38px;
+            font-size: 12px;
         }
     }
-
-    .btn-search {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 10px 25px;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        height: 46px;
-    }
-
-        .btn-search:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
 
     .orders-section {
         background: white;
