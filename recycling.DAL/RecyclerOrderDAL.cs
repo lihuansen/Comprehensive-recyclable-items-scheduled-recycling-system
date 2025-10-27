@@ -166,7 +166,12 @@ namespace recycling.DAL
         /// </summary>
         private string GetAppointmentTypeChinese(string appointmentType)
         {
-            switch (appointmentType?.ToLower())
+            if (string.IsNullOrEmpty(appointmentType))
+                return appointmentType;
+
+            var cleanAppointmentType = appointmentType.Trim().ToLower();
+
+            switch (cleanAppointmentType)
             {
                 case "household":
                     return "家庭回收";
@@ -182,7 +187,12 @@ namespace recycling.DAL
         /// </summary>
         private string GetTimeSlotChinese(string timeSlot)
         {
-            switch (timeSlot?.ToLower())
+            if (string.IsNullOrEmpty(timeSlot))
+                return timeSlot;
+
+            var cleanTimeSlot = timeSlot.Trim().ToLower().Replace(" ", "");
+
+            switch (cleanTimeSlot)
             {
                 case "morning":
                     return "上午 (9:00-12:00)";
@@ -190,7 +200,8 @@ namespace recycling.DAL
                     return "下午 (13:00-17:00)";
                 case "evening":
                     return "晚上 (18:00-21:00)";
-                case "all day":
+                case "all_day":
+                case "allday":
                     return "全天 (9:00-21:00)";
                 default:
                     return timeSlot;
