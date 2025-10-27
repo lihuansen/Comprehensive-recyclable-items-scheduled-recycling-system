@@ -1205,47 +1205,41 @@ select.form-control::-ms-expand {
             });
         }
 
-        // 查看订单详情
-        function viewOrderDetail(appointmentId) {
-            // 这里可以跳转到订单详情页面或打开模态框
-            alert('查看订单详情功能：' + appointmentId);
-        }
+           // 查看订单详情
+    function viewOrderDetail(appointmentId) {
+        const modal = $('#orderDetailModal');
+        const loading = document.getElementById('detailLoading');
+        const content = document.getElementById('detailContent');
 
-        // 查看订单详情
-function viewOrderDetail(appointmentId) {
-    const modal = $('#orderDetailModal');
-    const loading = document.getElementById('detailLoading');
-    const content = document.getElementById('detailContent');
+        // 显示加载状态
+        loading.style.display = 'block';
+        content.style.display = 'none';
 
-    // 显示加载状态
-    loading.style.display = 'block';
-    content.style.display = 'none';
+        fetch('@Url.Action("GetOrderDetail", "Staff")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ appointmentId: appointmentId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
 
-    fetch('@Url.Action("GetOrderDetail", "Staff")', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({ appointmentId: appointmentId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        loading.style.display = 'none';
-
-        if (data.success) {
-            renderOrderDetail(data.data);
-            content.style.display = 'block';
-            modal.modal('show');
-        } else {
-            alert('加载订单详情失败：' + data.message);
-        }
-    })
-    .catch(error => {
-        loading.style.display = 'none';
-        alert('加载失败：' + error.message);
-    });
-}
+            if (data.success) {
+                renderOrderDetail(data.data);
+                content.style.display = 'block';
+                modal.modal('show');
+            } else {
+                alert('加载订单详情失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            alert('加载失败：' + error.message);
+        });
+    }
 
 // 渲染订单详情
 function renderOrderDetail(order) {
