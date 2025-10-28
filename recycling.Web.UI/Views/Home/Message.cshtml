@@ -1,7 +1,107 @@
-﻿
-@{
-    ViewBag.Title = "Message";
-}
+﻿@model List<recycling.Model.RecyclerMessageViewModel>
 
-<h2>Message</h2>
+<!-- 引入与回收员消息中心相同的样式表 -->
+<link href="~/Content/CSS/message-center.css" rel="stylesheet" />
 
+<!-- 聊天入口列表（与回收员端样式一致） -->
+<div class="message-center-container">
+    <div class="chat-list">
+        @foreach (var msgGroup in Model.GroupBy(m => m.OrderID))
+        {
+            var latestMsg = msgGroup.OrderByDescending(m => m.SentTime).First();
+            <div class="chat-item" data-order-id="@latestMsg.OrderID">
+                <div class="chat-item-header">
+                    <h5>订单 @latestMsg.OrderNumber</h5>
+                    <span class="chat-time">@latestMsg.DisplayTime</span>
+                </div>
+                <div class="chat-content">
+                    <p>@latestMsg.SenderName：@latestMsg.Content</p>
+                </div>
+                @if (msgGroup.Any(m => !m.IsRead && m.SenderType == "recycler"))
+                {
+                    <span class="unread-dot"></span>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- 聊天窗口（与回收员端样式完全一致） -->
+    <div class="chat-window">
+        <div class="chat-window-header">
+            <button class="back-btn" onclick="hideChatWindow()">←</button>
+            <h4>订单 <span id="currentOrderNumber"></span> 聊天</h4>
+        </div>
+        <div class="chat-messages" id="messageContainer">
+            <!-- 消息列表通过AJAX加载 -->
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="messageContent" placeholder="输入消息...">
+            <button class="send-btn" onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 复用回收员端的聊天交互逻辑（仅修改接口地址）
+    function loadConversation(orderId) {
+        $.post("/Home/GetUserOrderConversation", { orderId: orderId }, function (res) {
+            if (res.success) {
+                var container = $("#messageContainer");
+                container.empty();
+                res.data.forEach(msg => {
+                    var isMe = msg.SenderType === "user";
+                    container.append(`
+                        <div class="message-item ${isMe ? 'sent' : 'received'}">
+                            <div class="message-avatar">${msg.SenderName.charAt(0)}</div>
+                            <div class="message-bubble">
+                                <div class="message-content">${msg.Content}</div>
+                                <div class="message-time">${msg.DisplayTime}</div>
+                            </div>
+                        </div>
+                    `);
+                });
+                container.scrollTop(container[0].scrollHeight);
+                // 标记未读消息为已读
+                markMessagesAsRead(orderId);
+            }
+        });
+    }
+
+    function sendMessage() {
+        var orderId = $("#currentOrderNumber").data("order-id");
+        var content = $("#messageContent").val().trim();
+        if (!content) return;
+
+        $.post("/Home/UserSendMessageToRecycler", {
+            OrderID: orderId,
+            Content: content
+        }, function (res) {
+            if (res.success) {
+                $("#messageContent").val("");
+                loadConversation(orderId);
+            } else {
+                alert(res.message);
+            }
+        });
+    }
+
+    // 标记消息为已读
+    function markMessagesAsRead(orderId) {
+        $.post("/Home/MarkUserMessagesAsRead", { orderId: orderId }, function (res) {
+            // 无需前端处理，仅后台更新状态
+        });
+    }
+
+    // 点击订单打开聊天窗口
+    $(".chat-item").click(function () {
+        var orderId = $(this).data("order-id");
+        var orderNumber = $(this).find("h5").text().split(" ")[1];
+        $("#currentOrderNumber").text(orderNumber).data("order-id", orderId);
+        $(".chat-window").show();
+        loadConversation(orderId);
+    });
+
+    function hideChatWindow() {
+        $(".chat-window").hide();
+    }
+</script>
