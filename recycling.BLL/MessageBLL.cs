@@ -75,5 +75,38 @@ namespace recycling.BLL
 
             return _messageDAL.MarkMessagesAsRead(orderId, readerType, readerId);
         }
+
+        /// <summary>
+        /// 获取用户的消息列表
+        /// </summary>
+        public List<RecyclerMessageViewModel> GetUserMessages(int userId, int pageIndex = 1, int pageSize = 20)
+        {
+            if (userId <= 0)
+            {
+                return new List<RecyclerMessageViewModel>();
+            }
+            if (pageIndex < 1) pageIndex = 1;
+            if (pageSize < 1) pageSize = 20;
+
+            return _messageDAL.GetUserMessages(userId, pageIndex, pageSize);
+        }
+
+        /// <summary>
+        /// 用户发送消息给回收员
+        /// </summary>
+        /*public (bool Success, string Message) UserSendMessage(SendMessageRequest request)
+        {
+            // 校验订单状态为“进行中”（避免向非活跃订单发消息）
+            var orderDAL = new OrderDAL();
+            var order = orderDAL.GetOrderById(request.OrderID);
+            if (order == null || order.Status != "进行中")
+            {
+                return (false, "仅可对进行中的订单发送消息");
+            }
+
+            // 复用现有发送逻辑，指定发送者类型为"user"
+            request.SenderType = "user";
+            return SendMessage(request); // 调用已有SendMessage方法
+        }*/
     }
 }
