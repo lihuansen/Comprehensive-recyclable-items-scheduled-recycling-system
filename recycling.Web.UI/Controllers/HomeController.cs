@@ -440,5 +440,67 @@ namespace recycling.Web.UI.Controllers
                           Session["LoginStaff"] != null ? "staff" : "none"
             });
         }
+
+        /// <summary>
+        /// 用户消息中心页面（显示所有进行中订单的聊天入口）
+        /// </summary>
+        public ActionResult UserMessageCenter()
+        {
+            if (Session["LoginUser"] == null)
+                return RedirectToAction("Login", "Home");
+
+            var user = (Users)Session["LoginUser"];
+            ViewBag.UserName = user.Username;
+
+            // 获取用户的进行中订单及最新消息
+            var messageBLL = new MessageBLL();
+            var messages = messageBLL.GetUserMessages(user.UserID);
+            return View(messages);
+        }
+
+        /// <summary>
+        /// 获取订单聊天记录（用户端，AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetUserOrderConversation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var messageBLL = new MessageBLL();
+                var messages = messageBLL.GetOrderMessages(orderId); // 复用现有获取订单消息方法
+                return Json(new { success = true, data = messages });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 用户发送消息给回收员（AJAX）
+        /// </summary>
+        /*[HttpPost]
+        public JsonResult UserSendMessageToRecycler(SendMessageRequest request)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+                request.SenderID = user.UserID;
+
+                var messageBLL = new MessageBLL();
+                var result = messageBLL.UserSendMessage(request);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"发送失败：{ex.Message}" });
+            }
+        }*/
     }
 }
