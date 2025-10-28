@@ -94,19 +94,54 @@ namespace recycling.BLL
         /// <summary>
         /// 用户发送消息给回收员
         /// </summary>
-        /*public (bool Success, string Message) UserSendMessage(SendMessageRequest request)
+        // 在MessageBLL中补充用户发送消息方法（修正版）
+        public (bool Success, string Message) UserSendMessage(SendMessageRequest request)
         {
-            // 校验订单状态为“进行中”（避免向非活跃订单发消息）
-            var orderDAL = new OrderDAL();
-            var order = orderDAL.GetOrderById(request.OrderID);
-            if (order == null || order.Status != "进行中")
+            if (request.OrderID <= 0 || string.IsNullOrEmpty(request.Content))
             {
-                return (false, "仅可对进行中的订单发送消息");
+                return (false, "订单ID和消息内容不能为空");
             }
 
-            // 复用现有发送逻辑，指定发送者类型为"user"
-            request.SenderType = "user";
-            return SendMessage(request); // 调用已有SendMessage方法
-        }*/
+            try
+            {
+                // 校验订单是否存在且状态为"进行中"（复用OrderBLL的GetOrderDetail）
+                var orderBLL = new OrderBLL();
+                OrderDetail orderDetail;
+                try
+                {
+                    // 通过用户ID和订单ID获取详情（确保订单属于该用户）
+                    orderDetail = orderBLL.GetOrderDetail(request.OrderID, request.SenderID);
+                }
+                catch (Exception ex)
+                {
+                    return (false, "订单不存在或无权访问");
+                }
+
+                // 检查订单状态是否为"进行中"（数据库中状态字段值为"进行中"）
+                if (orderDetail.Appointment.Status != "进行中")
+                {
+                    return (false, "仅可对进行中的订单发送消息");
+                }
+
+                // 发送消息（指定发送者类型为user）
+                request.SenderType = "user";
+                var message = new Messages
+                {
+                    OrderID = request.OrderID,
+                    SenderType = request.SenderType,
+                    SenderID = request.SenderID,
+                    Content = request.Content,
+                    SentTime = DateTime.Now,
+                    IsRead = false
+                };
+
+                bool result = _messageDAL.SendMessage(message);
+                return result ? (true, "消息发送成功") : (false, "消息发送失败");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"发送失败：{ex.Message}");
+            }
+        }
     }
 }
