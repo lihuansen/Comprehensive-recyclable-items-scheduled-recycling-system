@@ -525,5 +525,66 @@ namespace recycling.DAL
 
             return orderDetail;
         }
+        /// <summary>
+        /// 获取用户的消息列表（按订单分组）
+        /// </summary>
+        public List<RecyclerMessageViewModel> GetUserMessages(int userId, int pageIndex = 1, int pageSize = 20)
+        {
+            var messages = new List<RecyclerMessageViewModel>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+            SELECT 
+                m.MessageID,
+                m.OrderID,
+                a.AppointmentID as OrderNumber,
+                m.SenderType,
+                m.SenderID,
+                CASE 
+                    WHEN m.SenderType = 'user' THEN u.Username
+                    WHEN m.SenderType = 'recycler' THEN r.Username
+                    ELSE '系统'
+                END as SenderName,
+                m.Content,
+                m.SentTime,
+                m.IsRead
+            FROM Messages m
+            INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
+            LEFT JOIN Users u ON m.SenderType = 'user' AND m.SenderID = u.UserID
+            LEFT JOIN Recyclers r ON m.SenderType = 'recycler' AND m.SenderID = r.RecyclerID
+            WHERE a.UserID = @UserId  -- 筛选当前用户的订单
+            ORDER BY m.SentTime DESC
+            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+                    cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var message = new RecyclerMessageViewModel
+                            {
+                                MessageID = Convert.ToInt32(reader["MessageID"]),
+                                OrderID = Convert.ToInt32(reader["OrderID"]),
+                                OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
+                                SenderType = reader["SenderType"].ToString(),
+                                SenderID = Convert.ToInt32(reader["SenderID"]),
+                                SenderName = reader["SenderName"].ToString(),
+                                Content = reader["Content"].ToString(),
+                                SentTime = Convert.ToDateTime(reader["SentTime"]),
+                                IsRead = Convert.ToBoolean(reader["IsRead"])
+                            };
+                            messages.Add(message);
+                        }
+                    }
+                }
+            }
+            return messages;
+        }
     }
 }
