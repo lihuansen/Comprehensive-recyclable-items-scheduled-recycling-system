@@ -25,5 +25,6 @@ namespace recycling.Model
         public string CategoryNames { get; set; }
         public string RecyclerName { get; set; }
         public int? RecyclerID { get; set; }
+        public bool CanContactRecycler { get; set; }
     }
 }
