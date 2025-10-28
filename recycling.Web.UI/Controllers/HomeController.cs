@@ -480,9 +480,9 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 用户发送消息给回收员（AJAX）
+        /// 用户发送消息给回收员
         /// </summary>
-        /*[HttpPost]
+        [HttpPost]
         public JsonResult UserSendMessageToRecycler(SendMessageRequest request)
         {
             try
@@ -494,13 +494,35 @@ namespace recycling.Web.UI.Controllers
                 request.SenderID = user.UserID;
 
                 var messageBLL = new MessageBLL();
-                var result = messageBLL.UserSendMessage(request);
+                var result = messageBLL.UserSendMessage(request); // 调用修正后的方法
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = $"发送失败：{ex.Message}" });
             }
-        }*/
+        }
+
+        /// <summary>
+        /// 标记用户接收的消息为已读
+        /// </summary>
+        [HttpPost]
+        public JsonResult MarkUserMessagesAsRead(int orderId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+                var messageBLL = new MessageBLL();
+                bool result = messageBLL.MarkMessagesAsRead(orderId, "user", user.UserID);
+                return Json(new { success = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
     }
 }
