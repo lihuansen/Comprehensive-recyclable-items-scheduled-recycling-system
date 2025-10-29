@@ -537,9 +537,24 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "请先登录" });
                 }
 
-                // 调用现有GetOrderMessages方法（原错误：GetMessagesByOrderId）
+                // 获取原始 Messages 对象列表
                 var messages = _messageBLL.GetOrderMessages(orderId);
-                return Json(new { success = true, data = messages });
+
+                // 将后端模型转换为前端易用的 camelCase 对象
+                var result = messages.Select(m => new
+                {
+                    messageId = m.MessageID,
+                    orderId = m.OrderID,
+                    senderType = (m.SenderType ?? string.Empty).ToLower(), // 'user' 或 'recycler' / 'system'
+                    senderId = m.SenderID,
+                    senderName = m.SenderName ?? "", // 如果没有该字段，可在 DAL 或此处补上
+                    content = m.Content ?? string.Empty,
+                    sentTime = m.SentTime.ToString("o"), // ISO 字符串，前端可 new Date(...)
+                    isRead = m.IsRead
+                }).ToList();
+
+                // 注意：返回键名使用 messages，前端按 data.messages 读取
+                return Json(new { success = true, messages = result });
             }
             catch (Exception ex)
             {
@@ -547,7 +562,6 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 发送消息（修复错误：移除ReceiverID，使用正确的保存方法）
         [HttpPost]
         public JsonResult SendMessage(SendMessageRequest request)
         {
@@ -569,8 +583,9 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "无权操作此订单" });
                 }
 
-                // 调用现有SendMessage方法（原错误：SaveMessage）
                 var result = _messageBLL.SendMessage(request);
+
+                // 发送成功后，不需要返回完整消息列表，但为方便可返回 success
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
