@@ -547,9 +547,8 @@ namespace recycling.Web.UI.Controllers
                     orderId = m.OrderID,
                     senderType = (m.SenderType ?? string.Empty).ToLower(), // 'user' 或 'recycler' / 'system'
                     senderId = m.SenderID,
-                    senderName = m.SenderName ?? "", // 如果没有该字段，可在 DAL 或此处补上
                     content = m.Content ?? string.Empty,
-                    sentTime = m.SentTime.ToString("o"), // ISO 字符串，前端可 new Date(...)
+                    sentTime = m.SentTime,
                     isRead = m.IsRead
                 }).ToList();
 
