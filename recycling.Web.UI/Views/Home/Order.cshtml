@@ -793,7 +793,21 @@
                                 </button>
                             </div>
                         `;
-                    } else {
+                    } else if (order.status === '进行中') {
+                        // 进行中订单：查看详情 + 联系回收员
+                        actionButtons = `
+                            <div class="order-actions">
+                                <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                    <i class="fas fa-eye"></i>查看详情
+                                </button>
+                                <button class="btn-action success contact-recycler"
+                            data-orderid="${order.id}" 
+                            data-recyclerid="${order.recyclerID || ''}">
+                        <i class="fas fa-comments"></i>联系回收员
+                    </button>
+                            </div>
+                        `;
+                    }else {
                         // 其他状态订单：只显示查看详情
                         actionButtons = `
                             <div class="order-actions">
