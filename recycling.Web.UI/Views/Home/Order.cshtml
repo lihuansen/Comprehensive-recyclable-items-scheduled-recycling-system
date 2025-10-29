@@ -701,7 +701,7 @@
             });
         });
 
-        // 加载消息
+        // 加载消息（确保后端返回 { success: true, messages: [...] }）
         function loadMessages(orderId) {
             if (!orderId) return;
 
@@ -716,7 +716,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    renderMessages(data.messages);
+                    // 注意：使用 data.messages （与后端返回的属性一致）
+                    renderMessages(data.messages || []);
                 } else {
                     showAlert('加载消息失败: ' + data.message, 'error');
                 }
@@ -726,7 +727,7 @@
             });
         }
 
-        // 渲染消息列表
+        // 渲染消息列表（使用后端返回的 camelCase 字段：senderType, sentTime, content）
         function renderMessages(messages) {
             const container = document.getElementById('messageContainer');
             container.innerHTML = '';
@@ -737,16 +738,24 @@
             }
 
             messages.forEach(msg => {
-                const isUser = msg.senderType === 'user';
+                const isUser = (msg.senderType === 'user' || msg.senderType === 'me');
                 const alignClass = isUser ? 'text-right' : 'text-left';
                 const bgClass = isUser ? 'bg-primary text-white' : 'bg-light';
 
+                // 解析时间（如果后端按 ISO 字符串返回）
+                let sentTimeText = '';
+                try {
+                    sentTimeText = new Date(msg.sentTime).toLocaleString();
+                } catch (e) {
+                    sentTimeText = msg.sentTime || '';
+                }
+
                 const messageHtml = `
-                    <div class="${alignClass} mb-3">
-                        <small class="d-block text-muted">${isUser ? '我' : '回收员'} ${formatTime(msg.sentTime)}</small>
-                        <span class="px-3 py-2 rounded ${bgClass}">${escapeHtml(msg.content)}</span>
-                    </div>
-                `;
+                <div class="${alignClass} mb-3">
+                    <small class="d-block text-muted">${isUser ? '我' : (msg.senderName || '回收员')} ${sentTimeText}</small>
+                    <span class="px-3 py-2 rounded ${bgClass}">${escapeHtml(msg.content)}</span>
+                </div>
+            `;
                 container.innerHTML += messageHtml;
             });
 
@@ -754,10 +763,11 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // 发送消息
+       // 发送消息（前端只需要提交 orderId 与 content）
         function sendMessage() {
-            const content = document.getElementById('messageContent').value.trim();
-            if (!content || !currentOrderId || !currentRecyclerId) return;
+            const contentEl = document.getElementById('messageContent');
+            const content = contentEl.value.trim();
+            if (!content || !currentOrderId) return;
 
             fetch('@Url.Action("SendMessage", "Home")', {
                 method: 'POST',
@@ -766,23 +776,22 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
-                    orderId: currentOrderId,
-                    recyclerId: currentRecyclerId,
-                    content: content
+                    OrderID: currentOrderId,
+                    Content: content
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('messageContent').value = '';
-                    loadMessages(currentOrderId);
+                    contentEl.value = '';
+                    loadMessages(currentOrderId); // 发送成功后刷新消息
                 } else {
                     showAlert('发送失败: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('发送消息出错:', error);
-                showAlert('发送失败，请重试', 'error');
+                showAlert('发送失败: ' + error.message, 'error');
             });
         }
 
@@ -798,13 +807,14 @@
         }
 
         // 辅助函数：防止XSS攻击
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        function escapeHtml(str) {
+            if (!str && str !== '') return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
         document.addEventListener('DOMContentLoaded', function () {
             // 状态标签切换功能
