@@ -13,6 +13,8 @@ namespace recycling.Web.UI.Controllers
         private UserBLL _userBLL = new UserBLL();
         // 依赖BLL层，与UserController依赖UserBLL的方式一致
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
+        private readonly MessageBLL _messageBLL = new MessageBLL();
+        private readonly OrderBLL _orderBLL = new OrderBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -517,6 +519,79 @@ namespace recycling.Web.UI.Controllers
                 var user = (Users)Session["LoginUser"];
                 var messageBLL = new MessageBLL();
                 bool result = messageBLL.MarkMessagesAsRead(orderId, "user", user.UserID);
+                return Json(new { success = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        // 获取订单聊天记录（修复错误：使用正确的方法名）
+        [HttpPost]
+        public JsonResult GetOrderMessages(int orderId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                // 调用现有GetOrderMessages方法（原错误：GetMessagesByOrderId）
+                var messages = _messageBLL.GetOrderMessages(orderId);
+                return Json(new { success = true, data = messages });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // 发送消息（修复错误：移除ReceiverID，使用正确的保存方法）
+        [HttpPost]
+        public JsonResult SendMessage(SendMessageRequest request)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                // 设置发送者信息（用户端）
+                request.SenderType = "user";
+                request.SenderID = ((Users)Session["LoginUser"]).UserID;
+
+                // 验证订单归属（确保用户只能给自己的订单发消息）
+                var order = _orderBLL.GetOrderDetail(request.OrderID, request.SenderID);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "无权操作此订单" });
+                }
+
+                // 调用现有SendMessage方法（原错误：SaveMessage）
+                var result = _messageBLL.SendMessage(request);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"发送失败：{ex.Message}" });
+            }
+        }
+
+        // 标记消息为已读
+        [HttpPost]
+        public JsonResult MarkAsRead(int orderId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                bool result = _messageBLL.MarkMessagesAsRead(orderId, "user", user.UserID);
                 return Json(new { success = result });
             }
             catch (Exception ex)
