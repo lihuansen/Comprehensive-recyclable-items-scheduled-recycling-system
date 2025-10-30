@@ -14,45 +14,47 @@ namespace recycling.BLL
 
         /// <summary>
         /// 获取回收员订单列表
-        /// 修改说明：在获取 DAL 返回的分页结果后，遍历每个订单计算 CanComplete（是否显示“完成订单”按钮）
-        /// 计算规则：订单状态为“进行中”且存在最近一次结束会话（Conversations）且在该 EndedTime 之后没有新的消息，则 CanComplete = true
+        /// 说明：在获取 DAL 返回的分页结果后，遍历每个订单计算 CanComplete（是否显示“完成订单”按钮）。
+        /// 计算规则（保守实现）：订单状态为“进行中”且存在最近一次结束会话（Conversations）且在该 EndedTime 之后没有新的消息，则 CanComplete = true。
+        /// 为兼容你当前仓库，我使用了 ConversationBLL.GetLatestConversation 和 MessageBLL.GetOrderMessages（这两个在之前代码中已有或我建议添加）。
         /// </summary>
         public PagedResult<RecyclerOrderViewModel> GetRecyclerOrders(OrderFilterModel filter, int recyclerId = 0)
         {
+            if (filter == null) throw new ArgumentNullException(nameof(filter));
             if (filter.PageIndex < 1) filter.PageIndex = 1;
             if (filter.PageSize < 1) filter.PageSize = 10;
 
-            // 1) 从 DAL 获取分页结果
+            // 从 DAL 获取分页结果
             var pagedResult = _recyclerOrderDAL.GetRecyclerOrders(filter, recyclerId);
 
-            // 2) 若分页结果或项目为空，直接返回
+            // 若无数据直接返回
             if (pagedResult == null || pagedResult.Items == null || !pagedResult.Items.Any())
-            {
                 return pagedResult;
-            }
 
-            // 3) 计算每个订单是否可完成（CanComplete）
+            // 计算 CanComplete 标识
             var conversationBll = new ConversationBLL();
             var messageBll = new MessageBLL();
 
             foreach (var orderVm in pagedResult.Items)
             {
-                orderVm.CanComplete = false; // 默认为 false
+                orderVm.CanComplete = false; // 默认 false
 
                 try
                 {
-                    // 只有“进行中”的订单才考虑完成按钮
+                    // 仅对“进行中”订单判断
                     if (string.Equals(orderVm.Status, "进行中", StringComparison.OrdinalIgnoreCase))
                     {
-                        // 获取该订单最近的一次结束会话（如果有）
+                        // 获取最近一次结束会话（若存在）
                         var latestConv = conversationBll.GetLatestConversation(orderVm.AppointmentID);
                         if (latestConv != null && latestConv.EndedTime.HasValue)
                         {
-                            // 获取此订单的全部消息（或可优化为 DAL 层直接判断是否存在 SentTime > EndedTime 的消息）
+                            // 获取该订单全部消息（简单实现）
                             var allMessages = messageBll.GetOrderMessages(orderVm.AppointmentID);
 
-                            // 如果没有任何消息的 SentTime 在 EndedTime 之后，则允许完成订单
-                            bool hasAfter = allMessages != null && allMessages.Any(m => m.SentTime > latestConv.EndedTime.Value);
+                            // 如果所有消息的 SentTime 均 <= latestConv.EndedTime，则说明没有新消息
+                            bool hasAfter = allMessages != null && allMessages.Any(m =>
+                                (m.SentTime.HasValue ? m.SentTime.Value : DateTime.MinValue) > latestConv.EndedTime.Value);
+
                             if (!hasAfter)
                             {
                                 orderVm.CanComplete = true;
@@ -62,7 +64,7 @@ namespace recycling.BLL
                 }
                 catch
                 {
-                    // 如果计算出现异常，不影响主流程（保持 CanComplete=false）
+                    // 发生异常时保持 CanComplete = false，避免影响主流程
                     orderVm.CanComplete = false;
                 }
             }
@@ -91,14 +93,7 @@ namespace recycling.BLL
             try
             {
                 bool result = _recyclerOrderDAL.AcceptOrder(appointmentId, recyclerId);
-                if (result)
-                {
-                    return (true, "订单接收成功");
-                }
-                else
-                {
-                    return (false, "订单接收失败：订单不存在或状态不允许接收");
-                }
+                return result ? (true, "订单接收成功") : (false, "订单接收失败：订单不存在或状态不允许接收");
             }
             catch (Exception ex)
             {
@@ -124,11 +119,7 @@ namespace recycling.BLL
         /// </summary>
         public List<RecyclerMessageViewModel> GetRecyclerMessages(int recyclerId, int pageIndex = 1, int pageSize = 20)
         {
-            if (recyclerId <= 0)
-            {
-                return new List<RecyclerMessageViewModel>();
-            }
-
+            if (recyclerId <= 0) return new List<RecyclerMessageViewModel>();
             if (pageIndex < 1) pageIndex = 1;
             if (pageSize < 1) pageSize = 20;
 
@@ -140,11 +131,7 @@ namespace recycling.BLL
         /// </summary>
         public List<RecyclerMessageViewModel> GetOrderConversation(int orderId)
         {
-            if (orderId <= 0)
-            {
-                return new List<RecyclerMessageViewModel>();
-            }
-
+            if (orderId <= 0) return new List<RecyclerMessageViewModel>();
             return _recyclerOrderDAL.GetOrderConversation(orderId);
         }
 
@@ -153,10 +140,7 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) MarkMessageAsRead(int messageId, int recyclerId)
         {
-            if (messageId <= 0 || recyclerId <= 0)
-            {
-                return (false, "参数无效");
-            }
+            if (messageId <= 0 || recyclerId <= 0) return (false, "参数无效");
 
             try
             {
@@ -174,21 +158,15 @@ namespace recycling.BLL
         /// </summary>
         public (OrderDetailModel Detail, string Message) GetOrderDetail(int appointmentId, int recyclerId)
         {
-            if (appointmentId <= 0 || recyclerId <= 0)
-            {
-                return (null, "参数无效");
-            }
+            if (appointmentId <= 0 || recyclerId <= 0) return (null, "参数无效");
 
             try
             {
                 var detail = _recyclerOrderDAL.GetOrderDetail(appointmentId, recyclerId);
-
-                // 检查是否获取到数据
-                if (string.IsNullOrEmpty(detail.OrderNumber))
+                if (detail == null || string.IsNullOrEmpty(detail.OrderNumber))
                 {
                     return (null, "订单不存在或无权查看");
                 }
-
                 return (detail, "获取成功");
             }
             catch (Exception ex)
