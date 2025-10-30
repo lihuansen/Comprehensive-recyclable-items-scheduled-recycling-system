@@ -766,13 +766,22 @@
             container.scrollTop = container.scrollHeight;
         }
 
-       // 发送消息（前端只需要提交 orderId 与 content）
-        function sendMessage() {
+           async function sendMessage() {
+        try {
             const contentEl = document.getElementById('messageContent');
+            if (!contentEl) return;
             const content = contentEl.value.trim();
             if (!content || !currentOrderId) return;
 
-            fetch('@Url.Action("SendMessage", "Home")', {
+            // 禁用按钮防止重复点击
+            const sendBtn = document.getElementById('sendBtn');
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                var originalText = sendBtn.innerHTML;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中...';
+            }
+
+            const resp = await fetch('@Url.Action("SendMessage", "Home")', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -782,49 +791,89 @@
                     OrderID: currentOrderId,
                     Content: content
                 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    contentEl.value = '';
-                    loadMessages(currentOrderId); // 发送成功后刷新消息
-                } else {
-                    showAlert('发送失败: ' + data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('发送消息出错:', error);
-                showAlert('发送失败: ' + error.message, 'error');
             });
 
-        document.getElementById('endConversationBtn').addEventListener('click', function() {
-        if (!currentOrderId) { alert('当前订单无效'); return; }
-        if (!confirm('结束对话后此次会话将被保存为历史，并且下次将从新的会话开始，是否确认结束？')) return;
+            const data = await resp.json();
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalText || '发送';
+            }
 
-        fetch('@Url.Action("EndConversation","Home")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ orderId: currentOrderId })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                // 结束后关闭聊天模态或提示
+            if (data && data.success) {
+                // 清空输入并刷新消息
+                contentEl.value = '';
+                loadMessages(currentOrderId);
+            } else {
+                if (typeof showAlert === 'function') showAlert('发送失败: ' + (data?.message || ''), 'error');
+                else alert('发送失败: ' + (data?.message || '未知错误'));
+            }
+        } catch (error) {
+            console.error('发送消息出错:', error);
+            if (typeof showAlert === 'function') showAlert('发送失败: ' + (error.message || error), 'error');
+            else alert('发送失败: ' + (error.message || error));
+        }
+    }
+
+    async function endConversation() {
+        try {
+            if (!currentOrderId) { alert('当前订单无效'); return; }
+            if (!confirm('结束对话后此次会话将被保存为历史，并且下次将从新的会话开始，是否确认结束？')) return;
+
+            const endBtn = document.getElementById('endConversationBtn');
+            if (endBtn) {
+                endBtn.disabled = true;
+                var orig = endBtn.innerHTML;
+                endBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 结束中...';
+            }
+
+            const resp = await fetch('@Url.Action("EndConversation","Home")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ orderId: currentOrderId })
+            });
+
+            const data = await resp.json();
+            if (endBtn) {
+                endBtn.disabled = false;
+                endBtn.innerHTML = orig || '结束对话';
+            }
+
+            if (data && data.success) {
+                // 结束成功，关闭聊天并提示；也可以跳转历史页面或刷新左侧列表
                 $('#chatModal').modal('hide');
                 alert('会话已结束并保存到历史记录中。');
+                // 可选：刷新用户的消息列表页面或更新当前订单状态显示
+                // loadMessages(currentOrderId); // 已结束的会话通常不再刷新
             } else {
-                alert('结束会话失败：' + (data.message || '未知错误'));
+                alert('结束会话失败：' + (data?.message || '未知错误'));
             }
-        })
-        .catch(err => {
+        } catch (err) {
             console.error('结束会话出错', err);
-            alert('结束会话出错：' + err.message);
-        });
-    });
+            alert('结束会话出错：' + (err.message || err));
         }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 绑定发送按钮
+        const sendBtn = document.getElementById('sendBtn');
+        const messageContent = document.getElementById('messageContent');
+        if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+        if (messageContent) {
+            messageContent.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        // 绑定结束对话按钮（仅用户端页面显示时）
+        const endBtn = document.getElementById('endConversationBtn');
+        if (endBtn) endBtn.addEventListener('click', endConversation);
+    });
 
         // 辅助函数：格式化时间
         function formatTime(dateString) {
