@@ -353,24 +353,19 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 标记消息为已读（按 messageId 或 orderId 的场景都支持）
+        /// 标记订单中对回收员可见的消息为已读（回收员已查看）
         /// </summary>
         [HttpPost]
-        public JsonResult MarkMessageAsRead(int messageId)
+        public JsonResult MarkMessagesAsRead(int orderId)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                {
                     return Json(new { success = false, message = "请先登录" });
-                }
 
-                // 如果需要按 messageId 标记，可实现单条标记逻辑（当前 DAL 中有 MarkMessagesAsRead 按订单标记）
-                // 这里仍使用按订单标记的通用方法（如果要按 messageId 标记，请扩展 DAL）
-                // 先根据 messageId 查到对应 orderId（简要实现）
-                // 注意：为简洁起见，此处假定前端更常用按 orderId 标记已读，若需要 messageId，请在后端补充查询逻辑。
-
-                return Json(new { success = true });
+                var recycler = (Recyclers)Session["LoginStaff"];
+                bool result = _messageBLL.MarkMessagesAsRead(orderId, "recycler", recycler.RecyclerID);
+                return Json(new { success = result });
             }
             catch (Exception ex)
             {
