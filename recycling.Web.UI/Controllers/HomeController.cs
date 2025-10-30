@@ -538,26 +538,21 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        // 获取订单聊天记录（修复错误：使用正确的方法名）
+        // 修改：GetOrderMessages（用户端） — 增加 conversationEnded/endedBy/endedTime
         [HttpPost]
         public JsonResult GetOrderMessages(int orderId)
         {
             try
             {
                 if (Session["LoginUser"] == null)
-                {
                     return Json(new { success = false, message = "请先登录" });
-                }
 
-                // 获取原始 Messages 对象列表
                 var messages = _messageBLL.GetOrderMessages(orderId);
-
-                // 将后端模型转换为前端易用的 camelCase 对象，并把时间格式化为 ISO 字符串（兼容 Nullable<DateTime>）
                 var result = messages.Select(m => new
                 {
                     messageId = m.MessageID,
                     orderId = m.OrderID,
-                    senderType = (m.SenderType ?? string.Empty).ToLower(), // 'user' 或 'recycler' / 'system'
+                    senderType = (m.SenderType ?? string.Empty).ToLower(),
                     senderId = m.SenderID,
                     content = m.Content ?? string.Empty,
                     // 若 SentTime 是 Nullable<DateTime>（DateTime?），先判断后再取 Value.ToString("o")
@@ -567,7 +562,13 @@ namespace recycling.Web.UI.Controllers
                     isRead = m.IsRead
                 }).ToList();
 
-                return Json(new { success = true, messages = result });
+                var convBll = new ConversationBLL();
+                var latestConv = convBll.GetLatestConversation(orderId);
+                bool conversationEnded = latestConv != null && latestConv.EndedTime.HasValue;
+                string endedBy = latestConv?.Status ?? "";
+                string endedTimeIso = conversationEnded ? latestConv.EndedTime.Value.ToString("o") : string.Empty;
+
+                return Json(new { success = true, messages = result, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
             }
             catch (Exception ex)
             {
@@ -627,7 +628,7 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        // 新增：结束会话（仅用户可调用）
+        // 新增：用户结束会话（HomeController）
         [HttpPost]
         public JsonResult EndConversation(int orderId)
         {
@@ -638,8 +639,17 @@ namespace recycling.Web.UI.Controllers
 
                 var user = (Users)Session["LoginUser"];
                 var conversationBLL = new ConversationBLL();
-                bool result = conversationBLL.EndConversation(orderId, user.UserID);
-                return Json(new { success = result });
+                bool result = conversationBLL.EndConversationBy(orderId, "user", user.UserID);
+
+                // 获取最新会话元信息返回给前端
+                var latest = conversationBLL.GetLatestConversation(orderId);
+                return Json(new
+                {
+                    success = result,
+                    conversationEnded = latest != null && latest.EndedTime.HasValue,
+                    endedBy = latest?.Status ?? "",
+                    endedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
+                });
             }
             catch (Exception ex)
             {
