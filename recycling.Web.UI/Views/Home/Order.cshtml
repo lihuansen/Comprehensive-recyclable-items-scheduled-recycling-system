@@ -640,11 +640,14 @@
                 <!-- 消息列表区域 -->
                 <div id="messageContainer" class="pre-scrollable" style="height:300px; margin-bottom:15px; border:1px solid #eee; padding:10px;"></div>
 
-                <!-- 输入区域 -->
+                <!-- 输入区域（添加结束对话按钮，用户可见） -->
                 <div class="input-group">
                     <input type="text" id="messageContent" class="form-control" placeholder="输入消息...">
                     <span class="input-group-btn">
                         <button id="sendBtn" class="btn btn-primary">发送</button>
+                    </span>
+                    <span class="input-group-btn" style="margin-left:8px;">
+                        <button id="endConversationBtn" class="btn btn-danger">结束对话</button>
                     </span>
                 </div>
             </div>
@@ -793,6 +796,34 @@
                 console.error('发送消息出错:', error);
                 showAlert('发送失败: ' + error.message, 'error');
             });
+
+        document.getElementById('endConversationBtn').addEventListener('click', function() {
+        if (!currentOrderId) { alert('当前订单无效'); return; }
+        if (!confirm('结束对话后此次会话将被保存为历史，并且下次将从新的会话开始，是否确认结束？')) return;
+
+        fetch('@Url.Action("EndConversation","Home")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ orderId: currentOrderId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // 结束后关闭聊天模态或提示
+                $('#chatModal').modal('hide');
+                alert('会话已结束并保存到历史记录中。');
+            } else {
+                alert('结束会话失败：' + (data.message || '未知错误'));
+            }
+        })
+        .catch(err => {
+            console.error('结束会话出错', err);
+            alert('结束会话出错：' + err.message);
+        });
+    });
         }
 
         // 辅助函数：格式化时间
