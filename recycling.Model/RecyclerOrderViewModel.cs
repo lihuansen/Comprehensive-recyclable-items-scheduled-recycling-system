@@ -43,5 +43,7 @@ namespace recycling.Model
                 }
             }
         }
+        // 在类中加入：
+        public bool CanComplete { get; set; }
     }
 }
