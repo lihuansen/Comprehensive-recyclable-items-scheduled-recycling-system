@@ -265,6 +265,18 @@ namespace recycling.Web.UI.Controllers
 
         public ActionResult Message()
         {
+            // 强制登录：如果未登录则引导到登录选择页（或直接到登录页）
+            if (Session["LoginUser"] == null)
+            {
+                // 记录想要返回的地址以便登录后跳回（可选）
+                TempData["ReturnUrl"] = Url.Action("Message", "Home");
+                return RedirectToAction("LoginSelect", "Home"); // 或改为 RedirectToAction("Login","User") 根据你的流程
+            }
+
+            // 已登录，传递一些必要信息到视图（可在视图显示用户名等）
+            var user = (recycling.Model.Users)Session["LoginUser"];
+            ViewBag.UserName = user?.Username ?? "";
+
             return View();
         }
         public ActionResult Help()
