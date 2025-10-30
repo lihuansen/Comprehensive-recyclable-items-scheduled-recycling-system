@@ -12,6 +12,11 @@ namespace recycling.BLL
     {
         private readonly ConversationDAL _conversationDAL = new ConversationDAL();
 
+        public (bool BothEnded, DateTime? LatestEndedTime) HasBothEnded(int orderId)
+        {
+            return _conversationDAL.HasBothEnded(orderId);
+        }
+
         // 结束会话（endedByType: "user"|"recycler", endedById 对应 ID）
         public bool EndConversationBy(int orderId, string endedByType, int endedById)
         {
