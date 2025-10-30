@@ -403,5 +403,77 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        // 获取回收员的历史会话列表（分页）
+        [HttpPost]
+        public JsonResult GetRecyclerConversations(int pageIndex = 1, int pageSize = 20)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var conversationBLL = new ConversationBLL();
+                var convs = conversationBLL.GetRecyclerConversations(recycler.RecyclerID, pageIndex, pageSize);
+
+                var result = convs.Select(c => new
+                {
+                    conversationId = c.ConversationID,
+                    orderId = c.OrderID,
+                    orderNumber = c.OrderNumber,
+                    userName = c.UserName,
+                    createdTime = c.CreatedTime.HasValue ? c.CreatedTime.Value.ToString("o") : string.Empty,
+                    endedTime = c.EndedTime.HasValue ? c.EndedTime.Value.ToString("o") : string.Empty,
+                    status = c.Status
+                }).ToList();
+
+                return Json(new { success = true, conversations = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // 获取某个已结束会话的历史消息（回收员端查看历史）
+        [HttpPost]
+        public JsonResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                if (orderId <= 0 || string.IsNullOrWhiteSpace(endedTime))
+                    return Json(new { success = false, message = "参数不完整" });
+
+                if (!DateTime.TryParse(endedTime, out DateTime et))
+                    return Json(new { success = false, message = "结束时间格式错误" });
+
+                var conversationBLL = new ConversationBLL();
+                var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
+
+                var result = messages.Select(m => new
+                {
+                    messageId = m.MessageID,
+                    orderId = m.OrderID,
+                    senderType = (m.SenderType ?? string.Empty).ToLower(),
+                    senderId = m.SenderID,
+                    content = m.Content ?? string.Empty,
+                    // 若 SentTime 是 Nullable<DateTime>（DateTime?），先判断后再取 Value.ToString("o")
+                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
+                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
+                                : string.Empty,
+                    isRead = m.IsRead
+                }).ToList();
+
+                return Json(new { success = true, messages = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
     }
 }
