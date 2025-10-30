@@ -14,39 +14,38 @@ namespace recycling.DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        /// <summary>
-        /// 结束会话：向 Conversations 表插入一条结束记录（记录 EndedTime）。
-        /// 如果同一订单已存在未结束会话，则也可以插一条新的结束记录（实现为新插入一条记录）
-        /// </summary>
-        public bool EndConversation(int orderId, int userId)
+        // 通用：由谁结束（endedByType = "user" or "recycler"），记录一条结束记录
+        public bool EndConversation(int orderId, string endedByType, int endedById)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                // 获取关联回收员ID（如果有）
-                int recyclerId = 0;
-                string getRecyclerSql = "SELECT RecyclerID FROM Appointments WHERE AppointmentID = @AppointmentID";
-                using (SqlCommand cmd = new SqlCommand(getRecyclerSql, conn))
+                int userId = 0, recyclerId = 0;
+                string getParticipants = "SELECT UserID, RecyclerID FROM Appointments WHERE AppointmentID = @AppointmentID";
+                using (SqlCommand cmd = new SqlCommand(getParticipants, conn))
                 {
                     cmd.Parameters.AddWithValue("@AppointmentID", orderId);
                     conn.Open();
-                    var obj = cmd.ExecuteScalar();
-                    if (obj != null && obj != DBNull.Value)
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        int.TryParse(obj.ToString(), out recyclerId);
+                        if (reader.Read())
+                        {
+                            if (reader["UserID"] != DBNull.Value) int.TryParse(reader["UserID"].ToString(), out userId);
+                            if (reader["RecyclerID"] != DBNull.Value) int.TryParse(reader["RecyclerID"].ToString(), out recyclerId);
+                        }
                     }
                     conn.Close();
                 }
 
+                string status = endedByType == "recycler" ? "ended_by_recycler" : "ended_by_user";
                 string insertSql = @"
                     INSERT INTO Conversations (OrderID, UserID, RecyclerID, Status, CreatedTime, EndedTime)
                     VALUES (@OrderID, @UserID, @RecyclerID, @Status, @CreatedTime, @EndedTime)";
-
                 using (SqlCommand cmd = new SqlCommand(insertSql, conn))
                 {
                     cmd.Parameters.AddWithValue("@OrderID", orderId);
                     cmd.Parameters.AddWithValue("@UserID", userId);
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                    cmd.Parameters.AddWithValue("@Status", "ended");
+                    cmd.Parameters.AddWithValue("@Status", status);
                     cmd.Parameters.AddWithValue("@CreatedTime", DateTime.Now);
                     cmd.Parameters.AddWithValue("@EndedTime", DateTime.Now);
 
@@ -57,112 +56,37 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// 获取某用户的历史会话列表（按 EndedTime 降序）
-        /// </summary>
-        public List<ConversationViewModel> GetUserConversations(int userId, int pageIndex = 1, int pageSize = 50)
+        // 获取指定订单最近一次的结束会话（如果没有返回 null）
+        public ConversationViewModel GetLatestConversation(int orderId)
         {
-            var list = new List<ConversationViewModel>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT 
-                        c.ConversationID,
-                        c.OrderID,
-                        a.AppointmentID as OrderNumber,
-                        c.RecyclerID,
-                        ISNULL(r.Username, '') as RecyclerName,
-                        c.CreatedTime,
-                        c.EndedTime,
-                        c.Status
-                    FROM Conversations c
-                    INNER JOIN Appointments a ON c.OrderID = a.AppointmentID
-                    LEFT JOIN Recyclers r ON c.RecyclerID = r.RecyclerID
-                    WHERE a.UserID = @UserID
-                    ORDER BY c.EndedTime DESC
-                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
-
+                    SELECT TOP 1 ConversationID, OrderID, UserID, RecyclerID, Status, CreatedTime, EndedTime
+                    FROM Conversations
+                    WHERE OrderID = @OrderID
+                    ORDER BY EndedTime DESC, ConversationID DESC";
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@UserID", userId);
-                    cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
-                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
-
+                    cmd.Parameters.AddWithValue("@ORDERID", orderId);
                     conn.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        while (reader.Read())
+                        if (reader.Read())
                         {
-                            list.Add(new ConversationViewModel
+                            return new ConversationViewModel
                             {
                                 ConversationID = Convert.ToInt32(reader["ConversationID"]),
                                 OrderID = Convert.ToInt32(reader["OrderID"]),
-                                OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
-                                RecyclerID = reader["RecyclerID"] != DBNull.Value ? Convert.ToInt32(reader["RecyclerID"]) : 0,
-                                RecyclerName = reader["RecyclerName"].ToString(),
                                 CreatedTime = reader["CreatedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["CreatedTime"]),
                                 EndedTime = reader["EndedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["EndedTime"]),
                                 Status = reader["Status"].ToString()
-                            });
+                            };
                         }
                     }
                 }
             }
-            return list;
-        }
-
-        /// <summary>
-        /// 获取某回收员的历史会话列表（按 EndedTime 降序）
-        /// </summary>
-        public List<ConversationViewModel> GetRecyclerConversations(int recyclerId, int pageIndex = 1, int pageSize = 50)
-        {
-            var list = new List<ConversationViewModel>();
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                string sql = @"
-                    SELECT 
-                        c.ConversationID,
-                        c.OrderID,
-                        a.AppointmentID as OrderNumber,
-                        c.RecyclerID,
-                        ISNULL(u.Username, '') as UserName,
-                        c.CreatedTime,
-                        c.EndedTime,
-                        c.Status
-                    FROM Conversations c
-                    INNER JOIN Appointments a ON c.OrderID = a.AppointmentID
-                    LEFT JOIN Users u ON a.UserID = u.UserID
-                    WHERE c.RecyclerID = @RecyclerID
-                    ORDER BY c.EndedTime DESC
-                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
-
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                    cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
-                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
-
-                    conn.Open();
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            list.Add(new ConversationViewModel
-                            {
-                                ConversationID = Convert.ToInt32(reader["ConversationID"]),
-                                OrderID = Convert.ToInt32(reader["OrderID"]),
-                                OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
-                                RecyclerID = reader["RecyclerID"] != DBNull.Value ? Convert.ToInt32(reader["RecyclerID"]) : 0,
-                                UserName = reader["UserName"].ToString(),
-                                CreatedTime = reader["CreatedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["CreatedTime"]),
-                                EndedTime = reader["EndedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["EndedTime"]),
-                                Status = reader["Status"].ToString()
-                            });
-                        }
-                    }
-                }
-            }
-            return list;
+            return null;
         }
 
         /// <summary>
