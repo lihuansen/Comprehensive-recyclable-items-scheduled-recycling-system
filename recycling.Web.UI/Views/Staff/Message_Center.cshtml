@@ -365,5 +365,65 @@
             });
         }
     });
+
+    function renderConversation(messages, conversationLastEndedBy, conversationBothEnded, conversationLatestEndedTime) {
+    var container = document.getElementById('conversationContainer');
+    container.innerHTML = '';
+
+    // 若存在最后结束者（不为空），显示居中提示
+    if (conversationLastEndedBy && conversationLastEndedBy.length > 0) {
+        var label = conversationLastEndedBy === 'ended_by_recycler' ? '回收员结束了当前对话' : '用户结束了当前对话';
+        var timeText = conversationLatestEndedTime ? (new Date(conversationLatestEndedTime)).toLocaleString() : '';
+        container.innerHTML += '<div class="text-center my-3"><strong>' + escapeHtml(label) + '</strong><div style="font-size:12px;color:#888">结束时间：' + escapeHtml(timeText) + '</div></div>';
+    }
+
+    if (!messages || messages.length === 0) {
+        container.innerHTML += '<div class="text-muted text-center">暂无消息</div>';
+        return;
+    }
+
+    // 按时间排序并渲染（QQ 风格简化：右侧回收员，左侧用户）
+    messages.sort(function(a,b){ return new Date(a.sentTime) - new Date(b.sentTime); });
+    messages.forEach(function(msg) {
+        var st = (msg.senderType || '').toLowerCase();
+        var isRecycler = st === 'recycler';
+        var bubble = document.createElement('div');
+        bubble.className = isRecycler ? 'text-right mb-3' : 'text-left mb-3';
+        var time = msg.sentTime ? (new Date(msg.sentTime)).toLocaleString() : '';
+        bubble.innerHTML = '<small class="d-block text-muted">' + escapeHtml(time) + '</small>' +
+            '<span class="px-3 py-2 rounded ' + (isRecycler ? 'bg-primary text-white' : 'bg-light') + '">' + escapeHtml(msg.content || '') + '</span>';
+        container.appendChild(bubble);
+    });
+
+    container.scrollTop = container.scrollHeight;
+}
+
+    // 添加结束对话按钮绑定（统一）
+    document.addEventListener('DOMContentLoaded', function() {
+        var endBtn = document.getElementById('endConversationBtn'); // 请确保视图里有此元素
+        if (endBtn) {
+            endBtn.addEventListener('click', function() {
+                if (!currentOrderId) { alert('订单无效'); return; }
+                if (!confirm('确认结束本次对话？')) return;
+                // 判断当前页面是回收员页面还是用户页面，调用对应接口
+                var url = (typeof isStaffPage !== 'undefined' && isStaffPage) ? '@Url.Action("EndConversation","Staff")' : '@Url.Action("EndConversation","Home")';
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
+                    body: JSON.stringify({ orderId: currentOrderId })
+                })
+                .then(r=>r.json())
+                .then(data=>{
+                    if (data.success) {
+                        // 重新载入消息（返回结果里通常也包含会话元信息）
+                        if (typeof loadMessages === 'function') loadMessages(currentOrderId);
+                        else if (typeof loadConversationMessages === 'function') loadConversationMessages(currentOrderId);
+                    } else {
+                        alert('结束失败：' + (data.message || ''));
+                    }
+                }).catch(err=> { console.error(err); alert('结束出错'); });
+            });
+        }
+    });
     </script>
 }
