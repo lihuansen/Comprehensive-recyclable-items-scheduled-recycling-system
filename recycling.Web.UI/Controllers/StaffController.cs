@@ -276,42 +276,38 @@ namespace recycling.Web.UI.Controllers
             return View(messages);
         }
 
-        /// <summary>
-        /// 获取订单对话（AJAX） - 已统一返回 { success: true, messages: [...] } 的结构
-        /// 前端会使用 messages 数组渲染对话
-        /// </summary>
+        // 获取订单对话（回收员端），已包含 conversationEnded/endedBy/endedTime
         [HttpPost]
         public JsonResult GetOrderConversation(int orderId)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                {
                     return Json(new { success = false, message = "请先登录" });
-                }
 
-                if (orderId <= 0)
-                {
-                    return Json(new { success = false, message = "无效的订单ID" });
-                }
-
-                // 通过 BLL 获取对话（RecyclerOrderBLL 提供带 SenderName 的视图模型）
                 var messagesVm = _recyclerOrderBLL.GetOrderConversation(orderId);
-
-                // 将字段转换为前端易用的 camelCase（并把时间格式化为 ISO）
                 var result = messagesVm.Select(m => new
                 {
                     messageId = m.MessageID,
-                    orderId = m.OrderID,
-                    senderType = (m.SenderType ?? string.Empty).ToLower(), // 'user' / 'recycler' / 'system'
+                    orderId = m.OrderID, // 注意替换为你模型实际字段名（示例）
+                    senderType = (m.SenderType ?? string.Empty).ToLower(),
                     senderId = m.SenderID,
                     senderName = m.SenderName ?? "",
                     content = m.Content ?? "",
-                    sentTime = m.SentTime.ToString("o"), // <-- ISO 格式
+                    // 若 SentTime 是 Nullable<DateTime>（DateTime?），先判断后再取 Value.ToString("o")
+                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
+                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
+                                : string.Empty,
                     isRead = m.IsRead
                 }).ToList();
 
-                return Json(new { success = true, messages = result });
+                var convBll = new ConversationBLL();
+                var latestConv = convBll.GetLatestConversation(orderId);
+                bool conversationEnded = latestConv != null && latestConv.EndedTime.HasValue;
+                string endedBy = latestConv?.Status ?? "";
+                string endedTimeIso = conversationEnded ? latestConv.EndedTime.Value.ToString("o") : string.Empty;
+
+                return Json(new { success = true, messages = result, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
             }
             catch (Exception ex)
             {
@@ -475,5 +471,55 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        // 回收员结束会话（StaffController）
+        [HttpPost]
+        public JsonResult EndConversation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var conversationBLL = new ConversationBLL();
+                bool result = conversationBLL.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
+
+                var latest = conversationBLL.GetLatestConversation(orderId);
+                return Json(new
+                {
+                    success = result,
+                    conversationEnded = latest != null && latest.EndedTime.HasValue,
+                    endedBy = latest?.Status ?? "",
+                    endedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // 完成订单（回收员点击后把订单状态置为 已完成）
+        [HttpPost]
+        public JsonResult CompleteOrder(int appointmentId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var orderBll = new OrderBLL();
+                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID); // 新增 BLL 方法，返回 (bool Success, string Message)
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
     }
 }
