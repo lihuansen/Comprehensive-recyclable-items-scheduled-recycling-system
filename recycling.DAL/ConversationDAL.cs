@@ -90,6 +90,114 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 获取某用户的历史会话列表（按 EndedTime 降序）
+        /// </summary>
+        public List<ConversationViewModel> GetUserConversations(int userId, int pageIndex = 1, int pageSize = 50)
+        {
+            var list = new List<ConversationViewModel>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    SELECT 
+                        c.ConversationID,
+                        c.OrderID,
+                        a.AppointmentID as OrderNumber,
+                        c.RecyclerID,
+                        ISNULL(r.Username, '') as RecyclerName,
+                        c.CreatedTime,
+                        c.EndedTime,
+                        c.Status
+                    FROM Conversations c
+                    INNER JOIN Appointments a ON c.OrderID = a.AppointmentID
+                    LEFT JOIN Recyclers r ON c.RecyclerID = r.RecyclerID
+                    WHERE a.UserID = @UserID
+                    ORDER BY c.EndedTime DESC
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@UserID", userId);
+                    cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            list.Add(new ConversationViewModel
+                            {
+                                ConversationID = Convert.ToInt32(reader["ConversationID"]),
+                                OrderID = Convert.ToInt32(reader["OrderID"]),
+                                OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
+                                RecyclerID = reader["RecyclerID"] != DBNull.Value ? Convert.ToInt32(reader["RecyclerID"]) : 0,
+                                RecyclerName = reader["RecyclerName"].ToString(),
+                                CreatedTime = reader["CreatedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["CreatedTime"]),
+                                EndedTime = reader["EndedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["EndedTime"]),
+                                Status = reader["Status"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 获取某回收员的历史会话列表（按 EndedTime 降序）
+        /// </summary>
+        public List<ConversationViewModel> GetRecyclerConversations(int recyclerId, int pageIndex = 1, int pageSize = 50)
+        {
+            var list = new List<ConversationViewModel>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    SELECT 
+                        c.ConversationID,
+                        c.OrderID,
+                        a.AppointmentID as OrderNumber,
+                        c.RecyclerID,
+                        ISNULL(u.Username, '') as UserName,
+                        c.CreatedTime,
+                        c.EndedTime,
+                        c.Status
+                    FROM Conversations c
+                    INNER JOIN Appointments a ON c.OrderID = a.AppointmentID
+                    LEFT JOIN Users u ON a.UserID = u.UserID
+                    WHERE c.RecyclerID = @RecyclerID
+                    ORDER BY c.EndedTime DESC
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                    cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            list.Add(new ConversationViewModel
+                            {
+                                ConversationID = Convert.ToInt32(reader["ConversationID"]),
+                                OrderID = Convert.ToInt32(reader["OrderID"]),
+                                OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
+                                RecyclerID = reader["RecyclerID"] != DBNull.Value ? Convert.ToInt32(reader["RecyclerID"]) : 0,
+                                UserName = reader["UserName"].ToString(),
+                                CreatedTime = reader["CreatedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["CreatedTime"]),
+                                EndedTime = reader["EndedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["EndedTime"]),
+                                Status = reader["Status"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
         /// 获取某个 conversation 的历史消息（即 OrderID 且 SentTime <= EndedTime）
         /// 这里也可以直接在 Controller 层复用 MessageDAL.GetOrderMessages 然后过滤
         /// 但提供一个便利方法
