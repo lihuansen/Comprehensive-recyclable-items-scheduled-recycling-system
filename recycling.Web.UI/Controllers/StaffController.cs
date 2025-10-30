@@ -285,11 +285,14 @@ namespace recycling.Web.UI.Controllers
                 if (Session["LoginStaff"] == null)
                     return Json(new { success = false, message = "请先登录" });
 
+                if (orderId <= 0)
+                    return Json(new { success = false, message = "无效订单ID" });
+
                 var messagesVm = _recyclerOrderBLL.GetOrderConversation(orderId);
                 var result = messagesVm.Select(m => new
                 {
                     messageId = m.MessageID,
-                    orderId = m.OrderID, // 注意替换为你模型实际字段名（示例）
+                    orderId = m.OrderID,
                     senderType = (m.SenderType ?? string.Empty).ToLower(),
                     senderId = m.SenderID,
                     senderName = m.SenderName ?? "",
@@ -301,13 +304,22 @@ namespace recycling.Web.UI.Controllers
                     isRead = m.IsRead
                 }).ToList();
 
+                // 获取最近结束信息（供前端显示“谁结束了/是否双方都结束”）
                 var convBll = new ConversationBLL();
                 var latestConv = convBll.GetLatestConversation(orderId);
-                bool conversationEnded = latestConv != null && latestConv.EndedTime.HasValue;
-                string endedBy = latestConv?.Status ?? "";
-                string endedTimeIso = conversationEnded ? latestConv.EndedTime.Value.ToString("o") : string.Empty;
+                var bothInfo = convBll.HasBothEnded(orderId); // (bool, DateTime?)
+                bool conversationBothEnded = bothInfo.BothEnded;
+                string latestEndedTimeIso = bothInfo.LatestEndedTime.HasValue ? bothInfo.LatestEndedTime.Value.ToString("o") : string.Empty;
+                string lastEndedBy = latestConv != null ? latestConv.Status ?? "" : "";
 
-                return Json(new { success = true, messages = result, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
+                return Json(new
+                {
+                    success = true,
+                    messages = result,
+                    conversationLastEndedBy = lastEndedBy,
+                    conversationBothEnded = conversationBothEnded,
+                    conversationLatestEndedTime = latestEndedTimeIso
+                });
             }
             catch (Exception ex)
             {
