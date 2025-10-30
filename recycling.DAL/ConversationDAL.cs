@@ -14,6 +14,72 @@ namespace recycling.DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
+        /// <summary>
+        /// 检查是否用户和回收员都已结束会话且自最新结束时间后没有新消息
+        /// 返回 (bothEnded, latestEndedTime)
+        /// </summary>
+        public (bool BothEnded, DateTime? LatestEndedTime) HasBothEnded(int orderId)
+        {
+            if (orderId <= 0) return (false, null);
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                // 获取用户结束和回收员结束的最大时间（若不存在则为 NULL）
+                string sql = @"
+                    SELECT 
+                        MAX(CASE WHEN Status = 'ended_by_user' THEN EndedTime END) AS UserEnded,
+                        MAX(CASE WHEN Status = 'ended_by_recycler' THEN EndedTime END) AS RecyclerEnded
+                    FROM Conversations
+                    WHERE OrderID = @OrderID";
+
+                DateTime? userEnded = null;
+                DateTime? recyclerEnded = null;
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@OrderID", orderId);
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            if (reader["UserEnded"] != DBNull.Value) userEnded = Convert.ToDateTime(reader["UserEnded"]);
+                            if (reader["RecyclerEnded"] != DBNull.Value) recyclerEnded = Convert.ToDateTime(reader["RecyclerEnded"]);
+                        }
+                    }
+                }
+
+                if (!userEnded.HasValue || !recyclerEnded.HasValue)
+                {
+                    return (false, null); // 双方至少有一方未结束
+                }
+
+                // 取两者的最大时间作为最新结束时间
+                var latest = userEnded.Value > recyclerEnded.Value ? userEnded.Value : recyclerEnded.Value;
+
+                // 检查在 latest 之后是否存在任何新消息
+                string checkMsgSql = @"
+                    SELECT TOP 1 1 FROM Messages
+                    WHERE OrderID = @OrderID AND SentTime > @LatestEndedTime";
+
+                using (SqlCommand cmd2 = new SqlCommand(checkMsgSql, conn))
+                {
+                    cmd2.Parameters.AddWithValue("@OrderID", orderId);
+                    cmd2.Parameters.AddWithValue("@LatestEndedTime", latest);
+                    var obj = cmd2.ExecuteScalar();
+                    bool hasAfter = obj != null;
+                    if (hasAfter)
+                    {
+                        return (false, latest); // 有新消息 -> 不能认为双方结束（需要新会话）
+                    }
+                    else
+                    {
+                        return (true, latest); // 双方都结束，并且没有新消息
+                    }
+                }
+            }
+        }
+
         // 通用：由谁结束（endedByType = "user" or "recycler"），记录一条结束记录
         public bool EndConversation(int orderId, string endedByType, int endedById)
         {
