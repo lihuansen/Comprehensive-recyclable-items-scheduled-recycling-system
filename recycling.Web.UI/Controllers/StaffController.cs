@@ -490,26 +490,19 @@ namespace recycling.Web.UI.Controllers
         {
             try
             {
-                if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
-
+                if (Session["LoginStaff"] == null) return Json(new { success = false, message = "请先登录" });
                 var recycler = (Recyclers)Session["LoginStaff"];
-                var conversationBLL = new ConversationBLL();
-                bool result = conversationBLL.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
-
-                var latest = conversationBLL.GetLatestConversation(orderId);
+                var convBll = new ConversationBLL();
+                bool ok = convBll.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
+                var latest = convBll.GetLatestConversation(orderId);
                 return Json(new
                 {
-                    success = result,
-                    conversationEnded = latest != null && latest.EndedTime.HasValue,
-                    endedBy = latest?.Status ?? "",
-                    endedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
+                    success = ok,
+                    conversationLastEndedBy = latest?.Status ?? "",
+                    conversationLatestEndedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
                 });
             }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
         }
 
         // 完成订单（回收员点击后把订单状态置为 已完成）
