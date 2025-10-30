@@ -12,28 +12,34 @@ namespace recycling.BLL
     {
         private readonly ConversationDAL _conversationDAL = new ConversationDAL();
 
-        public bool EndConversation(int orderId, int userId)
+        // 结束会话（endedByType: "user"|"recycler", endedById 对应 ID）
+        public bool EndConversationBy(int orderId, string endedByType, int endedById)
         {
-            if (orderId <= 0 || userId <= 0) return false;
-            return _conversationDAL.EndConversation(orderId, userId);
+            if (orderId <= 0) return false;
+            return _conversationDAL.EndConversation(orderId, endedByType, endedById);
         }
 
-        public List<ConversationViewModel> GetUserConversations(int userId, int pageIndex = 1, int pageSize = 50)
+        // 获取最近一次结束会话（若无则返回 null）
+        public ConversationViewModel GetLatestConversation(int orderId)
         {
-            if (userId <= 0) return new List<ConversationViewModel>();
-            return _conversationDAL.GetUserConversations(userId, pageIndex, pageSize);
-        }
-
-        public List<ConversationViewModel> GetRecyclerConversations(int recyclerId, int pageIndex = 1, int pageSize = 50)
-        {
-            if (recyclerId <= 0) return new List<ConversationViewModel>();
-            return _conversationDAL.GetRecyclerConversations(recyclerId, pageIndex, pageSize);
+            if (orderId <= 0) return null;
+            return _conversationDAL.GetLatestConversation(orderId);
         }
 
         public List<Messages> GetConversationMessagesBeforeEnd(int orderId, DateTime endedTime)
         {
             if (orderId <= 0 || endedTime == default(DateTime)) return new List<Messages>();
             return _conversationDAL.GetConversationMessagesBeforeEnd(orderId, endedTime);
+        }
+
+        public List<ConversationViewModel> GetUserConversations(int userId, int pageIndex = 1, int pageSize = 50)
+        {
+            return _conversationDAL.GetUserConversations(userId, pageIndex, pageSize);
+        }
+
+        public List<ConversationViewModel> GetRecyclerConversations(int recyclerId, int pageIndex = 1, int pageSize = 50)
+        {
+            return _conversationDAL.GetRecyclerConversations(recyclerId, pageIndex, pageSize);
         }
     }
 }
