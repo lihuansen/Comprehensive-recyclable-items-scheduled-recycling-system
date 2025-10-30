@@ -1,458 +1,68 @@
 ﻿@model List<recycling.Model.RecyclerMessageViewModel>
+
 @{
     ViewBag.Title = "消息中心";
     Layout = "~/Views/Shared/_RecyclerLayout.cshtml";
 }
 
-<style>
-    .message-center-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
+<h3>消息中心 - 与已接收订单用户对话</h3>
 
-    .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-
-    .page-title {
-        font-size: 28px;
-        font-weight: bold;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .messages-section {
-        background: white;
-        border-radius: 15px;
-        padding: 30px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f8f9fa;
-    }
-
-    .section-title {
-        font-size: 24px;
-        font-weight: bold;
-        color: #333;
-        margin: 0;
-    }
-
-    .refresh-btn {
-        background: #3498db;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-        .refresh-btn:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-        }
-
-    .messages-list {
-        display: grid;
-        gap: 15px;
-    }
-
-    .message-item {
-        border: 2px solid #f8f9fa;
-        border-radius: 12px;
-        padding: 20px;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        background: white;
-    }
-
-        .message-item:hover {
-            border-color: #3498db;
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .message-item.unread {
-            background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
-            border-left: 4px solid #3498db;
-        }
-
-    .message-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 10px;
-    }
-
-    .message-order {
-        font-size: 16px;
-        font-weight: bold;
-        color: #333;
-    }
-
-    .message-time {
-        font-size: 12px;
-        color: #6c757d;
-    }
-
-    .message-sender {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .sender-badge {
-        background: #e8f4fd;
-        color: #3498db;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 500;
-    }
-
-    .sender-name {
-        font-weight: 600;
-        color: #333;
-    }
-
-    .message-content {
-        color: #555;
-        line-height: 1.5;
-        margin-bottom: 10px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .message-actions {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-    }
-
-    .btn-message-action {
-        padding: 6px 12px;
-        border: 1px solid #e9ecef;
-        border-radius: 6px;
-        background: white;
-        color: #6c757d;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-        .btn-message-action:hover {
-            background: #f8f9fa;
-            color: #495057;
-        }
-
-        .btn-message-action.primary {
-            background: #3498db;
-            color: white;
-            border-color: #3498db;
-        }
-
-            .btn-message-action.primary:hover {
-                background: #2980b9;
-            }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #6c757d;
-    }
-
-        .empty-state i {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            color: #495057;
-        }
-
-    .unread-indicator {
-        background: #e74c3c;
-        color: white;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-left: 5px;
-    }
-
-    .loading-spinner {
-        text-align: center;
-        padding: 40px;
-    }
-
-    .spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #3498db;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
-    }
-
-    @@keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* 消息模态框样式 */
-    .conversation-modal .modal-dialog {
-        max-width: 800px;
-    }
-
-    .conversation-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px 10px 0 0;
-    }
-
-    .conversation-body {
-        height: 500px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .messages-container {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        background: #f8f9fa;
-    }
-
-    .message-bubble {
-        max-width: 70%;
-        margin-bottom: 15px;
-        padding: 12px 16px;
-        border-radius: 18px;
-        position: relative;
-    }
-
-    .message-recycler {
-        background: #3498db;
-        color: white;
-        margin-left: auto;
-        border-bottom-right-radius: 4px;
-    }
-
-    .message-user {
-        background: white;
-        color: #333;
-        border: 1px solid #e9ecef;
-        margin-right: auto;
-        border-bottom-left-radius: 4px;
-    }
-
-    .message-system {
-        background: #f39c12;
-        color: white;
-        margin: 10px auto;
-        text-align: center;
-        max-width: 90%;
-        font-size: 12px;
-    }
-
-    .message-sender-name {
-        font-size: 12px;
-        font-weight: bold;
-        margin-bottom: 4px;
-        opacity: 0.8;
-    }
-
-    .message-content {
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .message-time {
-        font-size: 11px;
-        opacity: 0.7;
-        margin-top: 4px;
-        text-align: right;
-    }
-
-    .input-container {
-        padding: 20px;
-        border-top: 1px solid #e9ecef;
-        background: white;
-    }
-
-    .input-group {
-        display: flex;
-        gap: 10px;
-    }
-
-    .message-input {
-        flex: 1;
-        border: 2px solid #e9ecef;
-        border-radius: 25px;
-        padding: 12px 20px;
-        outline: none;
-        transition: all 0.3s ease;
-    }
-
-        .message-input:focus {
-            border-color: #3498db;
-        }
-
-    .send-btn {
-        background: #3498db;
-        color: white;
-        border: none;
-        border-radius: 25px;
-        padding: 12px 25px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-        .send-btn:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-
-        .send-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-        }
-</style>
-
-<div class="message-center-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-        <h1 class="page-title">
-            <i class="fas fa-comments"></i>消息中心
-        </h1>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">与用户沟通交流，及时处理订单问题</p>
-    </div>
-
-    <!-- 消息列表区域 -->
-    <div class="messages-section">
-        <div class="section-header">
-            <h3 class="section-title">最新消息</h3>
-            <button class="refresh-btn" onclick="loadMessages()">
-                <i class="fas fa-sync-alt"></i>刷新列表
-            </button>
-        </div>
-
-        <!-- 消息提示 -->
-        <div id="alertContainer"></div>
-
-        <!-- 消息列表 -->
-        <div id="messagesContainer">
-            @if (Model == null || !Model.Any())
-            {
-                <div class="empty-state">
-                    <i class="fas fa-comment-slash"></i>
-                    <h3>暂无消息</h3>
-                    <p>您还没有收到任何用户消息</p>
-                </div>
-            }
-            else
-            {
-                <div class="messages-list">
-                    @foreach (var message in Model)
+<div class="row">
+    <div class="col-md-4">
+        <!-- 列表：每个订单只显示最新一条消息摘要 -->
+        <div id="orderList" class="list-group">
+            @{
+                var latestPerOrder = new Dictionary<int, recycling.Model.RecyclerMessageViewModel>();
+                if (Model != null)
+                {
+                    foreach (var item in Model)
                     {
-                        <div class="message-item @(!message.IsRead ? "unread" : "")" data-message-id="@message.MessageID">
-                            <div class="message-header">
-                                <div class="message-order">订单：@message.OrderNumber</div>
-                                <div class="message-time">@message.DisplayTime</div>
-                            </div>
-                            <div class="message-sender">
-                                <span class="sender-badge">@(message.SenderType == "user" ? "用户" : "系统")</span>
-                                <span class="sender-name">@message.SenderName</span>
-                                @if (!message.IsRead)
-                                {
-                                    <span class="unread-indicator" title="未读消息"></span>
-                                }
-                            </div>
-                            <div class="message-content">
-                                @message.Content
-                            </div>
-                            <div class="message-actions">
-                                <button class="btn-message-action" onclick="viewOrder(@message.OrderID)">
-                                    <i class="fas fa-eye"></i>查看订单
-                                </button>
-                                <button class="btn-message-action primary" onclick="openConversation(@message.OrderID, '@message.OrderNumber')">
-                                    <i class="fas fa-reply"></i>回复消息
-                                </button>
-                                @if (!message.IsRead)
-                                {
-                                    <button class="btn-message-action" onclick="markAsRead(@message.MessageID, this)">
-                                        <i class="fas fa-check"></i>标记已读
-                                    </button>
-                                }
-                            </div>
+                        if (!latestPerOrder.ContainsKey(item.OrderID))
+                        {
+                            latestPerOrder[item.OrderID] = item;
+                        }
+                        else
+                        {
+                            if (item.SentTime > latestPerOrder[item.OrderID].SentTime)
+                            {
+                                latestPerOrder[item.OrderID] = item;
+                            }
+                        }
+                    }
+                }
+
+                foreach (var kv in latestPerOrder.OrderByDescending(k => k.Value.SentTime))
+                {
+                    var m = kv.Value;
+                    var displayOrderNumber = !string.IsNullOrWhiteSpace(m.OrderNumber) ? m.OrderNumber : ("AP" + m.OrderID.ToString("D6"));
+                    <a href="javascript:void(0);" class="list-group-item list-group-item-action order-item" data-order-id="@m.OrderID" data-user-name="@Html.Raw(HttpUtility.HtmlEncode(m.SenderName ?? ""))" id="order-item-@m.OrderID">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">订单：@Html.Raw(HttpUtility.HtmlEncode(displayOrderNumber))</h5>
+                            <small>@m.SentTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</small>
                         </div>
-                    }
-                </div>
+                        <p class="mb-1 text-truncate">@Html.Raw(HttpUtility.HtmlEncode(m.Content))</p>
+                        <small class="text-muted">用户：@Html.Raw(HttpUtility.HtmlEncode(m.SenderName ?? "未知"))</small>
+                    </a>
+                }
             }
         </div>
     </div>
-</div>
 
-<!-- 对话模态框 -->
-<div class="modal fade conversation-modal" id="conversationModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="conversation-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-comments"></i> 订单对话 - <span id="conversationOrderNumber"></span>
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" style="color: white;">
-                    <span>&times;</span>
-                </button>
+    <div class="col-md-8">
+        <!-- 聊天区域 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 id="chatHeader">请选择左侧订单以展开会话</h5>
             </div>
-            <div class="conversation-body">
-                <div class="messages-container" id="conversationMessages">
-                    <!-- 消息内容动态加载 -->
-                </div>
-                <div class="input-container">
+            <div class="card-body" style="height:520px;">
+                <div id="conversationContainer" style="height:380px; overflow-y:auto; border:1px solid #eee; padding:10px; background:#fff;"></div>
+
+                <div class="mt-3">
                     <div class="input-group">
-                        <input type="text" class="message-input" id="conversationInput" placeholder="输入回复消息...">
-                        <button class="send-btn" id="sendMessageBtn" onclick="sendConversationMessage()">
-                            <i class="fas fa-paper-plane"></i> 发送
-                        </button>
+                        <input type="text" id="conversationInput" class="form-control" placeholder="输入联系用户的消息...">
+                        <span class="input-group-btn">
+                            <button id="sendMessageBtn" class="btn btn-primary">联系用户</button>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -460,208 +70,241 @@
     </div>
 </div>
 
-@section Scripts {
+@section scripts {
     <script>
-        let currentConversationOrderId = 0;
+    var currentOrderId = null;
+    var currentUserName = null;
+    var refreshInterval = null;
 
-        // 显示消息提示
-        function showAlert(message, type) {
-            const alertContainer = document.getElementById('alertContainer');
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
 
-            const alertHTML = `
-                <div class="alert-message ${alertClass}">
-                    <i class="fas ${icon}"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-
-            alertContainer.innerHTML = alertHTML;
-
-            setTimeout(() => {
-                alertContainer.innerHTML = '';
-            }, 5000);
+    function formatTime(isoString) {
+        if (!isoString) return '';
+        try {
+            var d = new Date(isoString);
+            return d.toLocaleString();
+        } catch (e) {
+            return isoString;
         }
+    }
 
-        // 加载消息列表
-        function loadMessages() {
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.innerHTML = `
-                <div class="loading-spinner">
-                    <div class="spinner"></div>
-                    <p>正在加载消息...</p>
-                </div>
-            `;
-
-            // 这里可以调用API重新加载消息，目前使用页面刷新
-            location.reload();
-        }
-
-        // 查看订单
-        function viewOrder(orderId) {
-            // 跳转到订单管理页面并筛选该订单
-            window.location.href = '@Url.Action("Recycler_OrderManagement", "Staff")?orderId=' + orderId;
-        }
-
-        // 打开对话模态框
-        function openConversation(orderId, orderNumber) {
-            currentConversationOrderId = orderId;
-            document.getElementById('conversationOrderNumber').textContent = orderNumber;
-            loadConversationMessages(orderId);
-            $('#conversationModal').modal('show');
-        }
-
-        // 加载对话消息
-        function loadConversationMessages(orderId) {
-            const container = document.getElementById('conversationMessages');
-            container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>加载对话中...</p></div>';
-
-            fetch('@Url.Action("GetOrderConversation", "Staff")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ orderId: orderId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    renderConversationMessages(data.data);
-                } else {
-                    container.innerHTML = `<div class="empty-state"><p>${data.message}</p></div>`;
+    document.addEventListener('DOMContentLoaded', function () {
+        var orderList = document.getElementById('orderList');
+        if (orderList) {
+            orderList.addEventListener('click', function (e) {
+                var target = e.target;
+                while (target && !target.classList.contains('order-item')) {
+                    target = target.parentElement;
                 }
-            })
-            .catch(error => {
-                container.innerHTML = `<div class="empty-state"><p>加载失败：${error.message}</p></div>`;
+                if (!target) return;
+
+                var orderId = target.getAttribute('data-order-id');
+                var userName = target.getAttribute('data-user-name') || '用户';
+                if (!orderId) return;
+
+                openConversation(parseInt(orderId, 10), userName);
             });
         }
 
-        // 渲染对话消息
-        function renderConversationMessages(messages) {
-            const container = document.getElementById('conversationMessages');
-
-            if (!messages || messages.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>暂无消息记录</p></div>';
-                return;
-            }
-
-            let messagesHTML = '';
-            messages.forEach(message => {
-                let bubbleClass = '';
-                if (message.senderType === 'recycler') {
-                    bubbleClass = 'message-bubble message-recycler';
-                } else if (message.senderType === 'user') {
-                    bubbleClass = 'message-bubble message-user';
-                } else {
-                    bubbleClass = 'message-bubble message-system';
-                }
-
-                messagesHTML += `
-                    <div class="${bubbleClass}">
-                        <div class="message-sender-name">${message.senderName}</div>
-                        <div class="message-content">${message.content}</div>
-                        <div class="message-time">${message.displayTime}</div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = messagesHTML;
-            container.scrollTop = container.scrollHeight;
+        var sendBtn = document.getElementById('sendMessageBtn');
+        if (sendBtn) {
+            sendBtn.addEventListener('click', sendConversationMessage);
         }
 
-        // 发送对话消息
-        function sendConversationMessage() {
-            const input = document.getElementById('conversationInput');
-            const content = input.value.trim();
+        var convInput = document.getElementById('conversationInput');
+        if (convInput) {
+            convInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') sendConversationMessage();
+            });
+        }
+    });
 
-            if (!content) {
-                alert('请输入消息内容');
-                return;
+    function openConversation(orderId, userName) {
+        currentOrderId = orderId;
+        currentUserName = userName || '用户';
+        document.getElementById('chatHeader').innerText = '订单：' + (orderId || '') + ' - ' + currentUserName;
+
+        var prev = document.querySelector('.order-item.active');
+        if (prev) prev.classList.remove('active');
+        var cur = document.getElementById('order-item-' + orderId);
+        if (cur) cur.classList.add('active');
+
+        var input = document.getElementById('conversationInput');
+        if (input) input.value = '';
+
+        loadConversationMessages(currentOrderId);
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(function () {
+            if (currentOrderId) loadConversationMessages(currentOrderId);
+        }, 3000);
+
+        // 打开对话时标记为已读
+        markMessagesAsRead(currentOrderId);
+    }
+
+    window.addEventListener('beforeunload', function () {
+        if (refreshInterval) clearInterval(refreshInterval);
+    });
+
+    function loadConversationMessages(orderId) {
+        if (!orderId) return;
+
+        fetch('@Url.Action("GetOrderConversation", "Staff")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ orderId: orderId })
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (data.success) {
+                var messages = data.messages || data.data || [];
+                renderConversationMessages(messages);
+            } else {
+                var container = document.getElementById('conversationContainer');
+                if (container) container.innerHTML = '<div class="text-danger">加载对话失败：' + escapeHtml(data.message || '') + '</div>';
             }
+        })
+        .catch(function (err) {
+            console.error('加载对话出错：', err);
+            var container = document.getElementById('conversationContainer');
+            if (container) container.innerHTML = '<div class="text-danger">加载对话出错，请重试</div>';
+        });
+    }
 
-            const sendBtn = document.getElementById('sendMessageBtn');
-            const originalText = sendBtn.innerHTML;
-            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中...';
+    function renderConversationMessages(messages) {
+        var container = document.getElementById('conversationContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (!messages || messages.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted"><i class="fas fa-comment-slash"></i> 暂无消息</div>';
+            return;
+        }
+
+        try {
+            messages.sort(function(a, b) {
+                var ta = new Date(a.sentTime || a.SentTime).getTime();
+                var tb = new Date(b.sentTime || b.SentTime).getTime();
+                return ta - tb;
+            });
+        } catch (e) { }
+
+        messages.forEach(function (msg) {
+            var senderType = (msg.senderType || msg.SenderType || '').toString().toLowerCase();
+            var content = msg.content || msg.Content || '';
+            var sentTime = msg.sentTime || msg.SentTime || '';
+            var senderName = msg.senderName || msg.SenderName || '';
+
+            var isRecycler = (senderType === 'recycler');
+            var alignClass = isRecycler ? 'text-right' : 'text-left';
+            var bgClass = isRecycler ? 'bg-secondary text-white' : 'bg-light';
+
+            var timeText = formatTime(sentTime);
+            var label = isRecycler ? '我' : (senderName || '用户');
+
+            var html = ''
+                + '<div class="' + alignClass + ' mb-3">'
+                + '<small class="d-block text-muted">' + escapeHtml(label) + ' ' + escapeHtml(timeText) + '</small>'
+                + '<span class="px-3 py-2 rounded ' + bgClass + '">' + escapeHtml(content) + '</span>'
+                + '</div>';
+
+            container.innerHTML += html;
+        });
+
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function sendConversationMessage() {
+        if (!currentOrderId) {
+            alert('请先选择订单');
+            return;
+        }
+
+        var input = document.getElementById('conversationInput');
+        if (!input) return;
+        var content = input.value.trim();
+        if (!content) return;
+
+        var sendBtn = document.getElementById('sendMessageBtn');
+        if (sendBtn) {
             sendBtn.disabled = true;
-
-            const request = {
-                OrderID: currentConversationOrderId,
-                Content: content
-            };
-
-            fetch('@Url.Action("SendMessageToUser", "Staff")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(request)
-            })
-            .then(response => response.json())
-            .then(data => {
-                sendBtn.innerHTML = originalText;
-                sendBtn.disabled = false;
-
-                if (data.success) {
-                    input.value = '';
-                    loadConversationMessages(currentConversationOrderId); // 重新加载对话
-                } else {
-                    alert('发送失败：' + data.message);
-                }
-            })
-            .catch(error => {
-                sendBtn.innerHTML = originalText;
-                sendBtn.disabled = false;
-                alert('发送失败：' + error.message);
-            });
+            var originalText = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 联系中...';
         }
 
-        // 标记消息为已读
-        function markAsRead(messageId, button) {
-            fetch('@Url.Action("MarkMessageAsRead", "Staff")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ messageId: messageId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // 移除未读样式和按钮
-                    const messageItem = button.closest('.message-item');
-                    messageItem.classList.remove('unread');
-                    button.remove();
+        var req = {
+            OrderID: currentOrderId,
+            Content: content
+        };
 
-                    // 移除未读指示器
-                    const unreadIndicator = messageItem.querySelector('.unread-indicator');
-                    if (unreadIndicator) {
-                        unreadIndicator.remove();
-                    }
-
-                    showAlert('消息已标记为已读', 'success');
-                } else {
-                    showAlert('标记失败：' + data.message, 'error');
-                }
-            })
-            .catch(error => {
-                showAlert('标记失败：' + error.message, 'error');
-            });
-        }
-
-        // 回车发送消息
-        document.getElementById('conversationInput')?.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendConversationMessage();
+        fetch('@Url.Action("SendMessageToUser", "Staff")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(req)
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalText || '联系用户';
             }
-        });
 
-        // 页面加载完成后，自动标记未读消息
-        document.addEventListener('DOMContentLoaded', function () {
-            // 可以在这里添加自动标记逻辑，或者让用户手动标记
+            if (data.success) {
+                input.value = '';
+                loadConversationMessages(currentOrderId);
+
+                var leftItem = document.getElementById('order-item-' + currentOrderId);
+                if (leftItem) {
+                    var p = leftItem.querySelector('p.mb-1');
+                    if (p) p.textContent = content;
+                    var small = leftItem.querySelector('small');
+                    if (small) small.textContent = new Date().toLocaleString();
+                }
+            } else {
+                alert('发送失败：' + data.message);
+            }
+        })
+        .catch(function (err) {
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalText || '联系用户';
+            }
+            console.error('发送失败：', err);
+            alert('发送失败：' + (err.message || err));
         });
+    }
+
+    function markMessagesAsRead(orderId) {
+        if (!orderId) return;
+        fetch('@Url.Action("MarkMessagesAsRead", "Staff")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ orderId: orderId })
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            // 可选：更新左侧 badge/样式
+        })
+        .catch(function (err) {
+            console.warn('标为已读失败', err);
+        });
+    }
     </script>
 }
