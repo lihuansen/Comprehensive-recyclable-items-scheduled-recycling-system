@@ -540,7 +540,7 @@ namespace recycling.Web.UI.Controllers
                 // 获取原始 Messages 对象列表
                 var messages = _messageBLL.GetOrderMessages(orderId);
 
-                // 将后端模型转换为前端易用的 camelCase 对象，并把时间格式化为 ISO 字符串
+                // 将后端模型转换为前端易用的 camelCase 对象，并把时间格式化为 ISO 字符串（兼容 Nullable<DateTime>）
                 var result = messages.Select(m => new
                 {
                     messageId = m.MessageID,
@@ -548,11 +548,13 @@ namespace recycling.Web.UI.Controllers
                     senderType = (m.SenderType ?? string.Empty).ToLower(), // 'user' 或 'recycler' / 'system'
                     senderId = m.SenderID,
                     content = m.Content ?? string.Empty,
-                    sentTime = m.SentTime.ToString("o"), // <-- 关键：统一为 ISO 8601 字符串
+                    // 若 SentTime 是 Nullable<DateTime>（DateTime?），先判断后再取 Value.ToString("o")
+                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
+                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
+                                : string.Empty,
                     isRead = m.IsRead
                 }).ToList();
 
-                // 注意：返回键名使用 messages，前端按 data.messages 读取
                 return Json(new { success = true, messages = result });
             }
             catch (Exception ex)
