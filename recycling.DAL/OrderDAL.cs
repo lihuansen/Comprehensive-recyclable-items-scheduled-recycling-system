@@ -207,5 +207,22 @@ WHERE AppointmentID = @AppointmentID
                 return rowsAffected > 0;
             }
         }
+
+        // 新增或补充方法：UpdateOrderStatus
+        public bool UpdateOrderStatus(int appointmentId, string newStatus)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "UPDATE Appointments SET Status = @Status, UpdatedDate = @UpdatedDate WHERE AppointmentID = @AppointmentID";
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Status", newStatus);
+                    cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
     }
 }
