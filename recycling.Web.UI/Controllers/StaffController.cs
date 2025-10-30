@@ -298,7 +298,7 @@ namespace recycling.Web.UI.Controllers
                 // 通过 BLL 获取对话（RecyclerOrderBLL 提供带 SenderName 的视图模型）
                 var messagesVm = _recyclerOrderBLL.GetOrderConversation(orderId);
 
-                // 将字段转换为前端易用的 camelCase（兼容前端 JS）
+                // 将字段转换为前端易用的 camelCase（并把时间格式化为 ISO）
                 var result = messagesVm.Select(m => new
                 {
                     messageId = m.MessageID,
@@ -307,7 +307,7 @@ namespace recycling.Web.UI.Controllers
                     senderId = m.SenderID,
                     senderName = m.SenderName ?? "",
                     content = m.Content ?? "",
-                    sentTime = m.SentTime.ToString("o"),
+                    sentTime = m.SentTime.ToString("o"), // <-- ISO 格式
                     isRead = m.IsRead
                 }).ToList();
 

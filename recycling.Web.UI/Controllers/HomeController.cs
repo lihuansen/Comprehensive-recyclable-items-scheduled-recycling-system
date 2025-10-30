@@ -540,7 +540,7 @@ namespace recycling.Web.UI.Controllers
                 // 获取原始 Messages 对象列表
                 var messages = _messageBLL.GetOrderMessages(orderId);
 
-                // 将后端模型转换为前端易用的 camelCase 对象
+                // 将后端模型转换为前端易用的 camelCase 对象，并把时间格式化为 ISO 字符串
                 var result = messages.Select(m => new
                 {
                     messageId = m.MessageID,
@@ -548,7 +548,7 @@ namespace recycling.Web.UI.Controllers
                     senderType = (m.SenderType ?? string.Empty).ToLower(), // 'user' 或 'recycler' / 'system'
                     senderId = m.SenderID,
                     content = m.Content ?? string.Empty,
-                    sentTime = m.SentTime,
+                    sentTime = m.SentTime.ToString("o"), // <-- 关键：统一为 ISO 8601 字符串
                     isRead = m.IsRead
                 }).ToList();
 
