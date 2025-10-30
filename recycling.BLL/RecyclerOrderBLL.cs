@@ -14,13 +14,60 @@ namespace recycling.BLL
 
         /// <summary>
         /// 获取回收员订单列表
+        /// 修改说明：在获取 DAL 返回的分页结果后，遍历每个订单计算 CanComplete（是否显示“完成订单”按钮）
+        /// 计算规则：订单状态为“进行中”且存在最近一次结束会话（Conversations）且在该 EndedTime 之后没有新的消息，则 CanComplete = true
         /// </summary>
         public PagedResult<RecyclerOrderViewModel> GetRecyclerOrders(OrderFilterModel filter, int recyclerId = 0)
         {
             if (filter.PageIndex < 1) filter.PageIndex = 1;
             if (filter.PageSize < 1) filter.PageSize = 10;
 
-            return _recyclerOrderDAL.GetRecyclerOrders(filter, recyclerId);
+            // 1) 从 DAL 获取分页结果
+            var pagedResult = _recyclerOrderDAL.GetRecyclerOrders(filter, recyclerId);
+
+            // 2) 若分页结果或项目为空，直接返回
+            if (pagedResult == null || pagedResult.Items == null || !pagedResult.Items.Any())
+            {
+                return pagedResult;
+            }
+
+            // 3) 计算每个订单是否可完成（CanComplete）
+            var conversationBll = new ConversationBLL();
+            var messageBll = new MessageBLL();
+
+            foreach (var orderVm in pagedResult.Items)
+            {
+                orderVm.CanComplete = false; // 默认为 false
+
+                try
+                {
+                    // 只有“进行中”的订单才考虑完成按钮
+                    if (string.Equals(orderVm.Status, "进行中", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // 获取该订单最近的一次结束会话（如果有）
+                        var latestConv = conversationBll.GetLatestConversation(orderVm.AppointmentID);
+                        if (latestConv != null && latestConv.EndedTime.HasValue)
+                        {
+                            // 获取此订单的全部消息（或可优化为 DAL 层直接判断是否存在 SentTime > EndedTime 的消息）
+                            var allMessages = messageBll.GetOrderMessages(orderVm.AppointmentID);
+
+                            // 如果没有任何消息的 SentTime 在 EndedTime 之后，则允许完成订单
+                            bool hasAfter = allMessages != null && allMessages.Any(m => m.SentTime > latestConv.EndedTime.Value);
+                            if (!hasAfter)
+                            {
+                                orderVm.CanComplete = true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // 如果计算出现异常，不影响主流程（保持 CanComplete=false）
+                    orderVm.CanComplete = false;
+                }
+            }
+
+            return pagedResult;
         }
 
         /// <summary>
