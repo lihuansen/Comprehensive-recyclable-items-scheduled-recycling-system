@@ -731,40 +731,54 @@
         }
 
         // 渲染消息列表（使用后端返回的 camelCase 字段：senderType, sentTime, content）
-        function renderMessages(messages) {
-            const container = document.getElementById('messageContainer');
+            function renderMessages(messages, conversationEnded, endedBy, endedTime) {
+            var container = document.getElementById('conversationContainer');
             container.innerHTML = '';
 
+            // 如果对话已结束，居中显示提示
+            if (conversationEnded) {
+                var endedLabel = endedBy == "ended_by_recycler" ? "回收员结束当前对话" : "用户结束当前对话";
+                var timeText = endedTime ? (new Date(endedTime)).toLocaleString() : '';
+                container.innerHTML += '<div class="text-center my-3"><strong>' + escapeHtml(endedLabel) + '</strong><div style="font-size:12px;color:#888">结束时间：' + escapeHtml(timeText) + '</div></div>';
+            }
+
             if (!messages || messages.length === 0) {
-                container.innerHTML = '<div class="text-center text-muted"><i class="fas fa-comment-slash"></i> 还没有消息记录</div>';
+                container.innerHTML += '<div class="text-muted text-center">暂无消息</div>';
                 return;
             }
 
-            messages.forEach(msg => {
-                const isUser = (msg.senderType === 'user' || msg.senderType === 'me');
-                const alignClass = isUser ? 'text-right' : 'text-left';
-                const bgClass = isUser ? 'bg-primary text-white' : 'bg-light';
-
-                // 解析时间（如果后端按 ISO 字符串返回）
-                let sentTimeText = '';
-                try {
-                    sentTimeText = new Date(msg.sentTime).toLocaleString();
-                } catch (e) {
-                    sentTimeText = msg.sentTime || '';
-                }
-
-                const messageHtml = `
-                <div class="${alignClass} mb-3">
-                    <small class="d-block text-muted">${isUser ? '我' : (msg.senderName || '回收员')} ${sentTimeText}</small>
-                    <span class="px-3 py-2 rounded ${bgClass}">${escapeHtml(msg.content)}</span>
-                </div>
-            `;
-                container.innerHTML += messageHtml;
+            messages.sort(function(a,b){ return new Date(a.sentTime) - new Date(b.sentTime); });
+            messages.forEach(function(msg) {
+                var sender = (msg.senderType || msg.SenderType || '').toLowerCase();
+                var isRecycler = sender === 'recycler';
+                var align = isRecycler ? 'text-right' : 'text-left';
+                var bg = isRecycler ? 'bg-secondary text-white' : 'bg-light';
+                var timeText = msg.sentTime ? (new Date(msg.sentTime)).toLocaleString() : '';
+                container.innerHTML += '<div class="' + align + ' mb-3"><small class="d-block text-muted">' + escapeHtml(timeText) + '</small><span class="px-3 py-2 rounded ' + bg + '">' + escapeHtml(msg.content || '') + '</span></div>';
             });
-
-            // 滚动到底部
             container.scrollTop = container.scrollHeight;
         }
+
+        // 结束对话按钮（用户会调用 Home/EndConversation，回收员页面类似调用 Staff/EndConversation）
+        document.getElementById('endConversationBtn').addEventListener('click', function() {
+            if (!currentOrderId) { alert('当前订单无效'); return; }
+            if (!confirm('确认结束本次对话？')) return;
+            fetch('@Url.Action("EndConversation","Home")', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json', 'X-Requested-With':'XMLHttpRequest' },
+                body: JSON.stringify({ orderId: currentOrderId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // 刷新消息并显示结束提示（后端在 GetOrderMessages/GetOrderConversation 也会返回相同元信息）
+                    loadMessages(currentOrderId);
+                    alert('会话已结束');
+                } else {
+                    alert('结束失败：' + (data.message || ''));
+                }
+            });
+        });
 
            async function sendMessage() {
         try {
