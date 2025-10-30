@@ -112,7 +112,7 @@ namespace recycling.BLL
                     // 通过用户ID和订单ID获取详情（确保订单属于该用户）
                     orderDetail = orderBLL.GetOrderDetail(request.OrderID, request.SenderID);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return (false, "订单不存在或无权访问");
                 }
