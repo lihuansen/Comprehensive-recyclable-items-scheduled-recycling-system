@@ -1,7 +1,113 @@
-﻿
-@{
-    ViewBag.Title = "Message";
+﻿@{
+    ViewBag.Title = "我的消息（历史会话）";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Help</h2>
+<h3>历史会话</h3>
 
+<div class="row">
+    <div class="col-md-4">
+        <div id="historyList" class="list-group">
+            <!-- 通过 AJAX 填充用户的历史会话 -->
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 id="historyHeader">请选择左侧会话查看历史记录</h5>
+            </div>
+            <div class="card-body">
+                <div id="historyMessages" style="height:420px; overflow-y:auto; border:1px solid #eee; padding:10px; background:#fff;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+    var selectedHistoryOrderId = null;
+    var selectedHistoryEndedTime = null;
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function formatTime(iso) {
+        if (!iso) return '';
+        try { return new Date(iso).toLocaleString(); } catch(e) { return iso; }
+    }
+
+    function loadUserConversations() {
+        fetch('@Url.Action("GetUserConversations","Home")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With':'XMLHttpRequest' },
+            body: JSON.stringify({})
+        })
+        .then(r => r.json())
+        .then(data => {
+            var container = document.getElementById('historyList');
+            container.innerHTML = '';
+            if (data.success && data.conversations && data.conversations.length) {
+                data.conversations.forEach(function(c) {
+                    var a = document.createElement('a');
+                    a.href = 'javascript:void(0);';
+                    a.className = 'list-group-item list-group-item-action history-item';
+                    a.dataset.orderId = c.orderId;
+                    a.dataset.endedTime = c.endedTime;
+                    a.innerHTML = '<div class="d-flex w-100 justify-content-between"><h5 class="mb-1">订单：' + escapeHtml(c.orderNumber) + '</h5><small>' + escapeHtml(formatTime(c.endedTime)) + '</small></div><p class="mb-1 text-truncate">回收员：' + escapeHtml(c.recyclerName || '') + '</p>';
+                    container.appendChild(a);
+                });
+
+                container.addEventListener('click', function (e) {
+                    var t = e.target;
+                    while (t && !t.classList.contains('history-item')) t = t.parentElement;
+                    if (!t) return;
+                    var oid = t.dataset.orderId;
+                    var et = t.dataset.endedTime;
+                    openHistoryConversation(parseInt(oid,10), et);
+                });
+            } else {
+                container.innerHTML = '<div class="empty-state text-muted">暂无历史会话</div>';
+            }
+        })
+        .catch(err => console.error('加载历史会话出错', err));
+    }
+
+    function openHistoryConversation(orderId, endedTime) {
+        selectedHistoryOrderId = orderId;
+        selectedHistoryEndedTime = endedTime;
+        document.getElementById('historyHeader').innerText = '历史会话 - 订单：AP' + ('000000' + orderId).slice(-6);
+        // 请求历史消息（SentTime <= endedTime）
+        fetch('@Url.Action("GetConversationMessagesBeforeEnd","Home")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With':'XMLHttpRequest' },
+            body: JSON.stringify({ orderId: orderId, endedTime: endedTime })
+        })
+        .then(r => r.json())
+        .then(data => {
+            var container = document.getElementById('historyMessages');
+            container.innerHTML = '';
+            if (data.success && data.messages && data.messages.length) {
+                data.messages.forEach(function(m) {
+                    var isUser = (m.senderType === 'user');
+                    var align = isUser ? 'text-right' : 'text-left';
+                    var bg = isUser ? 'bg-primary text-white' : 'bg-light';
+                    var timeText = formatTime(m.sentTime);
+                    var html = '<div class="' + align + ' mb-3"><small class="d-block text-muted">' + (isUser ? '用户' : '回收员') + ' ' + escapeHtml(timeText) + '</small><span class="px-3 py-2 rounded ' + bg + '">' + escapeHtml(m.content) + '</span></div>';
+                    container.innerHTML += html;
+                });
+                container.scrollTop = container.scrollHeight;
+            } else {
+                container.innerHTML = '<div class="empty-state text-muted">无历史消息</div>';
+            }
+        })
+        .catch(err => console.error('加载历史消息出错', err));
+    }
+
+    // 加载时触发
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUserConversations();
+    });
+    </script>
+}
