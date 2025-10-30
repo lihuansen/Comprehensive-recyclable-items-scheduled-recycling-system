@@ -10,6 +10,8 @@
 <div class="row">
     <div class="col-md-4">
         <!-- 列表：每个订单只显示最新一条消息摘要 -->
+        <!-- 在页面合适位置添加一个按钮或面板（示例：顶部） -->
+        <button id="openHistoryBtn" class="btn btn-default" style="margin-bottom:10px;">查看历史会话</button>
         <div id="orderList" class="list-group">
             @{
                 var latestPerOrder = new Dictionary<int, recycling.Model.RecyclerMessageViewModel>();
@@ -305,6 +307,29 @@
         .catch(function (err) {
             console.warn('标为已读失败', err);
         });
-    }
+        }
+
+        // 打开回收员历史会话列表（使用模态或页面内面板，下面示例为简单的 modal）
+    document.getElementById('openHistoryBtn').addEventListener('click', function() {
+        fetch('@Url.Action("GetRecyclerConversations","Staff")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With':'XMLHttpRequest' },
+            body: JSON.stringify({})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.conversations && data.conversations.length) {
+                // 这里简单弹窗列出会话，点击后调用 GetConversationMessagesBeforeEnd 显示（实现细节可按你的 UI 调整）
+                var list = data.conversations.map(function(c) {
+                    return '订单：' + c.orderNumber + ' - 结束于：' + (new Date(c.endedTime)).toLocaleString();
+                }).join('\\n');
+                alert('历史会话:\\n' + list);
+                // 更好的实现：使用 modal 显示并允许点击查看消息（与用户端 Message 界面相同）
+            } else {
+                alert('暂无历史会话');
+            }
+        })
+        .catch(err => { console.error('加载回收员历史会话错误', err); alert('加载失败'); });
+    });
     </script>
 }
