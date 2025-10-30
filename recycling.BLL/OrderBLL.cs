@@ -90,5 +90,14 @@ namespace recycling.BLL
                 return (false, $"订单取消失败：{ex.Message}");
             }
         }
+
+        public (bool Success, string Message) CompleteOrder(int appointmentId, int recyclerId)
+        {
+            if (appointmentId <= 0) return (false, "无效订单ID");
+            // 可选：校验 recyclerId 与订单的 RecyclerID 是否一致
+            var orderDal = new OrderDAL();
+            bool ok = orderDal.UpdateOrderStatus(appointmentId, "已完成");
+            return ok ? (true, "订单已完成") : (false, "完成订单失败");
+        }
     }
 }
