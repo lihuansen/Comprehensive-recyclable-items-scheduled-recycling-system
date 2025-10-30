@@ -331,5 +331,39 @@
         })
         .catch(err => { console.error('加载回收员历史会话错误', err); alert('加载失败'); });
     });
+
+    // 回收员结束对话（调用 Staff/EndConversation）
+    function recyclerEndConversation(orderId) {
+        if (!confirm('回收员确认结束会话？')) return;
+        fetch('@Url.Action("EndConversation","Staff")', {
+            method: 'POST',
+            headers:{ 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
+            body: JSON.stringify({ orderId: orderId })
+        }).then(r=>r.json()).then(data=>{
+            if (data.success) {
+                loadConversationMessages(orderId); // 重新加载会话（会带 conversationEnded 元信息）
+                // 刷新订单列表以显示 Complete 按钮（或只刷新该订单项）
+                refreshRecyclerOrders();
+            } else alert('结束失败：' + (data.message||''));
+        });
+    }
+
+    // 回收员完成订单按钮
+    document.addEventListener('click', function(e){
+        if (e.target && e.target.classList.contains('complete-order-btn')) {
+            var appointmentId = parseInt(e.target.dataset.appointmentId, 10);
+            if (!confirm('确认把此订单标记为已完成？')) return;
+            fetch('@Url.Action("CompleteOrder","Staff")', {
+                method:'POST',
+                headers:{ 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
+                body: JSON.stringify({ appointmentId: appointmentId })
+            }).then(r=>r.json()).then(data=>{
+                if (data.success) {
+                    alert('订单已完成');
+                    location.reload();
+                } else alert('完成失败：' + (data.message||''));
+            });
+        }
+    });
     </script>
 }
