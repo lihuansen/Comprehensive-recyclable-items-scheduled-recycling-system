@@ -634,27 +634,19 @@ namespace recycling.Web.UI.Controllers
         {
             try
             {
-                if (Session["LoginUser"] == null)
-                    return Json(new { success = false, message = "请先登录" });
-
+                if (Session["LoginUser"] == null) return Json(new { success = false, message = "请先登录" });
                 var user = (Users)Session["LoginUser"];
-                var conversationBLL = new ConversationBLL();
-                bool result = conversationBLL.EndConversationBy(orderId, "user", user.UserID);
-
-                // 获取最新会话元信息返回给前端
-                var latest = conversationBLL.GetLatestConversation(orderId);
+                var convBll = new ConversationBLL();
+                bool ok = convBll.EndConversationBy(orderId, "user", user.UserID);
+                var latest = convBll.GetLatestConversation(orderId);
                 return Json(new
                 {
-                    success = result,
-                    conversationEnded = latest != null && latest.EndedTime.HasValue,
-                    endedBy = latest?.Status ?? "",
-                    endedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
+                    success = ok,
+                    conversationLastEndedBy = latest?.Status ?? "",
+                    conversationLatestEndedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
                 });
             }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
         }
 
         // 获取用户的历史会话列表（分页）
