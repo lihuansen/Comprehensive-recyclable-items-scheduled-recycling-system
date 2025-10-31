@@ -628,26 +628,6 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        // 新增：用户结束会话（HomeController）
-        [HttpPost]
-        public JsonResult EndConversation(int orderId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null) return Json(new { success = false, message = "请先登录" });
-                var user = (Users)Session["LoginUser"];
-                var convBll = new ConversationBLL();
-                bool ok = convBll.EndConversationBy(orderId, "user", user.UserID);
-                var latest = convBll.GetLatestConversation(orderId);
-                return Json(new
-                {
-                    success = ok,
-                    conversationLastEndedBy = latest?.Status ?? "",
-                    conversationLatestEndedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
-                });
-            }
-            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
-        }
 
         // 获取用户的历史会话列表（分页）
         [HttpPost]
