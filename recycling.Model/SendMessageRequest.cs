@@ -12,5 +12,7 @@ namespace recycling.Model
         public string SenderType { get; set; }
         public int SenderID { get; set; }
         public string Content { get; set; }
+        public DateTime SentTime { get; set; }
+        public bool IsRead { get; set; }
     }
 }

@@ -793,23 +793,26 @@ namespace recycling.Web.UI.Controllers
                 var user = (Users)Session["LoginUser"];
                 var messageBLL = new MessageBLL();
 
-                // 调用BLL层发送消息
-                bool isSuccess = messageBLL.SendMessage(new Messages
+                // 创建 SendMessageRequest 对象
+                var request = new SendMessageRequest
                 {
                     OrderID = model.OrderId,
-                    SenderType = "user", // 标记发送者为用户
+                    SenderType = "user",
                     SenderID = user.UserID,
                     Content = model.MessageContent,
                     SentTime = DateTime.Now,
                     IsRead = false
-                });
+                };
 
-                if (isSuccess)
+                // 调用BLL层发送消息
+                var result = messageBLL.SendMessage(request);
+
+                if (result.Success)
                 {
                     ViewBag.SuccessMsg = "消息发送成功";
                     return View("ContactRecycler", model);
                 }
-                ViewBag.ErrorMsg = "消息发送失败，请重试";
+                ViewBag.ErrorMsg = result.Message ?? "消息发送失败，请重试";
                 return View("ContactRecycler", model);
             }
             catch (Exception ex)
