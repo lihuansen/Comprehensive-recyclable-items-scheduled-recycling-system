@@ -1,7 +1,148 @@
-﻿
+﻿@model dynamic
 @{
-    ViewBag.Title = "ContactRecycler";
+    ViewBag.Title = "联系回收员";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>ContactRecycler</h2>
+<div class="container mt-4">
+    <div class="card">
+        <!-- 聊天头部（含订单信息和结束对话按钮仅展示） -->
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+                <h5>与 @ViewBag.RecyclerName 对话</h5>
+                <small>订单编号：@ViewBag.OrderNumber</small>
+            </div>
+            <button class="btn btn-danger" disabled>结束对话</button> <!-- 仅保留按钮样式，无功能 -->
+        </div>
 
+        <!-- 聊天消息区域 -->
+        <div class="card-body" id="chatMessages" style="height: 500px; overflow-y: auto; background-color: #f8f9fa; padding: 20px;">
+            @* 消息列表通过AJAX动态加载 *@
+            <div class="text-center text-muted" id="loadingMsg">加载聊天记录中...</div>
+        </div>
+
+        <!-- 消息输入区域 -->
+        <div class="card-footer">
+            <div class="input-group">
+                <textarea id="messageContent" class="form-control" rows="3" placeholder="请输入消息内容..."></textarea>
+                <div class="input-group-append">
+                    <button id="sendMessage" class="btn btn-success">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script>
+        // 页面初始化参数（从ViewBag获取）
+        var orderId = @ViewBag.OrderId;
+        var userId = @ViewBag.UserId;
+        var recyclerId = @ViewBag.RecyclerId;
+
+        // 加载历史消息
+        function loadMessages() {
+            $.ajax({
+                url: "/Home/GetUserOrderConversation",
+                type: "POST",
+                data: { orderId: orderId },
+                success: function (res) {
+                    if (res.success) {
+                        renderMessages(res.data);
+                        $("#loadingMsg").hide();
+                    } else {
+                        $("#chatMessages").html(`<div class="text-danger text-center">加载失败：${res.message}</div>`);
+                    }
+                },
+                error: function () {
+                    $("#chatMessages").html(`<div class="text-danger text-center">网络错误，无法加载消息</div>`);
+                }
+            });
+        }
+
+        // 渲染消息列表（区分用户/回收员消息位置）
+        function renderMessages(messages) {
+            var messagesHtml = "";
+            messages.forEach(function (msg) {
+                // 判断发送者类型，用户消息居右，回收员消息居左
+                var isUserMessage = msg.senderType === "user" && msg.senderId === userId;
+                var alignClass = isUserMessage ? "justify-content-end" : "justify-content-start";
+                var bgClass = isUserMessage ? "bg-primary text-white" : "bg-light text-dark";
+                var senderName = isUserMessage ? "我" : msg.senderName || "回收员";
+
+                messagesHtml += `
+                    <div class="d-flex ${alignClass} mb-3">
+                        <div class="p-3 rounded ${bgClass} shadow-sm" style="max-width: 70%;">
+                            <small class="d-block mb-1">${senderName}</small>
+                            <p class="mb-1">${msg.content}</p>
+                            <small class="text-muted" style="font-size: 0.8em;">${formatTime(msg.sentTime)}</small>
+                        </div>
+                    </div>
+                `;
+            });
+            $("#chatMessages").html(messagesHtml);
+            // 滚动到底部
+            $("#chatMessages").scrollTop($("#chatMessages")[0].scrollHeight);
+        }
+
+        // 时间格式化
+        function formatTime(isoTime) {
+            if (!isoTime) return "";
+            var date = new Date(isoTime);
+            return date.toLocaleString("zh-CN", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+
+        // 发送消息
+        $("#sendMessage").click(function () {
+            var content = $("#messageContent").val().trim();
+            if (!content) {
+                alert("请输入消息内容");
+                return;
+            }
+
+            $.ajax({
+                url: "/Home/UserSendMessageToRecycler",
+                type: "POST",
+                data: {
+                    OrderID: orderId,
+                    Content: content
+                },
+                success: function (res) {
+                    if (res.success) {
+                        $("#messageContent").val("");
+                        loadMessages(); // 发送成功后刷新消息列表
+                    } else {
+                        alert("发送失败：" + res.message);
+                    }
+                },
+                error: function () {
+                    alert("网络错误，发送失败");
+                }
+            });
+        });
+
+        // 按Enter发送消息（Shift+Enter换行）
+        $("#messageContent").keydown(function (e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                $("#sendMessage").click();
+            }
+        });
+
+        // 定时刷新消息（每5秒）
+        setInterval(loadMessages, 5000);
+
+        // 页面加载时初始化
+        $(function () {
+            loadMessages();
+            // 标记消息为已读
+            $.post("/Home/MarkUserMessagesAsRead", { orderId: orderId });
+        });
+    </script>
+}
