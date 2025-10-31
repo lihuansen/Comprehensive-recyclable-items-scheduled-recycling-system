@@ -138,5 +138,23 @@ namespace recycling.BLL
                 return builder.ToString();
             }
         }
+
+        /// <summary>
+        /// 通过ID获取回收员信息（供UI层调用）
+        /// </summary>
+        public Recyclers GetRecyclerById(int recyclerId)
+        {
+            if (recyclerId <= 0)
+                throw new ArgumentException("回收员ID无效");
+
+            try
+            {
+                return _staffDAL.GetRecyclerById(recyclerId); // 调用DAL层新方法
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("获取回收员信息失败：" + ex.Message);
+            }
+        }
     }
 }
