@@ -723,5 +723,100 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// 联系回收员视图（用户端）
+        /// </summary>
+        [HttpGet]
+        public ActionResult ContactRecycler(int orderId)
+        {
+            // 验证用户登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            try
+            {
+                var user = (Users)Session["LoginUser"];
+
+                // 通过BLL层获取订单详情（含回收员ID），避免直接调用DAL
+                var orderDetail = _orderBLL.GetOrderDetail(orderId, user.UserID);
+                if (orderDetail == null || orderDetail.Appointment.RecyclerID == null)
+                {
+                    ViewBag.ErrorMsg = "无法联系回收员：订单不存在或未分配回收员";
+                    return View();
+                }
+
+                // 通过BLL层获取回收员信息
+                var recycler = _staffBLL.GetRecyclerById(orderDetail.Appointment.RecyclerID.Value);
+                if (recycler == null)
+                {
+                    ViewBag.ErrorMsg = "回收员信息不存在";
+                    return View();
+                }
+
+                // 构建视图模型
+                var model = new ContactRecyclerViewModel
+                {
+                    OrderId = orderId,
+                    OrderNumber = $"AP{orderId:D6}",
+                    RecyclerName = recycler.FullName ?? recycler.Username,
+                    RecyclerPhone = recycler.PhoneNumber,
+                    UserName = user.Username,
+                    UserPhone = user.PhoneNumber
+                };
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = $"加载联系页面失败：{ex.Message}";
+                return View();
+            }
+        }
+
+        /// <summary>
+        /// 发送消息给回收员
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SendMessageToRecycler(ContactRecyclerViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("ContactRecycler", model);
+            }
+
+            try
+            {
+                var user = (Users)Session["LoginUser"];
+                var messageBLL = new MessageBLL();
+
+                // 调用BLL层发送消息
+                bool isSuccess = messageBLL.SendMessage(new Messages
+                {
+                    OrderID = model.OrderId,
+                    SenderType = "user", // 标记发送者为用户
+                    SenderID = user.UserID,
+                    Content = model.MessageContent,
+                    SentTime = DateTime.Now,
+                    IsRead = false
+                });
+
+                if (isSuccess)
+                {
+                    ViewBag.SuccessMsg = "消息发送成功";
+                    return View("ContactRecycler", model);
+                }
+                ViewBag.ErrorMsg = "消息发送失败，请重试";
+                return View("ContactRecycler", model);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = $"发送消息出错：{ex.Message}";
+                return View("ContactRecycler", model);
+            }
+        }
     }
 }
