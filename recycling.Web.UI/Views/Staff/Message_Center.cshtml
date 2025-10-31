@@ -5,6 +5,18 @@
     Layout = "~/Views/Shared/_RecyclerLayout.cshtml";
 }
 
+<style>
+    #sendMessageBtn {
+        background-color: #3498db;
+        color: white;
+    }
+
+    #endConversationBtn {
+        background-color: #e74c3c;
+        color: white;
+    }
+</style>
+
 <h3>消息中心 - 与已接收订单用户对话</h3>
 
 <div class="row">
@@ -63,7 +75,10 @@
                     <div class="input-group">
                         <input type="text" id="conversationInput" class="form-control" placeholder="输入联系用户的消息...">
                         <span class="input-group-btn">
-                            <button id="sendMessageBtn" class="btn btn-primary">联系用户</button>
+                            <button id="sendMessageBtn" class="btn btn-primary">发送</button>
+                        </span>
+                        <span class="input-group-btn">
+                            <button id="endConversationBtn" class="btn btn-danger">结束对话</button>
                         </span>
                     </div>
                 </div>
