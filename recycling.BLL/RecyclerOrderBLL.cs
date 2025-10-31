@@ -13,6 +13,66 @@ namespace recycling.BLL
         private readonly RecyclerOrderDAL _recyclerOrderDAL = new RecyclerOrderDAL();
 
         /// <summary>
+        /// 获取回收员订单列表
+        /// 说明：在获取 DAL 返回的分页结果后，遍历每个订单计算 CanComplete（是否显示“完成订单”按钮）。
+        /// 计算规则（保守实现）：订单状态为“进行中”且存在最近一次结束会话（Conversations）且在该 EndedTime 之后没有新的消息，则 CanComplete = true。
+        /// 为兼容你当前仓库，我使用了 ConversationBLL.GetLatestConversation 和 MessageBLL.GetOrderMessages（这两个在之前代码中已有或我建议添加）。
+        /// </summary>
+        public PagedResult<RecyclerOrderViewModel> GetRecyclerOrders(OrderFilterModel filter, int recyclerId = 0)
+        {
+            if (filter == null) throw new ArgumentNullException(nameof(filter));
+            if (filter.PageIndex < 1) filter.PageIndex = 1;
+            if (filter.PageSize < 1) filter.PageSize = 10;
+
+            // 从 DAL 获取分页结果
+            var pagedResult = _recyclerOrderDAL.GetRecyclerOrders(filter, recyclerId);
+
+            // 若无数据直接返回
+            if (pagedResult == null || pagedResult.Items == null || !pagedResult.Items.Any())
+                return pagedResult;
+
+            // 计算 CanComplete 标识
+            var conversationBll = new ConversationBLL();
+            var messageBll = new MessageBLL();
+
+            foreach (var orderVm in pagedResult.Items)
+            {
+                orderVm.CanComplete = false; // 默认 false
+
+                try
+                {
+                    // 仅对“进行中”订单判断
+                    if (string.Equals(orderVm.Status, "进行中", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // 获取最近一次结束会话（若存在）
+                        var latestConv = conversationBll.GetLatestConversation(orderVm.AppointmentID);
+                        if (latestConv != null && latestConv.EndedTime.HasValue)
+                        {
+                            // 获取该订单全部消息（简单实现）
+                            var allMessages = messageBll.GetOrderMessages(orderVm.AppointmentID);
+
+                            // 如果所有消息的 SentTime 均 <= latestConv.EndedTime，则说明没有新消息
+                            bool hasAfter = allMessages != null && allMessages.Any(m =>
+                                (m.SentTime.HasValue ? m.SentTime.Value : DateTime.MinValue) > latestConv.EndedTime.Value);
+
+                            if (!hasAfter)
+                            {
+                                orderVm.CanComplete = true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // 发生异常时保持 CanComplete = false，避免影响主流程
+                    orderVm.CanComplete = false;
+                }
+            }
+
+            return pagedResult;
+        }
+
+        /// <summary>
         /// 获取订单统计信息
         /// </summary>
         public OrderStatistics GetOrderStatistics()
