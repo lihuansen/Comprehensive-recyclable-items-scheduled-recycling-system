@@ -538,43 +538,6 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        // 修改：GetOrderMessages（用户端） — 增加 conversationEnded/endedBy/endedTime
-        [HttpPost]
-        public JsonResult GetOrderMessages(int orderId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                    return Json(new { success = false, message = "请先登录" });
-
-                var messages = _messageBLL.GetOrderMessages(orderId);
-                var result = messages.Select(m => new
-                {
-                    messageId = m.MessageID,
-                    orderId = m.OrderID,
-                    senderType = (m.SenderType ?? string.Empty).ToLower(),
-                    senderId = m.SenderID,
-                    content = m.Content ?? string.Empty,
-                    // 若 SentTime 是 Nullable<DateTime>（DateTime?），先判断后再取 Value.ToString("o")
-                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
-                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
-                                : string.Empty,
-                    isRead = m.IsRead
-                }).ToList();
-
-                var convBll = new ConversationBLL();
-                var latestConv = convBll.GetLatestConversation(orderId);
-                bool conversationEnded = latestConv != null && latestConv.EndedTime.HasValue;
-                string endedBy = latestConv?.Status ?? "";
-                string endedTimeIso = conversationEnded ? latestConv.EndedTime.Value.ToString("o") : string.Empty;
-
-                return Json(new { success = true, messages = result, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
 
         [HttpPost]
         public JsonResult SendMessage(SendMessageRequest request)
