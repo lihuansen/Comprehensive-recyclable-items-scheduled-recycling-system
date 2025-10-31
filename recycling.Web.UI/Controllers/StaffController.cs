@@ -484,6 +484,27 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        // 回收员结束会话（StaffController）
+        [HttpPost]
+        public JsonResult EndConversation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null) return Json(new { success = false, message = "请先登录" });
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var convBll = new ConversationBLL();
+                bool ok = convBll.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
+                var latest = convBll.GetLatestConversation(orderId);
+                return Json(new
+                {
+                    success = ok,
+                    conversationLastEndedBy = latest?.Status ?? "",
+                    conversationLatestEndedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
+                });
+            }
+            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
+        }
+
         // 完成订单（回收员点击后把订单状态置为 已完成）
         [HttpPost]
         public JsonResult CompleteOrder(int appointmentId)
