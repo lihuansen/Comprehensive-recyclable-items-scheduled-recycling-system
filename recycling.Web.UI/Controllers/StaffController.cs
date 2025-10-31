@@ -188,6 +188,35 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取回收员订单列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetRecyclerOrders(OrderFilterModel filter)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                // 设置分页参数
+                if (filter.PageIndex < 1) filter.PageIndex = 1;
+                if (filter.PageSize < 1) filter.PageSize = 10;
+
+                // 通过 BLL 获取订单数据
+                var result = _recyclerOrderBLL.GetRecyclerOrders(filter, recycler.RecyclerID);
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 接收订单
         /// </summary>
         [HttpPost]
