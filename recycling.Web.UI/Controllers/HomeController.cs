@@ -15,6 +15,7 @@ namespace recycling.Web.UI.Controllers
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
         private readonly MessageBLL _messageBLL = new MessageBLL();
         private readonly OrderBLL _orderBLL = new OrderBLL();
+        private readonly StaffBLL _staffBLL = new StaffBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
