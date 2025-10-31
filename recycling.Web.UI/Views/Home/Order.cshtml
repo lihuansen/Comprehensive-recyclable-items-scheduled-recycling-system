@@ -4,7 +4,7 @@
 }
 
 <!-- 引入Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
     .order-container {
@@ -612,7 +612,7 @@
                         <div id="detailCategories" class="categories-list"></div>
                     </div>
 
-                    <!-- 新增回收员ID字段（默认隐藏） -->
+                    <!-- 回收员ID字段（默认隐藏） -->
                     <div class="detail-item" id="detailRecyclerId" style="display: none;">
                         <span class="detail-label">回收员ID：</span>
                         <span class="detail-value" id="recyclerID"></span>
@@ -626,290 +626,8 @@
     </div>
 </div>
 
-<!-- 聊天模态框 -->
-<div id="chatModal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h5 class="modal-title">
-                    <i class="fas fa-comments"></i>与回收员对话
-                </h5>
-            </div>
-            <div class="modal-body">
-                <!-- 消息列表区域 -->
-                <div id="messageContainer" class="pre-scrollable" style="height:300px; margin-bottom:15px; border:1px solid #eee; padding:10px;"></div>
-
-                <!-- 输入区域（添加结束对话按钮，用户可见） -->
-                <div class="input-group">
-                    <input type="text" id="messageContent" class="form-control" placeholder="输入消息...">
-                    <span class="input-group-btn">
-                        <button id="sendBtn" class="btn btn-primary">发送</button>
-                    </span>
-                    <span class="input-group-btn" style="margin-left:8px;">
-                        <button id="endConversationBtn" class="btn btn-danger">结束对话</button>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script>
-        // 聊天功能相关变量
-        let currentOrderId = null;
-        let currentRecyclerId = null;
-        let messageInterval = null;
-
-        // 页面加载完成后绑定聊天按钮事件
-        document.addEventListener('DOMContentLoaded', function() {
-            // 现有初始化逻辑...
-
-            // 委托绑定聊天按钮点击事件（因为订单是动态加载的）
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.contact-recycler')) {
-                    const btn = e.target.closest('.contact-recycler');
-                    currentOrderId = btn.getAttribute('data-orderid');
-                    currentRecyclerId = btn.getAttribute('data-recyclerid');
-
-                    // 显示聊天窗口并加载消息
-                    $('#chatModal').modal('show');
-                    loadMessages(currentOrderId);
-
-                    // 开始定时刷新消息
-                    if (messageInterval) clearInterval(messageInterval);
-                    messageInterval = setInterval(() => {
-                        if ($('#chatModal').is(':visible')) {
-                            loadMessages(currentOrderId);
-                        }
-                    }, 3000);
-                }
-            });
-
-            // 聊天窗口关闭时清除定时器
-            $('#chatModal').on('hidden.bs.modal', function() {
-                if (messageInterval) {
-                    clearInterval(messageInterval);
-                    messageInterval = null;
-                }
-            });
-
-            // 发送消息按钮点击事件
-            document.getElementById('sendBtn').addEventListener('click', sendMessage);
-
-            // 回车发送消息
-            document.getElementById('messageContent').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') sendMessage();
-            });
-        });
-
-        // 加载消息（确保后端返回 { success: true, messages: [...] }）
-        function loadMessages(orderId) {
-            if (!orderId) return;
-
-            fetch('@Url.Action("GetOrderMessages", "Home")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ orderId: orderId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // 注意：使用 data.messages （与后端返回的属性一致）
-                    renderMessages(data.messages || []);
-                } else {
-                    showAlert('加载消息失败: ' + data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('加载消息出错:', error);
-            });
-        }
-
-        // 渲染消息列表（使用后端返回的 camelCase 字段：senderType, sentTime, content）
-            function renderMessages(messages, conversationEnded, endedBy, endedTime) {
-            var container = document.getElementById('conversationContainer');
-            container.innerHTML = '';
-
-            // 如果对话已结束，居中显示提示
-            if (conversationEnded) {
-                var endedLabel = endedBy == "ended_by_recycler" ? "回收员结束当前对话" : "用户结束当前对话";
-                var timeText = endedTime ? (new Date(endedTime)).toLocaleString() : '';
-                container.innerHTML += '<div class="text-center my-3"><strong>' + escapeHtml(endedLabel) + '</strong><div style="font-size:12px;color:#888">结束时间：' + escapeHtml(timeText) + '</div></div>';
-            }
-
-            if (!messages || messages.length === 0) {
-                container.innerHTML += '<div class="text-muted text-center">暂无消息</div>';
-                return;
-            }
-
-            messages.sort(function(a,b){ return new Date(a.sentTime) - new Date(b.sentTime); });
-            messages.forEach(function(msg) {
-                var sender = (msg.senderType || msg.SenderType || '').toLowerCase();
-                var isRecycler = sender === 'recycler';
-                var align = isRecycler ? 'text-right' : 'text-left';
-                var bg = isRecycler ? 'bg-secondary text-white' : 'bg-light';
-                var timeText = msg.sentTime ? (new Date(msg.sentTime)).toLocaleString() : '';
-                container.innerHTML += '<div class="' + align + ' mb-3"><small class="d-block text-muted">' + escapeHtml(timeText) + '</small><span class="px-3 py-2 rounded ' + bg + '">' + escapeHtml(msg.content || '') + '</span></div>';
-            });
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // 结束对话按钮（用户会调用 Home/EndConversation，回收员页面类似调用 Staff/EndConversation）
-        document.getElementById('endConversationBtn').addEventListener('click', function() {
-            if (!currentOrderId) { alert('当前订单无效'); return; }
-            if (!confirm('确认结束本次对话？')) return;
-            fetch('@Url.Action("EndConversation","Home")', {
-                method: 'POST',
-                headers: { 'Content-Type':'application/json', 'X-Requested-With':'XMLHttpRequest' },
-                body: JSON.stringify({ orderId: currentOrderId })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    // 刷新消息并显示结束提示（后端在 GetOrderMessages/GetOrderConversation 也会返回相同元信息）
-                    loadMessages(currentOrderId);
-                    alert('会话已结束');
-                } else {
-                    alert('结束失败：' + (data.message || ''));
-                }
-            });
-        });
-
-           async function sendMessage() {
-        try {
-            const contentEl = document.getElementById('messageContent');
-            if (!contentEl) return;
-            const content = contentEl.value.trim();
-            if (!content || !currentOrderId) return;
-
-            // 禁用按钮防止重复点击
-            const sendBtn = document.getElementById('sendBtn');
-            if (sendBtn) {
-                sendBtn.disabled = true;
-                var originalText = sendBtn.innerHTML;
-                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中...';
-            }
-
-            const resp = await fetch('@Url.Action("SendMessage", "Home")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    OrderID: currentOrderId,
-                    Content: content
-                })
-            });
-
-            const data = await resp.json();
-            if (sendBtn) {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = originalText || '发送';
-            }
-
-            if (data && data.success) {
-                // 清空输入并刷新消息
-                contentEl.value = '';
-                loadMessages(currentOrderId);
-            } else {
-                if (typeof showAlert === 'function') showAlert('发送失败: ' + (data?.message || ''), 'error');
-                else alert('发送失败: ' + (data?.message || '未知错误'));
-            }
-        } catch (error) {
-            console.error('发送消息出错:', error);
-            if (typeof showAlert === 'function') showAlert('发送失败: ' + (error.message || error), 'error');
-            else alert('发送失败: ' + (error.message || error));
-        }
-    }
-
-    async function endConversation() {
-        try {
-            if (!currentOrderId) { alert('当前订单无效'); return; }
-            if (!confirm('结束对话后此次会话将被保存为历史，并且下次将从新的会话开始，是否确认结束？')) return;
-
-            const endBtn = document.getElementById('endConversationBtn');
-            if (endBtn) {
-                endBtn.disabled = true;
-                var orig = endBtn.innerHTML;
-                endBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 结束中...';
-            }
-
-            const resp = await fetch('@Url.Action("EndConversation","Home")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ orderId: currentOrderId })
-            });
-
-            const data = await resp.json();
-            if (endBtn) {
-                endBtn.disabled = false;
-                endBtn.innerHTML = orig || '结束对话';
-            }
-
-            if (data && data.success) {
-                // 结束成功，关闭聊天并提示；也可以跳转历史页面或刷新左侧列表
-                $('#chatModal').modal('hide');
-                alert('会话已结束并保存到历史记录中。');
-                // 可选：刷新用户的消息列表页面或更新当前订单状态显示
-                // loadMessages(currentOrderId); // 已结束的会话通常不再刷新
-            } else {
-                alert('结束会话失败：' + (data?.message || '未知错误'));
-            }
-        } catch (err) {
-            console.error('结束会话出错', err);
-            alert('结束会话出错：' + (err.message || err));
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // 绑定发送按钮
-        const sendBtn = document.getElementById('sendBtn');
-        const messageContent = document.getElementById('messageContent');
-        if (sendBtn) sendBtn.addEventListener('click', sendMessage);
-        if (messageContent) {
-            messageContent.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-        }
-
-        // 绑定结束对话按钮（仅用户端页面显示时）
-        const endBtn = document.getElementById('endConversationBtn');
-        if (endBtn) endBtn.addEventListener('click', endConversation);
-    });
-
-        // 辅助函数：格式化时间
-        function formatTime(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString('zh-CN', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        // 辅助函数：防止XSS攻击
-        function escapeHtml(str) {
-            if (!str && str !== '') return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
         document.addEventListener('DOMContentLoaded', function () {
             // 状态标签切换功能
             const statusTabs = document.querySelectorAll('.status-tab');
@@ -1076,20 +794,19 @@
                             </div>
                         `;
                     } else if (order.status === '进行中') {
-                        // 进行中订单：查看详情 + 联系回收员
+                        // 进行中订单：查看详情 + 联系回收员（跳转到新视图）
                         actionButtons = `
                             <div class="order-actions">
                                 <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
                                     <i class="fas fa-eye"></i>查看详情
                                 </button>
-                                <button class="btn-action success contact-recycler"
-                            data-orderid="${order.id}"
-                            data-recyclerid="${order.recyclerID || ''}">
-                        <i class="fas fa-comments"></i>联系回收员
-                    </button>
+                                <a href='@Url.Action("ContactRecycler", "Home")?orderId=${order.id}&recyclerId=${order.recyclerID || ""}'
+                                   class="btn-action success contact-recycler">
+                                    <i class="fas fa-comments"></i>联系回收员
+                                </a>
                             </div>
                         `;
-                    }else {
+                    } else {
                         // 其他状态订单：只显示查看详情
                         actionButtons = `
                             <div class="order-actions">
@@ -1318,7 +1035,8 @@
             } else {
                 categoriesContainer.innerHTML = '<span class="text-muted">暂无品类信息</span>';
             }
-            // 新增：处理回收员ID显示（仅进行中/已完成状态）
+
+            // 处理回收员ID显示（仅进行中/已完成状态）
             const recyclerIdElement = document.getElementById('detailRecyclerId');
             const recyclerIdValue = document.getElementById('recyclerID');
 
@@ -1332,65 +1050,5 @@
                 recyclerIdElement.style.display = 'none';
             }
         }
-
-        function renderConversation(messages, conversationLastEndedBy, conversationBothEnded, conversationLatestEndedTime) {
-        var container = document.getElementById('conversationContainer');
-        container.innerHTML = '';
-
-        // 若存在最后结束者（不为空），显示居中提示
-        if (conversationLastEndedBy && conversationLastEndedBy.length > 0) {
-            var label = conversationLastEndedBy === 'ended_by_recycler' ? '回收员结束了当前对话' : '用户结束了当前对话';
-            var timeText = conversationLatestEndedTime ? (new Date(conversationLatestEndedTime)).toLocaleString() : '';
-            container.innerHTML += '<div class="text-center my-3"><strong>' + escapeHtml(label) + '</strong><div style="font-size:12px;color:#888">结束时间：' + escapeHtml(timeText) + '</div></div>';
-        }
-
-        if (!messages || messages.length === 0) {
-            container.innerHTML += '<div class="text-muted text-center">暂无消息</div>';
-            return;
-        }
-
-        // 按时间排序并渲染（QQ 风格简化：右侧回收员，左侧用户）
-        messages.sort(function(a,b){ return new Date(a.sentTime) - new Date(b.sentTime); });
-        messages.forEach(function(msg) {
-            var st = (msg.senderType || '').toLowerCase();
-            var isRecycler = st === 'recycler';
-            var bubble = document.createElement('div');
-            bubble.className = isRecycler ? 'text-right mb-3' : 'text-left mb-3';
-            var time = msg.sentTime ? (new Date(msg.sentTime)).toLocaleString() : '';
-            bubble.innerHTML = '<small class="d-block text-muted">' + escapeHtml(time) + '</small>' +
-                '<span class="px-3 py-2 rounded ' + (isRecycler ? 'bg-primary text-white' : 'bg-light') + '">' + escapeHtml(msg.content || '') + '</span>';
-            container.appendChild(bubble);
-        });
-
-        container.scrollTop = container.scrollHeight;
-    }
-
-    // 添加结束对话按钮绑定（统一）
-    document.addEventListener('DOMContentLoaded', function() {
-        var endBtn = document.getElementById('endConversationBtn'); // 请确保视图里有此元素
-        if (endBtn) {
-            endBtn.addEventListener('click', function() {
-                if (!currentOrderId) { alert('订单无效'); return; }
-                if (!confirm('确认结束本次对话？')) return;
-                // 判断当前页面是回收员页面还是用户页面，调用对应接口
-                var url = (typeof isStaffPage !== 'undefined' && isStaffPage) ? '@Url.Action("EndConversation","Staff")' : '@Url.Action("EndConversation","Home")';
-                fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
-                    body: JSON.stringify({ orderId: currentOrderId })
-                })
-                .then(r=>r.json())
-                .then(data=>{
-                    if (data.success) {
-                        // 重新载入消息（返回结果里通常也包含会话元信息）
-                        if (typeof loadMessages === 'function') loadMessages(currentOrderId);
-                        else if (typeof loadConversationMessages === 'function') loadConversationMessages(currentOrderId);
-                    } else {
-                        alert('结束失败：' + (data.message || ''));
-                    }
-                }).catch(err=> { console.error(err); alert('结束出错'); });
-            });
-        }
-    });
     </script>
 }
