@@ -276,6 +276,57 @@ namespace recycling.Web.UI.Controllers
             return View(messages);
         }
 
+        // 获取订单对话（回收员端），已包含 conversationEnded/endedBy/endedTime
+        [HttpPost]
+        public JsonResult GetOrderConversation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                if (orderId <= 0)
+                    return Json(new { success = false, message = "无效订单ID" });
+
+                var messagesVm = _recyclerOrderBLL.GetOrderConversation(orderId);
+                var result = messagesVm.Select(m => new
+                {
+                    messageId = m.MessageID,
+                    orderId = m.OrderID,
+                    senderType = (m.SenderType ?? string.Empty).ToLower(),
+                    senderId = m.SenderID,
+                    senderName = m.SenderName ?? "",
+                    content = m.Content ?? "",
+                    // 若 SentTime 是 Nullable<DateTime>（DateTime?），先判断后再取 Value.ToString("o")
+                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
+                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
+                                : string.Empty,
+                    isRead = m.IsRead
+                }).ToList();
+
+                // 获取最近结束信息（供前端显示“谁结束了/是否双方都结束”）
+                var convBll = new ConversationBLL();
+                var latestConv = convBll.GetLatestConversation(orderId);
+                var bothInfo = convBll.HasBothEnded(orderId); // (bool, DateTime?)
+                bool conversationBothEnded = bothInfo.BothEnded;
+                string latestEndedTimeIso = bothInfo.LatestEndedTime.HasValue ? bothInfo.LatestEndedTime.Value.ToString("o") : string.Empty;
+                string lastEndedBy = latestConv != null ? latestConv.Status ?? "" : "";
+
+                return Json(new
+                {
+                    success = true,
+                    messages = result,
+                    conversationLastEndedBy = lastEndedBy,
+                    conversationBothEnded = conversationBothEnded,
+                    conversationLatestEndedTime = latestEndedTimeIso
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         /// <summary>
         /// 发送消息给用户（回收员端 AJAX）
         /// 前端只需要提供 OrderID 和 Content，后台会填充 SenderType/SenderID
