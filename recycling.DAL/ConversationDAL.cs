@@ -80,6 +80,48 @@ namespace recycling.DAL
             }
         }
 
+        // 通用：由谁结束（endedByType = "user" or "recycler"），记录一条结束记录
+        public bool EndConversation(int orderId, string endedByType, int endedById)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                int userId = 0, recyclerId = 0;
+                string getParticipants = "SELECT UserID, RecyclerID FROM Appointments WHERE AppointmentID = @AppointmentID";
+                using (SqlCommand cmd = new SqlCommand(getParticipants, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentID", orderId);
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            if (reader["UserID"] != DBNull.Value) int.TryParse(reader["UserID"].ToString(), out userId);
+                            if (reader["RecyclerID"] != DBNull.Value) int.TryParse(reader["RecyclerID"].ToString(), out recyclerId);
+                        }
+                    }
+                    conn.Close();
+                }
+
+                string status = endedByType == "recycler" ? "ended_by_recycler" : "ended_by_user";
+                string insertSql = @"
+                    INSERT INTO Conversations (OrderID, UserID, RecyclerID, Status, CreatedTime, EndedTime)
+                    VALUES (@OrderID, @UserID, @RecyclerID, @Status, @CreatedTime, @EndedTime)";
+                using (SqlCommand cmd = new SqlCommand(insertSql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@OrderID", orderId);
+                    cmd.Parameters.AddWithValue("@UserID", userId);
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                    cmd.Parameters.AddWithValue("@Status", status);
+                    cmd.Parameters.AddWithValue("@CreatedTime", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@EndedTime", DateTime.Now);
+
+                    conn.Open();
+                    int rows = cmd.ExecuteNonQuery();
+                    return rows > 0;
+                }
+            }
+        }
+
         // 获取指定订单最近一次的结束会话（如果没有返回 null）
         public ConversationViewModel GetLatestConversation(int orderId)
         {
