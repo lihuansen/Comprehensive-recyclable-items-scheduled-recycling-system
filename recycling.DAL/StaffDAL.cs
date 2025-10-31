@@ -226,6 +226,42 @@ namespace recycling.DAL
             }
         }
         #endregion
+
+        // 在StaffDAL类中添加
+        /// <summary>
+        /// 根据ID获取回收员信息（供BLL层调用）
+        /// </summary>
+        public Recyclers GetRecyclerById(int recyclerId)
+        {
+            if (recyclerId <= 0)
+                return null;
+
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"SELECT RecyclerID, Username, FullName, PhoneNumber, IsActive 
+                      FROM Recyclers 
+                      WHERE RecyclerID = @RecyclerID AND IsActive = 1";
+
+                var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new Recyclers
+                        {
+                            RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
+                            Username = reader["Username"].ToString(),
+                            FullName = reader["FullName"]?.ToString(),
+                            PhoneNumber = reader["PhoneNumber"]?.ToString()
+                        };
+                    }
+                }
+            }
+            return null;
+        }
     }
 }
 
