@@ -17,6 +17,20 @@ namespace recycling.BLL
             return _conversationDAL.HasBothEnded(orderId);
         }
 
+        // 结束会话（endedByType: "user"|"recycler", endedById 对应 ID）
+        public bool EndConversationBy(int orderId, string endedByType, int endedById)
+        {
+            if (orderId <= 0) return false;
+            return _conversationDAL.EndConversation(orderId, endedByType, endedById);
+        }
+
+        // 获取最近一次结束会话（若无则返回 null）
+        public ConversationViewModel GetLatestConversation(int orderId)
+        {
+            if (orderId <= 0) return null;
+            return _conversationDAL.GetLatestConversation(orderId);
+        }
+
         public List<Messages> GetConversationMessagesBeforeEnd(int orderId, DateTime endedTime)
         {
             if (orderId <= 0 || endedTime == default(DateTime)) return new List<Messages>();
