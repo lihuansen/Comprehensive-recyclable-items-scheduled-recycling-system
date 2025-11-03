@@ -14,6 +14,7 @@ namespace recycling.Web.UI.Controllers
         private readonly RecyclerOrderBLL _recyclerOrderBLL = new RecyclerOrderBLL();
         private readonly MessageBLL _messageBLL = new MessageBLL();
         private readonly OrderBLL _orderBLL = new OrderBLL();
+        private readonly AdminBLL _adminBLL = new AdminBLL();
 
         /// <summary>
         /// 工作人员首页 - 重定向到专用首页
@@ -792,6 +793,238 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        #endregion
+
+        #region Admin - User Management
+
+        /// <summary>
+        /// 管理员 - 用户管理页面
+        /// </summary>
+        public ActionResult UserManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取用户列表（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetUsers(int page = 1, int pageSize = 20, string searchTerm = null)
+        {
+            try
+            {
+                var result = _adminBLL.GetAllUsers(page, pageSize, searchTerm);
+                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取用户统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetUserStatistics()
+        {
+            try
+            {
+                var stats = _adminBLL.GetUserStatistics();
+                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Admin - Recycler Management
+
+        /// <summary>
+        /// 管理员 - 回收员管理页面
+        /// </summary>
+        public ActionResult RecyclerManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取回收员列表（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            try
+            {
+                var result = _adminBLL.GetAllRecyclers(page, pageSize, searchTerm, isActive);
+                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取回收员详情（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclerDetails(int recyclerId)
+        {
+            try
+            {
+                var recycler = _adminBLL.GetRecyclerById(recyclerId);
+                var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recyclerId);
+
+                return Json(new { 
+                    success = true, 
+                    data = new 
+                    { 
+                        recycler = recycler, 
+                        completedOrders = completedOrders 
+                    } 
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 添加回收员（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult AddRecycler(Recyclers recycler, string password)
+        {
+            try
+            {
+                var result = _adminBLL.AddRecycler(recycler, password);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 更新回收员信息（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult UpdateRecycler(Recyclers recycler)
+        {
+            try
+            {
+                var result = _adminBLL.UpdateRecycler(recycler);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 删除回收员（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult DeleteRecycler(int recyclerId)
+        {
+            try
+            {
+                var result = _adminBLL.DeleteRecycler(recyclerId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取回收员统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclerStatistics()
+        {
+            try
+            {
+                var stats = _adminBLL.GetRecyclerStatistics();
+                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Admin - Order Management
+
+        /// <summary>
+        /// 管理员 - 订单管理页面
+        /// </summary>
+        public ActionResult OrderManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取订单列表（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
+        {
+            try
+            {
+                var result = _adminBLL.GetAllOrders(page, pageSize, status, searchTerm);
+                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取订单统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetOrderStatistics()
+        {
+            try
+            {
+                var stats = _adminBLL.GetOrderStatistics();
+                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
 
 
     }
