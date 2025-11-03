@@ -131,7 +131,7 @@ namespace recycling.DAL
                                 StarRating = Convert.ToInt32(reader["StarRating"]),
                                 ReviewText = reader["ReviewText"] == DBNull.Value ? null : reader["ReviewText"].ToString(),
                                 CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
-                            };
+                            });
                         }
                     }
                 }

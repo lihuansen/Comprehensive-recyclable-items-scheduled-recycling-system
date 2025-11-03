@@ -865,7 +865,7 @@ namespace recycling.Web.UI.Controllers
                 var orderBll = new OrderBLL();
                 var order = orderBll.GetOrderDetail(orderId, user.UserID);
                 
-                if (order.Status != "已完成")
+                if (order.Appointment.Status != "已完成")
                 {
                     return RedirectToAction("MyOrders", "User");
                 }
