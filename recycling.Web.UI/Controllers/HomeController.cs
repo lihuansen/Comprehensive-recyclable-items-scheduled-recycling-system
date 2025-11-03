@@ -484,9 +484,24 @@ namespace recycling.Web.UI.Controllers
                 if (Session["LoginUser"] == null)
                     return Json(new { success = false, message = "请先登录" });
 
+                var user = (Users)Session["LoginUser"];
                 var messageBLL = new MessageBLL();
-                var messages = messageBLL.GetOrderMessages(orderId); // 复用现有获取订单消息方法
-                return Json(new { success = true, data = messages });
+                var messages = messageBLL.GetOrderMessages(orderId);
+                
+                // 格式化消息以匹配前端期望的格式
+                var formattedMessages = messages.Select(m => new
+                {
+                    messageId = m.MessageID,
+                    orderId = m.OrderID,
+                    senderType = m.SenderType?.ToLower() ?? "",
+                    senderId = m.SenderID,
+                    senderName = m.SenderType?.ToLower() == "user" ? "用户" : "回收员",
+                    content = m.Content ?? "",
+                    sentTime = m.SentTime.HasValue ? m.SentTime.Value.ToString("o") : "",
+                    isRead = m.IsRead
+                }).ToList();
+                
+                return Json(new { success = true, data = formattedMessages });
             }
             catch (Exception ex)
             {
@@ -756,7 +771,14 @@ namespace recycling.Web.UI.Controllers
                     return View();
                 }
 
-                // 构建视图模型
+                // 设置ViewBag变量供视图使用
+                ViewBag.OrderId = orderId;
+                ViewBag.OrderNumber = $"AP{orderId:D6}";
+                ViewBag.RecyclerName = recycler.FullName ?? recycler.Username;
+                ViewBag.RecyclerId = recycler.RecyclerID;
+                ViewBag.UserId = user.UserID;
+
+                // 构建视图模型（保留用于向后兼容）
                 var model = new ContactRecyclerViewModel
                 {
                     OrderId = orderId,
