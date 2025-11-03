@@ -27,7 +27,5 @@ namespace recycling.Model
 
         [Column(TypeName = "datetime2")]
         public DateTime CreatedDate { get; set; }
-
-        public decimal? Weight { get; set; }
     }
 }
