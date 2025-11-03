@@ -1,11 +1,13 @@
 namespace recycling.Model
 {
-    using System;
+using System;
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
+namespace recycling.Model
+{
     [Table("UserFeedback")]
     public partial class UserFeedback
     {
@@ -31,15 +33,19 @@ namespace recycling.Model
 
         [Required]
         [StringLength(50)]
-        public string Status { get; set; }
+        public string Status { get; set; } = "´ı´¦Àí";
 
         [StringLength(1000)]
         public string AdminReply { get; set; }
 
         [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [Column(TypeName = "datetime2")]
         public DateTime? UpdatedDate { get; set; }
+
+        // éæ•°æ®åº“å­—æ®µï¼Œç”¨äºæ˜¾ç¤?
+        [NotMapped]
+        public string UserName { get; set; }
     }
 }

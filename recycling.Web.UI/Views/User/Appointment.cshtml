@@ -251,6 +251,68 @@
         color: #e74c3c;
     }
 
+    /* 类别重量输入样式 */
+    .category-weight-item {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .category-weight-item:hover {
+        border-color: #3498db;
+        background: #e3f2fd;
+    }
+
+    .category-weight-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 16px;
+    }
+
+    .category-weight-label i {
+        color: #3498db;
+        margin-right: 8px;
+    }
+
+    .weight-input-wrapper {
+        position: relative;
+    }
+
+    .weight-input-wrapper .form-control {
+        padding-right: 60px;
+    }
+
+    .weight-unit {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+
+    #calculateTotalBtn {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        border: none;
+        color: white;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    #calculateTotalBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+    }
+
+    #calculateTotalBtn i {
+        margin-right: 8px;
+    }
+
     @@media (max-width: 768px) {
         .form-row {
             flex-direction: column;
@@ -301,12 +363,6 @@
                         @Html.DropDownListFor(m => m.AppointmentType, new SelectList(ViewBag.AppointmentTypes, "Key", "Value"), "请选择预约类型", new { @class = "form-control" })
                         @Html.ValidationMessageFor(m => m.AppointmentType, "", new { @class = "text-danger" })
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label required-field">预估重量 (公斤)</label>
-                        @Html.TextBoxFor(m => m.EstimatedWeight, new { @class = "form-control", type = "number", step = "0.1", min = "0.1", max = "1000", placeholder = "例如：5.5" })
-                        @Html.ValidationMessageFor(m => m.EstimatedWeight, "", new { @class = "text-danger" })
-                    </div>
                 </div>
             </div>
 
@@ -321,14 +377,33 @@
                     <div class="checkbox-list" id="categoryCheckboxes">
                         @foreach (var category in ViewBag.RecyclingCategories)
                         {
-                            <label class="category-checkbox">
-                                <input type="checkbox" name="SelectedCategories" value="@category.Key"
+                            <label class="category-checkbox" data-category-key="@category.Key" data-category-name="@category.Value">
+                                <input type="checkbox" name="SelectedCategories" value="@category.Key" class="category-checkbox-input"
                                        @(Model.SelectedCategories != null && Model.SelectedCategories.Contains(category.Key) ? "checked" : "") />
                                 <span class="category-name">@category.Value</span>
                             </label>
                         }
                     </div>
                     @Html.ValidationMessage("SelectedCategories", new { @class = "text-danger" })
+                </div>
+
+                <!-- 动态显示的类别重量输入区域 -->
+                <div id="categoryWeightsContainer" style="margin-top: 20px;"></div>
+
+                <!-- 总重量显示区域 -->
+                <div id="totalWeightSection" style="margin-top: 20px; display: none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button type="button" id="calculateTotalBtn" class="btn btn-info" style="height: 50px; width: 100%;">
+                                <i class="fas fa-calculator"></i> 计算总重量
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required-field">总重量 (公斤)</label>
+                            @Html.TextBoxFor(m => m.EstimatedWeight, new { @class = "form-control", type = "number", step = "0.1", min = "0.1", max = "1000", placeholder = "点击计算按钮自动计算", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(m => m.EstimatedWeight, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -459,11 +534,107 @@
                     } else {
                         label.classList.remove('selected');
                     }
+                    // 更新重量输入区域
+                    updateCategoryWeightInputs();
                 });
 
                 // 初始化样式
                 if (checkbox.checked) {
                     checkbox.closest('.category-checkbox').classList.add('selected');
+                }
+            });
+
+            // 初始化时更新重量输入区域
+            updateCategoryWeightInputs();
+
+            // 动态更新类别重量输入框
+            function updateCategoryWeightInputs() {
+                const container = document.getElementById('categoryWeightsContainer');
+                const totalWeightSection = document.getElementById('totalWeightSection');
+                const selectedCategories = [];
+
+                // 获取所有选中的类别
+                document.querySelectorAll('.category-checkbox-input:checked').forEach(checkbox => {
+                    const label = checkbox.closest('.category-checkbox');
+                    selectedCategories.push({
+                        key: checkbox.value,
+                        name: label.getAttribute('data-category-name')
+                    });
+                });
+
+                // 清空容器
+                container.innerHTML = '';
+
+                if (selectedCategories.length > 0) {
+                    // 显示总重量区域
+                    totalWeightSection.style.display = 'block';
+
+                    // 为每个选中的类别创建重量输入框
+                    selectedCategories.forEach(category => {
+                        const weightItem = document.createElement('div');
+                        weightItem.className = 'category-weight-item';
+                        weightItem.innerHTML = `
+                            <label class="category-weight-label">
+                                <i class="fas fa-weight-hanging"></i>${category.name} - 重量
+                            </label>
+                            <div class="weight-input-wrapper">
+                                <input type="number" 
+                                       class="form-control category-weight-input" 
+                                       name="CategoryWeights[${category.key}]"
+                                       data-category-key="${category.key}"
+                                       step="0.1" 
+                                       min="0.1" 
+                                       max="1000" 
+                                       placeholder="请输入${category.name}的重量（公斤）"
+                                       required>
+                                <span class="weight-unit">公斤</span>
+                            </div>
+                        `;
+                        container.appendChild(weightItem);
+                    });
+                } else {
+                    // 隐藏总重量区域
+                    totalWeightSection.style.display = 'none';
+                    // 清空总重量
+                    document.getElementById('EstimatedWeight').value = '';
+                }
+            }
+
+            // 计算总重量按钮事件
+            document.getElementById('calculateTotalBtn').addEventListener('click', function () {
+                let totalWeight = 0;
+                let allFilled = true;
+                const weightInputs = document.querySelectorAll('.category-weight-input');
+
+                weightInputs.forEach(input => {
+                    const value = parseFloat(input.value);
+                    if (value && value > 0) {
+                        totalWeight += value;
+                    } else {
+                        allFilled = false;
+                    }
+                });
+
+                if (!allFilled) {
+                    alert('请先填写所有类别的重量！');
+                    return;
+                }
+
+                if (totalWeight > 0) {
+                    document.getElementById('EstimatedWeight').value = totalWeight.toFixed(1);
+                    // 添加视觉反馈
+                    const estimatedWeightInput = document.getElementById('EstimatedWeight');
+                    estimatedWeightInput.style.background = '#e8f5e9';
+                    estimatedWeightInput.style.color = '#27ae60';
+                    estimatedWeightInput.style.fontWeight = 'bold';
+                    
+                    setTimeout(() => {
+                        estimatedWeightInput.style.background = '';
+                        estimatedWeightInput.style.color = '';
+                        estimatedWeightInput.style.fontWeight = '';
+                    }, 2000);
+                } else {
+                    alert('请输入有效的重量值！');
                 }
             });
 

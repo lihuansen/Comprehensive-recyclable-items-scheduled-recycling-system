@@ -1,0 +1,224 @@
+@{
+    ViewBag.Title = "仓库管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    .warehouse-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+    }
+
+    .warehouse-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .warehouse-title {
+        font-size: 32px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .warehouse-subtitle {
+        font-size: 16px;
+        color: #7f8c8d;
+    }
+
+    .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .inventory-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border-left: 5px solid #3498db;
+    }
+
+    .inventory-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .inventory-icon {
+        font-size: 48px;
+        color: #3498db;
+        margin-bottom: 15px;
+    }
+
+    .inventory-category {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .inventory-weight {
+        font-size: 36px;
+        font-weight: bold;
+        color: #27ae60;
+        margin-bottom: 5px;
+    }
+
+    .inventory-unit {
+        font-size: 18px;
+        color: #7f8c8d;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 50px;
+        font-size: 18px;
+        color: #7f8c8d;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 50px;
+        color: #95a5a6;
+        font-size: 18px;
+    }
+
+    .total-summary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .total-summary h2 {
+        margin: 0;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .total-summary .total-weight {
+        font-size: 48px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+</style>
+
+<div class="warehouse-container">
+    <div class="warehouse-header">
+        <h1 class="warehouse-title">
+            <i class="fas fa-warehouse"></i> 仓库管理
+        </h1>
+        <p class="warehouse-subtitle">查看各类别库存重量</p>
+    </div>
+
+    <div id="totalSummary" class="total-summary" style="display: none;">
+        <h2><i class="fas fa-box-open"></i> 总库存</h2>
+        <div class="total-weight" id="totalWeightDisplay">0</div>
+        <div>公斤</div>
+    </div>
+
+    <div id="loadingSpinner" class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i> 加载中...
+    </div>
+
+    <div id="inventoryGrid" class="inventory-grid"></div>
+
+    <div id="noData" class="no-data" style="display: none;">
+        <i class="fas fa-box-open" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
+        暂无库存数据
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 类别图标映射
+        var categoryIcons = {
+            'glass': 'fa-wine-glass',
+            'metal': 'fa-screwdriver-wrench',
+            'plastic': 'fa-bottle-water',
+            'paper': 'fa-file-lines',
+            'fabric': 'fa-shirt'
+        };
+
+        // 类别颜色映射
+        var categoryColors = {
+            'glass': '#3498db',
+            'metal': '#95a5a6',
+            'plastic': '#e74c3c',
+            'paper': '#f39c12',
+            'fabric': '#9b59b6'
+        };
+
+        // 加载库存数据
+        function loadInventorySummary() {
+            fetch('@Url.Action("GetInventorySummary", "Staff")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loadingSpinner').style.display = 'none';
+
+                if (data.success && data.data && data.data.length > 0) {
+                    renderInventory(data.data);
+                } else {
+                    document.getElementById('noData').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('加载失败：', error);
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('noData').style.display = 'block';
+            });
+        }
+
+        // 渲染库存卡片
+        function renderInventory(inventoryData) {
+            var container = document.getElementById('inventoryGrid');
+            var totalWeight = 0;
+            var html = '';
+
+            inventoryData.forEach(function(item) {
+                totalWeight += item.totalWeight;
+                var icon = categoryIcons[item.categoryKey] || 'fa-box';
+                var color = categoryColors[item.categoryKey] || '#3498db';
+
+                html += `
+                    <div class="inventory-card" style="border-left-color: ${color};">
+                        <div class="inventory-icon" style="color: ${color};">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="inventory-category">${item.categoryName}</div>
+                        <div class="inventory-weight">${item.totalWeight.toFixed(1)}</div>
+                        <div class="inventory-unit">公斤</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // 显示总重量
+            if (totalWeight > 0) {
+                document.getElementById('totalSummary').style.display = 'block';
+                document.getElementById('totalWeightDisplay').textContent = totalWeight.toFixed(1);
+            }
+        }
+
+        // 页面加载时获取数据
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInventorySummary();
+        });
+    </script>
+}
