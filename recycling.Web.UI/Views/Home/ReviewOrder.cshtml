@@ -1,0 +1,355 @@
+@{
+    ViewBag.Title = "评价订单";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var order = ViewBag.Order as recycling.Model.OrderDetail;
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    .review-container {
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .review-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .review-title {
+        font-size: 32px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .review-subtitle {
+        font-size: 16px;
+        color: #7f8c8d;
+    }
+
+    .review-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .order-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .order-info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .order-info-label {
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+
+    .order-info-value {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .rating-section {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .rating-label {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+
+    .star-rating {
+        display: inline-flex;
+        gap: 10px;
+        font-size: 48px;
+        cursor: pointer;
+    }
+
+    .star {
+        color: #ddd;
+        transition: all 0.2s ease;
+    }
+
+    .star:hover,
+    .star.active {
+        color: #f39c12;
+        transform: scale(1.1);
+    }
+
+    .star.hover {
+        color: #f39c12;
+    }
+
+    .rating-text {
+        margin-top: 15px;
+        font-size: 18px;
+        color: #7f8c8d;
+        min-height: 30px;
+    }
+
+    .review-textarea {
+        width: 100%;
+        min-height: 150px;
+        border: 2px solid #ecf0f1;
+        border-radius: 10px;
+        padding: 15px;
+        font-size: 16px;
+        font-family: inherit;
+        resize: vertical;
+        transition: all 0.3s ease;
+    }
+
+    .review-textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+
+    .review-hint {
+        font-size: 14px;
+        color: #95a5a6;
+        margin-top: 10px;
+    }
+
+    .submit-btn {
+        width: 100%;
+        height: 60px;
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 30px;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+    }
+
+    .submit-btn:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .cancel-btn {
+        width: 100%;
+        height: 50px;
+        background: #95a5a6;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+        text-decoration: none;
+        display: block;
+        line-height: 50px;
+        text-align: center;
+    }
+
+    .cancel-btn:hover {
+        background: #7f8c8d;
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
+<div class="review-container">
+    <div class="review-header">
+        <h1 class="review-title">
+            <i class="fas fa-star"></i> 评价订单
+        </h1>
+        <p class="review-subtitle">您的评价对我们很重要</p>
+    </div>
+
+    <div class="review-card">
+        @if (order != null)
+        {
+            <div class="order-info">
+                <div class="order-info-item">
+                    <span class="order-info-label">订单编号：</span>
+                    <span class="order-info-value">@order.AppointmentID</span>
+                </div>
+                <div class="order-info-item">
+                    <span class="order-info-label">回收员：</span>
+                    <span class="order-info-value">@(order.RecyclerName ?? "未分配")</span>
+                </div>
+                <div class="order-info-item">
+                    <span class="order-info-label">回收日期：</span>
+                    <span class="order-info-value">@order.AppointmentDate.ToString("yyyy-MM-dd")</span>
+                </div>
+            </div>
+        }
+
+        <div class="rating-section">
+            <div class="rating-label">请为本次服务打分</div>
+            <div class="star-rating" id="starRating">
+                <i class="fas fa-star star" data-rating="1"></i>
+                <i class="fas fa-star star" data-rating="2"></i>
+                <i class="fas fa-star star" data-rating="3"></i>
+                <i class="fas fa-star star" data-rating="4"></i>
+                <i class="fas fa-star star" data-rating="5"></i>
+            </div>
+            <div class="rating-text" id="ratingText">请选择星级</div>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <label class="rating-label" style="display: block; text-align: left; font-size: 18px; margin-bottom: 15px;">
+                <i class="fas fa-comment-dots"></i> 评价内容（选填）
+            </label>
+            <textarea id="reviewText" class="review-textarea" placeholder="分享您的使用体验..."></textarea>
+            <div class="review-hint">最多500字</div>
+        </div>
+
+        <button id="submitBtn" class="submit-btn" disabled>
+            <i class="fas fa-paper-plane"></i> 提交评价
+        </button>
+
+        <a href="@Url.Action("MyOrders", "User")" class="cancel-btn">
+            <i class="fas fa-times"></i> 返回订单列表
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var selectedRating = 0;
+        var orderId = @(order?.AppointmentID ?? 0);
+        var recyclerId = @(order?.RecyclerID ?? 0);
+
+        var ratingTexts = {
+            1: '非常不满意',
+            2: '不满意',
+            3: '一般',
+            4: '满意',
+            5: '非常满意'
+        };
+
+        // 星级评分交互
+        var stars = document.querySelectorAll('.star');
+        var ratingText = document.getElementById('ratingText');
+        var submitBtn = document.getElementById('submitBtn');
+
+        stars.forEach(function(star) {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.getAttribute('data-rating'));
+                updateStars(selectedRating);
+                ratingText.textContent = ratingTexts[selectedRating];
+                submitBtn.disabled = false;
+            });
+
+            star.addEventListener('mouseenter', function() {
+                var rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+        });
+
+        document.getElementById('starRating').addEventListener('mouseleave', function() {
+            if (selectedRating > 0) {
+                updateStars(selectedRating);
+            } else {
+                clearStars();
+            }
+        });
+
+        function updateStars(rating) {
+            stars.forEach(function(star, index) {
+                if (index < rating) {
+                    star.classList.add('active');
+                    star.classList.remove('hover');
+                } else {
+                    star.classList.remove('active', 'hover');
+                }
+            });
+        }
+
+        function highlightStars(rating) {
+            stars.forEach(function(star, index) {
+                if (index < rating) {
+                    if (!star.classList.contains('active')) {
+                        star.classList.add('hover');
+                    }
+                } else {
+                    star.classList.remove('hover');
+                }
+            });
+        }
+
+        function clearStars() {
+            stars.forEach(function(star) {
+                star.classList.remove('active', 'hover');
+            });
+        }
+
+        // 提交评价
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            if (selectedRating === 0) {
+                alert('请选择星级评分');
+                return;
+            }
+
+            var reviewText = document.getElementById('reviewText').value.trim();
+            if (reviewText.length > 500) {
+                alert('评价内容不能超过500字');
+                return;
+            }
+
+            var btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+            fetch('@Url.Action("SubmitReview", "Home")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    recyclerId: recyclerId,
+                    starRating: selectedRating,
+                    reviewText: reviewText
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('评价成功！');
+                    window.location.href = '@Url.Action("MyOrders", "User")';
+                } else {
+                    alert('评价失败：' + (data.message || '未知错误'));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交评价';
+                }
+            })
+            .catch(error => {
+                console.error('提交失败：', error);
+                alert('提交失败，请重试');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交评价';
+            });
+        });
+    </script>
+}

@@ -14,6 +14,7 @@ namespace recycling.Web.UI.Controllers
         private readonly RecyclerOrderBLL _recyclerOrderBLL = new RecyclerOrderBLL();
         private readonly MessageBLL _messageBLL = new MessageBLL();
         private readonly OrderBLL _orderBLL = new OrderBLL();
+        private readonly AdminBLL _adminBLL = new AdminBLL();
 
         /// <summary>
         /// 工作人员首页 - 重定向到专用首页
@@ -494,18 +495,46 @@ namespace recycling.Web.UI.Controllers
                 var recycler = (Recyclers)Session["LoginStaff"];
                 var convBll = new ConversationBLL();
                 bool ok = convBll.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
-                var latest = convBll.GetLatestConversation(orderId);
+                
+                if (!ok)
+                {
+                    return Json(new { success = false, message = "用户需要先结束对话" });
+                }
+
+                // 检查双方是否都已结束
+                var (bothEnded, _) = convBll.HasBothEnded(orderId);
+
                 return Json(new
                 {
-                    success = ok,
-                    conversationLastEndedBy = latest?.Status ?? "",
-                    conversationLatestEndedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
+                    success = true,
+                    message = "对话已结束",
+                    bothEnded = bothEnded
                 });
             }
             catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
         }
 
-        // 完成订单（回收员点击后把订单状态置为 已完成）
+        // 检查双方是否都已结束对话
+        [HttpPost]
+        public JsonResult CheckBothEnded(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var convBll = new ConversationBLL();
+                var (bothEnded, _) = convBll.HasBothEnded(orderId);
+
+                return Json(new { success = true, bothEnded = bothEnded });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // 完成订单（回收员点击后把订单状态置为 已完成，并写入库存）
         [HttpPost]
         public JsonResult CompleteOrder(int appointmentId)
         {
@@ -515,8 +544,28 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "请先登录" });
 
                 var recycler = (Recyclers)Session["LoginStaff"];
+                
+                // 检查对话是否都已结束
+                var convBll = new ConversationBLL();
+                var (bothEnded, _) = convBll.HasBothEnded(appointmentId);
+                
+                if (!bothEnded)
+                {
+                    return Json(new { success = false, message = "双方必须都结束对话后才能完成订单" });
+                }
+
+                // 写入库存
+                var inventoryBll = new InventoryBLL();
+                bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recycler.RecyclerID);
+                
+                if (!inventoryAdded)
+                {
+                    return Json(new { success = false, message = "写入库存失败" });
+                }
+
+                // 完成订单
                 var orderBll = new OrderBLL();
-                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID); // 新增 BLL 方法，返回 (bool Success, string Message)
+                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID);
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -524,6 +573,458 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        // 仓库管理页面
+        public ActionResult WarehouseManagement()
+        {
+            if (Session["LoginStaff"] == null)
+                return RedirectToAction("Login", "Staff");
+
+            return View();
+        }
+
+        // 获取库存汇总数据
+        [HttpPost]
+        public JsonResult GetInventorySummary()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var inventoryBll = new InventoryBLL();
+                
+                // 获取所有库存汇总（不过滤回收员）
+                var summary = inventoryBll.GetInventorySummary(null);
+                
+                var result = summary.Select(s => new
+                {
+                    categoryKey = s.CategoryKey,
+                    categoryName = s.CategoryName,
+                    totalWeight = s.TotalWeight
+                }).ToList();
+
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 用户评价页面 - 回收员查看收到的评价
+        /// </summary>
+        [HttpGet]
+        public ActionResult UserReviews()
+        {
+            // 检查登录
+            if (Session["LoginStaff"] == null)
+            {
+                return RedirectToAction("StaffLogin", "Staff");
+            }
+
+            var staff = Session["LoginStaff"] as Staffs;
+            var role = Session["StaffRole"] as string;
+
+            if (role != "recycler")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取回收员的评价数据
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetRecyclerReviews()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "未登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Staffs;
+                var role = Session["StaffRole"] as string;
+
+                if (role != "recycler")
+                {
+                    return Json(new { success = false, message = "权限不足" });
+                }
+
+                var reviewBLL = new OrderReviewBLL();
+                
+                // 获取评价列表
+                var reviews = reviewBLL.GetReviewsByRecyclerId(staff.StaffID);
+                
+                // 获取评分摘要
+                var summary = reviewBLL.GetRecyclerRatingSummary(staff.StaffID);
+                
+                // 获取星级分布
+                var distribution = reviewBLL.GetRecyclerRatingDistribution(staff.StaffID);
+
+                var result = reviews.Select(r => new
+                {
+                    orderId = r.OrderID,
+                    orderNumber = "AP" + r.OrderID.ToString("D6"),
+                    userId = r.UserID,
+                    starRating = r.StarRating,
+                    reviewText = r.ReviewText,
+                    createdDate = r.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    reviews = result,
+                    averageRating = Math.Round(summary.AverageRating, 2),
+                    totalReviews = summary.TotalReviews,
+                    distribution = distribution
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 历史会话页面 - 回收员查看历史对话
+        /// </summary>
+        [HttpGet]
+        public ActionResult HistoryConversations()
+        {
+            // 检查登录
+            if (Session["LoginStaff"] == null)
+            {
+                return RedirectToAction("StaffLogin", "Staff");
+            }
+
+            var staff = Session["LoginStaff"] as Staffs;
+            var role = Session["StaffRole"] as string;
+
+            if (role != "recycler")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取回收员的历史会话列表
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetRecyclerConversations(int pageIndex = 1, int pageSize = 20)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "未登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Staffs;
+                var role = Session["StaffRole"] as string;
+
+                if (role != "recycler")
+                {
+                    return Json(new { success = false, message = "权限不足" });
+                }
+
+                var conversationBLL = new ConversationBLL();
+                var convs = conversationBLL.GetRecyclerConversations(staff.StaffID, pageIndex, pageSize);
+
+                var result = convs.Select(c => new
+                {
+                    orderId = c.OrderID,
+                    orderNumber = "AP" + c.OrderID.ToString("D6"),
+                    userName = c.UserName,
+                    endedTime = c.EndedTime?.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return Json(new { success = true, conversations = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取历史会话消息（回收员端）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "未登录" });
+                }
+
+                DateTime et;
+                if (!DateTime.TryParse(endedTime, out et))
+                {
+                    return Json(new { success = false, message = "时间格式无效" });
+                }
+
+                var conversationBLL = new ConversationBLL();
+                var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
+
+                var result = messages.Select(m => new
+                {
+                    senderType = m.SenderType,
+                    senderId = m.SenderID,
+                    content = m.Content,
+                    sentTime = m.SentTime.ToString("yyyy-MM-dd HH:mm:ss")
+                }).ToList();
+
+                return Json(new { success = true, messages = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region Admin - User Management
+
+        /// <summary>
+        /// 管理员 - 用户管理页面
+        /// </summary>
+        public ActionResult UserManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取用户列表（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetUsers(int page = 1, int pageSize = 20, string searchTerm = null)
+        {
+            try
+            {
+                var result = _adminBLL.GetAllUsers(page, pageSize, searchTerm);
+                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取用户统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetUserStatistics()
+        {
+            try
+            {
+                var stats = _adminBLL.GetUserStatistics();
+                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Admin - Recycler Management
+
+        /// <summary>
+        /// 管理员 - 回收员管理页面
+        /// </summary>
+        public ActionResult RecyclerManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取回收员列表（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            try
+            {
+                var result = _adminBLL.GetAllRecyclers(page, pageSize, searchTerm, isActive);
+                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取回收员详情（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclerDetails(int recyclerId)
+        {
+            try
+            {
+                var recycler = _adminBLL.GetRecyclerById(recyclerId);
+                var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recyclerId);
+
+                return Json(new { 
+                    success = true, 
+                    data = new 
+                    { 
+                        recycler = recycler, 
+                        completedOrders = completedOrders 
+                    } 
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 添加回收员（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult AddRecycler(Recyclers recycler, string password)
+        {
+            try
+            {
+                var result = _adminBLL.AddRecycler(recycler, password);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 更新回收员信息（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult UpdateRecycler(Recyclers recycler)
+        {
+            try
+            {
+                var result = _adminBLL.UpdateRecycler(recycler);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 删除回收员（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult DeleteRecycler(int recyclerId)
+        {
+            try
+            {
+                var result = _adminBLL.DeleteRecycler(recyclerId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取回收员统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclerStatistics()
+        {
+            try
+            {
+                var stats = _adminBLL.GetRecyclerStatistics();
+                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Admin - Order Management
+
+        /// <summary>
+        /// 管理员 - 订单管理页面
+        /// </summary>
+        public ActionResult OrderManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取订单列表（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
+        {
+            try
+            {
+                var result = _adminBLL.GetAllOrders(page, pageSize, status, searchTerm);
+                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取订单统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetOrderStatistics()
+        {
+            try
+            {
+                var stats = _adminBLL.GetOrderStatistics();
+                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
 
 
     }

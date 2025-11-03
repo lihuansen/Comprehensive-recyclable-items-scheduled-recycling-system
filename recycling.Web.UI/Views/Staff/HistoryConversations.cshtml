@@ -1,0 +1,363 @@
+@{
+    ViewBag.Title = "历史会话";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+<style>
+    .history-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .history-list-panel {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        height: 600px;
+        overflow-y: auto;
+    }
+
+    .history-item {
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+    }
+
+    .history-item:hover {
+        background: #f8f9fa;
+        border-color: #3498db;
+    }
+
+    .history-item.active {
+        background: #e3f2fd;
+        border-color: #3498db;
+    }
+
+    .history-order-number {
+        font-weight: 600;
+        color: #3498db;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .history-user-name {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .history-time {
+        color: #999;
+        font-size: 12px;
+    }
+
+    .messages-panel {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        height: 600px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .messages-header {
+        padding: 15px;
+        border-bottom: 2px solid #f0f0f0;
+        margin-bottom: 15px;
+    }
+
+    .messages-header h5 {
+        margin: 0;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .messages-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .message-item {
+        margin-bottom: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .message-item.text-right {
+        text-align: right;
+    }
+
+    .message-sender {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 5px;
+    }
+
+    .message-bubble {
+        display: inline-block;
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        word-wrap: break-word;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .message-bubble.user-message {
+        background: #3498db;
+        color: white;
+    }
+
+    .message-bubble.recycler-message {
+        background: #ecf0f1;
+        color: #333;
+    }
+
+    .message-bubble.system-message {
+        background: #f0f0f0;
+        color: #666;
+        font-style: italic;
+        text-align: center;
+        max-width: 100%;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #333;
+    }
+</style>
+
+<div class="history-container">
+    <h2 style="margin-bottom: 30px; color: #333;"><i class="fas fa-history"></i> 历史会话</h2>
+
+    <div class="row">
+        <!-- 左侧：会话列表 -->
+        <div class="col-md-4">
+            <div class="history-list-panel">
+                <div class="section-title">
+                    <i class="fas fa-list"></i> 会话列表
+                </div>
+                <div id="historyList">
+                    <!-- 通过 AJAX 填充 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：消息内容 -->
+        <div class="col-md-8">
+            <div class="messages-panel">
+                <div class="messages-header">
+                    <h5 id="messagesHeader"><i class="fas fa-comments"></i> 请选择左侧会话查看历史记录</h5>
+                </div>
+                <div class="messages-body" id="messagesBody">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>请从左侧选择一个会话</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        var selectedOrderId = null;
+        var selectedEndedTime = null;
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/&/g, '&amp;')
+                              .replace(/</g, '&lt;')
+                              .replace(/>/g, '&gt;')
+                              .replace(/"/g, '&quot;')
+                              .replace(/'/g, '&#39;');
+        }
+
+        function formatTime(iso) {
+            if (!iso) return '';
+            try {
+                return new Date(iso).toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return iso;
+            }
+        }
+
+        function loadConversations() {
+            fetch('@Url.Action("GetRecyclerConversations", "Staff")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderConversationsList(data.conversations);
+                } else {
+                    alert('加载会话列表失败：' + (data.message || ''));
+                }
+            })
+            .catch(error => {
+                console.error('加载会话列表出错：', error);
+                alert('加载会话列表失败');
+            });
+        }
+
+        function renderConversationsList(conversations) {
+            var container = document.getElementById('historyList');
+            
+            if (!conversations || conversations.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无历史会话</p></div>';
+                return;
+            }
+
+            var html = '';
+            conversations.forEach(function(conv) {
+                html += '<div class="history-item" data-order-id="' + conv.orderId + '" data-ended-time="' + conv.endedTime + '">';
+                html += '<div class="history-order-number"><i class="fas fa-shopping-cart"></i> ' + conv.orderNumber + '</div>';
+                html += '<div class="history-user-name"><i class="fas fa-user"></i> 用户：' + escapeHtml(conv.userName || '未知') + '</div>';
+                html += '<div class="history-time"><i class="far fa-clock"></i> ' + conv.endedTime + '</div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+
+            // 添加点击事件
+            document.querySelectorAll('.history-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    // 移除所有active类
+                    document.querySelectorAll('.history-item').forEach(function(i) {
+                        i.classList.remove('active');
+                    });
+                    // 添加active类
+                    this.classList.add('active');
+                    
+                    var orderId = parseInt(this.getAttribute('data-order-id'));
+                    var endedTime = this.getAttribute('data-ended-time');
+                    loadMessages(orderId, endedTime);
+                });
+            });
+        }
+
+        function loadMessages(orderId, endedTime) {
+            selectedOrderId = orderId;
+            selectedEndedTime = endedTime;
+
+            document.getElementById('messagesHeader').innerHTML = '<i class="fas fa-comments"></i> 订单：AP' + ('000000' + orderId).slice(-6) + ' - 历史消息';
+
+            fetch('@Url.Action("GetConversationMessagesBeforeEnd", "Staff")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    endedTime: endedTime
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderMessages(data.messages);
+                } else {
+                    alert('加载消息失败：' + (data.message || ''));
+                }
+            })
+            .catch(error => {
+                console.error('加载消息出错：', error);
+                alert('加载消息失败');
+            });
+        }
+
+        function renderMessages(messages) {
+            var container = document.getElementById('messagesBody');
+            
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无消息记录</p></div>';
+                return;
+            }
+
+            var html = '';
+            messages.forEach(function(msg) {
+                if (msg.senderType === 'system') {
+                    // 系统消息居中显示
+                    html += '<div class="message-item text-center">';
+                    html += '<div class="message-bubble system-message">';
+                    html += '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content);
+                    html += '</div>';
+                    html += '<div class="message-time">' + formatTime(msg.sentTime) + '</div>';
+                    html += '</div>';
+                } else {
+                    var isUser = (msg.senderType === 'user');
+                    var alignClass = isUser ? 'text-right' : 'text-left';
+                    var bubbleClass = isUser ? 'user-message' : 'recycler-message';
+                    var senderName = isUser ? '用户' : '回收员';
+                    
+                    html += '<div class="message-item ' + alignClass + '">';
+                    html += '<div class="message-sender">' + senderName + '</div>';
+                    html += '<div class="message-bubble ' + bubbleClass + '">';
+                    html += escapeHtml(msg.content);
+                    html += '</div>';
+                    html += '<div class="message-time">' + formatTime(msg.sentTime) + '</div>';
+                    html += '</div>';
+                }
+            });
+
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 页面加载时获取会话列表
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConversations();
+        });
+    </script>
+}

@@ -4,15 +4,55 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    #sendMessage {
+        background-color: #3498db;
+        color: white;
+    }
+
+    #endConversationBtn {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .message-bubble {
+        display: inline-block;
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        word-wrap: break-word;
+    }
+
+    .message-bubble.user-message {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .message-bubble.recycler-message {
+        background-color: #ecf0f1;
+        color: #2c3e50;
+    }
+
+    .message-time {
+        font-size: 0.75em;
+        color: #7f8c8d;
+        margin-top: 4px;
+    }
+
+    .message-sender {
+        font-size: 0.85em;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #7f8c8d;
+    }
+</style>
+
 <div class="container mt-4">
     <div class="card">
-        <!-- 聊天头部（含订单信息和结束对话按钮仅展示） -->
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <div>
-                <h5>与 @ViewBag.RecyclerName 对话</h5>
-                <small>订单编号：@ViewBag.OrderNumber</small>
-            </div>
-            <button class="btn btn-danger" disabled>结束对话</button> <!-- 仅保留按钮样式，无功能 -->
+        <!-- 聊天头部（含订单信息） -->
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">与 @ViewBag.RecyclerName 对话</h5>
+            <small>订单编号：@ViewBag.OrderNumber</small>
         </div>
 
         <!-- 聊天消息区域 -->
@@ -24,10 +64,13 @@
         <!-- 消息输入区域 -->
         <div class="card-footer">
             <div class="input-group">
-                <textarea id="messageContent" class="form-control" rows="3" placeholder="请输入消息内容..."></textarea>
-                <div class="input-group-append">
-                    <button id="sendMessage" class="btn btn-success">发送</button>
-                </div>
+                <input type="text" id="messageContent" class="form-control" placeholder="请输入消息内容...">
+                <span class="input-group-btn">
+                    <button id="sendMessage" class="btn btn-primary">发送</button>
+                </span>
+                <span class="input-group-btn">
+                    <button id="endConversationBtn" class="btn btn-danger">结束对话</button>
+                </span>
             </div>
         </div>
     </div>
@@ -61,29 +104,52 @@
             });
         }
 
-        // 渲染消息列表（区分用户/回收员消息位置）
+        // 渲染消息列表（区分用户/回收员/系统消息位置）
         function renderMessages(messages) {
             var messagesHtml = "";
             messages.forEach(function (msg) {
-                // 判断发送者类型，用户消息居右，回收员消息居左
-                var isUserMessage = msg.senderType === "user" && msg.senderId === userId;
-                var alignClass = isUserMessage ? "justify-content-end" : "justify-content-start";
-                var bgClass = isUserMessage ? "bg-primary text-white" : "bg-light text-dark";
-                var senderName = isUserMessage ? "我" : msg.senderName || "回收员";
-
-                messagesHtml += `
-                    <div class="d-flex ${alignClass} mb-3">
-                        <div class="p-3 rounded ${bgClass} shadow-sm" style="max-width: 70%;">
-                            <small class="d-block mb-1">${senderName}</small>
-                            <p class="mb-1">${msg.content}</p>
-                            <small class="text-muted" style="font-size: 0.8em;">${formatTime(msg.sentTime)}</small>
+                // 检查是否为系统消息
+                if (msg.senderType === "system") {
+                    messagesHtml += `
+                        <div class="text-center mb-3">
+                            <div style="display: inline-block; padding: 8px 16px; background-color: #f0f0f0; border-radius: 15px; color: #666; font-size: 14px;">
+                                <i class="fas fa-info-circle"></i> ${escapeHtml(msg.content)}
+                            </div>
+                            <div style="font-size: 12px; color: #999; margin-top: 4px;">${formatTime(msg.sentTime)}</div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    // 判断发送者类型，用户消息居右，回收员消息居左
+                    var isUserMessage = msg.senderType === "user" && msg.senderId === userId;
+                    var alignClass = isUserMessage ? "text-right" : "text-left";
+                    var bubbleClass = isUserMessage ? "user-message" : "recycler-message";
+                    var senderName = isUserMessage ? "我" : (msg.senderName || "回收员");
+
+                    messagesHtml += `
+                        <div class="${alignClass} mb-3">
+                            <div class="message-sender">${senderName}</div>
+                            <div class="message-bubble ${bubbleClass}">
+                                ${escapeHtml(msg.content)}
+                            </div>
+                            <div class="message-time">${formatTime(msg.sentTime)}</div>
+                        </div>
+                    `;
+                }
             });
             $("#chatMessages").html(messagesHtml);
             // 滚动到底部
             $("#chatMessages").scrollTop($("#chatMessages")[0].scrollHeight);
+        }
+
+        // HTML转义函数
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         // 时间格式化
@@ -106,6 +172,12 @@
                 return;
             }
 
+            // Disable button while sending
+            var $btn = $(this);
+            $btn.prop('disabled', true);
+            var originalText = $btn.html();
+            $btn.html('<i class="fas fa-spinner fa-spin"></i> 发送中...');
+
             $.ajax({
                 url: "/Home/UserSendMessageToRecycler",
                 type: "POST",
@@ -123,13 +195,41 @@
                 },
                 error: function () {
                     alert("网络错误，发送失败");
+                },
+                complete: function () {
+                    $btn.prop('disabled', false);
+                    $btn.html(originalText);
                 }
             });
         });
 
-        // 按Enter发送消息（Shift+Enter换行）
+        // 结束对话功能
+        $("#endConversationBtn").click(function () {
+            if (!confirm("确认结束本次对话？")) {
+                return;
+            }
+
+            $.ajax({
+                url: "/Home/EndConversation",
+                type: "POST",
+                data: { orderId: orderId },
+                success: function (res) {
+                    if (res.success) {
+                        alert("对话已结束");
+                        loadMessages(); // 重新加载消息以显示对话结束状态
+                    } else {
+                        alert("结束对话失败：" + res.message);
+                    }
+                },
+                error: function () {
+                    alert("网络错误，无法结束对话");
+                }
+            });
+        });
+
+        // 按Enter发送消息
         $("#messageContent").keydown(function (e) {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (e.key === "Enter") {
                 e.preventDefault();
                 $("#sendMessage").click();
             }
