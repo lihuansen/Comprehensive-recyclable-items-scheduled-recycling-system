@@ -654,12 +654,20 @@ namespace recycling.Web.UI.Controllers
                 var user = (Users)Session["LoginUser"];
                 var convBll = new ConversationBLL();
                 bool ok = convBll.EndConversationBy(orderId, "user", user.UserID);
-                var latest = convBll.GetLatestConversation(orderId);
+                
+                if (!ok)
+                {
+                    return Json(new { success = false, message = "结束对话失败" });
+                }
+
+                // 检查双方是否都已结束
+                var (bothEnded, _) = convBll.HasBothEnded(orderId);
+
                 return Json(new
                 {
-                    success = ok,
-                    conversationLastEndedBy = latest?.Status ?? "",
-                    conversationLatestEndedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
+                    success = true,
+                    message = "对话已结束",
+                    bothEnded = bothEnded
                 });
             }
             catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }

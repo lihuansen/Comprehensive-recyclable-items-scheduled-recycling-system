@@ -494,18 +494,46 @@ namespace recycling.Web.UI.Controllers
                 var recycler = (Recyclers)Session["LoginStaff"];
                 var convBll = new ConversationBLL();
                 bool ok = convBll.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
-                var latest = convBll.GetLatestConversation(orderId);
+                
+                if (!ok)
+                {
+                    return Json(new { success = false, message = "用户需要先结束对话" });
+                }
+
+                // 检查双方是否都已结束
+                var (bothEnded, _) = convBll.HasBothEnded(orderId);
+
                 return Json(new
                 {
-                    success = ok,
-                    conversationLastEndedBy = latest?.Status ?? "",
-                    conversationLatestEndedTime = latest?.EndedTime.HasValue == true ? latest.EndedTime.Value.ToString("o") : string.Empty
+                    success = true,
+                    message = "对话已结束",
+                    bothEnded = bothEnded
                 });
             }
             catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
         }
 
-        // 完成订单（回收员点击后把订单状态置为 已完成）
+        // 检查双方是否都已结束对话
+        [HttpPost]
+        public JsonResult CheckBothEnded(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var convBll = new ConversationBLL();
+                var (bothEnded, _) = convBll.HasBothEnded(orderId);
+
+                return Json(new { success = true, bothEnded = bothEnded });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // 完成订单（回收员点击后把订单状态置为 已完成，并写入库存）
         [HttpPost]
         public JsonResult CompleteOrder(int appointmentId)
         {
@@ -515,8 +543,28 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "请先登录" });
 
                 var recycler = (Recyclers)Session["LoginStaff"];
+                
+                // 检查对话是否都已结束
+                var convBll = new ConversationBLL();
+                var (bothEnded, _) = convBll.HasBothEnded(appointmentId);
+                
+                if (!bothEnded)
+                {
+                    return Json(new { success = false, message = "双方必须都结束对话后才能完成订单" });
+                }
+
+                // 写入库存
+                var inventoryBll = new InventoryBLL();
+                bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recycler.RecyclerID);
+                
+                if (!inventoryAdded)
+                {
+                    return Json(new { success = false, message = "写入库存失败" });
+                }
+
+                // 完成订单
                 var orderBll = new OrderBLL();
-                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID); // 新增 BLL 方法，返回 (bool Success, string Message)
+                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID);
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)

@@ -25,5 +25,15 @@ namespace recycling.Model
 
         [Column(TypeName = "datetime2")]
         public DateTime? EndedTime { get; set; }
+
+        public bool? UserEnded { get; set; }
+
+        public bool? RecyclerEnded { get; set; }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? UserEndedTime { get; set; }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? RecyclerEndedTime { get; set; }
     }
 }
