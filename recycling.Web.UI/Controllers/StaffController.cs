@@ -625,7 +625,7 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("StaffLogin", "Staff");
             }
 
-            var staff = Session["LoginStaff"] as Staffs;
+            var staff = Session["LoginStaff"] as Recyclers;
             var role = Session["StaffRole"] as string;
 
             if (role != "recycler")
@@ -649,7 +649,7 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "未登录" });
                 }
 
-                var staff = Session["LoginStaff"] as Staffs;
+                var staff = Session["LoginStaff"] as Recyclers;
                 var role = Session["StaffRole"] as string;
 
                 if (role != "recycler")
@@ -660,13 +660,13 @@ namespace recycling.Web.UI.Controllers
                 var reviewBLL = new OrderReviewBLL();
                 
                 // 获取评价列表
-                var reviews = reviewBLL.GetReviewsByRecyclerId(staff.StaffID);
+                var reviews = reviewBLL.GetReviewsByRecyclerId(staff.RecyclerID);
                 
                 // 获取评分摘要
-                var summary = reviewBLL.GetRecyclerRatingSummary(staff.StaffID);
+                var summary = reviewBLL.GetRecyclerRatingSummary(staff.RecyclerID);
                 
                 // 获取星级分布
-                var distribution = reviewBLL.GetRecyclerRatingDistribution(staff.StaffID);
+                var distribution = reviewBLL.GetRecyclerRatingDistribution(staff.RecyclerID);
 
                 var result = reviews.Select(r => new
                 {
@@ -705,7 +705,7 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("StaffLogin", "Staff");
             }
 
-            var staff = Session["LoginStaff"] as Staffs;
+            var staff = Session["LoginStaff"] as Recyclers;
             var role = Session["StaffRole"] as string;
 
             if (role != "recycler")
@@ -715,86 +715,6 @@ namespace recycling.Web.UI.Controllers
 
             return View();
         }
-
-        /// <summary>
-        /// 获取回收员的历史会话列表
-        /// </summary>
-        [HttpPost]
-        public JsonResult GetRecyclerConversations(int pageIndex = 1, int pageSize = 20)
-        {
-            try
-            {
-                if (Session["LoginStaff"] == null)
-                {
-                    return Json(new { success = false, message = "未登录" });
-                }
-
-                var staff = Session["LoginStaff"] as Staffs;
-                var role = Session["StaffRole"] as string;
-
-                if (role != "recycler")
-                {
-                    return Json(new { success = false, message = "权限不足" });
-                }
-
-                var conversationBLL = new ConversationBLL();
-                var convs = conversationBLL.GetRecyclerConversations(staff.StaffID, pageIndex, pageSize);
-
-                var result = convs.Select(c => new
-                {
-                    orderId = c.OrderID,
-                    orderNumber = "AP" + c.OrderID.ToString("D6"),
-                    userName = c.UserName,
-                    endedTime = c.EndedTime?.ToString("yyyy-MM-dd HH:mm")
-                }).ToList();
-
-                return Json(new { success = true, conversations = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 获取历史会话消息（回收员端）
-        /// </summary>
-        [HttpPost]
-        public JsonResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
-        {
-            try
-            {
-                if (Session["LoginStaff"] == null)
-                {
-                    return Json(new { success = false, message = "未登录" });
-                }
-
-                DateTime et;
-                if (!DateTime.TryParse(endedTime, out et))
-                {
-                    return Json(new { success = false, message = "时间格式无效" });
-                }
-
-                var conversationBLL = new ConversationBLL();
-                var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
-
-                var result = messages.Select(m => new
-                {
-                    senderType = m.SenderType,
-                    senderId = m.SenderID,
-                    content = m.Content,
-                    sentTime = m.SentTime.ToString("yyyy-MM-dd HH:mm:ss")
-                }).ToList();
-
-                return Json(new { success = true, messages = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        #endregion
 
         #region Admin - User Management
 
