@@ -59,8 +59,6 @@ namespace recycling.Model
 
         [Display(Name = "是否紧急")]
         public bool IsUrgent { get; set; }
-
-        public Dictionary<string, decimal> CategoryWeights { get; set; }
     }
 
     /// <summary>
