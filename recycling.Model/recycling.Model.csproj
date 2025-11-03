@@ -64,10 +64,12 @@
     <Compile Include="ConversationViewModel.cs" />
     <Compile Include="EmailLoginViewModel.cs" />
     <Compile Include="ForgotPasswordViewModel.cs" />
+    <Compile Include="Inventory.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="Messages.cs" />
     <Compile Include="OrderDetailModel.cs" />
     <Compile Include="OrderFilterModel.cs" />
+    <Compile Include="OrderReviews.cs" />
     <Compile Include="PagedResult.cs" />
     <Compile Include="PhoneLoginViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
