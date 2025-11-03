@@ -53,7 +53,6 @@
   <ItemGroup>
     <Compile Include="AcceptOrderRequest.cs" />
     <Compile Include="Admins.cs" />
-    <Compile Include="AppointmentCategories.cs" />
     <Compile Include="AppointmentOrder.cs" />
     <Compile Include="Appointments.cs" />
     <Compile Include="AppointmentSubmissionModel.cs" />
