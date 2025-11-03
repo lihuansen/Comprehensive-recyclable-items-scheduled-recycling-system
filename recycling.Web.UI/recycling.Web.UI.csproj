@@ -181,6 +181,7 @@
     <Content Include="Views\User\CategoryDetails.cshtml" />
     <Content Include="Views\Home\EditProfile.cshtml" />
     <Content Include="Views\Home\ChangePassword.cshtml" />
+    <Content Include="Views\Home\ReviewOrder.cshtml" />
     <Content Include="Views\Shared\_RecyclerLayout.cshtml" />
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
     <Content Include="Views\Shared\_SuperAdminLayout.cshtml" />
@@ -188,6 +189,12 @@
     <Content Include="Views\Staff\AdminDashboard.cshtml" />
     <Content Include="Views\Staff\SuperAdminDashboard.cshtml" />
     <Content Include="Views\Staff\Recycler_OrderManagement.cshtml" />
+    <Content Include="Views\Staff\OrderManagement.cshtml" />
+    <Content Include="Views\Staff\RecyclerManagement.cshtml" />
+    <Content Include="Views\Staff\UserManagement.cshtml" />
+    <Content Include="Views\Staff\UserReviews.cshtml" />
+    <Content Include="Views\Staff\WarehouseManagement.cshtml" />
+    <Content Include="Views\Staff\HistoryConversations.cshtml" />
     <Content Include="Views\Staff\Message_Center.cshtml" />
     <Content Include="Views\Home\ContactRecycler.cshtml" />
   </ItemGroup>
