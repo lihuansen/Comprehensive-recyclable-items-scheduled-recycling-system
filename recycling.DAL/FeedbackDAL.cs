@@ -3,17 +3,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using recycling.Model;
+using System.Configuration;
 
 namespace recycling.DAL
 {
     public class FeedbackDAL
     {
-        private readonly string connectionString;
-
-        public FeedbackDAL()
-        {
-            connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["recyclingConnectionString"].ConnectionString;
-        }
+        private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         /// <summary>
         /// 添加用户反馈
@@ -22,7 +18,7 @@ namespace recycling.DAL
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
                     string sql = @"INSERT INTO UserFeedback 
@@ -66,7 +62,7 @@ namespace recycling.DAL
 
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
 
@@ -133,7 +129,7 @@ namespace recycling.DAL
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
                     string sql = @"SELECT f.*, u.UserName
@@ -170,7 +166,7 @@ namespace recycling.DAL
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
                     string sql = @"UPDATE UserFeedback 
@@ -212,7 +208,7 @@ namespace recycling.DAL
 
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
                     string sql = @"SELECT 

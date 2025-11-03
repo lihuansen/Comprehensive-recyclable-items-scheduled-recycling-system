@@ -10,12 +10,7 @@ namespace recycling.DAL
 {
     public class AdminDAL
     {
-        private readonly string connectionString;
-
-        public AdminDAL()
-        {
-            connectionString = ConfigurationManager.ConnectionStrings["ModelContext"].ConnectionString;
-        }
+        private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         #region User Management
 
@@ -30,7 +25,7 @@ namespace recycling.DAL
                 Items = new List<Users>()
             };
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
 
@@ -92,7 +87,7 @@ namespace recycling.DAL
         {
             var stats = new Dictionary<string, object>();
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
 
@@ -130,7 +125,7 @@ namespace recycling.DAL
                 Items = new List<Recyclers>()
             };
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
 
@@ -191,7 +186,7 @@ namespace recycling.DAL
         /// </summary>
         public Recyclers GetRecyclerById(int recyclerId)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
                 string sql = "SELECT * FROM Recyclers WHERE RecyclerID = @RecyclerID";
@@ -214,7 +209,7 @@ namespace recycling.DAL
         /// </summary>
         public bool AddRecycler(Recyclers recycler)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
                 string sql = @"INSERT INTO Recyclers (Username, PasswordHash, PhoneNumber, FullName, Region, Available, IsActive, CreatedDate, Rating) 
@@ -238,7 +233,7 @@ namespace recycling.DAL
         /// </summary>
         public bool UpdateRecycler(Recyclers recycler)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
                 string sql = @"UPDATE Recyclers SET 
@@ -268,7 +263,7 @@ namespace recycling.DAL
         /// </summary>
         public bool DeleteRecycler(int recyclerId)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
                 string sql = "UPDATE Recyclers SET IsActive = 0 WHERE RecyclerID = @RecyclerID";
@@ -284,7 +279,7 @@ namespace recycling.DAL
         /// </summary>
         public int GetRecyclerCompletedOrdersCount(int recyclerId)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
                 string sql = @"SELECT COUNT(*) FROM Appointments 
@@ -303,7 +298,7 @@ namespace recycling.DAL
         {
             var stats = new Dictionary<string, object>();
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
 
@@ -362,7 +357,7 @@ namespace recycling.DAL
                 Items = new List<Dictionary<string, object>>()
             };
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
 
@@ -474,7 +469,7 @@ namespace recycling.DAL
         {
             var stats = new Dictionary<string, object>();
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
 
