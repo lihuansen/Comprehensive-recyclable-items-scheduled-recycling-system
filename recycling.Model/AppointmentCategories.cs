@@ -23,6 +23,8 @@ namespace recycling.Model
 
         public string QuestionsAnswers { get; set; }
 
+        public decimal Weight { get; set; }
+
         [Column(TypeName = "datetime2")]
         public DateTime CreatedDate { get; set; }= DateTime.Now;
     }
