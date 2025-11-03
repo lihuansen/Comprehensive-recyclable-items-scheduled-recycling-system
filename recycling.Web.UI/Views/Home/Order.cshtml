@@ -806,6 +806,18 @@
                                 </a>
                             </div>
                         `;
+                    } else if (order.status === '已完成') {
+                        // 已完成订单：查看详情 + 评价订单
+                        actionButtons = `
+                            <div class="order-actions">
+                                <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                    <i class="fas fa-eye"></i>查看详情
+                                </button>
+                                <button class="btn-action warning" onclick="reviewOrder(${order.id})" data-order-id="${order.id}">
+                                    <i class="fas fa-star"></i>评价订单
+                                </button>
+                            </div>
+                        `;
                     } else {
                         // 其他状态订单：只显示查看详情
                         actionButtons = `
@@ -1049,6 +1061,37 @@
                 // 其他状态（已预约/已取消）隐藏
                 recyclerIdElement.style.display = 'none';
             }
+        }
+
+        // 评价订单
+        function reviewOrder(orderId) {
+            // 先检查是否已评价
+            fetch('@Url.Action("CheckReviewed", "Home")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ orderId: orderId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.hasReviewed) {
+                        alert('该订单已经评价过了');
+                    } else {
+                        // 跳转到评价页面
+                        window.location.href = '@Url.Action("ReviewOrder", "Home")?orderId=' + orderId;
+                    }
+                } else {
+                    alert('检查评价状态失败：' + (data.message || ''));
+                }
+            })
+            .catch(error => {
+                console.error('检查评价状态出错：', error);
+                // 即使检查失败，也允许跳转，服务器端会再次验证
+                window.location.href = '@Url.Action("ReviewOrder", "Home")?orderId=' + orderId;
+            });
         }
     </script>
 }

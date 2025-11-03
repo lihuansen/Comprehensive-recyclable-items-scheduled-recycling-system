@@ -573,6 +573,45 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        // 仓库管理页面
+        public ActionResult WarehouseManagement()
+        {
+            if (Session["LoginStaff"] == null)
+                return RedirectToAction("Login", "Staff");
+
+            return View();
+        }
+
+        // 获取库存汇总数据
+        [HttpPost]
+        public JsonResult GetInventorySummary()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var inventoryBll = new InventoryBLL();
+                
+                // 获取所有库存汇总（不过滤回收员）
+                var summary = inventoryBll.GetInventorySummary(null);
+                
+                var result = summary.Select(s => new
+                {
+                    categoryKey = s.CategoryKey,
+                    categoryName = s.CategoryName,
+                    totalWeight = s.TotalWeight
+                }).ToList();
+
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
 
     }
 }

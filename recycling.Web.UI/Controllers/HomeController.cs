@@ -851,5 +851,82 @@ namespace recycling.Web.UI.Controllers
                 return View("ContactRecycler", model);
             }
         }
+
+        // 评价订单页面
+        public ActionResult ReviewOrder(int orderId)
+        {
+            if (Session["LoginUser"] == null)
+                return RedirectToAction("Login", "Home");
+
+            var user = (Users)Session["LoginUser"];
+            
+            try
+            {
+                var orderBll = new OrderBLL();
+                var order = orderBll.GetOrderDetail(orderId, user.UserID);
+                
+                if (order.Status != "已完成")
+                {
+                    return RedirectToAction("MyOrders", "User");
+                }
+
+                // 检查是否已评价
+                var reviewBll = new OrderReviewBLL();
+                if (reviewBll.HasReviewed(orderId, user.UserID))
+                {
+                    TempData["ErrorMsg"] = "该订单已经评价过了";
+                    return RedirectToAction("MyOrders", "User");
+                }
+
+                ViewBag.Order = order;
+                return View();
+            }
+            catch
+            {
+                return RedirectToAction("MyOrders", "User");
+            }
+        }
+
+        // 提交评价
+        [HttpPost]
+        public JsonResult SubmitReview(int orderId, int recyclerId, int starRating, string reviewText)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+                var reviewBll = new OrderReviewBLL();
+
+                var result = reviewBll.AddReview(orderId, user.UserID, recyclerId, starRating, reviewText);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // 检查订单是否已评价
+        [HttpPost]
+        public JsonResult CheckReviewed(int orderId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+                var reviewBll = new OrderReviewBLL();
+                
+                bool hasReviewed = reviewBll.HasReviewed(orderId, user.UserID);
+                return Json(new { success = true, hasReviewed = hasReviewed });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

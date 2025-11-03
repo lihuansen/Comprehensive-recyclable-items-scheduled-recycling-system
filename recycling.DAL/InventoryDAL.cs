@@ -128,5 +128,46 @@ namespace recycling.DAL
 
             return list;
         }
+
+        /// <summary>
+        /// 获取库存汇总（按类别分组）
+        /// </summary>
+        public List<(string CategoryKey, string CategoryName, decimal TotalWeight)> GetInventorySummary(int? recyclerId = null)
+        {
+            var summary = new List<(string, string, decimal)>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    SELECT 
+                        CategoryKey, 
+                        CategoryName, 
+                        SUM(Weight) AS TotalWeight
+                    FROM Inventory
+                    WHERE (@RecyclerID IS NULL OR RecyclerID = @RecyclerID)
+                    GROUP BY CategoryKey, CategoryName
+                    ORDER BY CategoryName";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId.HasValue ? (object)recyclerId.Value : DBNull.Value);
+
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            summary.Add((
+                                reader["CategoryKey"].ToString(),
+                                reader["CategoryName"].ToString(),
+                                Convert.ToDecimal(reader["TotalWeight"])
+                            ));
+                        }
+                    }
+                }
+            }
+
+            return summary;
+        }
     }
 }
