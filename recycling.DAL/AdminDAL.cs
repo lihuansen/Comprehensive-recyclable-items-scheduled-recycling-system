@@ -26,7 +26,6 @@ namespace recycling.DAL
         {
             var result = new PagedResult<Users>
             {
-                PageNumber = page,
                 PageSize = pageSize,
                 Items = new List<Users>()
             };
@@ -48,7 +47,6 @@ namespace recycling.DAL
                     countCmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
-                result.TotalPages = (int)Math.Ceiling((double)result.TotalCount / pageSize);
 
                 // Get paged data
                 string sql = @"SELECT * FROM Users WHERE 1=1";
@@ -128,7 +126,6 @@ namespace recycling.DAL
         {
             var result = new PagedResult<Recyclers>
             {
-                PageNumber = page,
                 PageSize = pageSize,
                 Items = new List<Recyclers>()
             };
@@ -160,7 +157,6 @@ namespace recycling.DAL
                     countCmd.Parameters.AddWithValue("@IsActive", isActive.Value);
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
-                result.TotalPages = (int)Math.Ceiling((double)result.TotalCount / pageSize);
 
                 // Get paged data
                 string sql = "SELECT * FROM Recyclers " + whereClause + 
@@ -362,7 +358,6 @@ namespace recycling.DAL
         {
             var result = new PagedResult<Dictionary<string, object>>
             {
-                PageNumber = page,
                 PageSize = pageSize,
                 Items = new List<Dictionary<string, object>>()
             };
@@ -397,7 +392,6 @@ namespace recycling.DAL
                     countCmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
-                result.TotalPages = (int)Math.Ceiling((double)result.TotalCount / pageSize);
 
                 // Get paged data
                 string sql = @"SELECT 

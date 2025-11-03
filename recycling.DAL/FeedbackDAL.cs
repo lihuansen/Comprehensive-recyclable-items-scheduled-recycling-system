@@ -274,8 +274,7 @@ namespace recycling.DAL
                 Status = reader.GetString(reader.GetOrdinal("Status")),
                 AdminReply = reader.IsDBNull(reader.GetOrdinal("AdminReply")) ? null : reader.GetString(reader.GetOrdinal("AdminReply")),
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
-                UpdatedDate = reader.IsDBNull(reader.GetOrdinal("UpdatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("UpdatedDate")),
-                UserName = reader.IsDBNull(reader.GetOrdinal("UserName")) ? "未知用户" : reader.GetString(reader.GetOrdinal("UserName"))
+                UpdatedDate = reader.IsDBNull(reader.GetOrdinal("UpdatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("UpdatedDate"))
             };
         }
     }
