@@ -612,6 +612,187 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 用户评价页面 - 回收员查看收到的评价
+        /// </summary>
+        [HttpGet]
+        public ActionResult UserReviews()
+        {
+            // 检查登录
+            if (Session["LoginStaff"] == null)
+            {
+                return RedirectToAction("StaffLogin", "Staff");
+            }
+
+            var staff = Session["LoginStaff"] as Staffs;
+            var role = Session["StaffRole"] as string;
+
+            if (role != "recycler")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取回收员的评价数据
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetRecyclerReviews()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "未登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Staffs;
+                var role = Session["StaffRole"] as string;
+
+                if (role != "recycler")
+                {
+                    return Json(new { success = false, message = "权限不足" });
+                }
+
+                var reviewBLL = new OrderReviewBLL();
+                
+                // 获取评价列表
+                var reviews = reviewBLL.GetReviewsByRecyclerId(staff.StaffID);
+                
+                // 获取评分摘要
+                var summary = reviewBLL.GetRecyclerRatingSummary(staff.StaffID);
+                
+                // 获取星级分布
+                var distribution = reviewBLL.GetRecyclerRatingDistribution(staff.StaffID);
+
+                var result = reviews.Select(r => new
+                {
+                    orderId = r.OrderID,
+                    orderNumber = "AP" + r.OrderID.ToString("D6"),
+                    userId = r.UserID,
+                    starRating = r.StarRating,
+                    reviewText = r.ReviewText,
+                    createdDate = r.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    reviews = result,
+                    averageRating = Math.Round(summary.AverageRating, 2),
+                    totalReviews = summary.TotalReviews,
+                    distribution = distribution
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 历史会话页面 - 回收员查看历史对话
+        /// </summary>
+        [HttpGet]
+        public ActionResult HistoryConversations()
+        {
+            // 检查登录
+            if (Session["LoginStaff"] == null)
+            {
+                return RedirectToAction("StaffLogin", "Staff");
+            }
+
+            var staff = Session["LoginStaff"] as Staffs;
+            var role = Session["StaffRole"] as string;
+
+            if (role != "recycler")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取回收员的历史会话列表
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetRecyclerConversations(int pageIndex = 1, int pageSize = 20)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "未登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Staffs;
+                var role = Session["StaffRole"] as string;
+
+                if (role != "recycler")
+                {
+                    return Json(new { success = false, message = "权限不足" });
+                }
+
+                var conversationBLL = new ConversationBLL();
+                var convs = conversationBLL.GetRecyclerConversations(staff.StaffID, pageIndex, pageSize);
+
+                var result = convs.Select(c => new
+                {
+                    orderId = c.OrderID,
+                    orderNumber = "AP" + c.OrderID.ToString("D6"),
+                    userName = c.UserName,
+                    endedTime = c.EndedTime?.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return Json(new { success = true, conversations = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取历史会话消息（回收员端）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "未登录" });
+                }
+
+                DateTime et;
+                if (!DateTime.TryParse(endedTime, out et))
+                {
+                    return Json(new { success = false, message = "时间格式无效" });
+                }
+
+                var conversationBLL = new ConversationBLL();
+                var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
+
+                var result = messages.Select(m => new
+                {
+                    senderType = m.SenderType,
+                    senderId = m.SenderID,
+                    content = m.Content,
+                    sentTime = m.SentTime.ToString("yyyy-MM-dd HH:mm:ss")
+                }).ToList();
+
+                return Json(new { success = true, messages = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
 
     }
 }

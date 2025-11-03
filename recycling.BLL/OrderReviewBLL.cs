@@ -59,5 +59,29 @@ namespace recycling.BLL
         {
             return _reviewDAL.GetReview(orderId);
         }
+
+        /// <summary>
+        /// 获取回收员收到的所有评价
+        /// </summary>
+        public List<OrderReviews> GetReviewsByRecyclerId(int recyclerId)
+        {
+            return _reviewDAL.GetReviewsByRecyclerId(recyclerId);
+        }
+
+        /// <summary>
+        /// 获取回收员的平均评分和评价总数
+        /// </summary>
+        public (decimal AverageRating, int TotalReviews) GetRecyclerRatingSummary(int recyclerId)
+        {
+            return _reviewDAL.GetRecyclerRatingSummary(recyclerId);
+        }
+
+        /// <summary>
+        /// 获取回收员评价的星级分布
+        /// </summary>
+        public Dictionary<int, int> GetRecyclerRatingDistribution(int recyclerId)
+        {
+            return _reviewDAL.GetRecyclerRatingDistribution(recyclerId);
+        }
     }
 }

@@ -1,0 +1,375 @@
+@{
+    ViewBag.Title = "用户评价";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+<style>
+    .reviews-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    .rating-big {
+        font-size: 72px;
+        font-weight: bold;
+        margin: 20px 0;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .stars-big {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .stars-big .fa-star {
+        color: #ffd700;
+        text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .total-reviews {
+        font-size: 20px;
+        opacity: 0.9;
+    }
+
+    .distribution-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .distribution-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .star-label {
+        width: 80px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+    }
+
+    .star-label .fa-star {
+        color: #ffd700;
+        margin-right: 5px;
+    }
+
+    .progress-bar-container {
+        flex: 1;
+        height: 24px;
+        background: #f0f0f0;
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 0 15px;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%);
+        border-radius: 12px;
+        transition: width 0.5s ease;
+    }
+
+    .count-label {
+        width: 60px;
+        text-align: right;
+        font-weight: 500;
+        color: #666;
+    }
+
+    .reviews-list-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .review-item {
+        padding: 25px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .review-item:hover {
+        background: #f8f9fa;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .review-order {
+        font-weight: 600;
+        color: #3498db;
+        font-size: 16px;
+    }
+
+    .review-date {
+        color: #999;
+        font-size: 14px;
+    }
+
+    .review-stars {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .review-stars .fa-star {
+        color: #ffd700;
+        margin-right: 3px;
+    }
+
+    .review-stars .fa-star.empty {
+        color: #ddd;
+    }
+
+    .review-text {
+        color: #555;
+        line-height: 1.6;
+        font-size: 15px;
+        margin-top: 10px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #3498db;
+    }
+
+    .no-review-text {
+        color: #999;
+        font-style: italic;
+        font-size: 14px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .card-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .review-item {
+        animation: fadeIn 0.3s ease;
+    }
+</style>
+
+<div class="reviews-container">
+    <h2 style="margin-bottom: 30px; color: #333;"><i class="fas fa-star"></i> 用户评价</h2>
+
+    <!-- 评分摘要卡片 -->
+    <div class="summary-card">
+        <div class="row">
+            <div class="col-md-6 text-center">
+                <div class="rating-big" id="avgRating">0.0</div>
+                <div class="stars-big" id="starDisplay">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="total-reviews">
+                    基于 <span id="totalReviews">0</span> 条评价
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div style="padding: 20px;">
+                    <h4 style="color: white; margin-bottom: 20px;">评分分布</h4>
+                    <div id="distributionMini"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详细分布卡片 -->
+    <div class="distribution-card">
+        <h3 class="card-title"><i class="fas fa-chart-bar"></i> 评分详情</h3>
+        <div id="distributionDetails"></div>
+    </div>
+
+    <!-- 评价列表 -->
+    <div class="reviews-list-card">
+        <h3 class="card-title"><i class="fas fa-comments"></i> 用户评价列表</h3>
+        <div id="reviewsList"></div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function renderStars(rating, fullSize = false) {
+            var html = '';
+            var size = fullSize ? 'fa-2x' : '';
+            for (var i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    html += '<i class="fas fa-star ' + size + '"></i> ';
+                } else {
+                    html += '<i class="far fa-star ' + size + ' empty"></i> ';
+                }
+            }
+            return html;
+        }
+
+        function loadReviews() {
+            fetch('@Url.Action("GetRecyclerReviews", "Staff")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 更新平均评分
+                    document.getElementById('avgRating').textContent = data.averageRating.toFixed(1);
+                    document.getElementById('totalReviews').textContent = data.totalReviews;
+                    
+                    // 更新星级显示
+                    var avgRating = Math.round(data.averageRating);
+                    document.getElementById('starDisplay').innerHTML = renderStars(avgRating, false);
+
+                    // 渲染分布（迷你版在摘要卡片中）
+                    renderDistributionMini(data.distribution, data.totalReviews);
+
+                    // 渲染详细分布
+                    renderDistribution(data.distribution, data.totalReviews);
+
+                    // 渲染评价列表
+                    renderReviewsList(data.reviews);
+                } else {
+                    alert('加载评价失败：' + (data.message || ''));
+                }
+            })
+            .catch(error => {
+                console.error('加载评价出错：', error);
+                alert('加载评价失败');
+            });
+        }
+
+        function renderDistributionMini(distribution, total) {
+            var container = document.getElementById('distributionMini');
+            var html = '';
+            
+            for (var star = 5; star >= 1; star--) {
+                var count = distribution[star] || 0;
+                var percentage = total > 0 ? (count / total * 100) : 0;
+                
+                html += '<div style="display: flex; align-items: center; margin-bottom: 8px; color: white;">';
+                html += '<span style="width: 30px;">' + star + '★</span>';
+                html += '<div style="flex: 1; height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; margin: 0 10px; overflow: hidden;">';
+                html += '<div style="width: ' + percentage + '%; height: 100%; background: #ffd700; border-radius: 3px;"></div>';
+                html += '</div>';
+                html += '<span style="width: 40px; text-align: right; font-size: 14px;">' + count + '</span>';
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function renderDistribution(distribution, total) {
+            var container = document.getElementById('distributionDetails');
+            var html = '';
+            
+            for (var star = 5; star >= 1; star--) {
+                var count = distribution[star] || 0;
+                var percentage = total > 0 ? (count / total * 100) : 0;
+                
+                html += '<div class="distribution-item">';
+                html += '<div class="star-label"><i class="fas fa-star"></i> ' + star + ' 星</div>';
+                html += '<div class="progress-bar-container">';
+                html += '<div class="progress-bar-fill" style="width: ' + percentage + '%;"></div>';
+                html += '</div>';
+                html += '<div class="count-label">' + count + ' 条</div>';
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function renderReviewsList(reviews) {
+            var container = document.getElementById('reviewsList');
+            
+            if (!reviews || reviews.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无用户评价</p></div>';
+                return;
+            }
+
+            var html = '';
+            reviews.forEach(function(review) {
+                html += '<div class="review-item">';
+                html += '<div class="review-header">';
+                html += '<span class="review-order"><i class="fas fa-shopping-cart"></i> 订单：' + review.orderNumber + '</span>';
+                html += '<span class="review-date"><i class="far fa-clock"></i> ' + review.createdDate + '</span>';
+                html += '</div>';
+                html += '<div class="review-stars">' + renderStars(review.starRating) + '</div>';
+                
+                if (review.reviewText && review.reviewText.trim() !== '') {
+                    html += '<div class="review-text">' + escapeHtml(review.reviewText) + '</div>';
+                } else {
+                    html += '<div class="no-review-text">用户未留下评价内容</div>';
+                }
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        }
+
+        // 页面加载时获取评价
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReviews();
+        });
+    </script>
+}
