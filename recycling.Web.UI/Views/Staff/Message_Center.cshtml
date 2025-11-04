@@ -482,10 +482,8 @@
                 .then(r=>r.json())
                 .then(data=>{
                     if (data.success) {
-                        // 重新载入消息（返回结果里通常也包含会话元信息）
+                        // 重新载入消息（会自动检查双方是否都已结束）
                         loadConversationMessages(currentOrderId);
-                        // 检查是否双方都已结束，以显示完成订单按钮
-                        checkBothEnded(currentOrderId);
                     } else {
                         alert('结束失败：' + (data.message || ''));
                     }
