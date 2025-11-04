@@ -887,6 +887,9 @@ select.form-control::-ms-expand {
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" id="completeOrderBtn" class="btn btn-success" style="display: none;" onclick="completeOrderFromDetail()">
+                    <i class="fas fa-check-circle"></i> 完成订单
+                </button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
         </div>
@@ -1279,6 +1282,86 @@ function renderOrderDetail(order) {
     } else {
         categoriesContainer.innerHTML = '<span class="text-muted">暂无品类信息</span>';
     }
+
+    // 保存订单ID用于完成订单操作
+    const completeBtn = document.getElementById('completeOrderBtn');
+    completeBtn.setAttribute('data-appointment-id', order.AppointmentID);
+    
+    // 检查是否可以完成订单（仅"进行中"状态）
+    if (order.Status === '进行中') {
+        // 检查双方是否都已结束对话
+        fetch('@Url.Action("CheckBothEnded", "Staff")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ orderId: order.AppointmentID })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.bothEnded) {
+                completeBtn.style.display = 'inline-block';
+            } else {
+                completeBtn.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('检查对话状态出错：', error);
+            completeBtn.style.display = 'none';
+        });
+    } else {
+        completeBtn.style.display = 'none';
+    }
+}
+
+// 从订单详情完成订单
+function completeOrderFromDetail() {
+    const completeBtn = document.getElementById('completeOrderBtn');
+    const appointmentId = parseInt(completeBtn.getAttribute('data-appointment-id'));
+    
+    if (!appointmentId) {
+        alert('订单ID无效');
+        return;
+    }
+
+    if (!confirm('确认完成此订单？完成后将写入库存记录。')) {
+        return;
+    }
+
+    // 禁用按钮防止重复点击
+    completeBtn.disabled = true;
+    const originalText = completeBtn.innerHTML;
+    completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+
+    fetch('@Url.Action("CompleteOrder", "Staff")', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ appointmentId: appointmentId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        completeBtn.disabled = false;
+        completeBtn.innerHTML = originalText;
+
+        if (data.success) {
+            alert('订单已完成，库存已更新');
+            $('#orderDetailModal').modal('hide');
+            // 刷新订单列表
+            loadOrders(currentPage);
+        } else {
+            alert('完成失败：' + (data.message || ''));
+        }
+    })
+    .catch(error => {
+        completeBtn.disabled = false;
+        completeBtn.innerHTML = originalText;
+        console.error('完成订单出错：', error);
+        alert('完成订单出错');
+    });
 }
 
         // 打开对话模态框
