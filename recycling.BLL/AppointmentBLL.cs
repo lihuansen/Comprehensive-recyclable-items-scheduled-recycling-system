@@ -55,16 +55,25 @@ namespace recycling.BLL
 
                     System.Diagnostics.Debug.WriteLine($"处理品类 {categoryKey}, 答案数量: {categoryAnswers.Count}");
 
+                    // 获取该品类的重量
+                    decimal categoryWeight = 0m;
+                    if (submission.BasicInfo.CategoryWeights != null && 
+                        submission.BasicInfo.CategoryWeights.ContainsKey(categoryKey))
+                    {
+                        categoryWeight = submission.BasicInfo.CategoryWeights[categoryKey];
+                    }
+
                     var category = new AppointmentCategories
                     {
                         CategoryName = GetCategoryDisplayName(categoryKey),
                         CategoryKey = categoryKey,
                         QuestionsAnswers = JsonConvert.SerializeObject(categoryAnswers),
+                        Weight = categoryWeight,
                         CreatedDate = DateTime.Now
                     };
 
                     categories.Add(category);
-                    System.Diagnostics.Debug.WriteLine($"品类 {categoryKey} 创建完成: {category.CategoryName}");
+                    System.Diagnostics.Debug.WriteLine($"品类 {categoryKey} 创建完成: {category.CategoryName}, 重量: {categoryWeight}");
                 }
 
                 System.Diagnostics.Debug.WriteLine($"准备调用DAL层，预约对象和 {categories.Count} 个品类对象");
