@@ -10,7 +10,7 @@ namespace recycling.Web.UI.Controllers
 {
     public class UserController : Controller
     {
-        private UserBLL _userBLL = new UserBLL();
+        private readonly UserBLL _userBLL = new UserBLL();
         // GET: User
         public ActionResult Index()
         {

@@ -10,7 +10,7 @@ namespace recycling.Web.UI.Controllers
 {
     public class HomeController : Controller
     {
-        private UserBLL _userBLL = new UserBLL();
+        private readonly UserBLL _userBLL = new UserBLL();
         // 依赖BLL层，与UserController依赖UserBLL的方式一致
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
         private readonly MessageBLL _messageBLL = new MessageBLL();
