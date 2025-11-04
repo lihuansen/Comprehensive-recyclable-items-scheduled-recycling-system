@@ -194,7 +194,7 @@
             if (data.success) {
                 var messages = data.messages || data.data || [];
                 renderConversationMessages(messages);
-                
+
                 // 检查对话是否双方都已结束
                 checkBothEnded(orderId);
             } else {
@@ -208,7 +208,7 @@
             if (container) container.innerHTML = '<div class="text-danger">加载对话出错，请重试</div>';
         });
     }
-    
+
     function checkBothEnded(orderId) {
         fetch('@Url.Action("CheckBothEnded", "Staff")', {
             method: 'POST',
@@ -218,7 +218,9 @@
             },
             body: JSON.stringify({ orderId: orderId })
         })
-        .then(function (res) { return res.json(); })
+        .then(function (res) {
+            return res.json();
+        })
         .then(function (data) {
             var completeSection = document.getElementById('completeOrderSection');
             if (data.bothEnded) {
@@ -229,13 +231,13 @@
         })
         .catch(function (err) {
             console.error('检查对话状态出错：', err);
-        });
-    }
-            console.error('加载对话出错：', err);
             var container = document.getElementById('conversationContainer');
-            if (container) container.innerHTML = '<div class="text-danger">加载对话出错，请重试</div>';
+            if (container) {
+                container.innerHTML = '<div class="text-danger">加载对话出错，请重试</div>';
+            }
         });
     }
+
 
     function renderConversationMessages(messages) {
         var container = document.getElementById('conversationContainer');
@@ -491,7 +493,7 @@
             });
         }
     });
-    
+
     // Complete Order Button Handler
     document.addEventListener('DOMContentLoaded', function() {
         var completeBtn = document.getElementById('completeOrderBtn');
@@ -501,15 +503,15 @@
                     alert('请先选择订单');
                     return;
                 }
-                
+
                 if (!confirm('确认完成此订单？完成后将写入库存记录。')) {
                     return;
                 }
-                
+
                 var btn = this;
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
-                
+
                 fetch('@Url.Action("CompleteOrder","Staff")', {
                     method: 'POST',
                     headers: { 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
@@ -519,7 +521,7 @@
                 .then(data => {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-check-circle"></i> 完成订单';
-                    
+
                     if (data.success) {
                         alert('订单已完成，库存已更新');
                         location.reload();
