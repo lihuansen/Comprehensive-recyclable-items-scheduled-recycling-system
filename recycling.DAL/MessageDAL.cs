@@ -66,7 +66,7 @@ namespace recycling.DAL
                             MessageID = Convert.ToInt32(reader["MessageID"]),
                             OrderID = Convert.ToInt32(reader["OrderID"]),
                             SenderType = reader["SenderType"].ToString(),
-                            SenderID = Convert.ToInt32(reader["SenderID"]),
+                            SenderID = reader["SenderID"] != DBNull.Value ? Convert.ToInt32(reader["SenderID"]) : (int?)null,
                             Content = reader["Content"].ToString(),
                             SentTime = Convert.ToDateTime(reader["SentTime"]),
                             IsRead = Convert.ToBoolean(reader["IsRead"])
@@ -150,7 +150,7 @@ namespace recycling.DAL
                                 OrderID = Convert.ToInt32(reader["OrderID"]),
                                 OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
                                 SenderType = reader["SenderType"].ToString(),
-                                SenderID = Convert.ToInt32(reader["SenderID"]),
+                                SenderID = reader["SenderID"] != DBNull.Value ? Convert.ToInt32(reader["SenderID"]) : 0,
                                 SenderName = reader["SenderName"].ToString(),
                                 Content = reader["Content"].ToString(),
                                 SentTime = Convert.ToDateTime(reader["SentTime"]),
