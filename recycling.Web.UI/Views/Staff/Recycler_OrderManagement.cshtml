@@ -1318,9 +1318,9 @@ function renderOrderDetail(order) {
 // 从订单详情完成订单
 function completeOrderFromDetail() {
     const completeBtn = document.getElementById('completeOrderBtn');
-    const appointmentId = parseInt(completeBtn.getAttribute('data-appointment-id'));
+    const appointmentId = parseInt(completeBtn.getAttribute('data-appointment-id'), 10);
     
-    if (!appointmentId) {
+    if (!appointmentId || appointmentId <= 0) {
         alert('订单ID无效');
         return;
     }

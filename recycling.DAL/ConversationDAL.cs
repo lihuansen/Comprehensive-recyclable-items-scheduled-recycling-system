@@ -117,9 +117,9 @@ namespace recycling.DAL
                         }
 
                         // 更新或创建会话记录
-                        DateTime endedTime = DateTime.Now;
                         if (conversationId > 0)
                         {
+                            DateTime endedTime = DateTime.Now;
                             // 更新现有记录
                             string updateSql = endedByType == "user"
                                 ? "UPDATE Conversations SET UserEnded = 1, UserEndedTime = @EndedTime WHERE ConversationID = @ConversationID"
@@ -133,15 +133,7 @@ namespace recycling.DAL
                             }
 
                             // 检查双方是否都已结束，如果是则设置 EndedTime
-                            bool bothEnded = false;
-                            if (endedByType == "user" && existingRecyclerEnded)
-                            {
-                                bothEnded = true;
-                            }
-                            else if (endedByType == "recycler" && existingUserEnded)
-                            {
-                                bothEnded = true;
-                            }
+                            bool bothEnded = (endedByType == "user" && existingRecyclerEnded) || (endedByType == "recycler" && existingUserEnded);
 
                             if (bothEnded)
                             {
@@ -156,6 +148,7 @@ namespace recycling.DAL
                         }
                         else
                         {
+                            DateTime endedTime = DateTime.Now;
                             // 创建新记录
                             string insertSql = @"
                                 INSERT INTO Conversations (OrderID, UserID, RecyclerID, Status, CreatedTime, UserEnded, RecyclerEnded, UserEndedTime, RecyclerEndedTime)
