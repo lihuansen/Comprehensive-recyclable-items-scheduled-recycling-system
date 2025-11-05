@@ -189,7 +189,6 @@
     <Content Include="Views\Staff\AdminDashboard.cshtml" />
     <Content Include="Views\Staff\SuperAdminDashboard.cshtml" />
     <Content Include="Views\Staff\Recycler_OrderManagement.cshtml" />
-    <Content Include="Views\Staff\OrderManagement.cshtml" />
     <Content Include="Views\Staff\RecyclerManagement.cshtml" />
     <Content Include="Views\Staff\UserManagement.cshtml" />
     <Content Include="Views\Staff\UserReviews.cshtml" />
