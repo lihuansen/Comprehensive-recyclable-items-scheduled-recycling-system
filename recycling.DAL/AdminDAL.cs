@@ -21,6 +21,7 @@ namespace recycling.DAL
         {
             var result = new PagedResult<Users>
             {
+                PageIndex = page,
                 PageSize = pageSize,
                 Items = new List<Users>()
             };
@@ -121,6 +122,7 @@ namespace recycling.DAL
         {
             var result = new PagedResult<Recyclers>
             {
+                PageIndex = page,
                 PageSize = pageSize,
                 Items = new List<Recyclers>()
             };
@@ -353,6 +355,7 @@ namespace recycling.DAL
         {
             var result = new PagedResult<Dictionary<string, object>>
             {
+                PageIndex = page,
                 PageSize = pageSize,
                 Items = new List<Dictionary<string, object>>()
             };
