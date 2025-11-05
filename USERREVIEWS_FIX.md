@@ -4,9 +4,9 @@
 回收员在导航栏点击"用户评价"时，系统显示"加载失败"，无法访问用户评价页面。
 
 ## 问题原因
-`StaffController.cs` 中的 `UserReviews` 方法（第687行）错误地重定向到不存在的 `StaffLogin` 方法：
+`StaffController.cs` 中的 `UserReviews` 方法（第687行）错误地重定向到不存在的 `StaffLogin` 操作方法：
 ```csharp
-return RedirectToAction("StaffLogin", "Staff");  // ❌ StaffLogin 不存在
+return RedirectToAction("StaffLogin", "Staff");  // ❌ StaffLogin 操作方法在 Staff 控制器中不存在
 ```
 
 ## 修复方案
