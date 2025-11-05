@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using recycling.BLL;
 using recycling.Model;
+using Newtonsoft.Json;
 
 namespace recycling.Web.UI.Controllers
 {
@@ -15,6 +16,15 @@ namespace recycling.Web.UI.Controllers
         private readonly MessageBLL _messageBLL = new MessageBLL();
         private readonly OrderBLL _orderBLL = new OrderBLL();
         private readonly AdminBLL _adminBLL = new AdminBLL();
+
+        /// <summary>
+        /// Helper method to return JSON with proper UTF-8 encoding
+        /// </summary>
+        private ContentResult JsonContent(object data)
+        {
+            var json = JsonConvert.SerializeObject(data);
+            return Content(json, "application/json", System.Text.Encoding.UTF8);
+        }
 
         /// <summary>
         /// 工作人员首页 - 重定向到专用首页
@@ -279,15 +289,15 @@ namespace recycling.Web.UI.Controllers
 
         // 获取订单对话（回收员端），已包含 conversationEnded/endedBy/endedTime
         [HttpPost]
-        public JsonResult GetOrderConversation(int orderId)
+        public ContentResult GetOrderConversation(int orderId)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                    return JsonContent(new { success = false, message = "请先登录" });
 
                 if (orderId <= 0)
-                    return Json(new { success = false, message = "无效订单ID" });
+                    return JsonContent(new { success = false, message = "无效订单ID" });
 
                 var messagesVm = _recyclerOrderBLL.GetOrderConversation(orderId);
                 var result = messagesVm.Select(m => new
@@ -313,7 +323,7 @@ namespace recycling.Web.UI.Controllers
                 string latestEndedTimeIso = bothInfo.LatestEndedTime.HasValue ? bothInfo.LatestEndedTime.Value.ToString("o") : string.Empty;
                 string lastEndedBy = latestConv != null ? latestConv.Status ?? "" : "";
 
-                return Json(new
+                return JsonContent(new
                 {
                     success = true,
                     messages = result,
@@ -324,7 +334,7 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
@@ -333,31 +343,35 @@ namespace recycling.Web.UI.Controllers
         /// 前端只需要提供 OrderID 和 Content，后台会填充 SenderType/SenderID
         /// </summary>
         [HttpPost]
-        public JsonResult SendMessageToUser(SendMessageRequest request)
+        public ContentResult SendMessageToUser(SendMessageRequest request)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
                 {
-                    return Json(new { success = false, message = "请先登录" });
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
 
                 if (request == null || request.OrderID <= 0 || string.IsNullOrWhiteSpace(request.Content))
                 {
-                    return Json(new { success = false, message = "参数不完整" });
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "参数不完整" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
                 request.SenderType = "recycler";
                 request.SenderID = recycler.RecyclerID;
 
                 var result = _messageBLL.SendMessage(request);
-                return Json(new { success = result.Success, message = result.Message });
+                var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = $"发送失败：{ex.Message}" });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = $"发送失败：{ex.Message}" });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
@@ -365,20 +379,25 @@ namespace recycling.Web.UI.Controllers
         /// 标记订单中对回收员可见的消息为已读（回收员已查看）
         /// </summary>
         [HttpPost]
-        public JsonResult MarkMessagesAsRead(int orderId)
+        public ContentResult MarkMessagesAsRead(int orderId)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
                 bool result = _messageBLL.MarkMessagesAsRead(orderId, "recycler", recycler.RecyclerID);
-                return Json(new { success = result });
+                var json = JsonConvert.SerializeObject(new { success = result });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
@@ -386,13 +405,14 @@ namespace recycling.Web.UI.Controllers
         /// 获取订单详情（AJAX）
         /// </summary>
         [HttpPost]
-        public JsonResult GetOrderDetail(int appointmentId)
+        public ContentResult GetOrderDetail(int appointmentId)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
                 {
-                    return Json(new { success = false, message = "请先登录" });
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
@@ -400,27 +420,33 @@ namespace recycling.Web.UI.Controllers
 
                 if (result.Detail != null)
                 {
-                    return Json(new { success = true, data = result.Detail });
+                    var json = JsonConvert.SerializeObject(new { success = true, data = result.Detail });
+                    return Content(json, "application/json", System.Text.Encoding.UTF8);
                 }
                 else
                 {
-                    return Json(new { success = false, message = result.Message });
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = result.Message });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
         // 获取回收员的历史会话列表（分页）
         [HttpPost]
-        public JsonResult GetRecyclerConversations(int pageIndex = 1, int pageSize = 20)
+        public ContentResult GetRecyclerConversations(int pageIndex = 1, int pageSize = 20)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
                 var conversationBLL = new ConversationBLL();
@@ -437,28 +463,39 @@ namespace recycling.Web.UI.Controllers
                     status = c.Status
                 }).ToList();
 
-                return Json(new { success = true, conversations = result });
+                var json = JsonConvert.SerializeObject(new { success = true, conversations = result });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
         // 获取某个已结束会话的历史消息（回收员端查看历史）
         [HttpPost]
-        public JsonResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
+        public ContentResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 if (orderId <= 0 || string.IsNullOrWhiteSpace(endedTime))
-                    return Json(new { success = false, message = "参数不完整" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "参数不完整" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 if (!DateTime.TryParse(endedTime, out DateTime et))
-                    return Json(new { success = false, message = "结束时间格式错误" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "结束时间格式错误" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 var conversationBLL = new ConversationBLL();
                 var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
@@ -477,71 +514,92 @@ namespace recycling.Web.UI.Controllers
                     isRead = m.IsRead
                 }).ToList();
 
-                return Json(new { success = true, messages = result });
+                var json = JsonConvert.SerializeObject(new { success = true, messages = result });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
         // 回收员结束会话（StaffController）
         [HttpPost]
-        public JsonResult EndConversation(int orderId)
+        public ContentResult EndConversation(int orderId)
         {
             try
             {
-                if (Session["LoginStaff"] == null) return Json(new { success = false, message = "请先登录" });
+                if (Session["LoginStaff"] == null)
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
                 var recycler = (Recyclers)Session["LoginStaff"];
                 var convBll = new ConversationBLL();
                 bool ok = convBll.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
                 
                 if (!ok)
                 {
-                    return Json(new { success = false, message = "用户需要先结束对话" });
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "用户需要先结束对话" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
                 // 检查双方是否都已结束
                 var (bothEnded, _) = convBll.HasBothEnded(orderId);
 
-                return Json(new
+                var json = JsonConvert.SerializeObject(new
                 {
                     success = true,
                     message = "对话已结束",
                     bothEnded = bothEnded
                 });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
-            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
+            catch (Exception ex)
+            {
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+            }
         }
 
         // 检查双方是否都已结束对话
         [HttpPost]
-        public JsonResult CheckBothEnded(int orderId)
+        public ContentResult CheckBothEnded(int orderId)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 var convBll = new ConversationBLL();
                 var (bothEnded, _) = convBll.HasBothEnded(orderId);
 
-                return Json(new { success = true, bothEnded = bothEnded });
+                var json = JsonConvert.SerializeObject(new { success = true, bothEnded = bothEnded });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
         // 完成订单（回收员点击后把订单状态置为 已完成，并写入库存）
         [HttpPost]
-        public JsonResult CompleteOrder(int appointmentId)
+        public ContentResult CompleteOrder(int appointmentId)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
                 
@@ -551,7 +609,8 @@ namespace recycling.Web.UI.Controllers
                 
                 if (!bothEnded)
                 {
-                    return Json(new { success = false, message = "双方必须都结束对话后才能完成订单" });
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "双方必须都结束对话后才能完成订单" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
                 // 写入库存
@@ -560,17 +619,20 @@ namespace recycling.Web.UI.Controllers
                 
                 if (!inventoryAdded)
                 {
-                    return Json(new { success = false, message = "写入库存失败" });
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
                 // 完成订单
                 var orderBll = new OrderBLL();
                 var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID);
-                return Json(new { success = result.Success, message = result.Message });
+                var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
