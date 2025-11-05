@@ -702,7 +702,7 @@ namespace recycling.Web.UI.Controllers
             // 检查登录
             if (Session["LoginStaff"] == null)
             {
-                return Json(new { success = false, message = "未登录" });
+                return RedirectToAction("StaffLogin", "Staff");
             }
 
             var staff = Session["LoginStaff"] as Recyclers;
