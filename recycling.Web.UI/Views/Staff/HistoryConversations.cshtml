@@ -263,7 +263,7 @@
                 html += '<div class="history-item" data-order-id="' + conv.orderId + '" data-ended-time="' + conv.endedTime + '">';
                 html += '<div class="history-order-number"><i class="fas fa-shopping-cart"></i> ' + conv.orderNumber + '</div>';
                 html += '<div class="history-user-name"><i class="fas fa-user"></i> 用户：' + escapeHtml(conv.userName || '未知') + '</div>';
-                html += '<div class="history-time"><i class="far fa-clock"></i> ' + conv.endedTime + '</div>';
+                html += '<div class="history-time"><i class="far fa-clock"></i> ' + formatTime(conv.endedTime) + '</div>';
                 html += '</div>';
             });
 
