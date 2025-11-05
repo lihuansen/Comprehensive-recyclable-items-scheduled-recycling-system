@@ -119,6 +119,7 @@ namespace recycling.DAL
                         // 更新或创建会话记录
                         if (conversationId > 0)
                         {
+                            DateTime endedTime = DateTime.Now;
                             // 更新现有记录
                             string updateSql = endedByType == "user"
                                 ? "UPDATE Conversations SET UserEnded = 1, UserEndedTime = @EndedTime WHERE ConversationID = @ConversationID"
@@ -126,13 +127,28 @@ namespace recycling.DAL
 
                             using (SqlCommand cmd = new SqlCommand(updateSql, conn, trans))
                             {
-                                cmd.Parameters.AddWithValue("@EndedTime", DateTime.Now);
+                                cmd.Parameters.AddWithValue("@EndedTime", endedTime);
                                 cmd.Parameters.AddWithValue("@ConversationID", conversationId);
                                 cmd.ExecuteNonQuery();
+                            }
+
+                            // 检查双方是否都已结束，如果是则设置 EndedTime
+                            bool bothEnded = (endedByType == "user" && existingRecyclerEnded) || (endedByType == "recycler" && existingUserEnded);
+
+                            if (bothEnded)
+                            {
+                                string updateEndedTimeSql = "UPDATE Conversations SET EndedTime = @EndedTime WHERE ConversationID = @ConversationID";
+                                using (SqlCommand cmd = new SqlCommand(updateEndedTimeSql, conn, trans))
+                                {
+                                    cmd.Parameters.AddWithValue("@EndedTime", endedTime);
+                                    cmd.Parameters.AddWithValue("@ConversationID", conversationId);
+                                    cmd.ExecuteNonQuery();
+                                }
                             }
                         }
                         else
                         {
+                            DateTime endedTime = DateTime.Now;
                             // 创建新记录
                             string insertSql = @"
                                 INSERT INTO Conversations (OrderID, UserID, RecyclerID, Status, CreatedTime, UserEnded, RecyclerEnded, UserEndedTime, RecyclerEndedTime)
@@ -147,8 +163,8 @@ namespace recycling.DAL
                                 cmd.Parameters.AddWithValue("@CreatedTime", DateTime.Now);
                                 cmd.Parameters.AddWithValue("@UserEnded", endedByType == "user" ? 1 : 0);
                                 cmd.Parameters.AddWithValue("@RecyclerEnded", endedByType == "recycler" ? 1 : 0);
-                                cmd.Parameters.AddWithValue("@UserEndedTime", endedByType == "user" ? (object)DateTime.Now : DBNull.Value);
-                                cmd.Parameters.AddWithValue("@RecyclerEndedTime", endedByType == "recycler" ? (object)DateTime.Now : DBNull.Value);
+                                cmd.Parameters.AddWithValue("@UserEndedTime", endedByType == "user" ? (object)endedTime : DBNull.Value);
+                                cmd.Parameters.AddWithValue("@RecyclerEndedTime", endedByType == "recycler" ? (object)endedTime : DBNull.Value);
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -233,7 +249,7 @@ namespace recycling.DAL
                     FROM Conversations c
                     INNER JOIN Appointments a ON c.OrderID = a.AppointmentID
                     LEFT JOIN Recyclers r ON c.RecyclerID = r.RecyclerID
-                    WHERE a.UserID = @UserID
+                    WHERE a.UserID = @UserID AND c.EndedTime IS NOT NULL
                     ORDER BY c.EndedTime DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -287,7 +303,7 @@ namespace recycling.DAL
                     FROM Conversations c
                     INNER JOIN Appointments a ON c.OrderID = a.AppointmentID
                     LEFT JOIN Users u ON a.UserID = u.UserID
-                    WHERE c.RecyclerID = @RecyclerID
+                    WHERE c.RecyclerID = @RecyclerID AND c.EndedTime IS NOT NULL
                     ORDER BY c.EndedTime DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 

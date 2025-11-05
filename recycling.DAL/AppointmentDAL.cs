@@ -65,10 +65,10 @@ SELECT SCOPE_IDENTITY();";
             {
                 string sql = @"
 INSERT INTO AppointmentCategories (
-    AppointmentID, CategoryName, CategoryKey, QuestionsAnswers, CreatedDate
+    AppointmentID, CategoryName, CategoryKey, QuestionsAnswers, Weight, CreatedDate
 ) 
 VALUES (
-    @AppointmentID, @CategoryName, @CategoryKey, @QuestionsAnswers, @CreatedDate
+    @AppointmentID, @CategoryName, @CategoryKey, @QuestionsAnswers, @Weight, @CreatedDate
 )";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
@@ -76,6 +76,7 @@ VALUES (
                 cmd.Parameters.AddWithValue("@CategoryName", category.CategoryName);
                 cmd.Parameters.AddWithValue("@CategoryKey", category.CategoryKey);
                 cmd.Parameters.AddWithValue("@QuestionsAnswers", (object)category.QuestionsAnswers ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Weight", category.Weight);
                 cmd.Parameters.AddWithValue("@CreatedDate", category.CreatedDate);
 
                 conn.Open();
@@ -136,10 +137,10 @@ SELECT SCOPE_IDENTITY();";
 
                             string categorySql = @"
 INSERT INTO AppointmentCategories (
-    AppointmentID, CategoryName, CategoryKey, QuestionsAnswers, CreatedDate
+    AppointmentID, CategoryName, CategoryKey, QuestionsAnswers, Weight, CreatedDate
 ) 
 VALUES (
-    @AppointmentID, @CategoryName, @CategoryKey, @QuestionsAnswers, @CreatedDate
+    @AppointmentID, @CategoryName, @CategoryKey, @QuestionsAnswers, @Weight, @CreatedDate
 )";
 
                             SqlCommand categoryCmd = new SqlCommand(categorySql, conn, transaction);
@@ -147,6 +148,7 @@ VALUES (
                             categoryCmd.Parameters.AddWithValue("@CategoryName", category.CategoryName);
                             categoryCmd.Parameters.AddWithValue("@CategoryKey", category.CategoryKey);
                             categoryCmd.Parameters.AddWithValue("@QuestionsAnswers", (object)category.QuestionsAnswers ?? DBNull.Value);
+                            categoryCmd.Parameters.AddWithValue("@Weight", category.Weight);
                             categoryCmd.Parameters.AddWithValue("@CreatedDate", category.CreatedDate);
 
                             categoryCmd.ExecuteNonQuery();
