@@ -867,7 +867,15 @@ namespace recycling.Web.UI.Controllers
                 
                 if (order.Appointment.Status != "已完成")
                 {
-                    return RedirectToAction("MyOrders", "User");
+                    TempData["ErrorMsg"] = "只能评价已完成的订单";
+                    return RedirectToAction("Order", "Home");
+                }
+
+                // 检查订单是否有分配的回收员
+                if (!order.Appointment.RecyclerID.HasValue || order.Appointment.RecyclerID.Value <= 0)
+                {
+                    TempData["ErrorMsg"] = "该订单未分配回收员，无法评价";
+                    return RedirectToAction("Order", "Home");
                 }
 
                 // 检查是否已评价
@@ -875,15 +883,16 @@ namespace recycling.Web.UI.Controllers
                 if (reviewBll.HasReviewed(orderId, user.UserID))
                 {
                     TempData["ErrorMsg"] = "该订单已经评价过了";
-                    return RedirectToAction("MyOrders", "User");
+                    return RedirectToAction("Order", "Home");
                 }
 
                 ViewBag.Order = order;
                 return View();
             }
-            catch
+            catch (Exception ex)
             {
-                return RedirectToAction("MyOrders", "User");
+                TempData["ErrorMsg"] = "加载评价页面失败：" + ex.Message;
+                return RedirectToAction("Order", "Home");
             }
         }
 
@@ -895,6 +904,9 @@ namespace recycling.Web.UI.Controllers
             {
                 if (Session["LoginUser"] == null)
                     return Json(new { success = false, message = "请先登录" });
+
+                if (recyclerId <= 0)
+                    return Json(new { success = false, message = "订单未分配回收员，无法评价" });
 
                 var user = (Users)Session["LoginUser"];
                 var reviewBll = new OrderReviewBLL();

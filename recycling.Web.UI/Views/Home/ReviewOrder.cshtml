@@ -1,7 +1,7 @@
 @{
     ViewBag.Title = "评价订单";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var order = ViewBag.Order as recycling.Model.OrderDetail;
+    var orderDetail = ViewBag.Order as recycling.Model.OrderDetail;
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -185,20 +185,20 @@
     </div>
 
     <div class="review-card">
-        @if (order != null)
+        @if (orderDetail != null && orderDetail.Appointment != null)
         {
             <div class="order-info">
                 <div class="order-info-item">
                     <span class="order-info-label">订单编号：</span>
-                    <span class="order-info-value">@order.AppointmentID</span>
+                    <span class="order-info-value">AP@(orderDetail.Appointment.AppointmentID.ToString("D6"))</span>
                 </div>
                 <div class="order-info-item">
                     <span class="order-info-label">回收员：</span>
-                    <span class="order-info-value">@(order.RecyclerName ?? "未分配")</span>
+                    <span class="order-info-value">@(orderDetail.Appointment.RecyclerID.HasValue ? "回收员#" + orderDetail.Appointment.RecyclerID.Value : "未分配")</span>
                 </div>
                 <div class="order-info-item">
                     <span class="order-info-label">回收日期：</span>
-                    <span class="order-info-value">@order.AppointmentDate.ToString("yyyy-MM-dd")</span>
+                    <span class="order-info-value">@orderDetail.Appointment.AppointmentDate.ToString("yyyy-MM-dd")</span>
                 </div>
             </div>
         }
@@ -227,7 +227,7 @@
             <i class="fas fa-paper-plane"></i> 提交评价
         </button>
 
-        <a href="@Url.Action("MyOrders", "User")" class="cancel-btn">
+        <a href="@Url.Action("Order", "Home")" class="cancel-btn">
             <i class="fas fa-times"></i> 返回订单列表
         </a>
     </div>
@@ -236,8 +236,8 @@
 @section Scripts {
     <script>
         var selectedRating = 0;
-        var orderId = @(order?.AppointmentID ?? 0);
-        var recyclerId = @(order?.RecyclerID ?? 0);
+        var orderId = @(orderDetail?.Appointment?.AppointmentID ?? 0);
+        var recyclerId = @(orderDetail?.Appointment?.RecyclerID ?? 0);
 
         var ratingTexts = {
             1: '非常不满意',
@@ -337,7 +337,7 @@
             .then(data => {
                 if (data.success) {
                     alert('评价成功！');
-                    window.location.href = '@Url.Action("MyOrders", "User")';
+                    window.location.href = '@Url.Action("Order", "Home")';
                 } else {
                     alert('评价失败：' + (data.message || '未知错误'));
                     btn.disabled = false;
