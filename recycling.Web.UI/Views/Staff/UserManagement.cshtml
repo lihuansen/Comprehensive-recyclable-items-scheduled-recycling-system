@@ -328,8 +328,9 @@
             // Check if date is valid
             if (isNaN(date.getTime())) return false;
             var now = new Date();
-            var diff = now - date; // difference in milliseconds
+            var diff = now - date; // difference in milliseconds (positive if date is in the past)
             var daysDiff = diff / (1000 * 60 * 60 * 24);
+            // Check if date is in the past (>= 0) and within specified days (<= days)
             return daysDiff >= 0 && daysDiff <= days;
         }
     </script>
