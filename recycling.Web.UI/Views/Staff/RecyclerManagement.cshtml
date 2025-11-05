@@ -238,14 +238,14 @@ function renderRecyclers(data) {
 function renderPagination(data) {
     var pagination = $('#pagination');
     pagination.empty();
-    $('#paginationInfo').html(`显示 ${(data.PageNumber - 1) * data.PageSize + 1} - ${Math.min(data.PageNumber * data.PageSize, data.TotalCount)} 条，共 ${data.TotalCount} 条`);
+    $('#paginationInfo').html(`显示 ${(data.PageIndex - 1) * data.PageSize + 1} - ${Math.min(data.PageIndex * data.PageSize, data.TotalCount)} 条，共 ${data.TotalCount} 条`);
     if (data.TotalPages <= 1) return;
-    pagination.append(`<li class="${data.PageNumber == 1 ? 'disabled' : ''}"><a href="#" onclick="goToPage(${data.PageNumber - 1}); return false;">上一页</a></li>`);
-    var startPage = Math.max(1, data.PageNumber - 2), endPage = Math.min(data.TotalPages, data.PageNumber + 2);
+    pagination.append(`<li class="${data.PageIndex == 1 ? 'disabled' : ''}"><a href="#" onclick="goToPage(${data.PageIndex - 1}); return false;">上一页</a></li>`);
+    var startPage = Math.max(1, data.PageIndex - 2), endPage = Math.min(data.TotalPages, data.PageIndex + 2);
     for (var i = startPage; i <= endPage; i++) {
-        pagination.append(`<li class="${i == data.PageNumber ? 'active' : ''}"><a href="#" onclick="goToPage(${i}); return false;">${i}</a></li>`);
+        pagination.append(`<li class="${i == data.PageIndex ? 'active' : ''}"><a href="#" onclick="goToPage(${i}); return false;">${i}</a></li>`);
     }
-    pagination.append(`<li class="${data.PageNumber >= data.TotalPages ? 'disabled' : ''}"><a href="#" onclick="goToPage(${data.PageNumber + 1}); return false;">下一页</a></li>`);
+    pagination.append(`<li class="${data.PageIndex >= data.TotalPages ? 'disabled' : ''}"><a href="#" onclick="goToPage(${data.PageIndex + 1}); return false;">下一页</a></li>`);
 }
 
 function goToPage(page) { currentPage = page; loadRecyclers(); }
