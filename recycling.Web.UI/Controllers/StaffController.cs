@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using recycling.BLL;
 using recycling.Model;
+using Newtonsoft.Json;
 
 namespace recycling.Web.UI.Controllers
 {
@@ -415,12 +416,15 @@ namespace recycling.Web.UI.Controllers
 
         // 获取回收员的历史会话列表（分页）
         [HttpPost]
-        public JsonResult GetRecyclerConversations(int pageIndex = 1, int pageSize = 20)
+        public ContentResult GetRecyclerConversations(int pageIndex = 1, int pageSize = 20)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
                 var conversationBLL = new ConversationBLL();
@@ -437,28 +441,39 @@ namespace recycling.Web.UI.Controllers
                     status = c.Status
                 }).ToList();
 
-                return Json(new { success = true, conversations = result });
+                var json = JsonConvert.SerializeObject(new { success = true, conversations = result });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
         // 获取某个已结束会话的历史消息（回收员端查看历史）
         [HttpPost]
-        public JsonResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
+        public ContentResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 if (orderId <= 0 || string.IsNullOrWhiteSpace(endedTime))
-                    return Json(new { success = false, message = "参数不完整" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "参数不完整" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 if (!DateTime.TryParse(endedTime, out DateTime et))
-                    return Json(new { success = false, message = "结束时间格式错误" });
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "结束时间格式错误" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
 
                 var conversationBLL = new ConversationBLL();
                 var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
@@ -477,11 +492,13 @@ namespace recycling.Web.UI.Controllers
                     isRead = m.IsRead
                 }).ToList();
 
-                return Json(new { success = true, messages = result });
+                var json = JsonConvert.SerializeObject(new { success = true, messages = result });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
         }
 
