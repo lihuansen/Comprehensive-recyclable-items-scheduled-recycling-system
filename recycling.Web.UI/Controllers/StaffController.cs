@@ -702,13 +702,13 @@ namespace recycling.Web.UI.Controllers
         /// 获取回收员的评价数据
         /// </summary>
         [HttpPost]
-        public JsonResult GetRecyclerReviews()
+        public ContentResult GetRecyclerReviews()
         {
             try
             {
                 if (Session["LoginStaff"] == null)
                 {
-                    return Json(new { success = false, message = "未登录" });
+                    return JsonContent(new { success = false, message = "未登录" });
                 }
 
                 var staff = Session["LoginStaff"] as Recyclers;
@@ -716,7 +716,7 @@ namespace recycling.Web.UI.Controllers
 
                 if (role != "recycler")
                 {
-                    return Json(new { success = false, message = "权限不足" });
+                    return JsonContent(new { success = false, message = "权限不足" });
                 }
 
                 var reviewBLL = new OrderReviewBLL();
@@ -740,7 +740,7 @@ namespace recycling.Web.UI.Controllers
                     createdDate = r.CreatedDate.ToString("yyyy-MM-dd HH:mm")
                 }).ToList();
 
-                return Json(new
+                return JsonContent(new
                 {
                     success = true,
                     reviews = result,
@@ -751,7 +751,7 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
