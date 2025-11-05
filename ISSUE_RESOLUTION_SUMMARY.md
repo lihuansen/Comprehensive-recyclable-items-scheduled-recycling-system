@@ -39,9 +39,14 @@ return RedirectToAction("StaffLogin", "Staff");  // ❌ StaffLogin 不存在
 - ✅ 第705行: `public JsonResult GetRecyclerReviews()` - AJAX端点存在
 
 **所有重定向验证**:
+
+通过执行以下命令验证了所有重定向:
 ```bash
-# 发现12处重定向到 Staff.Login，全部正确
 grep -n 'RedirectToAction.*"Staff"' StaffController.cs
+```
+
+验证结果 - 发现12处重定向到 Staff.Login，全部正确:
+```
 35:  RedirectToAction("Login", "Staff");   ✅
 120: RedirectToAction("Login", "Staff");   ✅
 141: RedirectToAction("Login", "Staff");   ✅
@@ -172,9 +177,8 @@ WHERE TABLE_NAME = 'OrderReviews';
 
 ## 📚 相关文档
 
-### 新创建的文档
+### 新创建的文档 (本PR)
 - **VERIFICATION_GUIDE.md** - 完整的验证和故障排查指南
-- **ISSUE_RESOLUTION_SUMMARY.md** - 本文档
 
 ### 已存在的文档
 - **USERREVIEWS_FIX.md** - 详细测试指南

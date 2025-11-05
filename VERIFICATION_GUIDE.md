@@ -81,7 +81,7 @@ WHERE TABLE_NAME = 'OrderReviews';
 -- 运行脚本: Database/CreateOrderReviewsTable.sql
 ```
 
-创建表的SQL脚本 (`Database/CreateOrderReviewsTable.sql`):
+创建表的SQL脚本 (位于 `Database/CreateOrderReviewsTable.sql`):
 ```sql
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[OrderReviews]') AND type in (N'U'))
 BEGIN
@@ -375,10 +375,14 @@ SELECT @@SERVERNAME AS ServerName, DB_NAME() AS DatabaseName;
 
 ## 🔗 相关文档
 
-- **快速参考**: `USERREVIEWS_FIX_SUMMARY.md`
-- **详细指南**: `USERREVIEWS_FIX.md`
-- **完成总结**: `USERREVIEWS_FIX_COMPLETION.md`
-- **架构文档**: `ARCHITECTURE.md`
+以下文档已存在于仓库中:
+
+- **快速参考**: `USERREVIEWS_FIX_SUMMARY.md` - 回收员评价功能快速参考
+- **详细指南**: `USERREVIEWS_FIX.md` - 完整测试和验证指南
+- **完成总结**: `USERREVIEWS_FIX_COMPLETION.md` - 功能修复完成总结
+- **架构文档**: `ARCHITECTURE.md` - 系统架构说明
+- **数据库脚本**: `Database/CreateOrderReviewsTable.sql` - 创建表脚本
+- **问题总结**: `ISSUE_RESOLUTION_SUMMARY.md` - 本次调查总结
 
 ---
 
