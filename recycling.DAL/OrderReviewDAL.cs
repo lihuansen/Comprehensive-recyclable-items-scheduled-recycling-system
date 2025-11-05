@@ -24,12 +24,12 @@ namespace recycling.DAL
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@OrderID", review.OrderID);
-                    cmd.Parameters.AddWithValue("@UserID", review.UserID);
-                    cmd.Parameters.AddWithValue("@RecyclerID", review.RecyclerID);
-                    cmd.Parameters.AddWithValue("@StarRating", review.StarRating);
-                    cmd.Parameters.AddWithValue("@ReviewText", review.ReviewText ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CreatedDate", review.CreatedDate);
+                    cmd.Parameters.Add("@OrderID", SqlDbType.Int).Value = review.OrderID;
+                    cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = review.UserID;
+                    cmd.Parameters.Add("@RecyclerID", SqlDbType.Int).Value = review.RecyclerID;
+                    cmd.Parameters.Add("@StarRating", SqlDbType.Int).Value = review.StarRating;
+                    cmd.Parameters.Add("@ReviewText", SqlDbType.NVarChar, 500).Value = (object)review.ReviewText ?? DBNull.Value;
+                    cmd.Parameters.Add("@CreatedDate", SqlDbType.DateTime2).Value = review.CreatedDate;
 
                     conn.Open();
                     int rows = cmd.ExecuteNonQuery();
