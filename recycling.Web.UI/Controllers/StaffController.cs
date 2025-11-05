@@ -18,6 +18,15 @@ namespace recycling.Web.UI.Controllers
         private readonly AdminBLL _adminBLL = new AdminBLL();
 
         /// <summary>
+        /// Helper method to return JSON with proper UTF-8 encoding
+        /// </summary>
+        private ContentResult JsonContent(object data)
+        {
+            var json = JsonConvert.SerializeObject(data);
+            return Content(json, "application/json", System.Text.Encoding.UTF8);
+        }
+
+        /// <summary>
         /// 工作人员首页 - 重定向到专用首页
         /// </summary>
         public ActionResult Index()
@@ -280,15 +289,15 @@ namespace recycling.Web.UI.Controllers
 
         // 获取订单对话（回收员端），已包含 conversationEnded/endedBy/endedTime
         [HttpPost]
-        public JsonResult GetOrderConversation(int orderId)
+        public ContentResult GetOrderConversation(int orderId)
         {
             try
             {
                 if (Session["LoginStaff"] == null)
-                    return Json(new { success = false, message = "请先登录" });
+                    return JsonContent(new { success = false, message = "请先登录" });
 
                 if (orderId <= 0)
-                    return Json(new { success = false, message = "无效订单ID" });
+                    return JsonContent(new { success = false, message = "无效订单ID" });
 
                 var messagesVm = _recyclerOrderBLL.GetOrderConversation(orderId);
                 var result = messagesVm.Select(m => new
@@ -314,7 +323,7 @@ namespace recycling.Web.UI.Controllers
                 string latestEndedTimeIso = bothInfo.LatestEndedTime.HasValue ? bothInfo.LatestEndedTime.Value.ToString("o") : string.Empty;
                 string lastEndedBy = latestConv != null ? latestConv.Status ?? "" : "";
 
-                return Json(new
+                return JsonContent(new
                 {
                     success = true,
                     messages = result,
@@ -325,7 +334,7 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
