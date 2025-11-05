@@ -785,7 +785,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         public ActionResult UserManagement()
         {
-            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
             {
                 return RedirectToAction("Login", "Staff");
             }
@@ -836,7 +836,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         public ActionResult RecyclerManagement()
         {
-            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
             {
                 return RedirectToAction("Login", "Staff");
             }
@@ -964,7 +964,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         public ActionResult OrderManagement()
         {
-            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "Admin")
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
             {
                 return RedirectToAction("Login", "Staff");
             }
