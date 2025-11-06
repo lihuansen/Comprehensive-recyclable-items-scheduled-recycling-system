@@ -293,6 +293,7 @@
             pagination.empty();
 
             var totalPages = Math.ceil(data.TotalCount / pageSize);
+            pagination.data('total', data.TotalCount); // Store for validation
 
             if (totalPages <= 1) return;
 
@@ -312,7 +313,8 @@
         }
 
         function changePage(page) {
-            if (page < 1) return;
+            var totalPages = Math.ceil($('#pagination').data('total') / pageSize);
+            if (page < 1 || page > totalPages) return;
             currentPage = page;
             loadItemsList();
         }

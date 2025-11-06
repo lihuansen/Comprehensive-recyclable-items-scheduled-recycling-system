@@ -19,7 +19,9 @@ namespace recycling.DAL
             var items = new List<HomepageCarousel>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT * FROM HomepageCarousel 
+                string sql = @"SELECT CarouselID, MediaType, MediaUrl, Title, Description, 
+                              DisplayOrder, IsActive, CreatedDate, CreatedBy, UpdatedDate 
+                              FROM HomepageCarousel 
                               WHERE IsActive = 1 
                               ORDER BY DisplayOrder ASC, CarouselID ASC";
                 SqlCommand cmd = new SqlCommand(sql, conn);
@@ -58,7 +60,9 @@ namespace recycling.DAL
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
                 // Get paged data
-                string sql = @"SELECT * FROM HomepageCarousel 
+                string sql = @"SELECT CarouselID, MediaType, MediaUrl, Title, Description, 
+                              DisplayOrder, IsActive, CreatedDate, CreatedBy, UpdatedDate 
+                              FROM HomepageCarousel 
                               ORDER BY DisplayOrder ASC, CarouselID ASC 
                               OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -85,7 +89,9 @@ namespace recycling.DAL
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = "SELECT * FROM HomepageCarousel WHERE CarouselID = @CarouselID";
+                string sql = @"SELECT CarouselID, MediaType, MediaUrl, Title, Description, 
+                              DisplayOrder, IsActive, CreatedDate, CreatedBy, UpdatedDate 
+                              FROM HomepageCarousel WHERE CarouselID = @CarouselID";
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@CarouselID", carouselId);
                 conn.Open();
