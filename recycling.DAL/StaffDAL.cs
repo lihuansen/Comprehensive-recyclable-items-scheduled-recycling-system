@@ -24,7 +24,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT RecyclerID, Username, PasswordHash, PhoneNumber, LastLoginDate 
+                    string sql = @"SELECT RecyclerID, Username, PasswordHash, PhoneNumber, LastLoginDate, IsActive, Available 
                                   FROM Recyclers 
                                   WHERE Username = @Username";
 
@@ -44,7 +44,9 @@ namespace recycling.DAL
                                 PhoneNumber = reader["PhoneNumber"]?.ToString(),
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
-                                    : (DateTime?)null
+                                    : (DateTime?)null,
+                                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                                Available = Convert.ToBoolean(reader["Available"])
                             };
                         }
                     }
@@ -238,9 +240,9 @@ namespace recycling.DAL
 
             using (var conn = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT RecyclerID, Username, FullName, PhoneNumber, IsActive 
+                string sql = @"SELECT RecyclerID, Username, FullName, PhoneNumber, IsActive, Available 
                       FROM Recyclers 
-                      WHERE RecyclerID = @RecyclerID AND IsActive = 1";
+                      WHERE RecyclerID = @RecyclerID";
 
                 var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
@@ -255,7 +257,9 @@ namespace recycling.DAL
                             RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                             Username = reader["Username"].ToString(),
                             FullName = reader["FullName"]?.ToString(),
-                            PhoneNumber = reader["PhoneNumber"]?.ToString()
+                            PhoneNumber = reader["PhoneNumber"]?.ToString(),
+                            IsActive = Convert.ToBoolean(reader["IsActive"]),
+                            Available = Convert.ToBoolean(reader["Available"])
                         };
                     }
                 }

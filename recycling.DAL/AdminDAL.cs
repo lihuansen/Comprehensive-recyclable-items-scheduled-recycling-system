@@ -157,7 +157,7 @@ namespace recycling.DAL
 
                 // Get paged data
                 string sql = "SELECT * FROM Recyclers " + whereClause + 
-                    " ORDER BY CreatedDate DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                    " ORDER BY RecyclerID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -261,14 +261,14 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// Delete recycler (soft delete by setting IsActive = false)
+        /// Delete recycler (hard delete from database)
         /// </summary>
         public bool DeleteRecycler(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "UPDATE Recyclers SET IsActive = 0 WHERE RecyclerID = @RecyclerID";
+                string sql = "DELETE FROM Recyclers WHERE RecyclerID = @RecyclerID";
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
 
