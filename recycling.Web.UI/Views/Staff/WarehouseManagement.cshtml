@@ -70,6 +70,14 @@
         margin-bottom: 5px;
     }
 
+    .inventory-price {
+        font-size: 24px;
+        font-weight: bold;
+        color: #e67e22;
+        margin-top: 10px;
+        margin-bottom: 5px;
+    }
+
     .inventory-unit {
         font-size: 18px;
         color: #7f8c8d;
@@ -122,8 +130,16 @@
 
     <div id="totalSummary" class="total-summary" style="display: none;">
         <h2><i class="fas fa-box-open"></i> 总库存</h2>
-        <div class="total-weight" id="totalWeightDisplay">0</div>
-        <div>公斤</div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="total-weight" id="totalWeightDisplay">0</div>
+                <div>公斤</div>
+            </div>
+            <div class="col-md-6">
+                <div class="total-weight" id="totalPriceDisplay">¥0.00</div>
+                <div>总价值</div>
+            </div>
+        </div>
     </div>
 
     <div id="loadingSpinner" class="loading-spinner">
@@ -188,10 +204,12 @@
         function renderInventory(inventoryData) {
             var container = document.getElementById('inventoryGrid');
             var totalWeight = 0;
+            var totalPrice = 0;
             var html = '';
 
             inventoryData.forEach(function(item) {
                 totalWeight += item.totalWeight;
+                totalPrice += item.totalPrice;
                 var icon = categoryIcons[item.categoryKey] || 'fa-box';
                 var color = categoryColors[item.categoryKey] || '#3498db';
 
@@ -203,16 +221,19 @@
                         <div class="inventory-category">${item.categoryName}</div>
                         <div class="inventory-weight">${item.totalWeight.toFixed(1)}</div>
                         <div class="inventory-unit">公斤</div>
+                        <div class="inventory-price">¥${item.totalPrice.toFixed(2)}</div>
+                        <div class="inventory-unit">回收价格</div>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
 
-            // 显示总重量
+            // 显示总重量和总价格
             if (totalWeight > 0) {
                 document.getElementById('totalSummary').style.display = 'block';
                 document.getElementById('totalWeightDisplay').textContent = totalWeight.toFixed(1);
+                document.getElementById('totalPriceDisplay').textContent = '¥' + totalPrice.toFixed(2);
             }
         }
 

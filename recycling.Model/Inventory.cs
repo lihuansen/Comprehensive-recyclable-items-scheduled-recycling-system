@@ -21,6 +21,8 @@ namespace recycling.Model
 
         public decimal Weight { get; set; }
 
+        public decimal? Price { get; set; }
+
         public int RecyclerID { get; set; }
 
         [Column(TypeName = "datetime2")]
