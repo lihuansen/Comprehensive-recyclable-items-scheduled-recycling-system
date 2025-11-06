@@ -204,5 +204,127 @@ namespace recycling.DAL
             }
             return items;
         }
+
+        /// <summary>
+        /// Get recyclable item by ID
+        /// </summary>
+        public RecyclableItems GetById(int itemId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT * FROM RecyclableItems WHERE ItemId = @ItemId";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ItemId", itemId);
+                conn.Open();
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new RecyclableItems
+                        {
+                            ItemId = Convert.ToInt32(reader["ItemId"]),
+                            Name = reader["Name"].ToString(),
+                            Category = reader["Category"].ToString(),
+                            CategoryName = reader["CategoryName"].ToString(),
+                            PricePerKg = Convert.ToDecimal(reader["PricePerKg"]),
+                            Description = reader["Description"] != DBNull.Value ? reader["Description"].ToString() : null,
+                            SortOrder = Convert.ToInt32(reader["SortOrder"]),
+                            IsActive = Convert.ToBoolean(reader["IsActive"])
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Add new recyclable item
+        /// </summary>
+        public bool Add(RecyclableItems item)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"INSERT INTO RecyclableItems 
+                              (Name, Category, CategoryName, PricePerKg, Description, SortOrder, IsActive)
+                              VALUES (@Name, @Category, @CategoryName, @PricePerKg, @Description, @SortOrder, @IsActive)";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Name", item.Name);
+                cmd.Parameters.AddWithValue("@Category", item.Category);
+                cmd.Parameters.AddWithValue("@CategoryName", item.CategoryName);
+                cmd.Parameters.AddWithValue("@PricePerKg", item.PricePerKg);
+                cmd.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SortOrder", item.SortOrder);
+                cmd.Parameters.AddWithValue("@IsActive", item.IsActive);
+
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Update recyclable item
+        /// </summary>
+        public bool Update(RecyclableItems item)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE RecyclableItems SET 
+                              Name = @Name,
+                              Category = @Category,
+                              CategoryName = @CategoryName,
+                              PricePerKg = @PricePerKg,
+                              Description = @Description,
+                              SortOrder = @SortOrder,
+                              IsActive = @IsActive
+                              WHERE ItemId = @ItemId";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ItemId", item.ItemId);
+                cmd.Parameters.AddWithValue("@Name", item.Name);
+                cmd.Parameters.AddWithValue("@Category", item.Category);
+                cmd.Parameters.AddWithValue("@CategoryName", item.CategoryName);
+                cmd.Parameters.AddWithValue("@PricePerKg", item.PricePerKg);
+                cmd.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SortOrder", item.SortOrder);
+                cmd.Parameters.AddWithValue("@IsActive", item.IsActive);
+
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Delete recyclable item (soft delete by setting IsActive = false)
+        /// </summary>
+        public bool Delete(int itemId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "UPDATE RecyclableItems SET IsActive = 0 WHERE ItemId = @ItemId";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ItemId", itemId);
+
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Hard delete recyclable item
+        /// </summary>
+        public bool HardDelete(int itemId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "DELETE FROM RecyclableItems WHERE ItemId = @ItemId";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ItemId", itemId);
+
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
     }
 }

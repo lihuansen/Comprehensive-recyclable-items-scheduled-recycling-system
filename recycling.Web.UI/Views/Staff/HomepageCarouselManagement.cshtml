@@ -1,0 +1,406 @@
+@{
+    ViewBag.Title = "首页轮播管理";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .page-header {
+        margin-bottom: 30px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+    }
+
+    .btn-add {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .badge-active {
+        background-color: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+
+    .badge-inactive {
+        background-color: #dc3545;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+
+    .media-preview {
+        max-width: 80px;
+        max-height: 60px;
+        border-radius: 5px;
+        object-fit: cover;
+    }
+
+    .btn-action {
+        padding: 5px 10px;
+        margin-right: 5px;
+        border-radius: 5px;
+        font-size: 13px;
+    }
+
+    .pagination {
+        margin-top: 20px;
+        justify-content: center;
+    }
+
+    .modal-header {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .modal-header .close {
+        color: white;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #495057;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="page-title">首页轮播管理</h1>
+            <button class="btn btn-add" onclick="showAddModal()">
+                <i class="fas fa-plus-circle"></i> 新增轮播
+            </button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th style="width: 100px;">预览</th>
+                    <th style="width: 100px;">类型</th>
+                    <th>标题</th>
+                    <th>描述</th>
+                    <th style="width: 80px;">排序</th>
+                    <th style="width: 80px;">状态</th>
+                    <th style="width: 180px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="carouselTableBody">
+                <tr>
+                    <td colspan="8" class="text-center">加载中...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <nav>
+            <ul class="pagination" id="pagination"></ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal fade" id="carouselModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">新增轮播</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="carouselForm">
+                    <input type="hidden" id="carouselId" name="CarouselID" value="0" />
+                    
+                    <div class="form-group">
+                        <label>媒体类型 <span class="text-danger">*</span></label>
+                        <select class="form-control" id="mediaType" name="MediaType" required>
+                            <option value="">请选择</option>
+                            <option value="Image">图片</option>
+                            <option value="Video">视频</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>媒体URL <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="mediaUrl" name="MediaUrl" required 
+                               placeholder="请输入图片或视频的URL地址" />
+                        <small class="form-text text-muted">
+                            图片建议尺寸：1920x600，视频播放时长建议8秒
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>标题</label>
+                        <input type="text" class="form-control" id="title" name="Title" 
+                               maxlength="200" placeholder="轮播标题（可选）" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>描述</label>
+                        <textarea class="form-control" id="description" name="Description" 
+                                  rows="3" maxlength="500" placeholder="轮播描述（可选）"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>排序顺序</label>
+                        <input type="number" class="form-control" id="displayOrder" name="DisplayOrder" 
+                               value="0" min="0" />
+                        <small class="form-text text-muted">数字越小越靠前</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>状态</label>
+                        <select class="form-control" id="isActive" name="IsActive">
+                            <option value="true">启用</option>
+                            <option value="false">禁用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveCarousel()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentPage = 1;
+        var pageSize = 10;
+        var isEditMode = false;
+
+        $(document).ready(function () {
+            loadCarouselList();
+        });
+
+        function loadCarouselList() {
+            $.ajax({
+                url: '@Url.Action("GetCarouselList", "Staff")',
+                type: 'POST',
+                data: { page: currentPage, pageSize: pageSize },
+                success: function (response) {
+                    if (response.success) {
+                        renderTable(response.data);
+                        renderPagination(response.data);
+                    } else {
+                        alert('加载失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('加载失败，请稍后重试');
+                }
+            });
+        }
+
+        function renderTable(data) {
+            var tbody = $('#carouselTableBody');
+            tbody.empty();
+
+            if (data.Items.length === 0) {
+                tbody.append('<tr><td colspan="8" class="text-center">暂无数据</td></tr>');
+                return;
+            }
+
+            $.each(data.Items, function (index, item) {
+                var statusBadge = item.IsActive ? 
+                    '<span class="badge-active">启用</span>' : 
+                    '<span class="badge-inactive">禁用</span>';
+
+                var mediaPreview = '';
+                if (item.MediaType === 'Image') {
+                    mediaPreview = '<img src="' + item.MediaUrl + '" class="media-preview" alt="预览" />';
+                } else {
+                    mediaPreview = '<i class="fas fa-video fa-3x text-primary"></i>';
+                }
+
+                var row = '<tr>' +
+                    '<td>' + item.CarouselID + '</td>' +
+                    '<td>' + mediaPreview + '</td>' +
+                    '<td>' + (item.MediaType === 'Image' ? '图片' : '视频') + '</td>' +
+                    '<td>' + (item.Title || '-') + '</td>' +
+                    '<td>' + (item.Description || '-') + '</td>' +
+                    '<td>' + item.DisplayOrder + '</td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '<td>' +
+                    '<button class="btn btn-sm btn-info btn-action" onclick="editCarousel(' + item.CarouselID + ')">' +
+                    '<i class="fas fa-edit"></i> 编辑</button>' +
+                    '<button class="btn btn-sm btn-danger btn-action" onclick="deleteCarousel(' + item.CarouselID + ')">' +
+                    '<i class="fas fa-trash"></i> 删除</button>' +
+                    '</td>' +
+                    '</tr>';
+                tbody.append(row);
+            });
+        }
+
+        function renderPagination(data) {
+            var pagination = $('#pagination');
+            pagination.empty();
+
+            var totalPages = Math.ceil(data.TotalCount / pageSize);
+
+            if (totalPages <= 1) return;
+
+            // Previous button
+            pagination.append('<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+                '<a class="page-link" href="#" onclick="changePage(' + (currentPage - 1) + ')">上一页</a></li>');
+
+            // Page numbers
+            for (var i = 1; i <= totalPages; i++) {
+                pagination.append('<li class="page-item ' + (i === currentPage ? 'active' : '') + '">' +
+                    '<a class="page-link" href="#" onclick="changePage(' + i + ')">' + i + '</a></li>');
+            }
+
+            // Next button
+            pagination.append('<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
+                '<a class="page-link" href="#" onclick="changePage(' + (currentPage + 1) + ')">下一页</a></li>');
+        }
+
+        function changePage(page) {
+            if (page < 1) return;
+            currentPage = page;
+            loadCarouselList();
+        }
+
+        function showAddModal() {
+            isEditMode = false;
+            $('#modalTitle').text('新增轮播');
+            $('#carouselForm')[0].reset();
+            $('#carouselId').val('0');
+            $('#carouselModal').modal('show');
+        }
+
+        function editCarousel(id) {
+            isEditMode = true;
+            $('#modalTitle').text('编辑轮播');
+            
+            $.ajax({
+                url: '@Url.Action("GetCarousel", "Staff")',
+                type: 'POST',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        var item = response.data;
+                        $('#carouselId').val(item.CarouselID);
+                        $('#mediaType').val(item.MediaType);
+                        $('#mediaUrl').val(item.MediaUrl);
+                        $('#title').val(item.Title);
+                        $('#description').val(item.Description);
+                        $('#displayOrder').val(item.DisplayOrder);
+                        $('#isActive').val(item.IsActive.toString());
+                        $('#carouselModal').modal('show');
+                    } else {
+                        alert('获取数据失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('获取数据失败，请稍后重试');
+                }
+            });
+        }
+
+        function saveCarousel() {
+            var form = $('#carouselForm');
+            if (!form[0].checkValidity()) {
+                form[0].reportValidity();
+                return;
+            }
+
+            var data = {
+                CarouselID: parseInt($('#carouselId').val()),
+                MediaType: $('#mediaType').val(),
+                MediaUrl: $('#mediaUrl').val(),
+                Title: $('#title').val(),
+                Description: $('#description').val(),
+                DisplayOrder: parseInt($('#displayOrder').val()),
+                IsActive: $('#isActive').val() === 'true'
+            };
+
+            var url = isEditMode ? '@Url.Action("UpdateCarousel", "Staff")' : '@Url.Action("AddCarousel", "Staff")';
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: data,
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#carouselModal').modal('hide');
+                        loadCarouselList();
+                    } else {
+                        alert('保存失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('保存失败，请稍后重试');
+                }
+            });
+        }
+
+        function deleteCarousel(id) {
+            if (!confirm('确定要删除这个轮播内容吗？')) {
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("DeleteCarousel", "Staff")',
+                type: 'POST',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        loadCarouselList();
+                    } else {
+                        alert('删除失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('删除失败，请稍后重试');
+                }
+            });
+        }
+    </script>
+}

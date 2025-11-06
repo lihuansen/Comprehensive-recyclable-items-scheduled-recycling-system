@@ -16,6 +16,8 @@ namespace recycling.Web.UI.Controllers
         private readonly MessageBLL _messageBLL = new MessageBLL();
         private readonly OrderBLL _orderBLL = new OrderBLL();
         private readonly AdminBLL _adminBLL = new AdminBLL();
+        private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
+        private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
 
         /// <summary>
         /// Helper method to return JSON with proper UTF-8 encoding
@@ -1000,6 +1002,315 @@ namespace recycling.Web.UI.Controllers
             {
                 var stats = _adminBLL.GetOrderStatistics();
                 return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region Admin Homepage Management
+
+        /// <summary>
+        /// Admin homepage management index page
+        /// </summary>
+        public ActionResult HomepageManagement()
+        {
+            if (Session["LoginStaff"] == null)
+                return RedirectToAction("Login", "Staff");
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+                return RedirectToAction("Login", "Staff");
+
+            var admin = Session["LoginStaff"];
+            if (staffRole == "admin")
+                ViewBag.StaffName = ((Admins)admin).Username;
+            else
+                ViewBag.StaffName = ((SuperAdmins)admin).Username;
+
+            return View();
+        }
+
+        /// <summary>
+        /// Admin homepage carousel management page
+        /// </summary>
+        public ActionResult HomepageCarouselManagement()
+        {
+            if (Session["LoginStaff"] == null)
+                return RedirectToAction("Login", "Staff");
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+                return RedirectToAction("Login", "Staff");
+
+            var admin = Session["LoginStaff"];
+            if (staffRole == "admin")
+                ViewBag.StaffName = ((Admins)admin).Username;
+            else
+                ViewBag.StaffName = ((SuperAdmins)admin).Username;
+
+            return View();
+        }
+
+        /// <summary>
+        /// Get carousel list (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult GetCarouselList(int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var result = _carouselBLL.GetPaged(page, pageSize);
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get carousel by ID (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult GetCarousel(int id)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var carousel = _carouselBLL.GetById(id);
+                if (carousel == null)
+                    return JsonContent(new { success = false, message = "轮播内容不存在" });
+
+                return JsonContent(new { success = true, data = carousel });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Add carousel item (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult AddCarousel(HomepageCarousel carousel)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return JsonContent(new { success = false, message = "权限不足" });
+
+                // Get admin ID
+                int adminId = 0;
+                if (staffRole == "admin")
+                    adminId = ((Admins)Session["LoginStaff"]).AdminID;
+                else
+                    adminId = ((SuperAdmins)Session["LoginStaff"]).SuperAdminID;
+
+                var (success, message) = _carouselBLL.Add(carousel, adminId);
+                return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update carousel item (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult UpdateCarousel(HomepageCarousel carousel)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return JsonContent(new { success = false, message = "权限不足" });
+
+                var (success, message) = _carouselBLL.Update(carousel);
+                return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete carousel item (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult DeleteCarousel(int id)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return JsonContent(new { success = false, message = "权限不足" });
+
+                var (success, message) = _carouselBLL.Delete(id);
+                return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Admin recyclable items management page
+        /// </summary>
+        public ActionResult RecyclableItemsManagement()
+        {
+            if (Session["LoginStaff"] == null)
+                return RedirectToAction("Login", "Staff");
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+                return RedirectToAction("Login", "Staff");
+
+            var admin = Session["LoginStaff"];
+            if (staffRole == "admin")
+                ViewBag.StaffName = ((Admins)admin).Username;
+            else
+                ViewBag.StaffName = ((SuperAdmins)admin).Username;
+
+            return View();
+        }
+
+        /// <summary>
+        /// Get recyclable items list (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult GetRecyclableItemsList(int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var query = new RecyclableQueryModel
+                {
+                    PageIndex = page,
+                    PageSize = pageSize
+                };
+                var result = _recyclableItemBLL.GetPagedItems(query);
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get recyclable item by ID (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult GetRecyclableItem(int id)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var item = _recyclableItemBLL.GetById(id);
+                if (item == null)
+                    return JsonContent(new { success = false, message = "可回收物品不存在" });
+
+                return JsonContent(new { success = true, data = item });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Add recyclable item (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult AddRecyclableItem(RecyclableItems item)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return JsonContent(new { success = false, message = "权限不足" });
+
+                var (success, message) = _recyclableItemBLL.Add(item);
+                return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update recyclable item (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult UpdateRecyclableItem(RecyclableItems item)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return JsonContent(new { success = false, message = "权限不足" });
+
+                var (success, message) = _recyclableItemBLL.Update(item);
+                return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete recyclable item (AJAX)
+        /// </summary>
+        [HttpPost]
+        public ContentResult DeleteRecyclableItem(int id)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return JsonContent(new { success = false, message = "权限不足" });
+
+                var (success, message) = _recyclableItemBLL.Delete(id);
+                return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
             {
