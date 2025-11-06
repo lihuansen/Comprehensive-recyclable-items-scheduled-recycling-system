@@ -325,19 +325,118 @@
         0% { left: -100%; }
         100% { left: 100%; }
     }
+
+    /* Carousel caption styles */
+    .carousel-caption {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 15px;
+        border-radius: 8px;
+        bottom: 20px;
+        left: 10%;
+        right: 10%;
+    }
+
+    .carousel-caption h3 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .carousel-caption p {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .carousel-control {
+        background: none;
+    }
+
+    .carousel-indicators li {
+        border: 2px solid white;
+    }
+
+    .carousel-indicators .active {
+        background-color: white;
+    }
 </style>
 
 <div class="home-container">
     <!-- 轮播图区域 -->
-    <div class="carousel-section">
-        <div class="carousel-placeholder">
-            <i class="fas fa-images"></i>
-            <div>轮播图片展示区域</div>
-            <small style="font-size: 14px; font-weight: normal; margin-top: 10px; display: block;">
-                管理员可在此处配置轮播图片
-            </small>
+    @{
+        var carouselItems = ViewBag.CarouselItems as List<recycling.Model.HomepageCarousel> ?? new List<recycling.Model.HomepageCarousel>();
+    }
+    
+    @if (carouselItems.Count > 0)
+    {
+        <div id="homepageCarousel" class="carousel slide carousel-section" data-ride="carousel" data-interval="8000">
+            <!-- Indicators -->
+            @if (carouselItems.Count > 1)
+            {
+                <ol class="carousel-indicators">
+                    @for (int i = 0; i < carouselItems.Count; i++)
+                    {
+                        <li data-target="#homepageCarousel" data-slide-to="@i" class="@(i == 0 ? "active" : "")"></li>
+                    }
+                </ol>
+            }
+
+            <!-- Wrapper for slides -->
+            <div class="carousel-inner">
+                @for (int i = 0; i < carouselItems.Count; i++)
+                {
+                    var item = carouselItems[i];
+                    <div class="item @(i == 0 ? "active" : "")">
+                        @if (item.MediaType == "Image")
+                        {
+                            <img src="@item.MediaUrl" alt="@item.Title" style="width: 100%; height: 300px; object-fit: cover; border-radius: 15px;">
+                        }
+                        else if (item.MediaType == "Video")
+                        {
+                            <video src="@item.MediaUrl" style="width: 100%; height: 300px; object-fit: cover; border-radius: 15px;" muted autoplay loop></video>
+                        }
+                        @if (!string.IsNullOrEmpty(item.Title) || !string.IsNullOrEmpty(item.Description))
+                        {
+                            <div class="carousel-caption">
+                                @if (!string.IsNullOrEmpty(item.Title))
+                                {
+                                    <h3>@item.Title</h3>
+                                }
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    <p>@item.Description</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Controls -->
+            @if (carouselItems.Count > 1)
+            {
+                <a class="left carousel-control" href="#homepageCarousel" data-slide="prev">
+                    <span class="glyphicon glyphicon-chevron-left"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="right carousel-control" href="#homepageCarousel" data-slide="next">
+                    <span class="glyphicon glyphicon-chevron-right"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+            }
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="carousel-section">
+            <div class="carousel-placeholder">
+                <i class="fas fa-images"></i>
+                <div>轮播图片展示区域</div>
+                <small style="font-size: 14px; font-weight: normal; margin-top: 10px; display: block;">
+                    管理员可在此处配置轮播图片
+                </small>
+            </div>
+        </div>
+    }
 
     <!-- 内容区域 -->
     <div class="content-section">
