@@ -29,7 +29,7 @@ namespace recycling.BLL
         /// <summary>
         /// 获取库存汇总（按类别分组）
         /// </summary>
-        public List<(string CategoryKey, string CategoryName, decimal TotalWeight)> GetInventorySummary(int? recyclerId = null)
+        public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetInventorySummary(int? recyclerId = null)
         {
             return _inventoryDAL.GetInventorySummary(recyclerId);
         }

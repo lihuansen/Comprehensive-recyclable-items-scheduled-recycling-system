@@ -664,7 +664,8 @@ namespace recycling.Web.UI.Controllers
                 {
                     categoryKey = s.CategoryKey,
                     categoryName = s.CategoryName,
-                    totalWeight = s.TotalWeight
+                    totalWeight = s.TotalWeight,
+                    totalPrice = s.TotalPrice
                 }).ToList();
 
                 return Json(new { success = true, data = result });

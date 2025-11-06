@@ -23,7 +23,7 @@ namespace recycling.DAL
                 {
                     try
                     {
-                        // 获取订单的类别和重量信息
+                        // 获取订单的类别和重量信息，以及订单的估算价格
                         string getCategoriesSql = @"
                             SELECT CategoryKey, CategoryName, Weight
                             FROM AppointmentCategories
@@ -53,19 +53,47 @@ namespace recycling.DAL
                             return false; // 没有类别数据
                         }
 
+                        // 获取订单的估算价格
+                        string getPriceSql = "SELECT EstimatedPrice FROM Appointments WHERE AppointmentID = @OrderID";
+                        decimal? orderPrice = null;
+                        using (SqlCommand cmd = new SqlCommand(getPriceSql, conn, trans))
+                        {
+                            cmd.Parameters.AddWithValue("@OrderID", orderId);
+                            var result = cmd.ExecuteScalar();
+                            if (result != null && result != DBNull.Value)
+                            {
+                                orderPrice = Convert.ToDecimal(result);
+                            }
+                        }
+
+                        // 计算总重量用于按比例分配价格
+                        decimal totalWeight = 0;
+                        foreach (var category in categories)
+                        {
+                            totalWeight += category.weight;
+                        }
+
                         // 插入库存记录
                         string insertSql = @"
-                            INSERT INTO Inventory (OrderID, CategoryKey, CategoryName, Weight, RecyclerID, CreatedDate)
-                            VALUES (@OrderID, @CategoryKey, @CategoryName, @Weight, @RecyclerID, @CreatedDate)";
+                            INSERT INTO Inventory (OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate)
+                            VALUES (@OrderID, @CategoryKey, @CategoryName, @Weight, @Price, @RecyclerID, @CreatedDate)";
 
                         foreach (var category in categories)
                         {
+                            // 按照重量比例分配价格
+                            decimal? categoryPrice = null;
+                            if (orderPrice.HasValue && totalWeight > 0)
+                            {
+                                categoryPrice = orderPrice.Value * (category.weight / totalWeight);
+                            }
+
                             using (SqlCommand cmd = new SqlCommand(insertSql, conn, trans))
                             {
                                 cmd.Parameters.AddWithValue("@OrderID", orderId);
                                 cmd.Parameters.AddWithValue("@CategoryKey", category.key);
                                 cmd.Parameters.AddWithValue("@CategoryName", category.name);
                                 cmd.Parameters.AddWithValue("@Weight", category.weight);
+                                cmd.Parameters.AddWithValue("@Price", categoryPrice.HasValue ? (object)categoryPrice.Value : DBNull.Value);
                                 cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
                                 cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
                                 cmd.ExecuteNonQuery();
@@ -94,7 +122,7 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT InventoryID, OrderID, CategoryKey, CategoryName, Weight, RecyclerID, CreatedDate
+                    SELECT InventoryID, OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate
                     FROM Inventory
                     WHERE (@RecyclerID IS NULL OR RecyclerID = @RecyclerID)
                     ORDER BY CreatedDate DESC
@@ -118,6 +146,7 @@ namespace recycling.DAL
                                 CategoryKey = reader["CategoryKey"].ToString(),
                                 CategoryName = reader["CategoryName"].ToString(),
                                 Weight = Convert.ToDecimal(reader["Weight"]),
+                                Price = reader.IsDBNull(reader.GetOrdinal("Price")) ? (decimal?)null : Convert.ToDecimal(reader["Price"]),
                                 RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                                 CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
                             });
@@ -132,9 +161,9 @@ namespace recycling.DAL
         /// <summary>
         /// 获取库存汇总（按类别分组）
         /// </summary>
-        public List<(string CategoryKey, string CategoryName, decimal TotalWeight)> GetInventorySummary(int? recyclerId = null)
+        public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetInventorySummary(int? recyclerId = null)
         {
-            var summary = new List<(string, string, decimal)>();
+            var summary = new List<(string, string, decimal, decimal)>();
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -142,7 +171,8 @@ namespace recycling.DAL
                     SELECT 
                         CategoryKey, 
                         CategoryName, 
-                        SUM(Weight) AS TotalWeight
+                        SUM(Weight) AS TotalWeight,
+                        SUM(ISNULL(Price, 0)) AS TotalPrice
                     FROM Inventory
                     WHERE (@RecyclerID IS NULL OR RecyclerID = @RecyclerID)
                     GROUP BY CategoryKey, CategoryName
@@ -160,7 +190,8 @@ namespace recycling.DAL
                             summary.Add((
                                 reader["CategoryKey"].ToString(),
                                 reader["CategoryName"].ToString(),
-                                Convert.ToDecimal(reader["TotalWeight"])
+                                Convert.ToDecimal(reader["TotalWeight"]),
+                                Convert.ToDecimal(reader["TotalPrice"])
                             ));
                         }
                     }

@@ -35,6 +35,26 @@
 - `IX_OrderReviews_RecyclerID`: 按回收员ID查询
 - `IX_OrderReviews_CreatedDate`: 按创建时间查询
 
+### AddInventoryPriceColumn.sql
+**用途：** 为库存表（Inventory）添加价格列
+
+**功能说明：**
+- 为 Inventory 表添加 Price 列用于存储回收物品的价格
+- Price 列为可空的 DECIMAL(10,2) 类型
+- 包含智能检测：如果列已存在则跳过添加
+- 显示更新后的表结构
+
+**使用方法：**
+1. 打开 SQL Server Management Studio (SSMS)
+2. 连接到数据库 `RecyclingSystemDB`
+3. 打开此脚本文件
+4. 执行脚本（F5 或点击"执行"按钮）
+
+**列说明：**
+- `Price`: 回收价格（DECIMAL(10,2)，可为空）
+  - 用于记录回收员回收该物品的价格
+  - 从订单的 EstimatedPrice 按重量比例分配
+
 ## 注意事项
 
 1. 执行脚本前请确保已连接到正确的数据库
