@@ -132,7 +132,7 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// Delete recycler (soft delete)
+        /// Delete recycler (hard delete from database)
         /// </summary>
         public (bool Success, string Message) DeleteRecycler(int recyclerId)
         {
@@ -141,8 +141,20 @@ namespace recycling.BLL
                 return (false, "Invalid recycler ID");
             }
 
-            bool result = _adminDAL.DeleteRecycler(recyclerId);
-            return result ? (true, "删除回收员成功") : (false, "删除回收员失败");
+            try
+            {
+                bool result = _adminDAL.DeleteRecycler(recyclerId);
+                return result ? (true, "删除回收员成功") : (false, "删除回收员失败");
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Foreign key constraint violation
+                return (false, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"删除回收员失败：{ex.Message}");
+            }
         }
 
         /// <summary>
