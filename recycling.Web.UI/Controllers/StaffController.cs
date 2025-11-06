@@ -797,16 +797,16 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取用户列表（API）
         /// </summary>
         [HttpGet]
-        public JsonResult GetUsers(int page = 1, int pageSize = 20, string searchTerm = null)
+        public ContentResult GetUsers(int page = 1, int pageSize = 20, string searchTerm = null)
         {
             try
             {
                 var result = _adminBLL.GetAllUsers(page, pageSize, searchTerm);
-                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = true, data = result });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
@@ -814,16 +814,16 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取用户统计信息（API）
         /// </summary>
         [HttpGet]
-        public JsonResult GetUserStatistics()
+        public ContentResult GetUserStatistics()
         {
             try
             {
                 var stats = _adminBLL.GetUserStatistics();
-                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = true, data = stats });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
@@ -848,16 +848,16 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取回收员列表（API）
         /// </summary>
         [HttpGet]
-        public JsonResult GetRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public ContentResult GetRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
             try
             {
                 var result = _adminBLL.GetAllRecyclers(page, pageSize, searchTerm, isActive);
-                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = true, data = result });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
@@ -865,25 +865,25 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取回收员详情（API）
         /// </summary>
         [HttpGet]
-        public JsonResult GetRecyclerDetails(int recyclerId)
+        public ContentResult GetRecyclerDetails(int recyclerId)
         {
             try
             {
                 var recycler = _adminBLL.GetRecyclerById(recyclerId);
                 var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recyclerId);
 
-                return Json(new { 
+                return JsonContent(new { 
                     success = true, 
                     data = new 
                     { 
                         recycler = recycler, 
                         completedOrders = completedOrders 
                     } 
-                }, JsonRequestBehavior.AllowGet);
+                });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
@@ -942,16 +942,16 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取回收员统计信息（API）
         /// </summary>
         [HttpGet]
-        public JsonResult GetRecyclerStatistics()
+        public ContentResult GetRecyclerStatistics()
         {
             try
             {
                 var stats = _adminBLL.GetRecyclerStatistics();
-                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = true, data = stats });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
@@ -976,16 +976,16 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取订单列表（API）
         /// </summary>
         [HttpGet]
-        public JsonResult GetOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
+        public ContentResult GetOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
         {
             try
             {
                 var result = _adminBLL.GetAllOrders(page, pageSize, status, searchTerm);
-                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = true, data = result });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
@@ -993,16 +993,16 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取订单统计信息（API）
         /// </summary>
         [HttpGet]
-        public JsonResult GetOrderStatistics()
+        public ContentResult GetOrderStatistics()
         {
             try
             {
                 var stats = _adminBLL.GetOrderStatistics();
-                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = true, data = stats });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
