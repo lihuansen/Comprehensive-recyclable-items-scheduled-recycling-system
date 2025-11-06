@@ -63,6 +63,10 @@ namespace recycling.BLL
                 if (!string.Equals(recycler.PasswordHash, passwordHash, StringComparison.OrdinalIgnoreCase))
                     return ("密码错误", null);
 
+                // 检查账号是否被禁用
+                if (!recycler.IsActive)
+                    return ("账号已被禁用，无法登录", null);
+
                 // 登录成功，更新最后登录时间
                 _staffDAL.UpdateRecyclerLastLogin(recycler.RecyclerID);
                 return (null, recycler);

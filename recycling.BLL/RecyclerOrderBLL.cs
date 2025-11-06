@@ -11,6 +11,7 @@ namespace recycling.BLL
     public class RecyclerOrderBLL
     {
         private readonly RecyclerOrderDAL _recyclerOrderDAL = new RecyclerOrderDAL();
+        private readonly StaffDAL _staffDAL = new StaffDAL();
 
         /// <summary>
         /// 获取回收员订单列表
@@ -92,6 +93,18 @@ namespace recycling.BLL
 
             try
             {
+                // 检查回收员的Available状态
+                var recycler = _staffDAL.GetRecyclerById(recyclerId);
+                if (recycler == null)
+                {
+                    return (false, "回收员不存在");
+                }
+                
+                if (!recycler.Available)
+                {
+                    return (false, "当前状态不可接单");
+                }
+
                 bool result = _recyclerOrderDAL.AcceptOrder(appointmentId, recyclerId);
                 return result ? (true, "订单接收成功") : (false, "订单接收失败：订单不存在或状态不允许接收");
             }

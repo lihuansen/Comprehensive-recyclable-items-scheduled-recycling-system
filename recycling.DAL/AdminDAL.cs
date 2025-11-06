@@ -157,7 +157,7 @@ namespace recycling.DAL
 
                 // Get paged data
                 string sql = "SELECT * FROM Recyclers " + whereClause + 
-                    " ORDER BY CreatedDate DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                    " ORDER BY RecyclerID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -261,18 +261,35 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// Delete recycler (soft delete by setting IsActive = false)
+        /// Delete recycler (hard delete from database)
+        /// WARNING: This performs a hard delete. If the recycler has associated records 
+        /// (orders, reviews, conversations, etc.), this operation may fail due to 
+        /// foreign key constraints.
         /// </summary>
         public bool DeleteRecycler(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "UPDATE Recyclers SET IsActive = 0 WHERE RecyclerID = @RecyclerID";
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                
+                try
+                {
+                    string sql = "DELETE FROM Recyclers WHERE RecyclerID = @RecyclerID";
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
 
-                return cmd.ExecuteNonQuery() > 0;
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+                catch (SqlException ex)
+                {
+                    // If foreign key constraint violation (error 547), provide helpful message
+                    if (ex.Number == 547)
+                    {
+                        throw new InvalidOperationException(
+                            "无法删除该回收员，因为存在关联的订单或评价记录。请先处理相关数据或改用禁用功能。", ex);
+                    }
+                    throw;
+                }
             }
         }
 

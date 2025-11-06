@@ -33,8 +33,48 @@ namespace recycling.DAL
 
                     conn.Open();
                     int rows = cmd.ExecuteNonQuery();
+                    
+                    // Update recycler's average rating after adding review
+                    if (rows > 0)
+                    {
+                        UpdateRecyclerRating(review.RecyclerID, conn);
+                    }
+                    
                     return rows > 0;
                 }
+            }
+        }
+
+        /// <summary>
+        /// 更新回收员的平均评分到Recyclers表
+        /// </summary>
+        public void UpdateRecyclerRating(int recyclerId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                UpdateRecyclerRating(recyclerId, conn);
+            }
+        }
+
+        /// <summary>
+        /// 更新回收员的平均评分到Recyclers表（内部方法，使用已打开的连接）
+        /// </summary>
+        private void UpdateRecyclerRating(int recyclerId, SqlConnection conn)
+        {
+            string sql = @"
+                UPDATE Recyclers 
+                SET Rating = (
+                    SELECT ISNULL(AVG(CAST(StarRating AS DECIMAL(10,2))), 0)
+                    FROM OrderReviews
+                    WHERE RecyclerID = @RecyclerID
+                )
+                WHERE RecyclerID = @RecyclerID";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                cmd.ExecuteNonQuery();
             }
         }
 

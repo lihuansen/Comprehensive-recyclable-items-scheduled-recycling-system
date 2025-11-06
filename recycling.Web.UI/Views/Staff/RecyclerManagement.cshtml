@@ -224,8 +224,8 @@ function renderRecyclers(data) {
                         <span class="badge ${r.Available ? 'badge-available' : 'badge-unavailable'}">${r.Available ? '可接单' : '不可接单'}</span>
                     </td>
                     <td>
-                        <button class="btn btn-xs btn-info btn-action" onclick='editRecycler(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-xs btn-danger btn-action" onclick="deleteRecycler(${r.RecyclerID})"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-xs btn-info btn-action" onclick='editRecycler(${JSON.stringify(r)})'><i class="fas fa-edit"></i> 编辑</button>
+                        <button class="btn btn-xs btn-danger btn-action" onclick="deleteRecycler(${r.RecyclerID})"><i class="fas fa-trash"></i> 删除</button>
                     </td>
                 </tr>`;
                 tbody.append(row);
