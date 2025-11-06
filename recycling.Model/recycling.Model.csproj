@@ -66,6 +66,7 @@
     <Compile Include="EmailLoginViewModel.cs" />
     <Compile Include="ForgotPasswordViewModel.cs" />
     <Compile Include="HomepageCarousel.cs" />
+    <Compile Include="Inventory.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="Messages.cs" />
     <Compile Include="OrderDetailModel.cs" />
