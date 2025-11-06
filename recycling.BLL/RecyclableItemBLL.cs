@@ -79,5 +79,158 @@ namespace recycling.BLL
                 throw new Exception("获取可回收物数据失败：" + ex.Message);
             }
         }
+
+        /// <summary>
+        /// Get recyclable item by ID (for admin management)
+        /// </summary>
+        public RecyclableItems GetById(int itemId)
+        {
+            if (itemId <= 0)
+            {
+                throw new ArgumentException("无效的物品ID");
+            }
+
+            try
+            {
+                return _recyclableItemDAL.GetById(itemId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("获取可回收物品失败：" + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Add new recyclable item (for admin management)
+        /// </summary>
+        public (bool Success, string Message) Add(RecyclableItems item)
+        {
+            // Validation
+            if (string.IsNullOrEmpty(item.Name))
+            {
+                return (false, "物品名称不能为空");
+            }
+
+            if (string.IsNullOrEmpty(item.Category))
+            {
+                return (false, "品类代码不能为空");
+            }
+
+            if (string.IsNullOrEmpty(item.CategoryName))
+            {
+                return (false, "品类名称不能为空");
+            }
+
+            if (item.PricePerKg < 0)
+            {
+                return (false, "价格不能为负数");
+            }
+
+            if (item.SortOrder < 0)
+            {
+                item.SortOrder = 0;
+            }
+
+            item.IsActive = true;
+
+            try
+            {
+                bool result = _recyclableItemDAL.Add(item);
+                return result ? (true, "添加可回收物品成功") : (false, "添加可回收物品失败");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"添加可回收物品失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Update recyclable item (for admin management)
+        /// </summary>
+        public (bool Success, string Message) Update(RecyclableItems item)
+        {
+            // Validation
+            if (item.ItemId <= 0)
+            {
+                return (false, "无效的物品ID");
+            }
+
+            if (string.IsNullOrEmpty(item.Name))
+            {
+                return (false, "物品名称不能为空");
+            }
+
+            if (string.IsNullOrEmpty(item.Category))
+            {
+                return (false, "品类代码不能为空");
+            }
+
+            if (string.IsNullOrEmpty(item.CategoryName))
+            {
+                return (false, "品类名称不能为空");
+            }
+
+            if (item.PricePerKg < 0)
+            {
+                return (false, "价格不能为负数");
+            }
+
+            if (item.SortOrder < 0)
+            {
+                item.SortOrder = 0;
+            }
+
+            try
+            {
+                bool result = _recyclableItemDAL.Update(item);
+                return result ? (true, "更新可回收物品成功") : (false, "更新可回收物品失败");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"更新可回收物品失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Delete recyclable item (soft delete)
+        /// </summary>
+        public (bool Success, string Message) Delete(int itemId)
+        {
+            if (itemId <= 0)
+            {
+                return (false, "无效的物品ID");
+            }
+
+            try
+            {
+                bool result = _recyclableItemDAL.Delete(itemId);
+                return result ? (true, "删除可回收物品成功") : (false, "删除可回收物品失败");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"删除可回收物品失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Hard delete recyclable item
+        /// </summary>
+        public (bool Success, string Message) HardDelete(int itemId)
+        {
+            if (itemId <= 0)
+            {
+                return (false, "无效的物品ID");
+            }
+
+            try
+            {
+                bool result = _recyclableItemDAL.HardDelete(itemId);
+                return result ? (true, "永久删除可回收物品成功") : (false, "永久删除可回收物品失败");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"永久删除可回收物品失败：{ex.Message}");
+            }
+        }
     }
 }

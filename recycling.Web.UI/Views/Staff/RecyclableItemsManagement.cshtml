@@ -1,0 +1,447 @@
+@{
+    ViewBag.Title = "可回收物管理";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .page-header {
+        margin-bottom: 30px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+    }
+
+    .btn-add {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .badge-active {
+        background-color: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+
+    .badge-inactive {
+        background-color: #dc3545;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+
+    .btn-action {
+        padding: 5px 10px;
+        margin-right: 5px;
+        border-radius: 5px;
+        font-size: 13px;
+    }
+
+    .pagination {
+        margin-top: 20px;
+        justify-content: center;
+    }
+
+    .modal-header {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .modal-header .close {
+        color: white;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .category-badge {
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .category-glass { background-color: #17a2b8; color: white; }
+    .category-metal { background-color: #6c757d; color: white; }
+    .category-plastic { background-color: #ffc107; color: #333; }
+    .category-paper { background-color: #fd7e14; color: white; }
+    .category-fabric { background-color: #e83e8c; color: white; }
+</style>
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="page-title">可回收物管理</h1>
+            <button class="btn btn-add" onclick="showAddModal()">
+                <i class="fas fa-plus-circle"></i> 新增物品
+            </button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th>物品名称</th>
+                    <th style="width: 120px;">品类</th>
+                    <th style="width: 120px;">价格(元/kg)</th>
+                    <th>描述</th>
+                    <th style="width: 80px;">排序</th>
+                    <th style="width: 80px;">状态</th>
+                    <th style="width: 180px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="itemsTableBody">
+                <tr>
+                    <td colspan="8" class="text-center">加载中...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <nav>
+            <ul class="pagination" id="pagination"></ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">新增物品</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="itemForm">
+                    <input type="hidden" id="itemId" name="ItemId" value="0" />
+                    
+                    <div class="form-group">
+                        <label>物品名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="Name" required 
+                               maxlength="50" placeholder="例如：矿泉水瓶" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>品类 <span class="text-danger">*</span></label>
+                        <select class="form-control" id="category" name="Category" required onchange="updateCategoryName()">
+                            <option value="">请选择</option>
+                            <option value="glass">玻璃</option>
+                            <option value="metal">金属</option>
+                            <option value="plastic">塑料</option>
+                            <option value="paper">纸类</option>
+                            <option value="fabric">纺织品</option>
+                        </select>
+                    </div>
+
+                    <input type="hidden" id="categoryName" name="CategoryName" />
+
+                    <div class="form-group">
+                        <label>价格(元/kg) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="pricePerKg" name="PricePerKg" 
+                               required min="0" step="0.01" placeholder="0.00" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>描述</label>
+                        <textarea class="form-control" id="description" name="Description" 
+                                  rows="3" maxlength="200" placeholder="物品描述（可选）"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>排序顺序</label>
+                        <input type="number" class="form-control" id="sortOrder" name="SortOrder" 
+                               value="0" min="0" />
+                        <small class="form-text text-muted">数字越小越靠前</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>状态</label>
+                        <select class="form-control" id="isActive" name="IsActive">
+                            <option value="true">启用</option>
+                            <option value="false">禁用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveItem()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentPage = 1;
+        var pageSize = 10;
+        var isEditMode = false;
+
+        var categoryMap = {
+            'glass': '玻璃',
+            'metal': '金属',
+            'plastic': '塑料',
+            'paper': '纸类',
+            'fabric': '纺织品'
+        };
+
+        // Helper function to get anti-forgery token
+        function getAntiForgeryToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
+        $(document).ready(function () {
+            loadItemsList();
+        });
+
+        function loadItemsList() {
+            $.ajax({
+                url: '@Url.Action("GetRecyclableItemsList", "Staff")',
+                type: 'POST',
+                data: { 
+                    page: currentPage, 
+                    pageSize: pageSize,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        renderTable(response.data);
+                        renderPagination(response.data);
+                    } else {
+                        alert('加载失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('加载失败，请稍后重试');
+                }
+            });
+        }
+
+        function renderTable(data) {
+            var tbody = $('#itemsTableBody');
+            tbody.empty();
+
+            if (data.Items.length === 0) {
+                tbody.append('<tr><td colspan="8" class="text-center">暂无数据</td></tr>');
+                return;
+            }
+
+            $.each(data.Items, function (index, item) {
+                var statusBadge = item.IsActive ? 
+                    '<span class="badge-active">启用</span>' : 
+                    '<span class="badge-inactive">禁用</span>';
+
+                var categoryClass = 'category-' + item.Category;
+                var categoryBadge = '<span class="category-badge ' + categoryClass + '">' + item.CategoryName + '</span>';
+
+                var row = '<tr>' +
+                    '<td>' + item.ItemId + '</td>' +
+                    '<td>' + item.Name + '</td>' +
+                    '<td>' + categoryBadge + '</td>' +
+                    '<td>' + item.PricePerKg.toFixed(2) + '</td>' +
+                    '<td>' + (item.Description || '-') + '</td>' +
+                    '<td>' + item.SortOrder + '</td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '<td>' +
+                    '<button class="btn btn-sm btn-info btn-action" onclick="editItem(' + item.ItemId + ')">' +
+                    '<i class="fas fa-edit"></i> 编辑</button>' +
+                    '<button class="btn btn-sm btn-danger btn-action" onclick="deleteItem(' + item.ItemId + ')">' +
+                    '<i class="fas fa-trash"></i> 删除</button>' +
+                    '</td>' +
+                    '</tr>';
+                tbody.append(row);
+            });
+        }
+
+        function renderPagination(data) {
+            var pagination = $('#pagination');
+            pagination.empty();
+
+            var totalPages = Math.ceil(data.TotalCount / pageSize);
+            pagination.data('total', data.TotalCount); // Store for validation
+
+            if (totalPages <= 1) return;
+
+            // Previous button
+            pagination.append('<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+                '<a class="page-link" href="#" onclick="changePage(' + (currentPage - 1) + ')">上一页</a></li>');
+
+            // Page numbers
+            for (var i = 1; i <= totalPages; i++) {
+                pagination.append('<li class="page-item ' + (i === currentPage ? 'active' : '') + '">' +
+                    '<a class="page-link" href="#" onclick="changePage(' + i + ')">' + i + '</a></li>');
+            }
+
+            // Next button
+            pagination.append('<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
+                '<a class="page-link" href="#" onclick="changePage(' + (currentPage + 1) + ')">下一页</a></li>');
+        }
+
+        function changePage(page) {
+            var totalPages = Math.ceil($('#pagination').data('total') / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            loadItemsList();
+        }
+
+        function showAddModal() {
+            isEditMode = false;
+            $('#modalTitle').text('新增物品');
+            $('#itemForm')[0].reset();
+            $('#itemId').val('0');
+            $('#itemModal').modal('show');
+        }
+
+        function updateCategoryName() {
+            var category = $('#category').val();
+            $('#categoryName').val(categoryMap[category] || '');
+        }
+
+        function editItem(id) {
+            isEditMode = true;
+            $('#modalTitle').text('编辑物品');
+            
+            $.ajax({
+                url: '@Url.Action("GetRecyclableItem", "Staff")',
+                type: 'POST',
+                data: { 
+                    id: id,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        var item = response.data;
+                        $('#itemId').val(item.ItemId);
+                        $('#name').val(item.Name);
+                        $('#category').val(item.Category);
+                        $('#categoryName').val(item.CategoryName);
+                        $('#pricePerKg').val(item.PricePerKg);
+                        $('#description').val(item.Description);
+                        $('#sortOrder').val(item.SortOrder);
+                        $('#isActive').val(item.IsActive.toString());
+                        $('#itemModal').modal('show');
+                    } else {
+                        alert('获取数据失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('获取数据失败，请稍后重试');
+                }
+            });
+        }
+
+        function saveItem() {
+            var form = $('#itemForm');
+            if (!form[0].checkValidity()) {
+                form[0].reportValidity();
+                return;
+            }
+
+            // Update category name based on selected category
+            updateCategoryName();
+
+            var data = {
+                ItemId: parseInt($('#itemId').val()),
+                Name: $('#name').val(),
+                Category: $('#category').val(),
+                CategoryName: $('#categoryName').val(),
+                PricePerKg: parseFloat($('#pricePerKg').val()),
+                Description: $('#description').val(),
+                SortOrder: parseInt($('#sortOrder').val()),
+                IsActive: $('#isActive').val() === 'true',
+                __RequestVerificationToken: getAntiForgeryToken()
+            };
+
+            var url = isEditMode ? '@Url.Action("UpdateRecyclableItem", "Staff")' : '@Url.Action("AddRecyclableItem", "Staff")';
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: data,
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#itemModal').modal('hide');
+                        loadItemsList();
+                    } else {
+                        alert('保存失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('保存失败，请稍后重试');
+                }
+            });
+        }
+
+        function deleteItem(id) {
+            if (!confirm('确定要删除这个可回收物品吗？')) {
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("DeleteRecyclableItem", "Staff")',
+                type: 'POST',
+                data: { 
+                    id: id,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        loadItemsList();
+                    } else {
+                        alert('删除失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('删除失败，请稍后重试');
+                }
+            });
+        }
+    </script>
+}

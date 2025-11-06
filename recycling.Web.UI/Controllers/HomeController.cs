@@ -16,6 +16,7 @@ namespace recycling.Web.UI.Controllers
         private readonly MessageBLL _messageBLL = new MessageBLL();
         private readonly OrderBLL _orderBLL = new OrderBLL();
         private readonly StaffBLL _staffBLL = new StaffBLL();
+        private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -41,6 +42,9 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
+                // 获取轮播内容
+                ViewBag.CarouselItems = _carouselBLL.GetAllActive();
+
                 // 确保数据存在
                 _recyclableItemBLL.EnsureDataExists();
 
