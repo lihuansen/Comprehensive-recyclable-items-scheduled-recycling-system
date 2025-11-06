@@ -109,6 +109,7 @@
 </style>
 
 <div class="container-fluid">
+    @Html.AntiForgeryToken()
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="page-title">可回收物管理</h1>
@@ -229,6 +230,11 @@
             'fabric': '纺织品'
         };
 
+        // Helper function to get anti-forgery token
+        function getAntiForgeryToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
         $(document).ready(function () {
             loadItemsList();
         });
@@ -237,7 +243,11 @@
             $.ajax({
                 url: '@Url.Action("GetRecyclableItemsList", "Staff")',
                 type: 'POST',
-                data: { page: currentPage, pageSize: pageSize },
+                data: { 
+                    page: currentPage, 
+                    pageSize: pageSize,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
                 success: function (response) {
                     if (response.success) {
                         renderTable(response.data);
@@ -339,7 +349,10 @@
             $.ajax({
                 url: '@Url.Action("GetRecyclableItem", "Staff")',
                 type: 'POST',
-                data: { id: id },
+                data: { 
+                    id: id,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
                 success: function (response) {
                     if (response.success) {
                         var item = response.data;
@@ -380,7 +393,8 @@
                 PricePerKg: parseFloat($('#pricePerKg').val()),
                 Description: $('#description').val(),
                 SortOrder: parseInt($('#sortOrder').val()),
-                IsActive: $('#isActive').val() === 'true'
+                IsActive: $('#isActive').val() === 'true',
+                __RequestVerificationToken: getAntiForgeryToken()
             };
 
             var url = isEditMode ? '@Url.Action("UpdateRecyclableItem", "Staff")' : '@Url.Action("AddRecyclableItem", "Staff")';
@@ -412,7 +426,10 @@
             $.ajax({
                 url: '@Url.Action("DeleteRecyclableItem", "Staff")',
                 type: 'POST',
-                data: { id: id },
+                data: { 
+                    id: id,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
                 success: function (response) {
                     if (response.success) {
                         alert(response.message);

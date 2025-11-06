@@ -1059,6 +1059,7 @@ namespace recycling.Web.UI.Controllers
         /// Get carousel list (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetCarouselList(int page = 1, int pageSize = 20)
         {
             try
@@ -1079,6 +1080,7 @@ namespace recycling.Web.UI.Controllers
         /// Get carousel by ID (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetCarousel(int id)
         {
             try
@@ -1102,6 +1104,7 @@ namespace recycling.Web.UI.Controllers
         /// Add carousel item (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult AddCarousel(HomepageCarousel carousel)
         {
             try
@@ -1133,6 +1136,7 @@ namespace recycling.Web.UI.Controllers
         /// Update carousel item (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult UpdateCarousel(HomepageCarousel carousel)
         {
             try
@@ -1157,6 +1161,7 @@ namespace recycling.Web.UI.Controllers
         /// Delete carousel item (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult DeleteCarousel(int id)
         {
             try
@@ -1202,6 +1207,7 @@ namespace recycling.Web.UI.Controllers
         /// Get recyclable items list (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetRecyclableItemsList(int page = 1, int pageSize = 20)
         {
             try
@@ -1227,6 +1233,7 @@ namespace recycling.Web.UI.Controllers
         /// Get recyclable item by ID (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetRecyclableItem(int id)
         {
             try
@@ -1250,6 +1257,7 @@ namespace recycling.Web.UI.Controllers
         /// Add recyclable item (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult AddRecyclableItem(RecyclableItems item)
         {
             try
@@ -1274,6 +1282,7 @@ namespace recycling.Web.UI.Controllers
         /// Update recyclable item (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult UpdateRecyclableItem(RecyclableItems item)
         {
             try
@@ -1298,6 +1307,7 @@ namespace recycling.Web.UI.Controllers
         /// Delete recyclable item (AJAX)
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult DeleteRecyclableItem(int id)
         {
             try
