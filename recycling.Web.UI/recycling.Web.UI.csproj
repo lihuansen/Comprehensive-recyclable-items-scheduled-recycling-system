@@ -196,6 +196,7 @@
     <Content Include="Views\Staff\HistoryConversations.cshtml" />
     <Content Include="Views\Staff\Message_Center.cshtml" />
     <Content Include="Views\Home\ContactRecycler.cshtml" />
+    <Content Include="Views\Staff\HomepageManagement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
