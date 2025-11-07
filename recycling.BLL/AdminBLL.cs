@@ -38,6 +38,14 @@ namespace recycling.BLL
             return _adminDAL.GetUserStatistics();
         }
 
+        /// <summary>
+        /// Get all users for export (without pagination)
+        /// </summary>
+        public List<Users> GetAllUsersForExport(string searchTerm = null)
+        {
+            return _adminDAL.GetAllUsersForExport(searchTerm);
+        }
+
         #endregion
 
         #region Recycler Management
@@ -176,6 +184,14 @@ namespace recycling.BLL
         public Dictionary<string, object> GetRecyclerStatistics()
         {
             return _adminDAL.GetRecyclerStatistics();
+        }
+
+        /// <summary>
+        /// Get all recyclers for export (without pagination)
+        /// </summary>
+        public List<Recyclers> GetAllRecyclersForExport(string searchTerm = null, bool? isActive = null)
+        {
+            return _adminDAL.GetAllRecyclersForExport(searchTerm, isActive);
         }
 
         #endregion
