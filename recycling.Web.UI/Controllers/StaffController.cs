@@ -6,8 +6,8 @@ using System.Web.Mvc;
 using recycling.BLL;
 using recycling.Model;
 using Newtonsoft.Json;
-using OfficeOpenXml;
 using System.IO;
+using OfficeOpenXml;
 
 namespace recycling.Web.UI.Controllers
 {
@@ -880,7 +880,7 @@ namespace recycling.Web.UI.Controllers
                         worksheet.Cells[row, 2].Value = user.Username;
                         worksheet.Cells[row, 3].Value = user.Email;
                         worksheet.Cells[row, 4].Value = user.PhoneNumber;
-                        worksheet.Cells[row, 5].Value = user.RegistrationDate?.ToString("yyyy-MM-dd HH:mm:ss");
+                        worksheet.Cells[row, 5].Value = user.RegistrationDate.ToString("yyyy-MM-dd HH:mm:ss");
                         worksheet.Cells[row, 6].Value = user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
                         
                         // Determine user status
@@ -1092,7 +1092,6 @@ namespace recycling.Web.UI.Controllers
                         
                         worksheet.Cells[row, 8].Value = recycler.Available ? "可接单" : "不可接单";
                         worksheet.Cells[row, 9].Value = recycler.IsActive ? "激活" : "禁用";
-                        worksheet.Cells[row, 10].Value = recycler.RegistrationDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
                         
                         row++;
                     }

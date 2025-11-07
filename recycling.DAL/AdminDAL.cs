@@ -152,7 +152,7 @@ namespace recycling.DAL
                             Username = reader.GetString(1),
                             Email = reader.IsDBNull(2) ? null : reader.GetString(2),
                             PhoneNumber = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            RegistrationDate = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                            RegistrationDate = (DateTime)(reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4)),
                             LastLoginDate = reader.IsDBNull(5) ? (DateTime?)null : reader.GetDateTime(5)
                         });
                     }
@@ -465,8 +465,7 @@ namespace recycling.DAL
                             Region = reader.IsDBNull(4) ? null : reader.GetString(4),
                             Rating = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5),
                             Available = reader.IsDBNull(6) ? false : reader.GetBoolean(6),
-                            IsActive = reader.IsDBNull(7) ? false : reader.GetBoolean(7),
-                            RegistrationDate = reader.IsDBNull(8) ? (DateTime?)null : reader.GetDateTime(8)
+                            IsActive = reader.IsDBNull(7) ? false : reader.GetBoolean(7)
                         });
                     }
                 }
