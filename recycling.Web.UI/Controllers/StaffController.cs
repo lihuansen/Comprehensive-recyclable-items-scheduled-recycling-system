@@ -1199,6 +1199,12 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ContentResult GetAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
             try
             {
                 var result = _adminBLL.GetAllAdmins(page, pageSize, searchTerm, isActive);
@@ -1216,6 +1222,12 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ContentResult GetAdminDetails(int adminId)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
             try
             {
                 var admin = _adminBLL.GetAdminById(adminId);
@@ -1236,6 +1248,12 @@ namespace recycling.Web.UI.Controllers
         [HttpPost]
         public JsonResult AddAdmin(Admins admin, string password)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
             try
             {
                 var result = _adminBLL.AddAdmin(admin, password);
@@ -1253,6 +1271,12 @@ namespace recycling.Web.UI.Controllers
         [HttpPost]
         public JsonResult UpdateAdmin(Admins admin)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
             try
             {
                 var result = _adminBLL.UpdateAdmin(admin);
@@ -1270,6 +1294,12 @@ namespace recycling.Web.UI.Controllers
         [HttpPost]
         public JsonResult DeleteAdmin(int adminId)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
             try
             {
                 var result = _adminBLL.DeleteAdmin(adminId);
@@ -1287,6 +1317,12 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ContentResult GetAdminStatistics()
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
             try
             {
                 var stats = _adminBLL.GetAdminStatistics();
