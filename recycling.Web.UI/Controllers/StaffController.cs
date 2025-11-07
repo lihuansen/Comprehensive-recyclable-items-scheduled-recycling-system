@@ -7,7 +7,6 @@ using recycling.BLL;
 using recycling.Model;
 using Newtonsoft.Json;
 using System.IO;
-using OfficeOpenXml;
 
 namespace recycling.Web.UI.Controllers
 {
@@ -32,6 +31,23 @@ namespace recycling.Web.UI.Controllers
         {
             var json = JsonConvert.SerializeObject(data);
             return Content(json, "application/json", System.Text.Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// Helper method to escape CSV fields (handles commas, quotes, newlines)
+        /// </summary>
+        private string EscapeCsvField(string field)
+        {
+            if (string.IsNullOrEmpty(field))
+                return string.Empty;
+            
+            // If field contains comma, quote, or newline, wrap it in quotes and escape any quotes
+            if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
+            {
+                return "\"" + field.Replace("\"", "\"\"") + "\"";
+            }
+            
+            return field;
         }
 
         /// <summary>
@@ -837,7 +853,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 导出用户数据到Excel
+        /// 管理员 - 导出用户数据到CSV
         /// </summary>
         [HttpGet]
         public ActionResult ExportUsers(string searchTerm = null)
@@ -850,62 +866,35 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // Set EPPlus license
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
                 // Get all users without pagination for export
                 var users = _adminBLL.GetAllUsersForExport(searchTerm);
 
-                // Create Excel package
-                using (var package = new ExcelPackage())
+                // Create CSV content
+                var csv = new System.Text.StringBuilder();
+                
+                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                csv.Append("\uFEFF");
+                
+                // Add header
+                csv.AppendLine("用户ID,用户名,邮箱,手机号,注册日期,最后登录日期,状态");
+
+                // Add data rows
+                foreach (var user in users)
                 {
-                    var worksheet = package.Workbook.Worksheets.Add("用户数据");
-
-                    // Set header
-                    worksheet.Cells[1, 1].Value = "用户ID";
-                    worksheet.Cells[1, 2].Value = "用户名";
-                    worksheet.Cells[1, 3].Value = "邮箱";
-                    worksheet.Cells[1, 4].Value = "手机号";
-                    worksheet.Cells[1, 5].Value = "注册日期";
-                    worksheet.Cells[1, 6].Value = "最后登录日期";
-                    worksheet.Cells[1, 7].Value = "状态";
-
-                    // Style header
-                    using (var range = worksheet.Cells[1, 1, 1, 7])
-                    {
-                        range.Style.Font.Bold = true;
-                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                    }
-
-                    // Fill data
-                    int row = 2;
-                    foreach (var user in users)
-                    {
-                        worksheet.Cells[row, 1].Value = user.UserID;
-                        worksheet.Cells[row, 2].Value = user.Username;
-                        worksheet.Cells[row, 3].Value = user.Email;
-                        worksheet.Cells[row, 4].Value = user.PhoneNumber;
-                        worksheet.Cells[row, 5].Value = user.RegistrationDate.ToString("yyyy-MM-dd HH:mm:ss");
-                        worksheet.Cells[row, 6].Value = user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
-                        
-                        // Determine user status
-                        var isActive = user.LastLoginDate.HasValue && 
-                                      (DateTime.Now - user.LastLoginDate.Value).TotalDays <= 30;
-                        worksheet.Cells[row, 7].Value = isActive ? "活跃" : "不活跃";
-                        
-                        row++;
-                    }
-
-                    // Auto-fit columns
-                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
-
-                    // Generate file
-                    var fileName = $"用户数据_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-                    var fileBytes = package.GetAsByteArray();
-
-                    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                    // Determine user status
+                    var isActive = user.LastLoginDate.HasValue && 
+                                  (DateTime.Now - user.LastLoginDate.Value).TotalDays <= 30;
+                    var status = isActive ? "活跃" : "不活跃";
+                    var lastLogin = user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
+                    
+                    csv.AppendLine($"{user.UserID},{EscapeCsvField(user.Username)},{EscapeCsvField(user.Email)},{EscapeCsvField(user.PhoneNumber)},{user.RegistrationDate:yyyy-MM-dd HH:mm:ss},{EscapeCsvField(lastLogin)},{EscapeCsvField(status)}");
                 }
+
+                // Generate file
+                var fileName = $"用户数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                return File(fileBytes, "text/csv", fileName);
             }
             catch (Exception ex)
             {
@@ -1043,7 +1032,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 导出回收员数据到Excel
+        /// 管理员 - 导出回收员数据到CSV
         /// </summary>
         [HttpGet]
         public ActionResult ExportRecyclers(string searchTerm = null, bool? isActive = null)
@@ -1056,68 +1045,35 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // Set EPPlus license
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
                 // Get all recyclers without pagination for export
                 var recyclers = _adminBLL.GetAllRecyclersForExport(searchTerm, isActive);
 
-                // Create Excel package
-                using (var package = new ExcelPackage())
+                // Create CSV content
+                var csv = new System.Text.StringBuilder();
+                
+                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                csv.Append("\uFEFF");
+                
+                // Add header
+                csv.AppendLine("回收员ID,用户名,姓名,手机号,区域,评分,完成订单数,是否可接单,账号状态,注册日期");
+
+                // Add data rows
+                foreach (var recycler in recyclers)
                 {
-                    var worksheet = package.Workbook.Worksheets.Add("回收员数据");
-
-                    // Set header
-                    worksheet.Cells[1, 1].Value = "回收员ID";
-                    worksheet.Cells[1, 2].Value = "用户名";
-                    worksheet.Cells[1, 3].Value = "姓名";
-                    worksheet.Cells[1, 4].Value = "手机号";
-                    worksheet.Cells[1, 5].Value = "区域";
-                    worksheet.Cells[1, 6].Value = "评分";
-                    worksheet.Cells[1, 7].Value = "完成订单数";
-                    worksheet.Cells[1, 8].Value = "是否可接单";
-                    worksheet.Cells[1, 9].Value = "账号状态";
-                    worksheet.Cells[1, 10].Value = "注册日期";
-
-                    // Style header
-                    using (var range = worksheet.Cells[1, 1, 1, 10])
-                    {
-                        range.Style.Font.Bold = true;
-                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                    }
-
-                    // Fill data
-                    int row = 2;
-                    foreach (var recycler in recyclers)
-                    {
-                        worksheet.Cells[row, 1].Value = recycler.RecyclerID;
-                        worksheet.Cells[row, 2].Value = recycler.Username;
-                        worksheet.Cells[row, 3].Value = recycler.FullName ?? "-";
-                        worksheet.Cells[row, 4].Value = recycler.PhoneNumber;
-                        worksheet.Cells[row, 5].Value = recycler.Region;
-                        worksheet.Cells[row, 6].Value = recycler.Rating?.ToString("F1") ?? "0.0";
-                        
-                        // Get completed orders count
-                        var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recycler.RecyclerID);
-                        worksheet.Cells[row, 7].Value = completedOrders;
-                        
-                        worksheet.Cells[row, 8].Value = recycler.Available ? "可接单" : "不可接单";
-                        worksheet.Cells[row, 9].Value = recycler.IsActive ? "激活" : "禁用";
-                        worksheet.Cells[row, 10].Value = recycler.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
-                        
-                        row++;
-                    }
-
-                    // Auto-fit columns
-                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
-
-                    // Generate file
-                    var fileName = $"回收员数据_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-                    var fileBytes = package.GetAsByteArray();
-
-                    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                    // Get completed orders count
+                    var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recycler.RecyclerID);
+                    var availableStatus = recycler.Available ? "可接单" : "不可接单";
+                    var activeStatus = recycler.IsActive ? "激活" : "禁用";
+                    var createdDate = recycler.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
+                    
+                    csv.AppendLine($"{recycler.RecyclerID},{EscapeCsvField(recycler.Username)},{EscapeCsvField(recycler.FullName ?? "-")},{EscapeCsvField(recycler.PhoneNumber)},{EscapeCsvField(recycler.Region)},{EscapeCsvField(recycler.Rating?.ToString("F1") ?? "0.0")},{completedOrders},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
+
+                // Generate file
+                var fileName = $"回收员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                return File(fileBytes, "text/csv", fileName);
             }
             catch (Exception ex)
             {
@@ -1336,7 +1292,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 超级管理员 - 导出管理员数据到Excel
+        /// 超级管理员 - 导出管理员数据到CSV
         /// </summary>
         [HttpGet]
         public ActionResult ExportAdmins(string searchTerm = null, bool? isActive = null)
@@ -1349,56 +1305,33 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // Set EPPlus license
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
                 // Get all admins without pagination for export
                 var admins = _adminBLL.GetAllAdminsForExport(searchTerm, isActive);
 
-                // Create Excel package
-                using (var package = new ExcelPackage())
+                // Create CSV content
+                var csv = new System.Text.StringBuilder();
+                
+                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                csv.Append("\uFEFF");
+                
+                // Add header
+                csv.AppendLine("管理员ID,用户名,姓名,创建日期,最后登录日期,账号状态");
+
+                // Add data rows
+                foreach (var admin in admins)
                 {
-                    var worksheet = package.Workbook.Worksheets.Add("管理员数据");
-
-                    // Set header
-                    worksheet.Cells[1, 1].Value = "管理员ID";
-                    worksheet.Cells[1, 2].Value = "用户名";
-                    worksheet.Cells[1, 3].Value = "姓名";
-                    worksheet.Cells[1, 4].Value = "创建日期";
-                    worksheet.Cells[1, 5].Value = "最后登录日期";
-                    worksheet.Cells[1, 6].Value = "账号状态";
-
-                    // Style header
-                    using (var range = worksheet.Cells[1, 1, 1, 6])
-                    {
-                        range.Style.Font.Bold = true;
-                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                    }
-
-                    // Fill data
-                    int row = 2;
-                    foreach (var admin in admins)
-                    {
-                        worksheet.Cells[row, 1].Value = admin.AdminID;
-                        worksheet.Cells[row, 2].Value = admin.Username;
-                        worksheet.Cells[row, 3].Value = admin.FullName;
-                        worksheet.Cells[row, 4].Value = admin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
-                        worksheet.Cells[row, 5].Value = admin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
-                        worksheet.Cells[row, 6].Value = (admin.IsActive ?? true) ? "激活" : "禁用";
-                        
-                        row++;
-                    }
-
-                    // Auto-fit columns
-                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
-
-                    // Generate file
-                    var fileName = $"管理员数据_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-                    var fileBytes = package.GetAsByteArray();
-
-                    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                    var createdDate = admin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
+                    var lastLoginDate = admin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
+                    var activeStatus = (admin.IsActive ?? true) ? "激活" : "禁用";
+                    
+                    csv.AppendLine($"{admin.AdminID},{EscapeCsvField(admin.Username)},{EscapeCsvField(admin.FullName)},{EscapeCsvField(createdDate)},{EscapeCsvField(lastLoginDate)},{EscapeCsvField(activeStatus)}");
                 }
+
+                // Generate file
+                var fileName = $"管理员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                return File(fileBytes, "text/csv", fileName);
             }
             catch (Exception ex)
             {
