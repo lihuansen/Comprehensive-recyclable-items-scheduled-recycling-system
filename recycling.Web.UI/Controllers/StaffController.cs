@@ -1226,9 +1226,17 @@ namespace recycling.Web.UI.Controllers
                     // Get old file path to delete later
                     var oldCarousel = _carouselBLL.GetById(carousel.CarouselID);
                     string oldFilePath = null;
-                    if (oldCarousel != null && !string.IsNullOrEmpty(oldCarousel.MediaUrl) && oldCarousel.MediaUrl.StartsWith("/Uploads/"))
+                    if (oldCarousel != null && !string.IsNullOrEmpty(oldCarousel.MediaUrl) && oldCarousel.MediaUrl.StartsWith("/Uploads/Carousel/"))
                     {
-                        oldFilePath = Server.MapPath("~" + oldCarousel.MediaUrl);
+                        // Map the relative path and validate it's within our upload directory
+                        string mappedPath = Server.MapPath("~" + oldCarousel.MediaUrl);
+                        string uploadDir = Server.MapPath("~/Uploads/Carousel/");
+                        
+                        // Ensure the resolved path is actually within the upload directory
+                        if (mappedPath.StartsWith(uploadDir, StringComparison.OrdinalIgnoreCase))
+                        {
+                            oldFilePath = mappedPath;
+                        }
                     }
 
                     // Generate unique filename
