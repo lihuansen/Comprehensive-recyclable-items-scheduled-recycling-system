@@ -59,6 +59,7 @@
     <Compile Include="AppointmentDAL.cs" />
     <Compile Include="ConversationDAL.cs" />
     <Compile Include="FeedbackDAL.cs" />
+    <Compile Include="HomepageCarouselDAL.cs" />
     <Compile Include="InventoryDAL.cs" />
     <Compile Include="MessageDAL.cs" />
     <Compile Include="OrderDAL.cs" />
