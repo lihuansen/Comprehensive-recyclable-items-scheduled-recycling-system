@@ -1309,7 +1309,8 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
-                var (success, message) = _carouselBLL.Delete(id);
+                // Use HardDelete to permanently remove from database
+                var (success, message) = _carouselBLL.HardDelete(id);
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
