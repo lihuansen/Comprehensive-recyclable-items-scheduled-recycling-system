@@ -219,6 +219,130 @@ namespace recycling.BLL
 
         #endregion
 
+        #region Admin Management
+
+        /// <summary>
+        /// Get all admins with pagination
+        /// </summary>
+        public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+            return _adminDAL.GetAllAdmins(page, pageSize, searchTerm, isActive);
+        }
+
+        /// <summary>
+        /// Get admin by ID
+        /// </summary>
+        public Admins GetAdminById(int adminId)
+        {
+            if (adminId <= 0)
+            {
+                throw new ArgumentException("Invalid admin ID");
+            }
+
+            return _adminDAL.GetAdminById(adminId);
+        }
+
+        /// <summary>
+        /// Add new admin
+        /// </summary>
+        public (bool Success, string Message) AddAdmin(Admins admin, string password)
+        {
+            // Validation
+            if (string.IsNullOrEmpty(admin.Username))
+            {
+                return (false, "用户名不能为空");
+            }
+
+            if (string.IsNullOrEmpty(password))
+            {
+                return (false, "密码不能为空");
+            }
+
+            if (string.IsNullOrEmpty(admin.FullName))
+            {
+                return (false, "姓名不能为空");
+            }
+
+            // Hash password
+            admin.PasswordHash = HashPassword(password);
+            admin.IsActive = true;
+
+            bool result = _adminDAL.AddAdmin(admin);
+            return result ? (true, "添加管理员成功") : (false, "添加管理员失败");
+        }
+
+        /// <summary>
+        /// Update admin
+        /// </summary>
+        public (bool Success, string Message) UpdateAdmin(Admins admin)
+        {
+            // Validation
+            if (admin.AdminID <= 0)
+            {
+                return (false, "Invalid admin ID");
+            }
+
+            if (string.IsNullOrEmpty(admin.Username))
+            {
+                return (false, "用户名不能为空");
+            }
+
+            if (string.IsNullOrEmpty(admin.FullName))
+            {
+                return (false, "姓名不能为空");
+            }
+
+            bool result = _adminDAL.UpdateAdmin(admin);
+            return result ? (true, "更新管理员信息成功") : (false, "更新管理员信息失败");
+        }
+
+        /// <summary>
+        /// Delete admin (hard delete from database)
+        /// </summary>
+        public (bool Success, string Message) DeleteAdmin(int adminId)
+        {
+            if (adminId <= 0)
+            {
+                return (false, "Invalid admin ID");
+            }
+
+            try
+            {
+                bool result = _adminDAL.DeleteAdmin(adminId);
+                return result ? (true, "删除管理员成功") : (false, "删除管理员失败");
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Foreign key constraint violation
+                return (false, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"删除管理员失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get admin statistics
+        /// </summary>
+        public Dictionary<string, object> GetAdminStatistics()
+        {
+            return _adminDAL.GetAdminStatistics();
+        }
+
+        /// <summary>
+        /// Get all admins for export (without pagination)
+        /// </summary>
+        public List<Admins> GetAllAdminsForExport(string searchTerm = null, bool? isActive = null)
+        {
+            return _adminDAL.GetAllAdminsForExport(searchTerm, isActive);
+        }
+
+        #endregion
+
         #region Helper Methods
 
         /// <summary>
