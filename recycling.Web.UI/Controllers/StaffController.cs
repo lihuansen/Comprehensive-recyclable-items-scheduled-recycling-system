@@ -1104,6 +1104,7 @@ namespace recycling.Web.UI.Controllers
                         
                         worksheet.Cells[row, 8].Value = recycler.Available ? "可接单" : "不可接单";
                         worksheet.Cells[row, 9].Value = recycler.IsActive ? "激活" : "禁用";
+                        worksheet.Cells[row, 10].Value = recycler.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
                         
                         row++;
                     }
