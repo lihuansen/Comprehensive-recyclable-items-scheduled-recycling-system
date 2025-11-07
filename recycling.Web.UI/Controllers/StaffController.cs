@@ -1105,7 +1105,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ContentResult AddCarousel(HomepageCarousel carousel)
+        public ContentResult AddCarousel(HomepageCarousel carousel, HttpPostedFileBase MediaFile)
         {
             try
             {
@@ -1115,6 +1115,44 @@ namespace recycling.Web.UI.Controllers
                 var staffRole = Session["StaffRole"] as string;
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
+
+                // Validate and handle file upload
+                if (MediaFile != null && MediaFile.ContentLength > 0)
+                {
+                    // Validate file type
+                    string[] allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+                    string[] allowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
+                    string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
+                    
+                    if (carousel.MediaType == "Image" && !allowedImageExtensions.Contains(fileExtension))
+                    {
+                        return JsonContent(new { success = false, message = "图片格式不支持，请上传 jpg, jpeg, png 或 gif 格式" });
+                    }
+                    else if (carousel.MediaType == "Video" && !allowedVideoExtensions.Contains(fileExtension))
+                    {
+                        return JsonContent(new { success = false, message = "视频格式不支持，请上传 mp4, webm 或 ogg 格式" });
+                    }
+
+                    // Generate unique filename
+                    string fileName = Guid.NewGuid().ToString() + fileExtension;
+                    string uploadPath = Server.MapPath("~/Uploads/Carousel/");
+                    
+                    // Create directory if it doesn't exist
+                    if (!System.IO.Directory.Exists(uploadPath))
+                    {
+                        System.IO.Directory.CreateDirectory(uploadPath);
+                    }
+                    
+                    string filePath = System.IO.Path.Combine(uploadPath, fileName);
+                    MediaFile.SaveAs(filePath);
+                    
+                    // Set MediaUrl to relative path
+                    carousel.MediaUrl = "/Uploads/Carousel/" + fileName;
+                }
+                else
+                {
+                    return JsonContent(new { success = false, message = "请选择要上传的文件" });
+                }
 
                 // Get admin ID
                 int adminId = 0;
@@ -1137,7 +1175,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ContentResult UpdateCarousel(HomepageCarousel carousel)
+        public ContentResult UpdateCarousel(HomepageCarousel carousel, HttpPostedFileBase MediaFile)
         {
             try
             {
@@ -1147,6 +1185,70 @@ namespace recycling.Web.UI.Controllers
                 var staffRole = Session["StaffRole"] as string;
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
+
+                // Handle file upload if provided
+                if (MediaFile != null && MediaFile.ContentLength > 0)
+                {
+                    // Validate file type
+                    string[] allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+                    string[] allowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
+                    string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
+                    
+                    if (carousel.MediaType == "Image" && !allowedImageExtensions.Contains(fileExtension))
+                    {
+                        return JsonContent(new { success = false, message = "图片格式不支持，请上传 jpg, jpeg, png 或 gif 格式" });
+                    }
+                    else if (carousel.MediaType == "Video" && !allowedVideoExtensions.Contains(fileExtension))
+                    {
+                        return JsonContent(new { success = false, message = "视频格式不支持，请上传 mp4, webm 或 ogg 格式" });
+                    }
+
+                    // Get old file path to delete later
+                    var oldCarousel = _carouselBLL.GetById(carousel.CarouselID);
+                    string oldFilePath = null;
+                    if (oldCarousel != null && !string.IsNullOrEmpty(oldCarousel.MediaUrl) && oldCarousel.MediaUrl.StartsWith("/Uploads/"))
+                    {
+                        oldFilePath = Server.MapPath("~" + oldCarousel.MediaUrl);
+                    }
+
+                    // Generate unique filename
+                    string fileName = Guid.NewGuid().ToString() + fileExtension;
+                    string uploadPath = Server.MapPath("~/Uploads/Carousel/");
+                    
+                    // Create directory if it doesn't exist
+                    if (!System.IO.Directory.Exists(uploadPath))
+                    {
+                        System.IO.Directory.CreateDirectory(uploadPath);
+                    }
+                    
+                    string filePath = System.IO.Path.Combine(uploadPath, fileName);
+                    MediaFile.SaveAs(filePath);
+                    
+                    // Set MediaUrl to relative path
+                    carousel.MediaUrl = "/Uploads/Carousel/" + fileName;
+
+                    // Delete old file if it exists
+                    if (!string.IsNullOrEmpty(oldFilePath) && System.IO.File.Exists(oldFilePath))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                        catch
+                        {
+                            // Ignore file deletion errors
+                        }
+                    }
+                }
+                else
+                {
+                    // Keep existing MediaUrl if no new file is uploaded
+                    var existingCarousel = _carouselBLL.GetById(carousel.CarouselID);
+                    if (existingCarousel != null)
+                    {
+                        carousel.MediaUrl = existingCarousel.MediaUrl;
+                    }
+                }
 
                 var (success, message) = _carouselBLL.Update(carousel);
                 return JsonContent(new { success = success, message = message });
@@ -1175,6 +1277,27 @@ namespace recycling.Web.UI.Controllers
 
                 var (success, message) = _carouselBLL.Delete(id);
                 return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get maximum DisplayOrder for carousel (AJAX)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetMaxCarouselOrder()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                int maxOrder = _carouselBLL.GetMaxDisplayOrder();
+                return JsonContent(new { success = true, maxOrder = maxOrder });
             }
             catch (Exception ex)
             {
@@ -1319,8 +1442,30 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
-                var (success, message) = _recyclableItemBLL.Delete(id);
+                // Use HardDelete instead of soft delete
+                var (success, message) = _recyclableItemBLL.HardDelete(id);
                 return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get maximum SortOrder for recyclable items (AJAX)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetMaxRecyclableItemOrder()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                int maxOrder = _recyclableItemBLL.GetMaxSortOrder();
+                return JsonContent(new { success = true, maxOrder = maxOrder });
             }
             catch (Exception ex)
             {

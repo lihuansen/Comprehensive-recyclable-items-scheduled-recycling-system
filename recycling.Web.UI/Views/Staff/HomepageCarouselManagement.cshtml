@@ -34,6 +34,24 @@
         color: white;
     }
 
+    .btn-back {
+        background: linear-gradient(45deg, #6c757d, #5a6268);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        transition: all 0.3s ease;
+        margin-right: 10px;
+    }
+
+    .btn-back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        color: white;
+    }
+
     .table-container {
         background: white;
         border-radius: 10px;
@@ -107,9 +125,14 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="page-title">首页轮播管理</h1>
-            <button class="btn btn-add" onclick="showAddModal()">
-                <i class="fas fa-plus-circle"></i> 新增轮播
-            </button>
+            <div>
+                <a href="@Url.Action("HomepageManagement", "Staff")" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> 返回首页管理
+                </a>
+                <button class="btn btn-add" onclick="showAddModal()">
+                    <i class="fas fa-plus-circle"></i> 新增轮播
+                </button>
+            </div>
         </div>
     </div>
 
@@ -156,7 +179,7 @@
                     
                     <div class="form-group">
                         <label>媒体类型 <span class="text-danger">*</span></label>
-                        <select class="form-control" id="mediaType" name="MediaType" required>
+                        <select class="form-control" id="mediaType" name="MediaType" required onchange="updateFileAccept()">
                             <option value="">请选择</option>
                             <option value="Image">图片</option>
                             <option value="Video">视频</option>
@@ -164,12 +187,15 @@
                     </div>
 
                     <div class="form-group">
-                        <label>媒体URL <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="mediaUrl" name="MediaUrl" required 
-                               placeholder="请输入图片或视频的URL地址" />
+                        <label>上传媒体文件 <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control-file" id="mediaFile" name="MediaFile" 
+                               accept="image/*,video/*" />
                         <small class="form-text text-muted">
-                            图片建议尺寸：1920x600，视频播放时长建议8秒
+                            图片建议尺寸：1920x600，视频播放时长建议8秒。图片支持：jpg, png, gif；视频支持：mp4, webm
                         </small>
+                        <div id="currentMediaUrl" style="margin-top: 10px; display: none;">
+                            <strong>当前文件：</strong> <span id="currentMediaPath"></span>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -322,7 +348,39 @@
             $('#modalTitle').text('新增轮播');
             $('#carouselForm')[0].reset();
             $('#carouselId').val('0');
+            $('#currentMediaUrl').hide();
+            
+            // Get max display order and set to max + 1
+            $.ajax({
+                url: '@Url.Action("GetMaxCarouselOrder", "Staff")',
+                type: 'POST',
+                data: { 
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#displayOrder').val(response.maxOrder + 1);
+                    } else {
+                        $('#displayOrder').val(0);
+                    }
+                },
+                error: function () {
+                    $('#displayOrder').val(0);
+                }
+            });
+            
             $('#carouselModal').modal('show');
+        }
+
+        function updateFileAccept() {
+            var mediaType = $('#mediaType').val();
+            if (mediaType === 'Image') {
+                $('#mediaFile').attr('accept', 'image/*');
+            } else if (mediaType === 'Video') {
+                $('#mediaFile').attr('accept', 'video/*');
+            } else {
+                $('#mediaFile').attr('accept', 'image/*,video/*');
+            }
         }
 
         function editCarousel(id) {
@@ -341,11 +399,15 @@
                         var item = response.data;
                         $('#carouselId').val(item.CarouselID);
                         $('#mediaType').val(item.MediaType);
-                        $('#mediaUrl').val(item.MediaUrl);
                         $('#title').val(item.Title);
                         $('#description').val(item.Description);
                         $('#displayOrder').val(item.DisplayOrder);
                         $('#isActive').val(item.IsActive.toString());
+                        
+                        // Show current media URL
+                        $('#currentMediaPath').text(item.MediaUrl);
+                        $('#currentMediaUrl').show();
+                        
                         $('#carouselModal').modal('show');
                     } else {
                         alert('获取数据失败：' + response.message);
@@ -358,29 +420,40 @@
         }
 
         function saveCarousel() {
-            var form = $('#carouselForm');
-            if (!form[0].checkValidity()) {
-                form[0].reportValidity();
+            // Validate media type
+            if (!$('#mediaType').val()) {
+                alert('请选择媒体类型');
                 return;
             }
 
-            var data = {
-                CarouselID: parseInt($('#carouselId').val()),
-                MediaType: $('#mediaType').val(),
-                MediaUrl: $('#mediaUrl').val(),
-                Title: $('#title').val(),
-                Description: $('#description').val(),
-                DisplayOrder: parseInt($('#displayOrder').val()),
-                IsActive: $('#isActive').val() === 'true',
-                __RequestVerificationToken: getAntiForgeryToken()
-            };
+            // For new items, file is required
+            if (!isEditMode && !$('#mediaFile')[0].files.length) {
+                alert('请选择要上传的文件');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('CarouselID', $('#carouselId').val());
+            formData.append('MediaType', $('#mediaType').val());
+            formData.append('Title', $('#title').val());
+            formData.append('Description', $('#description').val());
+            formData.append('DisplayOrder', $('#displayOrder').val());
+            formData.append('IsActive', $('#isActive').val());
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
+            
+            // Add file if selected
+            if ($('#mediaFile')[0].files.length > 0) {
+                formData.append('MediaFile', $('#mediaFile')[0].files[0]);
+            }
 
             var url = isEditMode ? '@Url.Action("UpdateCarousel", "Staff")' : '@Url.Action("AddCarousel", "Staff")';
 
             $.ajax({
                 url: url,
                 type: 'POST',
-                data: data,
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function (response) {
                     if (response.success) {
                         alert(response.message);

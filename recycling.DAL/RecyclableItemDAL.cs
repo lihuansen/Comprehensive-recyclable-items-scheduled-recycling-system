@@ -326,5 +326,21 @@ namespace recycling.DAL
                 return cmd.ExecuteNonQuery() > 0;
             }
         }
+
+        /// <summary>
+        /// Get the maximum SortOrder value
+        /// </summary>
+        public int GetMaxSortOrder()
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT ISNULL(MAX(SortOrder), 0) FROM RecyclableItems";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                conn.Open();
+                
+                object result = cmd.ExecuteScalar();
+                return result != null && result != DBNull.Value ? Convert.ToInt32(result) : 0;
+            }
+        }
     }
 }

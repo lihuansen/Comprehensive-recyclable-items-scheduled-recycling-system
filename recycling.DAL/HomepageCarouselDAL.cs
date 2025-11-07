@@ -200,6 +200,22 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Get the maximum DisplayOrder value
+        /// </summary>
+        public int GetMaxDisplayOrder()
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT ISNULL(MAX(DisplayOrder), 0) FROM HomepageCarousel";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                conn.Open();
+                
+                object result = cmd.ExecuteScalar();
+                return result != null && result != DBNull.Value ? Convert.ToInt32(result) : 0;
+            }
+        }
+
+        /// <summary>
         /// Map carousel from database reader
         /// </summary>
         private HomepageCarousel MapCarouselFromReader(SqlDataReader reader)
