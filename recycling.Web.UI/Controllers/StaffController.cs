@@ -842,6 +842,12 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult ExportUsers(string searchTerm = null)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
             try
             {
                 // Set EPPlus license
@@ -1042,6 +1048,12 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult ExportRecyclers(string searchTerm = null, bool? isActive = null)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
             try
             {
                 // Set EPPlus license
@@ -1161,6 +1173,236 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region SuperAdmin - Admin Management
+
+        /// <summary>
+        /// 超级管理员 - 管理员管理页面
+        /// </summary>
+        public ActionResult AdminManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 超级管理员 - 获取管理员列表（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var result = _adminBLL.GetAllAdmins(page, pageSize, searchTerm, isActive);
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 获取管理员详情（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetAdminDetails(int adminId)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var admin = _adminBLL.GetAdminById(adminId);
+                return JsonContent(new { 
+                    success = true, 
+                    data = admin
+                });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 添加管理员（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult AddAdmin(Admins admin, string password)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var result = _adminBLL.AddAdmin(admin, password);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 更新管理员信息（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult UpdateAdmin(Admins admin)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var result = _adminBLL.UpdateAdmin(admin);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 删除管理员（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult DeleteAdmin(int adminId)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var result = _adminBLL.DeleteAdmin(adminId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 获取管理员统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetAdminStatistics()
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var stats = _adminBLL.GetAdminStatistics();
+                return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 导出管理员数据到Excel
+        /// </summary>
+        [HttpGet]
+        public ActionResult ExportAdmins(string searchTerm = null, bool? isActive = null)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            try
+            {
+                // Set EPPlus license
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                // Get all admins without pagination for export
+                var admins = _adminBLL.GetAllAdminsForExport(searchTerm, isActive);
+
+                // Create Excel package
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("管理员数据");
+
+                    // Set header
+                    worksheet.Cells[1, 1].Value = "管理员ID";
+                    worksheet.Cells[1, 2].Value = "用户名";
+                    worksheet.Cells[1, 3].Value = "姓名";
+                    worksheet.Cells[1, 4].Value = "创建日期";
+                    worksheet.Cells[1, 5].Value = "最后登录日期";
+                    worksheet.Cells[1, 6].Value = "账号状态";
+
+                    // Style header
+                    using (var range = worksheet.Cells[1, 1, 1, 6])
+                    {
+                        range.Style.Font.Bold = true;
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    }
+
+                    // Fill data
+                    int row = 2;
+                    foreach (var admin in admins)
+                    {
+                        worksheet.Cells[row, 1].Value = admin.AdminID;
+                        worksheet.Cells[row, 2].Value = admin.Username;
+                        worksheet.Cells[row, 3].Value = admin.FullName;
+                        worksheet.Cells[row, 4].Value = admin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
+                        worksheet.Cells[row, 5].Value = admin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
+                        worksheet.Cells[row, 6].Value = (admin.IsActive ?? true) ? "激活" : "禁用";
+                        
+                        row++;
+                    }
+
+                    // Auto-fit columns
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                    // Generate file
+                    var fileName = $"管理员数据_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+                    var fileBytes = package.GetAsByteArray();
+
+                    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
+                return RedirectToAction("AdminManagement");
             }
         }
 

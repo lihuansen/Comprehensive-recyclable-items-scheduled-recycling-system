@@ -658,6 +658,264 @@ namespace recycling.DAL
 
         #endregion
 
+        #region Admin Management
+
+        /// <summary>
+        /// Get all admins with pagination
+        /// </summary>
+        public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            var result = new PagedResult<Admins>
+            {
+                PageIndex = page,
+                PageSize = pageSize,
+                Items = new List<Admins>()
+            };
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // Build WHERE clause
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm)";
+                }
+                if (isActive.HasValue)
+                {
+                    whereClause += " AND IsActive = @IsActive";
+                }
+
+                // Get total count
+                string countSql = "SELECT COUNT(*) FROM Admins " + whereClause;
+                SqlCommand countCmd = new SqlCommand(countSql, conn);
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    countCmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+                }
+                if (isActive.HasValue)
+                {
+                    countCmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+                result.TotalCount = (int)countCmd.ExecuteScalar();
+
+                // Get paged data
+                string sql = "SELECT * FROM Admins " + whereClause + 
+                    " ORDER BY AdminID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+                }
+                if (isActive.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+                cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Items.Add(MapAdminFromReader(reader));
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get admin by ID
+        /// </summary>
+        public Admins GetAdminById(int adminId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT * FROM Admins WHERE AdminID = @AdminID";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@AdminID", adminId);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return MapAdminFromReader(reader);
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Add new admin
+        /// </summary>
+        public bool AddAdmin(Admins admin)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = @"INSERT INTO Admins (Username, PasswordHash, FullName, IsActive, CreatedDate) 
+                    VALUES (@Username, @PasswordHash, @FullName, @IsActive, GETDATE())";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", admin.Username);
+                cmd.Parameters.AddWithValue("@PasswordHash", admin.PasswordHash);
+                cmd.Parameters.AddWithValue("@FullName", admin.FullName);
+                cmd.Parameters.AddWithValue("@IsActive", admin.IsActive ?? true);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Update admin information
+        /// </summary>
+        public bool UpdateAdmin(Admins admin)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = @"UPDATE Admins SET 
+                    Username = @Username,
+                    FullName = @FullName,
+                    IsActive = @IsActive
+                    WHERE AdminID = @AdminID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@AdminID", admin.AdminID);
+                cmd.Parameters.AddWithValue("@Username", admin.Username);
+                cmd.Parameters.AddWithValue("@FullName", admin.FullName);
+                cmd.Parameters.AddWithValue("@IsActive", admin.IsActive ?? true);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Delete admin (hard delete from database)
+        /// </summary>
+        public bool DeleteAdmin(int adminId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                
+                try
+                {
+                    string sql = "DELETE FROM Admins WHERE AdminID = @AdminID";
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@AdminID", adminId);
+
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+                catch (SqlException ex)
+                {
+                    // If foreign key constraint violation (error 547), provide helpful message
+                    if (ex.Number == 547)
+                    {
+                        throw new InvalidOperationException(
+                            "无法删除该管理员，因为存在关联的记录。请先处理相关数据或改用禁用功能。", ex);
+                    }
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get admin statistics
+        /// </summary>
+        public Dictionary<string, object> GetAdminStatistics()
+        {
+            var stats = new Dictionary<string, object>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // Total admins
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Admins", conn);
+                stats["TotalAdmins"] = (int)cmd.ExecuteScalar();
+
+                // Active admins
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Admins WHERE IsActive = 1", conn);
+                stats["ActiveAdmins"] = (int)cmd.ExecuteScalar();
+
+                // Admins created this month
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Admins 
+                    WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
+                    AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
+                stats["NewAdminsThisMonth"] = (int)cmd.ExecuteScalar();
+            }
+
+            return stats;
+        }
+
+        /// <summary>
+        /// Get all admins for export (without pagination)
+        /// </summary>
+        public List<Admins> GetAllAdminsForExport(string searchTerm = null, bool? isActive = null)
+        {
+            var admins = new List<Admins>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // Build WHERE clause
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm)";
+                }
+                if (isActive.HasValue)
+                {
+                    whereClause += " AND IsActive = @IsActive";
+                }
+
+                string query = $@"
+                    SELECT AdminID, Username, FullName, CreatedDate, LastLoginDate, IsActive 
+                    FROM Admins 
+                    {whereClause}
+                    ORDER BY CreatedDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", $"%{searchTerm}%");
+                }
+                if (isActive.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        admins.Add(new Admins
+                        {
+                            AdminID = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            FullName = reader.GetString(2),
+                            CreatedDate = reader.IsDBNull(3) ? (DateTime?)null : reader.GetDateTime(3),
+                            LastLoginDate = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                            IsActive = reader.IsDBNull(5) ? (bool?)null : reader.GetBoolean(5)
+                        });
+                    }
+                }
+            }
+
+            return admins;
+        }
+
+        #endregion
+
         #region Helper Methods
 
         private Recyclers MapRecyclerFromReader(SqlDataReader reader)
@@ -676,6 +934,20 @@ namespace recycling.DAL
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL"))
+            };
+        }
+
+        private Admins MapAdminFromReader(SqlDataReader reader)
+        {
+            return new Admins
+            {
+                AdminID = reader.GetInt32(reader.GetOrdinal("AdminID")),
+                Username = reader.GetString(reader.GetOrdinal("Username")),
+                PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
+                FullName = reader.GetString(reader.GetOrdinal("FullName")),
+                CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
+                IsActive = reader.IsDBNull(reader.GetOrdinal("IsActive")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }
 
