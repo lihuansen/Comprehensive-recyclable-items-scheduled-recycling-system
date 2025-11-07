@@ -362,6 +362,9 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# NuGet executable
+nuget.exe
+
 # Uploaded files
 **/Uploads/Carousel/*
 !**/Uploads/Carousel/.gitkeep
