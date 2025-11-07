@@ -6,6 +6,8 @@ using System.Web.Mvc;
 using recycling.BLL;
 using recycling.Model;
 using Newtonsoft.Json;
+using OfficeOpenXml;
+using System.IO;
 
 namespace recycling.Web.UI.Controllers
 {
@@ -834,6 +836,75 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 管理员 - 导出用户数据到Excel
+        /// </summary>
+        [HttpGet]
+        public ActionResult ExportUsers(string searchTerm = null)
+        {
+            try
+            {
+                // Get all users without pagination for export
+                var users = _adminBLL.GetAllUsersForExport(searchTerm);
+
+                // Create Excel package
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("用户数据");
+
+                    // Set header
+                    worksheet.Cells[1, 1].Value = "用户ID";
+                    worksheet.Cells[1, 2].Value = "用户名";
+                    worksheet.Cells[1, 3].Value = "邮箱";
+                    worksheet.Cells[1, 4].Value = "手机号";
+                    worksheet.Cells[1, 5].Value = "注册日期";
+                    worksheet.Cells[1, 6].Value = "最后登录日期";
+                    worksheet.Cells[1, 7].Value = "状态";
+
+                    // Style header
+                    using (var range = worksheet.Cells[1, 1, 1, 7])
+                    {
+                        range.Style.Font.Bold = true;
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    }
+
+                    // Fill data
+                    int row = 2;
+                    foreach (var user in users)
+                    {
+                        worksheet.Cells[row, 1].Value = user.UserID;
+                        worksheet.Cells[row, 2].Value = user.Username;
+                        worksheet.Cells[row, 3].Value = user.Email;
+                        worksheet.Cells[row, 4].Value = user.PhoneNumber;
+                        worksheet.Cells[row, 5].Value = user.RegistrationDate?.ToString("yyyy-MM-dd HH:mm:ss");
+                        worksheet.Cells[row, 6].Value = user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
+                        
+                        // Determine user status
+                        var isActive = user.LastLoginDate.HasValue && 
+                                      (DateTime.Now - user.LastLoginDate.Value).TotalDays <= 30;
+                        worksheet.Cells[row, 7].Value = isActive ? "活跃" : "不活跃";
+                        
+                        row++;
+                    }
+
+                    // Auto-fit columns
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                    // Generate file
+                    var fileName = $"用户数据_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+                    var fileBytes = package.GetAsByteArray();
+
+                    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
+                return RedirectToAction("UserManagement");
+            }
+        }
+
         #endregion
 
         #region Admin - Recycler Management
@@ -959,6 +1030,81 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 导出回收员数据到Excel
+        /// </summary>
+        [HttpGet]
+        public ActionResult ExportRecyclers(string searchTerm = null, bool? isActive = null)
+        {
+            try
+            {
+                // Get all recyclers without pagination for export
+                var recyclers = _adminBLL.GetAllRecyclersForExport(searchTerm, isActive);
+
+                // Create Excel package
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("回收员数据");
+
+                    // Set header
+                    worksheet.Cells[1, 1].Value = "回收员ID";
+                    worksheet.Cells[1, 2].Value = "用户名";
+                    worksheet.Cells[1, 3].Value = "姓名";
+                    worksheet.Cells[1, 4].Value = "手机号";
+                    worksheet.Cells[1, 5].Value = "区域";
+                    worksheet.Cells[1, 6].Value = "评分";
+                    worksheet.Cells[1, 7].Value = "完成订单数";
+                    worksheet.Cells[1, 8].Value = "是否可接单";
+                    worksheet.Cells[1, 9].Value = "账号状态";
+                    worksheet.Cells[1, 10].Value = "注册日期";
+
+                    // Style header
+                    using (var range = worksheet.Cells[1, 1, 1, 10])
+                    {
+                        range.Style.Font.Bold = true;
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    }
+
+                    // Fill data
+                    int row = 2;
+                    foreach (var recycler in recyclers)
+                    {
+                        worksheet.Cells[row, 1].Value = recycler.RecyclerID;
+                        worksheet.Cells[row, 2].Value = recycler.Username;
+                        worksheet.Cells[row, 3].Value = recycler.FullName ?? "-";
+                        worksheet.Cells[row, 4].Value = recycler.PhoneNumber;
+                        worksheet.Cells[row, 5].Value = recycler.Region;
+                        worksheet.Cells[row, 6].Value = recycler.Rating?.ToString("F1") ?? "0.0";
+                        
+                        // Get completed orders count
+                        var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recycler.RecyclerID);
+                        worksheet.Cells[row, 7].Value = completedOrders;
+                        
+                        worksheet.Cells[row, 8].Value = recycler.Available ? "可接单" : "不可接单";
+                        worksheet.Cells[row, 9].Value = recycler.IsActive ? "激活" : "禁用";
+                        worksheet.Cells[row, 10].Value = recycler.RegistrationDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
+                        
+                        row++;
+                    }
+
+                    // Auto-fit columns
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                    // Generate file
+                    var fileName = $"回收员数据_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+                    var fileBytes = package.GetAsByteArray();
+
+                    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
+                return RedirectToAction("RecyclerManagement");
             }
         }
 

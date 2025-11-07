@@ -317,7 +317,21 @@ function deleteRecycler(id) {
 }
 
 function exportRecyclers() {
-    alert('导出功能开发中...');
+    var url = '@Url.Action("ExportRecyclers", "Staff")';
+    var params = [];
+    
+    if (searchTerm) {
+        params.push('searchTerm=' + encodeURIComponent(searchTerm));
+    }
+    if (statusFilter !== null) {
+        params.push('isActive=' + statusFilter);
+    }
+    
+    if (params.length > 0) {
+        url += '?' + params.join('&');
+    }
+    
+    window.location.href = url;
 }
 </script>
 }

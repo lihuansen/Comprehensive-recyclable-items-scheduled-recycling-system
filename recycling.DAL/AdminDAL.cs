@@ -111,6 +111,57 @@ namespace recycling.DAL
             return stats;
         }
 
+        /// <summary>
+        /// Get all users for export (without pagination)
+        /// </summary>
+        public List<Users> GetAllUsersForExport(string searchTerm = null)
+        {
+            var users = new List<Users>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // Build WHERE clause
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (Username LIKE @SearchTerm OR Email LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm)";
+                }
+
+                string query = $@"
+                    SELECT UserID, Username, Email, PhoneNumber, RegistrationDate, LastLoginDate 
+                    FROM Users 
+                    {whereClause}
+                    ORDER BY RegistrationDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", $"%{searchTerm}%");
+                }
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        users.Add(new Users
+                        {
+                            UserID = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            Email = reader.IsDBNull(2) ? null : reader.GetString(2),
+                            PhoneNumber = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            RegistrationDate = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                            LastLoginDate = reader.IsDBNull(5) ? (DateTime?)null : reader.GetDateTime(5)
+                        });
+                    }
+                }
+            }
+
+            return users;
+        }
+
         #endregion
 
         #region Recycler Management
@@ -359,6 +410,70 @@ namespace recycling.DAL
             }
 
             return stats;
+        }
+
+        /// <summary>
+        /// Get all recyclers for export (without pagination)
+        /// </summary>
+        public List<Recyclers> GetAllRecyclersForExport(string searchTerm = null, bool? isActive = null)
+        {
+            var recyclers = new List<Recyclers>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // Build WHERE clause
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR Region LIKE @SearchTerm)";
+                }
+                if (isActive.HasValue)
+                {
+                    whereClause += " AND IsActive = @IsActive";
+                }
+
+                string query = $@"
+                    SELECT RecyclerID, Username, PasswordHash, FullName, PhoneNumber, Region, 
+                           Rating, Available, IsActive, RegistrationDate 
+                    FROM Recyclers 
+                    {whereClause}
+                    ORDER BY RegistrationDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", $"%{searchTerm}%");
+                }
+                if (isActive.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        recyclers.Add(new Recyclers
+                        {
+                            RecyclerID = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            PasswordHash = reader.GetString(2),
+                            FullName = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            PhoneNumber = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Region = reader.IsDBNull(5) ? null : reader.GetString(5),
+                            Rating = reader.IsDBNull(6) ? (decimal?)null : reader.GetDecimal(6),
+                            Available = reader.IsDBNull(7) ? false : reader.GetBoolean(7),
+                            IsActive = reader.IsDBNull(8) ? false : reader.GetBoolean(8),
+                            RegistrationDate = reader.IsDBNull(9) ? (DateTime?)null : reader.GetDateTime(9)
+                        });
+                    }
+                }
+            }
+
+            return recyclers;
         }
 
         #endregion
