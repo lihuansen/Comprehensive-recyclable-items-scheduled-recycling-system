@@ -197,6 +197,8 @@
     <Content Include="Views\Staff\Message_Center.cshtml" />
     <Content Include="Views\Home\ContactRecycler.cshtml" />
     <Content Include="Views\Staff\HomepageManagement.cshtml" />
+    <Content Include="Views\Staff\HomepageCarouselManagement.cshtml" />
+    <Content Include="Views\Staff\RecyclableItemsManagement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
