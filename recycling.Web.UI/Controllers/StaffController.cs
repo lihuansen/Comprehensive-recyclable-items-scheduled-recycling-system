@@ -39,7 +39,7 @@ namespace recycling.Web.UI.Controllers
         private string EscapeCsvField(string field)
         {
             if (string.IsNullOrEmpty(field))
-                return field;
+                return string.Empty;
             
             // If field contains comma, quote, or newline, wrap it in quotes and escape any quotes
             if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
@@ -885,8 +885,9 @@ namespace recycling.Web.UI.Controllers
                     var isActive = user.LastLoginDate.HasValue && 
                                   (DateTime.Now - user.LastLoginDate.Value).TotalDays <= 30;
                     var status = isActive ? "活跃" : "不活跃";
+                    var lastLogin = user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
                     
-                    csv.AppendLine($"{user.UserID},{EscapeCsvField(user.Username)},{EscapeCsvField(user.Email)},{EscapeCsvField(user.PhoneNumber)},{user.RegistrationDate:yyyy-MM-dd HH:mm:ss},{user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录"},{status}");
+                    csv.AppendLine($"{user.UserID},{EscapeCsvField(user.Username)},{EscapeCsvField(user.Email)},{EscapeCsvField(user.PhoneNumber)},{user.RegistrationDate:yyyy-MM-dd HH:mm:ss},{EscapeCsvField(lastLogin)},{EscapeCsvField(status)}");
                 }
 
                 // Generate file
@@ -1061,8 +1062,11 @@ namespace recycling.Web.UI.Controllers
                 {
                     // Get completed orders count
                     var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recycler.RecyclerID);
+                    var availableStatus = recycler.Available ? "可接单" : "不可接单";
+                    var activeStatus = recycler.IsActive ? "激活" : "禁用";
+                    var createdDate = recycler.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
                     
-                    csv.AppendLine($"{recycler.RecyclerID},{EscapeCsvField(recycler.Username)},{EscapeCsvField(recycler.FullName ?? "-")},{EscapeCsvField(recycler.PhoneNumber)},{EscapeCsvField(recycler.Region)},{recycler.Rating?.ToString("F1") ?? "0.0"},{completedOrders},{(recycler.Available ? "可接单" : "不可接单")},{(recycler.IsActive ? "激活" : "禁用")},{recycler.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-"}");
+                    csv.AppendLine($"{recycler.RecyclerID},{EscapeCsvField(recycler.Username)},{EscapeCsvField(recycler.FullName ?? "-")},{EscapeCsvField(recycler.PhoneNumber)},{EscapeCsvField(recycler.Region)},{EscapeCsvField(recycler.Rating?.ToString("F1") ?? "0.0")},{completedOrders},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
 
                 // Generate file
@@ -1316,7 +1320,11 @@ namespace recycling.Web.UI.Controllers
                 // Add data rows
                 foreach (var admin in admins)
                 {
-                    csv.AppendLine($"{admin.AdminID},{EscapeCsvField(admin.Username)},{EscapeCsvField(admin.FullName)},{admin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-"},{admin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录"},{((admin.IsActive ?? true) ? "激活" : "禁用")}");
+                    var createdDate = admin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
+                    var lastLoginDate = admin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
+                    var activeStatus = (admin.IsActive ?? true) ? "激活" : "禁用";
+                    
+                    csv.AppendLine($"{admin.AdminID},{EscapeCsvField(admin.Username)},{EscapeCsvField(admin.FullName)},{EscapeCsvField(createdDate)},{EscapeCsvField(lastLoginDate)},{EscapeCsvField(activeStatus)}");
                 }
 
                 // Generate file
