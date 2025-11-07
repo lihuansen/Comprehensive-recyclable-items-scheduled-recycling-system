@@ -842,6 +842,12 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult ExportUsers(string searchTerm = null)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
             try
             {
                 // Set EPPlus license
@@ -1042,6 +1048,12 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult ExportRecyclers(string searchTerm = null, bool? isActive = null)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
             try
             {
                 // Set EPPlus license
@@ -1292,6 +1304,12 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult ExportAdmins(string searchTerm = null, bool? isActive = null)
         {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
             try
             {
                 // Set EPPlus license
