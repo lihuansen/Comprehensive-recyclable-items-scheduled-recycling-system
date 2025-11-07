@@ -845,7 +845,7 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 // Set EPPlus license
-                ExcelPackage.License = OfficeOpenXml.License.NonCommercial;
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
                 // Get all users without pagination for export
                 var users = _adminBLL.GetAllUsersForExport(searchTerm);
@@ -1045,7 +1045,7 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 // Set EPPlus license
-                ExcelPackage.License = OfficeOpenXml.License.NonCommercial;
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
                 // Get all recyclers without pagination for export
                 var recyclers = _adminBLL.GetAllRecyclersForExport(searchTerm, isActive);
