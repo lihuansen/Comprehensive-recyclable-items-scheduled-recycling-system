@@ -1126,13 +1126,23 @@ namespace recycling.Web.UI.Controllers
                     // Validate file type
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
                     
-                    if (carousel.MediaType == "Image" && !AllowedImageExtensions.Contains(fileExtension))
+                    if (carousel.MediaType == "Image")
                     {
-                        return JsonContent(new { success = false, message = "图片格式不支持，请上传 jpg, jpeg, png 或 gif 格式" });
+                        if (!AllowedImageExtensions.Contains(fileExtension))
+                        {
+                            return JsonContent(new { success = false, message = "图片格式不支持，请上传 jpg, jpeg, png 或 gif 格式" });
+                        }
                     }
-                    else if (carousel.MediaType == "Video" && !AllowedVideoExtensions.Contains(fileExtension))
+                    else if (carousel.MediaType == "Video")
                     {
-                        return JsonContent(new { success = false, message = "视频格式不支持，请上传 mp4, webm 或 ogg 格式" });
+                        if (!AllowedVideoExtensions.Contains(fileExtension))
+                        {
+                            return JsonContent(new { success = false, message = "视频格式不支持，请上传 mp4, webm 或 ogg 格式" });
+                        }
+                    }
+                    else
+                    {
+                        return JsonContent(new { success = false, message = "无效的媒体类型" });
                     }
 
                     // Generate unique filename
@@ -1194,13 +1204,23 @@ namespace recycling.Web.UI.Controllers
                     // Validate file type
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
                     
-                    if (carousel.MediaType == "Image" && !AllowedImageExtensions.Contains(fileExtension))
+                    if (carousel.MediaType == "Image")
                     {
-                        return JsonContent(new { success = false, message = "图片格式不支持，请上传 jpg, jpeg, png 或 gif 格式" });
+                        if (!AllowedImageExtensions.Contains(fileExtension))
+                        {
+                            return JsonContent(new { success = false, message = "图片格式不支持，请上传 jpg, jpeg, png 或 gif 格式" });
+                        }
                     }
-                    else if (carousel.MediaType == "Video" && !AllowedVideoExtensions.Contains(fileExtension))
+                    else if (carousel.MediaType == "Video")
                     {
-                        return JsonContent(new { success = false, message = "视频格式不支持，请上传 mp4, webm 或 ogg 格式" });
+                        if (!AllowedVideoExtensions.Contains(fileExtension))
+                        {
+                            return JsonContent(new { success = false, message = "视频格式不支持，请上传 mp4, webm 或 ogg 格式" });
+                        }
+                    }
+                    else
+                    {
+                        return JsonContent(new { success = false, message = "无效的媒体类型" });
                     }
 
                     // Get old file path to delete later
