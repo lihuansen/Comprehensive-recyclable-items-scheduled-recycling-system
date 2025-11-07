@@ -7,6 +7,9 @@ namespace recycling.Common
     /// </summary>
     public static class DateTimeExtensions
     {
+        // Unix时间戳起始时间
+        private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         /// <summary>
         /// 转换为中文日期格式（例如：2024年1月1日）
         /// </summary>
@@ -257,7 +260,7 @@ namespace recycling.Common
         /// <returns>Unix时间戳</returns>
         public static long ToUnixTimestamp(this DateTime dateTime)
         {
-            return (long)(dateTime.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
+            return (long)(dateTime.ToUniversalTime() - UnixEpoch).TotalSeconds;
         }
 
         /// <summary>
@@ -267,7 +270,7 @@ namespace recycling.Common
         /// <returns>日期时间</returns>
         public static DateTime FromUnixTimestamp(long timestamp)
         {
-            return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(timestamp).ToLocalTime();
+            return UnixEpoch.AddSeconds(timestamp).ToLocalTime();
         }
     }
 }

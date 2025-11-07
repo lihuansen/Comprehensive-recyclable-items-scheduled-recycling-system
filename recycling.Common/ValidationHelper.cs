@@ -8,6 +8,17 @@ namespace recycling.Common
     /// </summary>
     public static class ValidationHelper
     {
+        // 预编译的正则表达式，提高性能
+        private static readonly Regex PhoneNumberRegex = new Regex(@"^1[3-9]\d{9}$", RegexOptions.Compiled);
+        private static readonly Regex EmailRegex = new Regex(@"^[^\s@]+@[^\s@]+\.[^\s@]+$", RegexOptions.Compiled);
+        private static readonly Regex UsernameRegex = new Regex(@"^[\u4e00-\u9fa5a-zA-Z0-9_]+$", RegexOptions.Compiled);
+        private static readonly Regex NumericRegex = new Regex(@"^-?\d+\.?\d*$", RegexOptions.Compiled);
+        private static readonly Regex DigitsOnlyRegex = new Regex(@"^\d+$", RegexOptions.Compiled);
+        private static readonly Regex UpperCaseRegex = new Regex(@"[A-Z]", RegexOptions.Compiled);
+        private static readonly Regex LowerCaseRegex = new Regex(@"[a-z]", RegexOptions.Compiled);
+        private static readonly Regex DigitRegex = new Regex(@"\d", RegexOptions.Compiled);
+        private static readonly Regex SpecialCharRegex = new Regex(@"[!@#$%^&*(),.?""':{}|<>]", RegexOptions.Compiled);
+
         /// <summary>
         /// 验证手机号格式
         /// </summary>
@@ -19,7 +30,7 @@ namespace recycling.Common
                 return false;
 
             // 中国大陆手机号：1开头，第二位3-9，总共11位数字
-            return Regex.IsMatch(phoneNumber, @"^1[3-9]\d{9}$");
+            return PhoneNumberRegex.IsMatch(phoneNumber);
         }
 
         /// <summary>
@@ -33,7 +44,7 @@ namespace recycling.Common
                 return false;
 
             // 基本的邮箱格式验证
-            return Regex.IsMatch(email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$");
+            return EmailRegex.IsMatch(email);
         }
 
         /// <summary>
@@ -52,7 +63,7 @@ namespace recycling.Common
                 return false;
 
             // 允许字母、数字、中文、下划线，不允许特殊字符
-            return Regex.IsMatch(username, @"^[\u4e00-\u9fa5a-zA-Z0-9_]+$");
+            return UsernameRegex.IsMatch(username);
         }
 
         /// <summary>
@@ -83,10 +94,10 @@ namespace recycling.Common
             if (password.Length < 8)
                 return false;
 
-            bool hasUpper = Regex.IsMatch(password, @"[A-Z]");
-            bool hasLower = Regex.IsMatch(password, @"[a-z]");
-            bool hasDigit = Regex.IsMatch(password, @"\d");
-            bool hasSpecial = Regex.IsMatch(password, @"[!@#$%^&*(),.?""':{}|<>]");
+            bool hasUpper = UpperCaseRegex.IsMatch(password);
+            bool hasLower = LowerCaseRegex.IsMatch(password);
+            bool hasDigit = DigitRegex.IsMatch(password);
+            bool hasSpecial = SpecialCharRegex.IsMatch(password);
 
             return hasUpper && hasLower && hasDigit && hasSpecial;
         }

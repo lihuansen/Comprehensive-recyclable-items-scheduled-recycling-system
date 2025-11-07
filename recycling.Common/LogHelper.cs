@@ -175,13 +175,15 @@ namespace recycling.Common
                     if (fileInfo.CreationTime < cutoffDate)
                     {
                         File.Delete(file);
-                        Info($"已删除过期日志文件：{fileInfo.Name}");
+                        // 使用 Console.WriteLine 避免在日志清理中再次调用日志方法
+                        Console.WriteLine($"已删除过期日志文件：{fileInfo.Name}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Error("清理旧日志文件失败", ex);
+                // 清理失败时输出到控制台，避免递归调用
+                Console.WriteLine($"清理旧日志文件失败：{ex.Message}");
             }
         }
 

@@ -126,10 +126,16 @@ namespace recycling.Common
         /// </summary>
         public static class Files
         {
+            // 使用私有只读数组和公共属性，防止外部修改
+            private static readonly string[] _allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+
             /// <summary>
-            /// 允许上传的图片文件扩展名
+            /// 允许上传的图片文件扩展名（只读副本）
             /// </summary>
-            public static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+            public static string[] AllowedImageExtensions
+            {
+                get { return (string[])_allowedImageExtensions.Clone(); }
+            }
 
             /// <summary>
             /// 最大文件大小（字节） - 5MB

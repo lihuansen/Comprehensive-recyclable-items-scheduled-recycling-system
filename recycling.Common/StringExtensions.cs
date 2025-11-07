@@ -9,6 +9,12 @@ namespace recycling.Common
     /// </summary>
     public static class StringExtensions
     {
+        // 预编译的正则表达式，提高性能
+        private static readonly Regex HtmlTagRegex = new Regex(@"<[^>]*>", RegexOptions.Compiled);
+        private static readonly Regex WhitespaceRegex = new Regex(@"\s+", RegexOptions.Compiled);
+        private static readonly Regex NumericRegex = new Regex(@"^-?\d+\.?\d*$", RegexOptions.Compiled);
+        private static readonly Regex DigitsOnlyRegex = new Regex(@"^\d+$", RegexOptions.Compiled);
+
         /// <summary>
         /// 判断字符串是否为空或null
         /// </summary>
@@ -54,7 +60,7 @@ namespace recycling.Common
             if (string.IsNullOrEmpty(html))
                 return html;
 
-            return Regex.Replace(html, @"<[^>]*>", string.Empty);
+            return HtmlTagRegex.Replace(html, string.Empty);
         }
 
         /// <summary>
@@ -96,7 +102,7 @@ namespace recycling.Common
             if (string.IsNullOrEmpty(str))
                 return str;
 
-            return Regex.Replace(str, @"\s+", string.Empty);
+            return WhitespaceRegex.Replace(str, string.Empty);
         }
 
         /// <summary>
@@ -171,7 +177,7 @@ namespace recycling.Common
             if (string.IsNullOrWhiteSpace(str))
                 return false;
 
-            return Regex.IsMatch(str, @"^-?\d+\.?\d*$");
+            return NumericRegex.IsMatch(str);
         }
 
         /// <summary>
