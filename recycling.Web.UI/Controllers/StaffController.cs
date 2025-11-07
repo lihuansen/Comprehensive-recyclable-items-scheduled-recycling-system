@@ -19,6 +19,10 @@ namespace recycling.Web.UI.Controllers
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
 
+        // File upload constants
+        private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+        private static readonly string[] AllowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
+
         /// <summary>
         /// Helper method to return JSON with proper UTF-8 encoding
         /// </summary>
@@ -1120,15 +1124,13 @@ namespace recycling.Web.UI.Controllers
                 if (MediaFile != null && MediaFile.ContentLength > 0)
                 {
                     // Validate file type
-                    string[] allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
-                    string[] allowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
                     
-                    if (carousel.MediaType == "Image" && !allowedImageExtensions.Contains(fileExtension))
+                    if (carousel.MediaType == "Image" && !AllowedImageExtensions.Contains(fileExtension))
                     {
                         return JsonContent(new { success = false, message = "图片格式不支持，请上传 jpg, jpeg, png 或 gif 格式" });
                     }
-                    else if (carousel.MediaType == "Video" && !allowedVideoExtensions.Contains(fileExtension))
+                    else if (carousel.MediaType == "Video" && !AllowedVideoExtensions.Contains(fileExtension))
                     {
                         return JsonContent(new { success = false, message = "视频格式不支持，请上传 mp4, webm 或 ogg 格式" });
                     }
@@ -1190,15 +1192,13 @@ namespace recycling.Web.UI.Controllers
                 if (MediaFile != null && MediaFile.ContentLength > 0)
                 {
                     // Validate file type
-                    string[] allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
-                    string[] allowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
                     
-                    if (carousel.MediaType == "Image" && !allowedImageExtensions.Contains(fileExtension))
+                    if (carousel.MediaType == "Image" && !AllowedImageExtensions.Contains(fileExtension))
                     {
                         return JsonContent(new { success = false, message = "图片格式不支持，请上传 jpg, jpeg, png 或 gif 格式" });
                     }
-                    else if (carousel.MediaType == "Video" && !allowedVideoExtensions.Contains(fileExtension))
+                    else if (carousel.MediaType == "Video" && !AllowedVideoExtensions.Contains(fileExtension))
                     {
                         return JsonContent(new { success = false, message = "视频格式不支持，请上传 mp4, webm 或 ogg 格式" });
                     }
@@ -1234,9 +1234,15 @@ namespace recycling.Web.UI.Controllers
                         {
                             System.IO.File.Delete(oldFilePath);
                         }
-                        catch
+                        catch (System.IO.IOException ex)
                         {
-                            // Ignore file deletion errors
+                            // Log file deletion error but continue - file may be in use
+                            System.Diagnostics.Debug.WriteLine($"Failed to delete old carousel file: {ex.Message}");
+                        }
+                        catch (UnauthorizedAccessException ex)
+                        {
+                            // Log permission error but continue
+                            System.Diagnostics.Debug.WriteLine($"No permission to delete old carousel file: {ex.Message}");
                         }
                     }
                 }
