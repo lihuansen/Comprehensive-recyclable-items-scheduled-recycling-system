@@ -232,5 +232,20 @@ namespace recycling.BLL
                 return (false, $"永久删除可回收物品失败：{ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Get the maximum SortOrder value
+        /// </summary>
+        public int GetMaxSortOrder()
+        {
+            try
+            {
+                return _recyclableItemDAL.GetMaxSortOrder();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("获取最大排序值失败：" + ex.Message);
+            }
+        }
     }
 }

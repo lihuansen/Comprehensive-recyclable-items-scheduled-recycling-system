@@ -191,5 +191,20 @@ namespace recycling.BLL
                 return (false, $"永久删除轮播内容失败：{ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Get the maximum DisplayOrder value
+        /// </summary>
+        public int GetMaxDisplayOrder()
+        {
+            try
+            {
+                return _carouselDAL.GetMaxDisplayOrder();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("获取最大排序值失败：" + ex.Message);
+            }
+        }
     }
 }

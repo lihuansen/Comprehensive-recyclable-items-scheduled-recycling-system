@@ -34,6 +34,24 @@
         color: white;
     }
 
+    .btn-back {
+        background: linear-gradient(45deg, #6c757d, #5a6268);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        transition: all 0.3s ease;
+        margin-right: 10px;
+    }
+
+    .btn-back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        color: white;
+    }
+
     .table-container {
         background: white;
         border-radius: 10px;
@@ -113,9 +131,14 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="page-title">可回收物管理</h1>
-            <button class="btn btn-add" onclick="showAddModal()">
-                <i class="fas fa-plus-circle"></i> 新增物品
-            </button>
+            <div>
+                <a href="@Url.Action("HomepageManagement", "Staff")" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> 返回首页管理
+                </a>
+                <button class="btn btn-add" onclick="showAddModal()">
+                    <i class="fas fa-plus-circle"></i> 新增物品
+                </button>
+            </div>
         </div>
     </div>
 
@@ -334,6 +357,26 @@
             $('#modalTitle').text('新增物品');
             $('#itemForm')[0].reset();
             $('#itemId').val('0');
+            
+            // Get max sort order and set to max + 1
+            $.ajax({
+                url: '@Url.Action("GetMaxRecyclableItemOrder", "Staff")',
+                type: 'POST',
+                data: { 
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#sortOrder').val(response.maxOrder + 1);
+                    } else {
+                        $('#sortOrder').val(0);
+                    }
+                },
+                error: function () {
+                    $('#sortOrder').val(0);
+                }
+            });
+            
             $('#itemModal').modal('show');
         }
 
