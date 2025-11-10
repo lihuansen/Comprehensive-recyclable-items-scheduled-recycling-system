@@ -18,6 +18,7 @@ namespace recycling.Web.UI.Controllers
         private readonly StaffBLL _staffBLL = new StaffBLL();
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly AdminContactBLL _adminContactBLL = new AdminContactBLL();
+        private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -293,6 +294,46 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
+
+        /// <summary>
+        /// 提交用户反馈
+        /// </summary>
+        [HttpPost]
+        public JsonResult SubmitFeedback(string FeedbackType, string Subject, string Description, string ContactEmail)
+        {
+            try
+            {
+                // 检查登录状态
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+
+                // 创建反馈对象
+                var feedback = new UserFeedback
+                {
+                    UserID = user.UserID,
+                    FeedbackType = FeedbackType,
+                    Subject = Subject,
+                    Description = Description,
+                    ContactEmail = ContactEmail,
+                    Status = "待处理",
+                    CreatedDate = DateTime.Now
+                };
+
+                // 调用BLL层添加反馈
+                var (success, message) = _feedbackBLL.AddFeedback(feedback);
+
+                return Json(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "提交失败：" + ex.Message });
+            }
+        }
+
         /// <summary>
         /// 个人中心主页
         /// </summary>

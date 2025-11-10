@@ -4,319 +4,500 @@
 }
 
 <style>
-    .chat-container {
+    .feedback-container {
         max-width: 1400px;
         margin: 20px auto;
         padding: 20px;
     }
 
-    .chat-header {
+    .feedback-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 20px 30px;
+        padding: 25px 30px;
         border-radius: 15px 15px 0 0;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    .chat-header h2 {
+    .feedback-header h2 {
         margin: 0;
         font-size: 24px;
         font-weight: 600;
     }
 
-    .chat-body {
+    .header-actions {
         display: flex;
+        gap: 15px;
+    }
+
+    .btn-header-action {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid white;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-header-action:hover {
+        background: white;
+        color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    }
+
+    .feedback-body {
         background: white;
         border-radius: 0 0 15px 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        height: 650px;
+        padding: 30px;
     }
 
-    .conversation-list {
-        width: 350px;
-        border-right: 1px solid #e0e0e0;
-        overflow-y: auto;
-    }
-
-    .conversation-item {
-        padding: 15px;
-        border-bottom: 1px solid #f0f0f0;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-
-    .conversation-item:hover {
-        background-color: #f8f9fa;
-    }
-
-    .conversation-item.active {
-        background-color: #e3f2fd;
-        border-left: 4px solid #667eea;
-    }
-
-    .conversation-user {
-        font-weight: bold;
-        font-size: 14px;
-        margin-bottom: 5px;
-    }
-
-    .conversation-status {
-        font-size: 12px;
-        color: #666;
-        margin-top: 5px;
-    }
-
-    .conversation-time {
-        font-size: 11px;
-        color: #999;
-    }
-
-    .conversation-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: bold;
-        margin-left: 5px;
-    }
-
-    .conversation-badge.active {
-        background: #28a745;
-        color: white;
-    }
-
-    .conversation-badge.ended {
-        background: #6c757d;
-        color: white;
-    }
-
-    .chat-main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .chat-info-bar {
-        padding: 15px 20px;
+    .filter-section {
+        margin-bottom: 25px;
+        padding: 20px;
         background: #f8f9fa;
-        border-bottom: 1px solid #e0e0e0;
+        border-radius: 10px;
     }
 
-    .chat-info-bar h4 {
-        margin: 0;
-        font-size: 16px;
-        color: #333;
-    }
-
-    .user-info {
-        font-size: 13px;
-        color: #666;
-        margin-top: 5px;
-    }
-
-    .chat-messages {
-        flex: 1;
-        padding: 20px;
-        overflow-y: auto;
-        background-color: #f8f9fa;
-    }
-
-    .message-wrapper {
-        margin-bottom: 15px;
+    .filter-group {
         display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
     }
 
-    .message-wrapper.user {
-        justify-content: flex-start;
+    .filter-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-right: 10px;
     }
 
-    .message-wrapper.admin {
-        justify-content: flex-end;
-    }
-
-    .message-wrapper.system {
-        justify-content: center;
-    }
-
-    .message {
-        max-width: 60%;
-        padding: 10px 15px;
-        border-radius: 15px;
-        word-wrap: break-word;
-    }
-
-    .message.user {
-        background: white;
-        color: #333;
-        border: 1px solid #e0e0e0;
-        border-bottom-left-radius: 5px;
-    }
-
-    .message.admin {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-bottom-right-radius: 5px;
-    }
-
-    .message.system {
-        background: #f0f0f0;
-        color: #666;
-        font-size: 13px;
-        padding: 6px 12px;
-        border-radius: 15px;
-        text-align: center;
-    }
-
-    .message-time {
-        font-size: 11px;
-        color: #999;
-        margin-top: 5px;
-    }
-
-    .message.admin .message-time {
-        color: rgba(255,255,255,0.8);
-    }
-
-    .chat-input-area {
-        padding: 20px;
-        border-top: 1px solid #e0e0e0;
-        background: white;
-    }
-
-    .input-group {
-        display: flex;
-        gap: 10px;
-    }
-
-    .chat-input {
-        flex: 1;
-        padding: 12px 15px;
+    .filter-select, .filter-input {
+        padding: 8px 15px;
         border: 2px solid #e0e0e0;
-        border-radius: 25px;
+        border-radius: 8px;
         font-size: 14px;
         transition: border-color 0.3s;
     }
 
-    .chat-input:focus {
+    .filter-select:focus, .filter-input:focus {
         outline: none;
         border-color: #667eea;
     }
 
-    .btn-send, .btn-end {
-        padding: 12px 25px;
+    .btn-filter {
+        padding: 8px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
         border: none;
-        border-radius: 25px;
+        border-radius: 8px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s;
     }
 
-    .btn-send {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .btn-send:hover {
+    .btn-filter:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
-    .btn-end {
-        background: #dc3545;
+    .feedback-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .feedback-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
     }
 
-    .btn-end:hover {
-        background: #c82333;
+    .feedback-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .feedback-table tbody tr {
+        border-bottom: 1px solid #e0e0e0;
+        transition: background-color 0.3s;
+    }
+
+    .feedback-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .feedback-table td {
+        padding: 15px;
+    }
+
+    .badge-type {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-type.问题反馈 {
+        background: #ffeaa7;
+        color: #d63031;
+    }
+
+    .badge-type.功能建议 {
+        background: #dfe6e9;
+        color: #2d3436;
+    }
+
+    .badge-type.投诉举报 {
+        background: #fab1a0;
+        color: #e17055;
+    }
+
+    .badge-type.其他 {
+        background: #74b9ff;
+        color: #0984e3;
+    }
+
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-status.待处理 {
+        background: #ffeaa7;
+        color: #fdcb6e;
+    }
+
+    .badge-status.处理中 {
+        background: #74b9ff;
+        color: #0984e3;
+    }
+
+    .badge-status.已完成 {
+        background: #55efc4;
+        color: #00b894;
+    }
+
+    .badge-status.已关闭 {
+        background: #dfe6e9;
+        color: #636e72;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        margin-right: 5px;
+        border: none;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-view {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #5568d3;
+    }
+
+    .btn-reply {
+        background: #00b894;
+        color: white;
+    }
+
+    .btn-reply:hover {
+        background: #00a085;
     }
 
     .empty-state {
         text-align: center;
-        padding: 40px;
+        padding: 60px 20px;
         color: #999;
     }
 
-    .filter-buttons {
-        padding: 15px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e0e0e0;
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        color: #ddd;
+    }
+
+    .pagination {
         display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 30px;
         gap: 10px;
     }
 
-    .filter-btn {
-        flex: 1;
-        padding: 8px;
+    .pagination button {
+        padding: 8px 15px;
         border: 1px solid #ddd;
         background: white;
         border-radius: 5px;
         cursor: pointer;
-        font-size: 13px;
         transition: all 0.3s;
     }
 
-    .filter-btn:hover {
-        background: #f0f0f0;
-    }
-
-    .filter-btn.active {
+    .pagination button:hover:not(:disabled) {
         background: #667eea;
         color: white;
         border-color: #667eea;
     }
+
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination span {
+        color: #666;
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 15px;
+        width: 80%;
+        max-width: 800px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 15px 15px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+    }
+
+    .modal-close {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+
+    .modal-close:hover {
+        opacity: 0.7;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .detail-group {
+        margin-bottom: 20px;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .detail-value {
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        color: #666;
+    }
+
+    .reply-form {
+        margin-top: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .btn-submit-reply {
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-submit-reply:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
 </style>
 
-<div class="chat-container">
-    <div class="chat-header">
-        <h2><i class="fas fa-comments"></i> 用户反馈与咨询管理</h2>
+<div class="feedback-container">
+    <div class="feedback-header">
+        <h2><i class="fas fa-clipboard-list"></i> 反馈管理</h2>
+        <div class="header-actions">
+            <a href="@Url.Action("UserContactManagement", "Staff")" class="btn-header-action">
+                <i class="fas fa-comments"></i> 用户联系
+            </a>
+            <a href="@Url.Action("HistoryConversations", "Staff")" class="btn-header-action">
+                <i class="fas fa-history"></i> 历史对话
+            </a>
+        </div>
     </div>
 
-    <div class="chat-body">
-        <div class="conversation-list">
-            <div class="filter-buttons">
-                <button class="filter-btn active" onclick="filterConversations('all')">全部</button>
-                <button class="filter-btn" onclick="filterConversations('active')">进行中</button>
-                <button class="filter-btn" onclick="filterConversations('ended')">已结束</button>
-            </div>
-            <div id="conversationList">
-                <div class="empty-state">加载中...</div>
+    <div class="feedback-body">
+        <div class="filter-section">
+            <div class="filter-group">
+                <span class="filter-label">筛选：</span>
+                <select id="filterType" class="filter-select">
+                    <option value="">全部类型</option>
+                    <option value="问题反馈">问题反馈</option>
+                    <option value="功能建议">功能建议</option>
+                    <option value="投诉举报">投诉举报</option>
+                    <option value="其他">其他</option>
+                </select>
+                <select id="filterStatus" class="filter-select">
+                    <option value="">全部状态</option>
+                    <option value="待处理">待处理</option>
+                    <option value="处理中">处理中</option>
+                    <option value="已完成">已完成</option>
+                    <option value="已关闭">已关闭</option>
+                </select>
+                <input type="text" id="searchKeyword" class="filter-input" placeholder="搜索关键词...">
+                <button class="btn-filter" onclick="loadFeedbacks()">
+                    <i class="fas fa-search"></i> 搜索
+                </button>
             </div>
         </div>
 
-        <div class="chat-main">
-            <div class="chat-info-bar" id="chatInfoBar" style="display:none;">
-                <h4 id="currentUserName">用户名称</h4>
-                <div class="user-info" id="currentUserInfo">用户信息</div>
-            </div>
+        <table class="feedback-table">
+            <thead>
+                <tr>
+                    <th>反馈ID</th>
+                    <th>用户</th>
+                    <th>类型</th>
+                    <th>主题</th>
+                    <th>状态</th>
+                    <th>提交时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="feedbackTableBody">
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>加载中...</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-            <div class="chat-messages" id="chatMessages">
-                <div class="empty-state">
-                    <i class="fas fa-comments" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
-                    <p>请从左侧选择一个对话</p>
-                </div>
-            </div>
+        <div class="pagination" id="pagination"></div>
+    </div>
+</div>
 
-            <div class="chat-input-area">
-                <div class="input-group">
-                    <input type="text" id="messageInput" class="chat-input" placeholder="输入回复消息..." disabled>
-                    <button class="btn-send" onclick="sendMessage()" disabled id="btnSend">
-                        <i class="fas fa-paper-plane"></i> 发送
-                    </button>
-                    <button class="btn-end" onclick="endConversation()" disabled id="btnEnd">
-                        <i class="fas fa-times"></i> 结束对话
-                    </button>
+<!-- Detail Modal -->
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>反馈详情</h3>
+            <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="detailModalBody">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div id="replyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>回复反馈</h3>
+            <button class="modal-close" onclick="closeReplyModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="replyFeedbackInfo"></div>
+            <form class="reply-form" id="replyForm">
+                <input type="hidden" id="replyFeedbackId">
+                <div class="form-group">
+                    <label class="form-label">处理状态</label>
+                    <select id="replyStatus" class="form-control">
+                        <option value="处理中">处理中</option>
+                        <option value="已完成">已完成</option>
+                        <option value="已关闭">已关闭</option>
+                    </select>
                 </div>
-            </div>
+                <div class="form-group">
+                    <label class="form-label">管理员回复</label>
+                    <textarea id="replyContent" class="form-control" rows="6" placeholder="请输入回复内容..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit-reply">
+                    <i class="fas fa-paper-plane"></i> 提交回复
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
 @section scripts {
     <script>
-        let currentUserId = null;
-        let currentConversationId = null;
-        let allConversations = [];
-        let currentFilter = 'all';
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalPages = 1;
 
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
@@ -328,254 +509,262 @@
             try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
         }
 
-        function loadConversations() {
-            fetch('@Url.Action("GetAllAdminContacts", "Staff")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    allConversations = data.conversations || [];
-                    displayConversations(allConversations);
-                } else {
-                    document.getElementById('conversationList').innerHTML = '<div class="empty-state">加载失败</div>';
-                }
-            })
-            .catch(err => {
-                console.error('加载会话列表出错', err);
-                document.getElementById('conversationList').innerHTML = '<div class="empty-state">加载失败</div>';
-            });
-        }
+        function loadFeedbacks() {
+            const filterType = document.getElementById('filterType').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            const searchKeyword = document.getElementById('searchKeyword').value;
 
-        function filterConversations(filter) {
-            currentFilter = filter;
-            
-            // Update filter button states
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            let filtered = allConversations;
-            if (filter === 'active') {
-                filtered = allConversations.filter(c => !c.userEnded || !c.adminEnded);
-            } else if (filter === 'ended') {
-                filtered = allConversations.filter(c => c.userEnded && c.adminEnded);
-            }
-
-            displayConversations(filtered);
-        }
-
-        function displayConversations(conversations) {
-            const container = document.getElementById('conversationList');
-            
-            if (conversations.length === 0) {
-                container.innerHTML = '<div class="empty-state">暂无对话记录</div>';
-                return;
-            }
-
-            let html = '';
-            conversations.forEach(function(conv) {
-                const isActive = currentUserId === conv.userID;
-                const isEnded = conv.userEnded && conv.adminEnded;
-                const statusBadge = isEnded ? 
-                    '<span class="conversation-badge ended">已结束</span>' : 
-                    '<span class="conversation-badge active">进行中</span>';
-
-                html += '<div class="conversation-item' + (isActive ? ' active' : '') + '" ' +
-                    'onclick="selectConversation(' + conv.userID + ', ' + conv.conversationID + ')">' +
-                    '<div class="conversation-user">' +
-                    escapeHtml(conv.userName || '用户 #' + conv.userID) + 
-                    statusBadge +
-                    '</div>' +
-                    '<div class="conversation-time">开始: ' + formatTime(conv.startTime) + '</div>' +
-                    '<div class="conversation-status">会话ID: ' + conv.conversationID + '</div>' +
-                    '</div>';
-            });
-
-            container.innerHTML = html;
-        }
-
-        function selectConversation(userId, conversationId) {
-            currentUserId = userId;
-            currentConversationId = conversationId;
-
-            // Update active state
-            document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            // Load user info
-            loadUserInfo(userId);
-
-            // Load messages
-            loadMessages(userId);
-
-            // Check if conversation is ended
-            const conv = allConversations.find(c => c.conversationID === conversationId);
-            if (conv && conv.userEnded && conv.adminEnded) {
-                disableChatInput();
-            } else {
-                enableChatInput();
-            }
-        }
-
-        function loadUserInfo(userId) {
-            fetch('@Url.Action("GetUserInfo", "Staff")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: userId })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success && data.user) {
-                    document.getElementById('chatInfoBar').style.display = 'block';
-                    document.getElementById('currentUserName').textContent = data.user.username;
-                    document.getElementById('currentUserInfo').innerHTML = 
-                        '<i class="fas fa-phone"></i> ' + escapeHtml(data.user.phoneNumber) + 
-                        ' | <i class="fas fa-envelope"></i> ' + escapeHtml(data.user.email);
-                }
-            })
-            .catch(err => console.error('加载用户信息出错', err));
-        }
-
-        function loadMessages(userId) {
-            fetch('@Url.Action("GetAdminContactMessagesForAdmin", "Staff")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: userId })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    displayMessages(data.messages);
-                }
-            })
-            .catch(err => console.error('加载消息出错', err));
-        }
-
-        function displayMessages(messages) {
-            const container = document.getElementById('chatMessages');
-            container.innerHTML = '';
-
-            if (!messages || messages.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>暂无消息</p></div>';
-                return;
-            }
-
-            messages.forEach(function(msg) {
-                const senderType = (msg.senderType || '').toLowerCase();
-                const wrapper = document.createElement('div');
-                wrapper.className = 'message-wrapper ' + senderType;
-
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message ' + senderType;
-
-                if (senderType === 'system') {
-                    messageDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content);
-                } else {
-                    const senderLabel = senderType === 'user' ? '用户' : '管理员';
-                    messageDiv.innerHTML = '<div>' + escapeHtml(msg.content) + '</div>' +
-                        '<div class="message-time">' + senderLabel + ' • ' + formatTime(msg.sentTime) + '</div>';
-                }
-
-                wrapper.appendChild(messageDiv);
-                container.appendChild(wrapper);
-            });
-
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const content = input.value.trim();
-
-            if (!content) {
-                alert('请输入消息内容');
-                return;
-            }
-
-            if (!currentUserId) {
-                alert('请先选择一个对话');
-                return;
-            }
-
-            fetch('@Url.Action("SendAdminContactMessageAsAdmin", "Staff")', {
+            fetch('@Url.Action("GetAllFeedbacks", "Staff")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: currentUserId,
-                    content: content
+                    feedbackType: filterType,
+                    status: filterStatus,
+                    searchKeyword: searchKeyword,
+                    page: currentPage,
+                    pageSize: pageSize
                 })
             })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    input.value = '';
-                    loadMessages(currentUserId);
+                    displayFeedbacks(data.feedbacks);
+                    totalPages = data.totalPages;
+                    updatePagination();
                 } else {
-                    alert(data.message || '发送失败');
+                    document.getElementById('feedbackTableBody').innerHTML = 
+                        '<tr><td colspan="7"><div class="empty-state"><p>加载失败</p></div></td></tr>';
                 }
             })
             .catch(err => {
-                console.error('发送消息出错', err);
-                alert('发送失败，请重试');
+                console.error('加载反馈出错', err);
+                document.getElementById('feedbackTableBody').innerHTML = 
+                    '<tr><td colspan="7"><div class="empty-state"><p>加载失败</p></div></td></tr>';
             });
         }
 
-        function endConversation() {
-            if (!currentUserId) return;
+        function displayFeedbacks(feedbacks) {
+            const tbody = document.getElementById('feedbackTableBody');
+            
+            if (!feedbacks || feedbacks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>暂无反馈记录</p></div></td></tr>';
+                return;
+            }
 
-            if (!confirm('确定要结束这个对话吗？')) return;
+            let html = '';
+            feedbacks.forEach(function(feedback) {
+                html += '<tr>' +
+                    '<td>' + feedback.FeedbackID + '</td>' +
+                    '<td>用户 #' + feedback.UserID + '</td>' +
+                    '<td><span class="badge-type ' + escapeHtml(feedback.FeedbackType) + '">' + escapeHtml(feedback.FeedbackType) + '</span></td>' +
+                    '<td>' + escapeHtml(feedback.Subject) + '</td>' +
+                    '<td><span class="badge-status ' + escapeHtml(feedback.Status) + '">' + escapeHtml(feedback.Status) + '</span></td>' +
+                    '<td>' + formatTime(feedback.CreatedDate) + '</td>' +
+                    '<td>' +
+                    '<button class="btn-action btn-view" onclick="viewDetail(' + feedback.FeedbackID + ')"><i class="fas fa-eye"></i> 查看</button>' +
+                    '<button class="btn-action btn-reply" onclick="showReplyModal(' + feedback.FeedbackID + ')"><i class="fas fa-reply"></i> 回复</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
 
-            fetch('@Url.Action("EndAdminContactAsAdmin", "Staff")', {
+            tbody.innerHTML = html;
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+
+            html += '<button onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage <= 1 ? 'disabled' : '') + '>' +
+                '<i class="fas fa-chevron-left"></i> 上一页</button>';
+            
+            html += '<span>第 ' + currentPage + ' / ' + totalPages + ' 页</span>';
+            
+            html += '<button onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage >= totalPages ? 'disabled' : '') + '>' +
+                '下一页 <i class="fas fa-chevron-right"></i></button>';
+
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            loadFeedbacks();
+        }
+
+        function viewDetail(feedbackId) {
+            fetch('@Url.Action("GetFeedbackDetail", "Staff")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: currentUserId })
+                body: JSON.stringify({ feedbackId: feedbackId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.feedback) {
+                    const feedback = data.feedback;
+                    let html = '';
+                    
+                    html += '<div class="detail-group">' +
+                        '<div class="detail-label">反馈ID</div>' +
+                        '<div class="detail-value">' + feedback.FeedbackID + '</div>' +
+                        '</div>';
+                    
+                    html += '<div class="detail-group">' +
+                        '<div class="detail-label">用户ID</div>' +
+                        '<div class="detail-value">用户 #' + feedback.UserID + '</div>' +
+                        '</div>';
+                    
+                    html += '<div class="detail-group">' +
+                        '<div class="detail-label">反馈类型</div>' +
+                        '<div class="detail-value"><span class="badge-type ' + escapeHtml(feedback.FeedbackType) + '">' + escapeHtml(feedback.FeedbackType) + '</span></div>' +
+                        '</div>';
+                    
+                    html += '<div class="detail-group">' +
+                        '<div class="detail-label">反馈主题</div>' +
+                        '<div class="detail-value">' + escapeHtml(feedback.Subject) + '</div>' +
+                        '</div>';
+                    
+                    html += '<div class="detail-group">' +
+                        '<div class="detail-label">详细描述</div>' +
+                        '<div class="detail-value">' + escapeHtml(feedback.Description) + '</div>' +
+                        '</div>';
+                    
+                    if (feedback.ContactEmail) {
+                        html += '<div class="detail-group">' +
+                            '<div class="detail-label">联系邮箱</div>' +
+                            '<div class="detail-value">' + escapeHtml(feedback.ContactEmail) + '</div>' +
+                            '</div>';
+                    }
+                    
+                    html += '<div class="detail-group">' +
+                        '<div class="detail-label">当前状态</div>' +
+                        '<div class="detail-value"><span class="badge-status ' + escapeHtml(feedback.Status) + '">' + escapeHtml(feedback.Status) + '</span></div>' +
+                        '</div>';
+                    
+                    if (feedback.AdminReply) {
+                        html += '<div class="detail-group">' +
+                            '<div class="detail-label">管理员回复</div>' +
+                            '<div class="detail-value">' + escapeHtml(feedback.AdminReply) + '</div>' +
+                            '</div>';
+                    }
+                    
+                    html += '<div class="detail-group">' +
+                        '<div class="detail-label">提交时间</div>' +
+                        '<div class="detail-value">' + formatTime(feedback.CreatedDate) + '</div>' +
+                        '</div>';
+                    
+                    if (feedback.UpdatedDate) {
+                        html += '<div class="detail-group">' +
+                            '<div class="detail-label">更新时间</div>' +
+                            '<div class="detail-value">' + formatTime(feedback.UpdatedDate) + '</div>' +
+                            '</div>';
+                    }
+
+                    document.getElementById('detailModalBody').innerHTML = html;
+                    document.getElementById('detailModal').style.display = 'block';
+                } else {
+                    alert('加载详情失败');
+                }
+            })
+            .catch(err => {
+                console.error('加载详情出错', err);
+                alert('加载详情失败');
+            });
+        }
+
+        function showReplyModal(feedbackId) {
+            fetch('@Url.Action("GetFeedbackDetail", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ feedbackId: feedbackId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.feedback) {
+                    const feedback = data.feedback;
+                    document.getElementById('replyFeedbackId').value = feedback.FeedbackID;
+                    document.getElementById('replyStatus').value = feedback.Status;
+                    document.getElementById('replyContent').value = feedback.AdminReply || '';
+                    
+                    let infoHtml = '<div class="detail-group">' +
+                        '<div class="detail-label">反馈主题</div>' +
+                        '<div class="detail-value">' + escapeHtml(feedback.Subject) + '</div>' +
+                        '</div>' +
+                        '<div class="detail-group">' +
+                        '<div class="detail-label">详细描述</div>' +
+                        '<div class="detail-value">' + escapeHtml(feedback.Description) + '</div>' +
+                        '</div>';
+                    
+                    document.getElementById('replyFeedbackInfo').innerHTML = infoHtml;
+                    document.getElementById('replyModal').style.display = 'block';
+                } else {
+                    alert('加载反馈信息失败');
+                }
+            })
+            .catch(err => {
+                console.error('加载反馈信息出错', err);
+                alert('加载反馈信息失败');
+            });
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        function closeReplyModal() {
+            document.getElementById('replyModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('detailModal')) {
+                closeDetailModal();
+            }
+            if (event.target == document.getElementById('replyModal')) {
+                closeReplyModal();
+            }
+        }
+
+        // Reply form submission
+        document.getElementById('replyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const feedbackId = document.getElementById('replyFeedbackId').value;
+            const status = document.getElementById('replyStatus').value;
+            const reply = document.getElementById('replyContent').value.trim();
+
+            if (!reply) {
+                alert('请输入回复内容');
+                return;
+            }
+
+            fetch('@Url.Action("UpdateFeedbackStatus", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    feedbackId: parseInt(feedbackId),
+                    status: status,
+                    adminReply: reply
+                })
             })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    alert('对话已结束');
-                    loadMessages(currentUserId);
-                    loadConversations(); // Refresh conversation list
-                    disableChatInput();
+                    alert('回复成功');
+                    closeReplyModal();
+                    loadFeedbacks();
                 } else {
-                    alert(data.message || '结束对话失败');
+                    alert(data.message || '回复失败');
                 }
             })
             .catch(err => {
-                console.error('结束对话出错', err);
-                alert('操作失败，请重试');
+                console.error('回复出错', err);
+                alert('回复失败');
             });
-        }
+        });
 
-        function enableChatInput() {
-            document.getElementById('messageInput').disabled = false;
-            document.getElementById('btnSend').disabled = false;
-            document.getElementById('btnEnd').disabled = false;
-        }
-
-        function disableChatInput() {
-            document.getElementById('messageInput').disabled = true;
-            document.getElementById('btnSend').disabled = true;
-            document.getElementById('btnEnd').disabled = true;
-        }
-
-        // Auto-refresh conversations every 30 seconds
-        setInterval(function() {
-            if (!currentUserId) {
-                loadConversations();
-            }
-        }, 30000);
-
-        // 回车发送
+        // Load feedbacks on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadConversations();
-
-            document.getElementById('messageInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && !this.disabled) {
-                    sendMessage();
-                }
-            });
+            loadFeedbacks();
         });
     </script>
 }

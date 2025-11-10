@@ -20,6 +20,7 @@ namespace recycling.Web.UI.Controllers
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
         private readonly AdminContactBLL _adminContactBLL = new AdminContactBLL();
+        private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -1859,6 +1860,125 @@ namespace recycling.Web.UI.Controllers
             }
 
             return View();
+        }
+
+        /// <summary>
+        /// 用户联系管理页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult UserContactManagement()
+        {
+            // 检查是否是管理员登录
+            if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+            {
+                return RedirectToAction("RecyclerDashboard", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 历史对话页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult HistoryConversations()
+        {
+            // 检查是否是管理员登录
+            if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+            {
+                return RedirectToAction("RecyclerDashboard", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取所有反馈
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetAllFeedbacks(string feedbackType, string status, string searchKeyword, int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var (feedbacks, totalCount, totalPages) = _feedbackBLL.GetAllFeedbacks(
+                    feedbackType, 
+                    status, 
+                    searchKeyword, 
+                    page, 
+                    pageSize
+                );
+
+                return Json(new { 
+                    success = true, 
+                    feedbacks = feedbacks,
+                    totalCount = totalCount,
+                    totalPages = totalPages
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取反馈详情
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetFeedbackDetail(int feedbackId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var feedback = _feedbackBLL.GetFeedbackById(feedbackId);
+                
+                if (feedback == null)
+                    return Json(new { success = false, message = "反馈不存在" });
+
+                return Json(new { success = true, feedback = feedback });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 更新反馈状态和回复
+        /// </summary>
+        [HttpPost]
+        public JsonResult UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var (success, message) = _feedbackBLL.UpdateFeedbackStatus(feedbackId, status, adminReply);
+
+                return Json(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         /// <summary>
