@@ -1,137 +1,137 @@
 @{
-    ViewBag.Title = "历史会话";
-    Layout = "~/Views/Shared/_RecyclerLayout.cshtml";
+    ViewBag.Title = "历史对话";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <style>
     .history-container {
         max-width: 1400px;
-        margin: 0 auto;
+        margin: 20px auto;
         padding: 20px;
     }
 
-    .history-list-panel {
-        background: white;
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        height: 600px;
-        overflow-y: auto;
-    }
-
-    .history-item {
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: 2px solid transparent;
-    }
-
-    .history-item:hover {
-        background: #f8f9fa;
-        border-color: #3498db;
-    }
-
-    .history-item.active {
-        background: #e3f2fd;
-        border-color: #3498db;
-    }
-
-    .history-order-number {
-        font-weight: 600;
-        color: #3498db;
-        font-size: 16px;
-        margin-bottom: 5px;
-    }
-
-    .history-user-name {
-        color: #666;
-        font-size: 14px;
-        margin-bottom: 5px;
-    }
-
-    .history-time {
-        color: #999;
-        font-size: 12px;
-    }
-
-    .messages-panel {
-        background: white;
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        height: 600px;
+    .history-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 15px 15px 0 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    .messages-header {
-        padding: 15px;
-        border-bottom: 2px solid #f0f0f0;
+    .history-header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .btn-header-action {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid white;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-header-action:hover {
+        background: white;
+        color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    }
+
+    .history-body {
+        background: white;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+
+    .conversations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .conversation-card {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        padding: 20px;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .conversation-card:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .conversation-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 15px;
     }
 
-    .messages-header h5 {
-        margin: 0;
-        color: #333;
+    .conversation-id {
         font-weight: 600;
+        color: #2c3e50;
+        font-size: 16px;
     }
 
-    .messages-body {
-        flex: 1;
-        overflow-y: auto;
-        padding: 15px;
-        background: #f8f9fa;
-        border-radius: 10px;
-    }
-
-    .message-item {
-        margin-bottom: 20px;
-        animation: fadeIn 0.3s ease;
-    }
-
-    .message-item.text-right {
-        text-align: right;
-    }
-
-    .message-sender {
+    .conversation-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
         font-size: 12px;
-        color: #999;
-        margin-bottom: 5px;
+        font-weight: 600;
+        background: #dfe6e9;
+        color: #636e72;
     }
 
-    .message-bubble {
-        display: inline-block;
-        max-width: 70%;
-        padding: 12px 16px;
-        border-radius: 18px;
-        word-wrap: break-word;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .message-bubble.user-message {
-        background: #3498db;
-        color: white;
-    }
-
-    .message-bubble.recycler-message {
-        background: #ecf0f1;
-        color: #333;
-    }
-
-    .message-bubble.system-message {
-        background: #f0f0f0;
+    .conversation-info {
+        margin-bottom: 10px;
         color: #666;
-        font-style: italic;
-        text-align: center;
-        max-width: 100%;
+        font-size: 14px;
     }
 
-    .message-time {
-        font-size: 11px;
-        color: #999;
-        margin-top: 5px;
+    .conversation-info i {
+        width: 20px;
+        color: #667eea;
+    }
+
+    .conversation-actions {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-view-history {
+        flex: 1;
+        padding: 8px 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-view-history:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
     .empty-state {
@@ -143,56 +143,160 @@
     .empty-state i {
         font-size: 64px;
         margin-bottom: 20px;
-        opacity: 0.3;
+        color: #ddd;
     }
 
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
     }
 
-    .section-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 20px;
+    .modal-content {
+        background-color: white;
+        margin: 2% auto;
+        padding: 0;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 1000px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 15px 15px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+    }
+
+    .modal-close {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+
+    .modal-close:hover {
+        opacity: 0.7;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .chat-messages-history {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .message-wrapper {
+        margin-bottom: 15px;
+        display: flex;
+    }
+
+    .message-wrapper.user {
+        justify-content: flex-start;
+    }
+
+    .message-wrapper.admin {
+        justify-content: flex-end;
+    }
+
+    .message-wrapper.system {
+        justify-content: center;
+    }
+
+    .message {
+        max-width: 60%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        word-wrap: break-word;
+    }
+
+    .message.user {
+        background: white;
         color: #333;
+        border: 1px solid #e0e0e0;
+        border-bottom-left-radius: 5px;
+    }
+
+    .message.admin {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message.system {
+        background: #f0f0f0;
+        color: #666;
+        font-size: 13px;
+        padding: 6px 12px;
+        border-radius: 15px;
+        text-align: center;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .message.admin .message-time {
+        color: rgba(255,255,255,0.8);
     }
 </style>
 
 <div class="history-container">
-    <h2 style="margin-bottom: 30px; color: #333;"><i class="fas fa-history"></i> 历史会话</h2>
+    <div class="history-header">
+        <h2><i class="fas fa-history"></i> 历史对话</h2>
+        <a href="@Url.Action("FeedbackManagement", "Staff")" class="btn-header-action">
+            <i class="fas fa-arrow-left"></i> 返回反馈管理
+        </a>
+    </div>
 
-    <div class="row">
-        <!-- 左侧：会话列表 -->
-        <div class="col-md-4">
-            <div class="history-list-panel">
-                <div class="section-title">
-                    <i class="fas fa-list"></i> 会话列表
-                </div>
-                <div id="historyList">
-                    <!-- 通过 AJAX 填充 -->
-                </div>
+    <div class="history-body">
+        <div id="conversationsGrid" class="conversations-grid">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>加载中...</p>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- 右侧：消息内容 -->
-        <div class="col-md-8">
-            <div class="messages-panel">
-                <div class="messages-header">
-                    <h5 id="messagesHeader"><i class="fas fa-comments"></i> 请选择左侧会话查看历史记录</h5>
-                </div>
-                <div class="messages-body" id="messagesBody">
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>请从左侧选择一个会话</p>
-                    </div>
-                </div>
+<!-- Messages Modal -->
+<div id="messagesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">对话历史</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="chat-messages-history" id="chatMessagesHistory">
+                <!-- Messages loaded dynamically -->
             </div>
         </div>
     </div>
@@ -200,164 +304,142 @@
 
 @section scripts {
     <script>
-        var selectedOrderId = null;
-        var selectedEndedTime = null;
-
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
-            return String(str).replace(/&/g, '&amp;')
-                              .replace(/</g, '&lt;')
-                              .replace(/>/g, '&gt;')
-                              .replace(/"/g, '&quot;')
-                              .replace(/'/g, '&#39;');
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
         function formatTime(iso) {
             if (!iso) return '';
-            try {
-                return new Date(iso).toLocaleString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            } catch (e) {
-                return iso;
-            }
+            try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
         }
 
-        function loadConversations() {
-            fetch('@Url.Action("GetRecyclerConversations", "Staff")', {
+        function loadHistoryConversations() {
+            fetch('@Url.Action("GetAllAdminContacts", "Staff")', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({})
+                headers: { 'Content-Type': 'application/json' }
             })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    renderConversationsList(data.conversations);
+                    // Filter only ended conversations
+                    const endedConversations = (data.conversations || []).filter(c => c.userEnded && c.adminEnded);
+                    displayConversations(endedConversations);
                 } else {
-                    alert('加载会话列表失败：' + (data.message || ''));
+                    document.getElementById('conversationsGrid').innerHTML = 
+                        '<div class="empty-state"><p>加载失败</p></div>';
                 }
             })
-            .catch(error => {
-                console.error('加载会话列表出错：', error);
-                alert('加载会话列表失败');
+            .catch(err => {
+                console.error('加载历史对话出错', err);
+                document.getElementById('conversationsGrid').innerHTML = 
+                    '<div class="empty-state"><p>加载失败</p></div>';
             });
         }
 
-        function renderConversationsList(conversations) {
-            var container = document.getElementById('historyList');
+        function displayConversations(conversations) {
+            const container = document.getElementById('conversationsGrid');
             
             if (!conversations || conversations.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无历史会话</p></div>';
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无历史对话记录</p></div>';
                 return;
             }
 
-            var html = '';
+            let html = '';
             conversations.forEach(function(conv) {
-                html += '<div class="history-item" data-order-id="' + conv.orderId + '" data-ended-time="' + conv.endedTime + '">';
-                html += '<div class="history-order-number"><i class="fas fa-shopping-cart"></i> ' + conv.orderNumber + '</div>';
-                html += '<div class="history-user-name"><i class="fas fa-user"></i> 用户：' + escapeHtml(conv.userName || '未知') + '</div>';
-                html += '<div class="history-time"><i class="far fa-clock"></i> ' + formatTime(conv.endedTime) + '</div>';
-                html += '</div>';
+                html += '<div class="conversation-card">' +
+                    '<div class="conversation-card-header">' +
+                    '<span class="conversation-id">对话 #' + conv.conversationID + '</span>' +
+                    '<span class="conversation-badge">已结束</span>' +
+                    '</div>' +
+                    '<div class="conversation-info">' +
+                    '<i class="fas fa-user"></i> ' + escapeHtml(conv.userName || '用户 #' + conv.userID) +
+                    '</div>' +
+                    '<div class="conversation-info">' +
+                    '<i class="fas fa-clock"></i> 开始: ' + formatTime(conv.startTime) +
+                    '</div>' +
+                    '<div class="conversation-info">' +
+                    '<i class="fas fa-check-circle"></i> 结束: ' + formatTime(conv.adminEndedTime || conv.userEndedTime) +
+                    '</div>' +
+                    '<div class="conversation-actions">' +
+                    '<button class="btn-view-history" onclick="viewConversationHistory(' + conv.userID + ', ' + conv.conversationID + ')">' +
+                    '<i class="fas fa-eye"></i> 查看对话内容' +
+                    '</button>' +
+                    '</div>' +
+                    '</div>';
             });
 
             container.innerHTML = html;
-
-            // 添加点击事件
-            document.querySelectorAll('.history-item').forEach(function(item) {
-                item.addEventListener('click', function() {
-                    // 移除所有active类
-                    document.querySelectorAll('.history-item').forEach(function(i) {
-                        i.classList.remove('active');
-                    });
-                    // 添加active类
-                    this.classList.add('active');
-                    
-                    var orderId = parseInt(this.getAttribute('data-order-id'));
-                    var endedTime = this.getAttribute('data-ended-time');
-                    loadMessages(orderId, endedTime);
-                });
-            });
         }
 
-        function loadMessages(orderId, endedTime) {
-            selectedOrderId = orderId;
-            selectedEndedTime = endedTime;
-
-            document.getElementById('messagesHeader').innerHTML = '<i class="fas fa-comments"></i> 订单：AP' + ('000000' + orderId).slice(-6) + ' - 历史消息';
-
-            fetch('@Url.Action("GetConversationMessagesBeforeEnd", "Staff")', {
+        function viewConversationHistory(userId, conversationId) {
+            fetch('@Url.Action("GetAdminContactMessagesForAdmin", "Staff")', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    orderId: orderId,
-                    endedTime: endedTime
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId })
             })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    renderMessages(data.messages);
+                    displayMessages(data.messages, conversationId);
+                    document.getElementById('modalTitle').textContent = '对话 #' + conversationId + ' 历史记录';
+                    document.getElementById('messagesModal').style.display = 'block';
                 } else {
-                    alert('加载消息失败：' + (data.message || ''));
+                    alert('加载对话失败');
                 }
             })
-            .catch(error => {
-                console.error('加载消息出错：', error);
-                alert('加载消息失败');
+            .catch(err => {
+                console.error('加载对话出错', err);
+                alert('加载对话失败');
             });
         }
 
-        function renderMessages(messages) {
-            var container = document.getElementById('messagesBody');
-            
+        function displayMessages(messages, conversationId) {
+            const container = document.getElementById('chatMessagesHistory');
+            container.innerHTML = '';
+
             if (!messages || messages.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无消息记录</p></div>';
+                container.innerHTML = '<div class="empty-state"><p>暂无消息</p></div>';
                 return;
             }
 
-            var html = '';
             messages.forEach(function(msg) {
-                if (msg.senderType === 'system') {
-                    // 系统消息居中显示
-                    html += '<div class="message-item text-center">';
-                    html += '<div class="message-bubble system-message">';
-                    html += '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content);
-                    html += '</div>';
-                    html += '<div class="message-time">' + formatTime(msg.sentTime) + '</div>';
-                    html += '</div>';
+                const senderType = (msg.senderType || '').toLowerCase();
+                const wrapper = document.createElement('div');
+                wrapper.className = 'message-wrapper ' + senderType;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ' + senderType;
+
+                if (senderType === 'system') {
+                    messageDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content);
                 } else {
-                    var isUser = (msg.senderType === 'user');
-                    var alignClass = isUser ? 'text-right' : 'text-left';
-                    var bubbleClass = isUser ? 'user-message' : 'recycler-message';
-                    var senderName = isUser ? '用户' : '回收员';
-                    
-                    html += '<div class="message-item ' + alignClass + '">';
-                    html += '<div class="message-sender">' + senderName + '</div>';
-                    html += '<div class="message-bubble ' + bubbleClass + '">';
-                    html += escapeHtml(msg.content);
-                    html += '</div>';
-                    html += '<div class="message-time">' + formatTime(msg.sentTime) + '</div>';
-                    html += '</div>';
+                    const senderLabel = senderType === 'user' ? '用户' : '管理员';
+                    messageDiv.innerHTML = '<div>' + escapeHtml(msg.content) + '</div>' +
+                        '<div class="message-time">' + senderLabel + ' • ' + formatTime(msg.sentTime) + '</div>';
                 }
+
+                wrapper.appendChild(messageDiv);
+                container.appendChild(wrapper);
             });
 
-            container.innerHTML = html;
             container.scrollTop = container.scrollHeight;
         }
 
-        // 页面加载时获取会话列表
+        function closeModal() {
+            document.getElementById('messagesModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('messagesModal')) {
+                closeModal();
+            }
+        }
+
+        // Load history on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadConversations();
+            loadHistoryConversations();
         });
     </script>
 }
