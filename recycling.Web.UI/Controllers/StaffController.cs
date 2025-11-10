@@ -1884,27 +1884,6 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 历史对话页面
-        /// </summary>
-        [HttpGet]
-        public ActionResult HistoryConversations()
-        {
-            // 检查是否是管理员登录
-            if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
-            {
-                return RedirectToAction("Login", "Staff");
-            }
-
-            var staffRole = Session["StaffRole"] as string;
-            if (staffRole != "admin" && staffRole != "superadmin")
-            {
-                return RedirectToAction("RecyclerDashboard", "Staff");
-            }
-
-            return View();
-        }
-
-        /// <summary>
         /// 获取所有反馈
         /// </summary>
         [HttpPost]
