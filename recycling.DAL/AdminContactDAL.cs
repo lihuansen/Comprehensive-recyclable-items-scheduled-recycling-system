@@ -14,7 +14,7 @@ namespace recycling.DAL
         /// <summary>
         /// 获取或创建用户与管理员的会话
         /// </summary>
-        public int GetOrCreateConversation(int userId, int? adminId = null)
+        public (int ConversationId, bool IsNewConversation) GetOrCreateConversation(int userId, int? adminId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -35,7 +35,7 @@ namespace recycling.DAL
                     
                     if (result != null)
                     {
-                        return Convert.ToInt32(result);
+                        return (Convert.ToInt32(result), false);
                     }
                 }
 
@@ -50,7 +50,7 @@ namespace recycling.DAL
                     cmd.Parameters.AddWithValue("@UserID", userId);
                     cmd.Parameters.AddWithValue("@AdminID", adminId.HasValue ? (object)adminId.Value : DBNull.Value);
                     
-                    return (int)cmd.ExecuteScalar();
+                    return ((int)cmd.ExecuteScalar(), true);
                 }
             }
         }

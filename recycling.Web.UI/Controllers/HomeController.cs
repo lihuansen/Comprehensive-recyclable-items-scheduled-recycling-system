@@ -1016,7 +1016,13 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "请先登录" });
 
                 var user = (Users)Session["LoginUser"];
-                int conversationId = _adminContactBLL.GetOrCreateConversation(user.UserID);
+                var (conversationId, isNewConversation) = _adminContactBLL.GetOrCreateConversation(user.UserID);
+
+                // 如果是新会话，发送系统欢迎消息
+                if (isNewConversation)
+                {
+                    _adminContactBLL.SendMessage(user.UserID, null, "system", "管理在线客服");
+                }
 
                 return Json(new { success = true, conversationId = conversationId, userId = user.UserID });
             }

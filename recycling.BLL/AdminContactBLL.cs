@@ -13,7 +13,7 @@ namespace recycling.BLL
         /// <summary>
         /// 获取或创建用户与管理员的会话
         /// </summary>
-        public int GetOrCreateConversation(int userId, int? adminId = null)
+        public (int ConversationId, bool IsNewConversation) GetOrCreateConversation(int userId, int? adminId = null)
         {
             if (userId <= 0)
                 throw new ArgumentException("无效的用户ID");
