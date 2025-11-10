@@ -17,6 +17,7 @@ namespace recycling.Web.UI.Controllers
         private readonly OrderBLL _orderBLL = new OrderBLL();
         private readonly StaffBLL _staffBLL = new StaffBLL();
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
+        private readonly AdminContactBLL _adminContactBLL = new AdminContactBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -938,6 +939,148 @@ namespace recycling.Web.UI.Controllers
                 
                 bool hasReviewed = reviewBll.HasReviewed(orderId, user.UserID);
                 return Json(new { success = true, hasReviewed = hasReviewed });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ==================== 管理员联系功能 ====================
+
+        /// <summary>
+        /// 联系管理员页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult ContactAdmin()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 开始与管理员的会话
+        /// </summary>
+        [HttpPost]
+        public JsonResult StartAdminContact()
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+                int conversationId = _adminContactBLL.GetOrCreateConversation(user.UserID);
+
+                return Json(new { success = true, conversationId = conversationId, userId = user.UserID });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取用户的管理员联系会话列表
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetUserAdminConversations()
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+                var conversations = _adminContactBLL.GetUserConversations(user.UserID);
+
+                return Json(new { success = true, conversations = conversations });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取管理员联系消息记录
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetAdminContactMessages(int userId, DateTime? beforeTime = null)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+                
+                // 确保只能查看自己的消息
+                if (user.UserID != userId)
+                    return Json(new { success = false, message = "无权查看该对话" });
+
+                var messages = _adminContactBLL.GetConversationMessages(userId, beforeTime);
+
+                return Json(new { success = true, messages = messages }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 发送消息给管理员
+        /// </summary>
+        [HttpPost]
+        public JsonResult SendAdminContactMessage(int userId, string content)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+
+                // 确保只能发送自己的消息
+                if (user.UserID != userId)
+                    return Json(new { success = false, message = "无权操作" });
+
+                var result = _adminContactBLL.SendMessage(userId, null, "user", content);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 结束与管理员的对话
+        /// </summary>
+        [HttpPost]
+        public JsonResult EndAdminContact(int userId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+
+                // 确保只能结束自己的对话
+                if (user.UserID != userId)
+                    return Json(new { success = false, message = "无权操作" });
+
+                var result = _adminContactBLL.EndConversationByUser(userId);
+
+                return Json(result);
             }
             catch (Exception ex)
             {

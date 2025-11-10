@@ -1,0 +1,581 @@
+@{
+    ViewBag.Title = "反馈管理";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .chat-container {
+        max-width: 1400px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 15px 15px 0 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .chat-header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .chat-body {
+        display: flex;
+        background: white;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        height: 650px;
+    }
+
+    .conversation-list {
+        width: 350px;
+        border-right: 1px solid #e0e0e0;
+        overflow-y: auto;
+    }
+
+    .conversation-item {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .conversation-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .conversation-item.active {
+        background-color: #e3f2fd;
+        border-left: 4px solid #667eea;
+    }
+
+    .conversation-user {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .conversation-status {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .conversation-time {
+        font-size: 11px;
+        color: #999;
+    }
+
+    .conversation-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+
+    .conversation-badge.active {
+        background: #28a745;
+        color: white;
+    }
+
+    .conversation-badge.ended {
+        background: #6c757d;
+        color: white;
+    }
+
+    .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-info-bar {
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .chat-info-bar h4 {
+        margin: 0;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .user-info {
+        font-size: 13px;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+    }
+
+    .message-wrapper {
+        margin-bottom: 15px;
+        display: flex;
+    }
+
+    .message-wrapper.user {
+        justify-content: flex-start;
+    }
+
+    .message-wrapper.admin {
+        justify-content: flex-end;
+    }
+
+    .message-wrapper.system {
+        justify-content: center;
+    }
+
+    .message {
+        max-width: 60%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        word-wrap: break-word;
+    }
+
+    .message.user {
+        background: white;
+        color: #333;
+        border: 1px solid #e0e0e0;
+        border-bottom-left-radius: 5px;
+    }
+
+    .message.admin {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message.system {
+        background: #f0f0f0;
+        color: #666;
+        font-size: 13px;
+        padding: 6px 12px;
+        border-radius: 15px;
+        text-align: center;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .message.admin .message-time {
+        color: rgba(255,255,255,0.8);
+    }
+
+    .chat-input-area {
+        padding: 20px;
+        border-top: 1px solid #e0e0e0;
+        background: white;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .chat-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .btn-send, .btn-end {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-send {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-end {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-end:hover {
+        background: #c82333;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+
+    .filter-buttons {
+        padding: 15px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        gap: 10px;
+    }
+
+    .filter-btn {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+    }
+
+    .filter-btn:hover {
+        background: #f0f0f0;
+    }
+
+    .filter-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+</style>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h2><i class="fas fa-comments"></i> 用户反馈与咨询管理</h2>
+    </div>
+
+    <div class="chat-body">
+        <div class="conversation-list">
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterConversations('all')">全部</button>
+                <button class="filter-btn" onclick="filterConversations('active')">进行中</button>
+                <button class="filter-btn" onclick="filterConversations('ended')">已结束</button>
+            </div>
+            <div id="conversationList">
+                <div class="empty-state">加载中...</div>
+            </div>
+        </div>
+
+        <div class="chat-main">
+            <div class="chat-info-bar" id="chatInfoBar" style="display:none;">
+                <h4 id="currentUserName">用户名称</h4>
+                <div class="user-info" id="currentUserInfo">用户信息</div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="empty-state">
+                    <i class="fas fa-comments" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+                    <p>请从左侧选择一个对话</p>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <div class="input-group">
+                    <input type="text" id="messageInput" class="chat-input" placeholder="输入回复消息..." disabled>
+                    <button class="btn-send" onclick="sendMessage()" disabled id="btnSend">
+                        <i class="fas fa-paper-plane"></i> 发送
+                    </button>
+                    <button class="btn-end" onclick="endConversation()" disabled id="btnEnd">
+                        <i class="fas fa-times"></i> 结束对话
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        let currentUserId = null;
+        let currentConversationId = null;
+        let allConversations = [];
+        let currentFilter = 'all';
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function formatTime(iso) {
+            if (!iso) return '';
+            try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+        }
+
+        function loadConversations() {
+            fetch('@Url.Action("GetAllAdminContacts", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    allConversations = data.conversations || [];
+                    displayConversations(allConversations);
+                } else {
+                    document.getElementById('conversationList').innerHTML = '<div class="empty-state">加载失败</div>';
+                }
+            })
+            .catch(err => {
+                console.error('加载会话列表出错', err);
+                document.getElementById('conversationList').innerHTML = '<div class="empty-state">加载失败</div>';
+            });
+        }
+
+        function filterConversations(filter) {
+            currentFilter = filter;
+            
+            // Update filter button states
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            let filtered = allConversations;
+            if (filter === 'active') {
+                filtered = allConversations.filter(c => !c.userEnded || !c.adminEnded);
+            } else if (filter === 'ended') {
+                filtered = allConversations.filter(c => c.userEnded && c.adminEnded);
+            }
+
+            displayConversations(filtered);
+        }
+
+        function displayConversations(conversations) {
+            const container = document.getElementById('conversationList');
+            
+            if (conversations.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无对话记录</div>';
+                return;
+            }
+
+            let html = '';
+            conversations.forEach(function(conv) {
+                const isActive = currentUserId === conv.userID;
+                const isEnded = conv.userEnded && conv.adminEnded;
+                const statusBadge = isEnded ? 
+                    '<span class="conversation-badge ended">已结束</span>' : 
+                    '<span class="conversation-badge active">进行中</span>';
+
+                html += '<div class="conversation-item' + (isActive ? ' active' : '') + '" ' +
+                    'onclick="selectConversation(' + conv.userID + ', ' + conv.conversationID + ')">' +
+                    '<div class="conversation-user">' +
+                    escapeHtml(conv.userName || '用户 #' + conv.userID) + 
+                    statusBadge +
+                    '</div>' +
+                    '<div class="conversation-time">开始: ' + formatTime(conv.startTime) + '</div>' +
+                    '<div class="conversation-status">会话ID: ' + conv.conversationID + '</div>' +
+                    '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function selectConversation(userId, conversationId) {
+            currentUserId = userId;
+            currentConversationId = conversationId;
+
+            // Update active state
+            document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Load user info
+            loadUserInfo(userId);
+
+            // Load messages
+            loadMessages(userId);
+
+            // Check if conversation is ended
+            const conv = allConversations.find(c => c.conversationID === conversationId);
+            if (conv && conv.userEnded && conv.adminEnded) {
+                disableChatInput();
+            } else {
+                enableChatInput();
+            }
+        }
+
+        function loadUserInfo(userId) {
+            fetch('@Url.Action("GetUserInfo", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.user) {
+                    document.getElementById('chatInfoBar').style.display = 'block';
+                    document.getElementById('currentUserName').textContent = data.user.username;
+                    document.getElementById('currentUserInfo').innerHTML = 
+                        '<i class="fas fa-phone"></i> ' + escapeHtml(data.user.phoneNumber) + 
+                        ' | <i class="fas fa-envelope"></i> ' + escapeHtml(data.user.email);
+                }
+            })
+            .catch(err => console.error('加载用户信息出错', err));
+        }
+
+        function loadMessages(userId) {
+            fetch('@Url.Action("GetAdminContactMessagesForAdmin", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    displayMessages(data.messages);
+                }
+            })
+            .catch(err => console.error('加载消息出错', err));
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无消息</p></div>';
+                return;
+            }
+
+            messages.forEach(function(msg) {
+                const senderType = (msg.senderType || '').toLowerCase();
+                const wrapper = document.createElement('div');
+                wrapper.className = 'message-wrapper ' + senderType;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ' + senderType;
+
+                if (senderType === 'system') {
+                    messageDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content);
+                } else {
+                    const senderLabel = senderType === 'user' ? '用户' : '管理员';
+                    messageDiv.innerHTML = '<div>' + escapeHtml(msg.content) + '</div>' +
+                        '<div class="message-time">' + senderLabel + ' • ' + formatTime(msg.sentTime) + '</div>';
+                }
+
+                wrapper.appendChild(messageDiv);
+                container.appendChild(wrapper);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content) {
+                alert('请输入消息内容');
+                return;
+            }
+
+            if (!currentUserId) {
+                alert('请先选择一个对话');
+                return;
+            }
+
+            fetch('@Url.Action("SendAdminContactMessageAsAdmin", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: currentUserId,
+                    content: content
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    input.value = '';
+                    loadMessages(currentUserId);
+                } else {
+                    alert(data.message || '发送失败');
+                }
+            })
+            .catch(err => {
+                console.error('发送消息出错', err);
+                alert('发送失败，请重试');
+            });
+        }
+
+        function endConversation() {
+            if (!currentUserId) return;
+
+            if (!confirm('确定要结束这个对话吗？')) return;
+
+            fetch('@Url.Action("EndAdminContactAsAdmin", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUserId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('对话已结束');
+                    loadMessages(currentUserId);
+                    loadConversations(); // Refresh conversation list
+                    disableChatInput();
+                } else {
+                    alert(data.message || '结束对话失败');
+                }
+            })
+            .catch(err => {
+                console.error('结束对话出错', err);
+                alert('操作失败，请重试');
+            });
+        }
+
+        function enableChatInput() {
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('btnSend').disabled = false;
+            document.getElementById('btnEnd').disabled = false;
+        }
+
+        function disableChatInput() {
+            document.getElementById('messageInput').disabled = true;
+            document.getElementById('btnSend').disabled = true;
+            document.getElementById('btnEnd').disabled = true;
+        }
+
+        // Auto-refresh conversations every 30 seconds
+        setInterval(function() {
+            if (!currentUserId) {
+                loadConversations();
+            }
+        }, 30000);
+
+        // 回车发送
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConversations();
+
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !this.disabled) {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+}
