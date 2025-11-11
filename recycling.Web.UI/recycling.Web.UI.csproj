@@ -217,18 +217,22 @@
     <Content Include="Views\Shared\_SuperAdminLayout.cshtml" />
     <Content Include="Views\Staff\RecyclerDashboard.cshtml" />
     <Content Include="Views\Staff\AdminDashboard.cshtml" />
+    <Content Include="Views\Staff\AdminManagement.cshtml" />
     <Content Include="Views\Staff\SuperAdminDashboard.cshtml" />
     <Content Include="Views\Staff\Recycler_OrderManagement.cshtml" />
     <Content Include="Views\Staff\RecyclerManagement.cshtml" />
     <Content Include="Views\Staff\UserManagement.cshtml" />
     <Content Include="Views\Staff\UserReviews.cshtml" />
     <Content Include="Views\Staff\WarehouseManagement.cshtml" />
+    <Content Include="Views\Staff\FeedbackManagement.cshtml" />
     <Content Include="Views\Staff\HistoryConversations.cshtml" />
     <Content Include="Views\Staff\Message_Center.cshtml" />
+    <Content Include="Views\Home\ContactAdmin.cshtml" />
     <Content Include="Views\Home\ContactRecycler.cshtml" />
     <Content Include="Views\Staff\HomepageManagement.cshtml" />
     <Content Include="Views\Staff\HomepageCarouselManagement.cshtml" />
     <Content Include="Views\Staff\RecyclableItemsManagement.cshtml" />
+    <Content Include="Views\Staff\UserContactManagement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
