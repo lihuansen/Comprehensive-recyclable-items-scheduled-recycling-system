@@ -70,10 +70,12 @@
     <Compile Include="Inventory.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="Messages.cs" />
+    <Compile Include="Model1.cs" />
     <Compile Include="OperationResult.cs" />
     <Compile Include="OrderDetailModel.cs" />
     <Compile Include="OrderFilterModel.cs" />
     <Compile Include="OrderReviews.cs" />
+    <Compile Include="OrderStatistics.cs" />
     <Compile Include="PagedResult.cs" />
     <Compile Include="PhoneLoginViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
