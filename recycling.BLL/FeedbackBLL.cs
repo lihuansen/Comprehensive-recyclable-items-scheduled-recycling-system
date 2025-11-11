@@ -135,7 +135,7 @@ namespace recycling.BLL
         /// </summary>
         private bool IsValidStatus(string status)
         {
-            var validStatuses = new List<string> { "待处理", "处理中", "已完成", "已关闭" };
+            var validStatuses = new List<string> { "反馈中", "已完成" };
             return validStatuses.Contains(status);
         }
 
