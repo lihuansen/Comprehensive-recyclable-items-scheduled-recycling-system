@@ -33,7 +33,7 @@ namespace recycling.DAL
                         cmd.Parameters.AddWithValue("@Subject", feedback.Subject);
                         cmd.Parameters.AddWithValue("@Description", feedback.Description);
                         cmd.Parameters.AddWithValue("@ContactEmail", string.IsNullOrEmpty(feedback.ContactEmail) ? (object)DBNull.Value : feedback.ContactEmail);
-                        cmd.Parameters.AddWithValue("@Status", "待处理");
+                        cmd.Parameters.AddWithValue("@Status", "反馈中");
                         cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
 
                         int result = cmd.ExecuteNonQuery();
@@ -201,7 +201,6 @@ namespace recycling.DAL
             Dictionary<string, int> stats = new Dictionary<string, int>
             {
                 { "Total", 0 },
-                { "Pending", 0 },
                 { "InProgress", 0 },
                 { "Completed", 0 }
             };
@@ -213,8 +212,7 @@ namespace recycling.DAL
                     conn.Open();
                     string sql = @"SELECT 
                                     COUNT(*) AS Total,
-                                    SUM(CASE WHEN Status = '待处理' THEN 1 ELSE 0 END) AS Pending,
-                                    SUM(CASE WHEN Status = '处理中' THEN 1 ELSE 0 END) AS InProgress,
+                                    SUM(CASE WHEN Status = '反馈中' THEN 1 ELSE 0 END) AS InProgress,
                                     SUM(CASE WHEN Status = '已完成' THEN 1 ELSE 0 END) AS Completed
                                    FROM UserFeedback";
 
@@ -225,9 +223,8 @@ namespace recycling.DAL
                             if (reader.Read())
                             {
                                 stats["Total"] = reader.GetInt32(0);
-                                stats["Pending"] = reader.GetInt32(1);
-                                stats["InProgress"] = reader.GetInt32(2);
-                                stats["Completed"] = reader.GetInt32(3);
+                                stats["InProgress"] = reader.GetInt32(1);
+                                stats["Completed"] = reader.GetInt32(2);
                             }
                         }
                     }

@@ -1021,7 +1021,7 @@ namespace recycling.Web.UI.Controllers
                 // 如果是新会话，发送系统欢迎消息
                 if (isNewConversation)
                 {
-                    _adminContactBLL.SendMessage(user.UserID, null, "system", "管理在线客服");
+                    _adminContactBLL.SendMessage(user.UserID, null, "system", "您好，这里是在线客服");
                 }
 
                 return Json(new { success = true, conversationId = conversationId, userId = user.UserID });

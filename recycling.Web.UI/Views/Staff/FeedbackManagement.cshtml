@@ -176,12 +176,7 @@
         font-weight: 600;
     }
 
-    .badge-status.待处理 {
-        background: #ffeaa7;
-        color: #fdcb6e;
-    }
-
-    .badge-status.处理中 {
+    .badge-status.反馈中 {
         background: #74b9ff;
         color: #0984e3;
     }
@@ -189,11 +184,6 @@
     .badge-status.已完成 {
         background: #55efc4;
         color: #00b894;
-    }
-
-    .badge-status.已关闭 {
-        background: #dfe6e9;
-        color: #636e72;
     }
 
     .btn-action {
@@ -409,10 +399,8 @@
                 </select>
                 <select id="filterStatus" class="filter-select">
                     <option value="">全部状态</option>
-                    <option value="待处理">待处理</option>
-                    <option value="处理中">处理中</option>
+                    <option value="反馈中">反馈中</option>
                     <option value="已完成">已完成</option>
-                    <option value="已关闭">已关闭</option>
                 </select>
                 <input type="text" id="searchKeyword" class="filter-input" placeholder="搜索关键词...">
                 <button class="btn-filter" onclick="loadFeedbacks()">
@@ -476,9 +464,8 @@
                 <div class="form-group">
                     <label class="form-label">处理状态</label>
                     <select id="replyStatus" class="form-control">
-                        <option value="处理中">处理中</option>
+                        <option value="反馈中">反馈中</option>
                         <option value="已完成">已完成</option>
-                        <option value="已关闭">已关闭</option>
                     </select>
                 </div>
                 <div class="form-group">

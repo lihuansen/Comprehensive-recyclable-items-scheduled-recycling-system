@@ -10,7 +10,7 @@ BEGIN
         [Subject] NVARCHAR(200) NOT NULL,
         [Description] NVARCHAR(2000) NOT NULL,
         [ContactEmail] NVARCHAR(100) NULL,
-        [Status] NVARCHAR(50) NOT NULL DEFAULT N'待处理',  -- '待处理', '处理中', '已完成', '已关闭'
+        [Status] NVARCHAR(50) NOT NULL DEFAULT N'反馈中',  -- '反馈中', '已完成'
         [AdminReply] NVARCHAR(1000) NULL,
         [CreatedDate] DATETIME2 NOT NULL DEFAULT GETDATE(),
         [UpdatedDate] DATETIME2 NULL,
@@ -19,7 +19,7 @@ BEGIN
         CONSTRAINT CK_UserFeedback_FeedbackType 
             CHECK ([FeedbackType] IN (N'问题反馈', N'功能建议', N'投诉举报', N'其他')),
         CONSTRAINT CK_UserFeedback_Status 
-            CHECK ([Status] IN (N'待处理', N'处理中', N'已完成', N'已关闭'))
+            CHECK ([Status] IN (N'反馈中', N'已完成'))
     );
     
     -- 创建索引以提高查询性能
