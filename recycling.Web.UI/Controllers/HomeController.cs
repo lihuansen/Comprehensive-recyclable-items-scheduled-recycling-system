@@ -292,6 +292,13 @@ namespace recycling.Web.UI.Controllers
         }
         public ActionResult Feedback()
         {
+            // 检查登录状态 - 必须登录后才能访问反馈页面
+            if (Session["LoginUser"] == null)
+            {
+                TempData["ReturnUrl"] = Url.Action("Feedback", "Home");
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
             return View();
         }
 
@@ -319,7 +326,7 @@ namespace recycling.Web.UI.Controllers
                     Subject = Subject,
                     Description = Description,
                     ContactEmail = ContactEmail,
-                    Status = "待处理",
+                    Status = "反馈中",
                     CreatedDate = DateTime.Now
                 };
 
