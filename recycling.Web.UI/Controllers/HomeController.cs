@@ -306,6 +306,7 @@ namespace recycling.Web.UI.Controllers
         /// 提交用户反馈
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult SubmitFeedback(FeedbackSubmissionViewModel model)
         {
             try
