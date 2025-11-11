@@ -336,13 +336,12 @@
             $.ajax({
                 url: '/Home/SubmitFeedback',
                 type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
+                data: {
                     FeedbackType: feedbackType,
                     Subject: subject,
                     Description: description,
                     ContactEmail: contactEmail
-                }),
+                },
                 success: function(response) {
                     if (response.success) {
                         showAlert('反馈提交成功！感谢您的反馈', 'success');
