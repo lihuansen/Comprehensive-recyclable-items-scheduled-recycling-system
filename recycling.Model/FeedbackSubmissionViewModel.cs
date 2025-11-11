@@ -1,10 +1,12 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    /// <summary>
-    /// 反馈提交视图模型
-    /// </summary>
     public class FeedbackSubmissionViewModel
     {
         [Required(ErrorMessage = "请选择反馈类型")]
