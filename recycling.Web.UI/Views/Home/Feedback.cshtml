@@ -207,6 +207,7 @@
         <div id="alertMessage" class="alert-custom"></div>
 
         <form id="feedbackForm">
+            @Html.AntiForgeryToken()
             <div class="form-group-custom">
                 <label>反馈类型<span class="required">*</span></label>
                 <div class="feedback-type-grid">
@@ -268,6 +269,11 @@
 
 <script>
     $(document).ready(function() {
+        // Helper function to get anti-forgery token
+        function getAntiForgeryToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
         // 字符计数器
         $('#subject').on('input', function() {
             var length = $(this).val().length;
@@ -336,13 +342,13 @@
             $.ajax({
                 url: '/Home/SubmitFeedback',
                 type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
+                data: {
                     FeedbackType: feedbackType,
                     Subject: subject,
                     Description: description,
-                    ContactEmail: contactEmail
-                }),
+                    ContactEmail: contactEmail,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                },
                 success: function(response) {
                     if (response.success) {
                         showAlert('反馈提交成功！感谢您的反馈', 'success');

@@ -306,7 +306,8 @@ namespace recycling.Web.UI.Controllers
         /// 提交用户反馈
         /// </summary>
         [HttpPost]
-        public JsonResult SubmitFeedback(string FeedbackType, string Subject, string Description, string ContactEmail)
+        [ValidateAntiForgeryToken]
+        public JsonResult SubmitFeedback(FeedbackSubmissionViewModel model)
         {
             try
             {
@@ -322,10 +323,10 @@ namespace recycling.Web.UI.Controllers
                 var feedback = new UserFeedback
                 {
                     UserID = user.UserID,
-                    FeedbackType = FeedbackType,
-                    Subject = Subject,
-                    Description = Description,
-                    ContactEmail = ContactEmail,
+                    FeedbackType = model.FeedbackType,
+                    Subject = model.Subject,
+                    Description = model.Description,
+                    ContactEmail = model.ContactEmail,
                     Status = "反馈中",
                     CreatedDate = DateTime.Now
                 };
