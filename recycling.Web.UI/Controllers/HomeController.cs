@@ -302,46 +302,6 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
-        /// 提交用户反馈
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult SubmitFeedback(string FeedbackType, string Subject, string Description, string ContactEmail)
-        {
-            try
-            {
-                // 检查登录状态
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-
-                // 创建反馈对象
-                var feedback = new UserFeedback
-                {
-                    UserID = user.UserID,
-                    FeedbackType = FeedbackType,
-                    Subject = Subject,
-                    Description = Description,
-                    ContactEmail = ContactEmail,
-                    Status = "反馈中",
-                    CreatedDate = DateTime.Now
-                };
-
-                // 调用BLL层添加反馈
-                var (success, message) = _feedbackBLL.AddFeedback(feedback);
-
-                return Json(new { success = success, message = message });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "提交失败：" + ex.Message });
-            }
-        }
-
         // 在 HomeController 类中添加以下方法（确保 using 对应命名空间：recycling.Model 或你的实体命名空间）
         [HttpPost]
         [ValidateAntiForgeryToken]
