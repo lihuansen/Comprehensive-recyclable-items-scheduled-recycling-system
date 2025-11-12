@@ -342,6 +342,76 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        // 在 HomeController 类中添加以下方法（确保 using 对应命名空间：recycling.Model 或你的实体命名空间）
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Feedback(string FeedbackType, string Subject, string Description, string ContactEmail)
+        {
+            // 1. 身份校验：和你现有逻辑保持一致（如果未登录，跳转到登录）
+            if (Session["LoginUser"] == null)
+            {
+                // 保存回调 URL（如果需要登录后回来）
+                TempData["ReturnUrl"] = Url.Action("Feedback", "Home");
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            var user = (Users)Session["LoginUser"]; // 保持与你现有代码一致的用户类型
+
+            // 2. 服务端基本验证（后端 BLL 也会做更严格验证）
+            if (string.IsNullOrWhiteSpace(Subject) || Subject.Length > 200)
+            {
+                ModelState.AddModelError("Subject", "主题不能为空且长度不能超过200字。");
+            }
+            if (string.IsNullOrWhiteSpace(Description) || Description.Length < 10 || Description.Length > 2000)
+            {
+                ModelState.AddModelError("Description", "描述长度应在10到2000字之间。");
+            }
+            if (!ModelState.IsValid)
+            {
+                // 返回视图并显示验证错误（保持用户输入）
+                ViewBag.FeedbackType = FeedbackType;
+                ViewBag.ContactEmail = ContactEmail;
+                return View();
+            }
+
+            try
+            {
+                // 3. 构造实体（使用你项目的实体类）
+                var feedback = new UserFeedback
+                {
+                    UserID = user.UserID,
+                    FeedbackType = FeedbackType,
+                    Subject = Subject,
+                    Description = Description,
+                    ContactEmail = ContactEmail,
+                    Status = "反馈中",
+                    CreatedDate = DateTime.Now
+                };
+
+                // 4. 调用 BLL 写入（保持你现有的调用方式）
+                var (success, message) = _feedbackBLL.AddFeedback(feedback);
+
+                if (success)
+                {
+                    TempData["FeedbackSuccess"] = "提交反馈成功。感谢你的反馈！";
+                    // 5. 写入成功后跳回首页
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "提交反馈失败：" + message);
+                    return View();
+                }
+            }
+            catch (Exception ex)
+            {
+                // 记录日志（你的日志方式），然后返回错误信息
+                // Logger.Error(ex); // 如果你有 logger
+                ModelState.AddModelError("", "提交反馈时发生异常，请稍后再试。"+ex.Message);
+                return View();
+            }
+        }
+
         /// <summary>
         /// 个人中心主页
         /// </summary>
