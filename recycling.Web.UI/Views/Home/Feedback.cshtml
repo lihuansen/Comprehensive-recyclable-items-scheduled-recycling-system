@@ -1,58 +1,204 @@
 @{
     ViewBag.Title = "问题反馈";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    // 兼容服务端返回值（当控制器用 View() 返回时，可通过 Request.Form 或 ViewBag 回显）
+    string preType = (ViewBag.FeedbackType ?? Request.Form["FeedbackType"] ?? "问题反馈").ToString();
+    string preSubject = (ViewBag.Subject ?? Request.Form["Subject"] ?? "").ToString();
+    string preDescription = (ViewBag.Description ?? Request.Form["Description"] ?? "").ToString();
+    string preContact = (ViewBag.ContactEmail ?? Request.Form["ContactEmail"] ?? "").ToString();
 }
 
-<h2>问题反馈</h2>
+<style>
+    /* 与系统保持低耦合的自定义小样式（不会覆盖全局主题） */
+    .feedback-card {
+        max-width: 820px;
+        margin: 18px auto;
+        border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(31,41,55,0.06);
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid #eef2f6;
+    }
+    .feedback-card .card-header {
+        padding: 18px 22px;
+        background: linear-gradient(90deg,#f7fbff 0%,#ffffff 100%);
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .feedback-card .card-body {
+        padding: 20px 22px;
+    }
+    .feedback-label {
+        font-weight: 600;
+        color: #1f2937;
+        display: block;
+        margin-bottom: 6px;
+    }
+    .feedback-help {
+        color: #6b7280;
+        font-size: 13px;
+    }
+    .feedback-radio-group label { margin-right: 12px; }
+    .char-counter {
+        float: right;
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .validation-summary {
+        background: #fff3f2;
+        color: #7f1d1d;
+        border: 1px solid #ffd7d5;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        border-radius: 6px;
+    }
+    @@media (max-width: 640px) {
+        .feedback-card { margin: 12px; }
+    }
+</style>
 
-@* 使用标准 POST 表单提交到 HomeController.Feedback (HttpPost) *@
-@using (Html.BeginForm("Feedback", "Home", FormMethod.Post, new { @id = "feedbackForm" }))
-{
-    @Html.AntiForgeryToken()
-
-    <div>
-        <label>反馈类型</label><br />
-        <label><input type="radio" name="FeedbackType" value="问题反馈" checked /> 问题反馈</label>
-        <label><input type="radio" name="FeedbackType" value="功能建议" /> 功能建议</label>
-        <label><input type="radio" name="FeedbackType" value="投诉举报" /> 投诉举报</label>
-        <label><input type="radio" name="FeedbackType" value="其他" /> 其他</label>
+<div class="feedback-card" role="region" aria-labelledby="feedbackTitle">
+    <div class="card-header">
+        <h3 id="feedbackTitle" style="margin:0; color:#0f172a;">问题反馈</h3>
+        <div style="margin-top:6px; color:#475569; font-size:13px;">
+            我们非常重视你的意见与建议，请详细描述遇到的问题或你的建议，我们会尽快处理。
+        </div>
     </div>
 
-    <div>
-        <label for="Subject">主题（必填，最多100字）</label><br />
-        <input type="text" id="Subject" name="Subject" maxlength="100" required style="width:60%;" />
-    </div>
+    <div class="card-body">
+        @* 显示服务端模型验证或错误信息（如果控制器通过 ModelState 返回错误） *@
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary" role="alert">
+                <strong>请修正以下错误：</strong>
+                <ul style="margin:6px 0 0 18px;">
+                    @foreach (var key in ViewData.ModelState.Keys)
+                    {
+                        var state = ViewData.ModelState[key];
+                        if (state.Errors != null && state.Errors.Count > 0)
+                        {
+                            foreach (var err in state.Errors)
+                            {
+                                <li>@err.ErrorMessage</li>
+                            }
+                        }
+                    }
+                </ul>
+            </div>
+        }
 
-    <div>
-        <label for="Description">详细描述（必填，10-1000字）</label><br />
-        <textarea id="Description" name="Description" rows="8" cols="80" minlength="10" maxlength="2000" required></textarea>
-    </div>
+        @using (Html.BeginForm("Feedback", "Home", FormMethod.Post, new { @id = "feedbackForm", @class = "feedback-form" }))
+        {
+            @Html.AntiForgeryToken()
 
-    <div>
-        <label for="ContactEmail">联系邮箱（选填）</label><br />
-        <input type="email" id="ContactEmail" name="ContactEmail" placeholder="example@domain.com" style="width:40%;" />
-    </div>
+            <div class="form-group">
+                <label class="feedback-label">反馈类型</label>
+                <div class="feedback-radio-group" role="radiogroup" aria-label="反馈类型">
+                    <label class="radio-inline">
+                        <input type="radio" name="FeedbackType" value="问题反馈" @(preType == "问题反馈" ? "checked" : "") /> 问题反馈
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="FeedbackType" value="功能建议" @(preType == "功能建议" ? "checked" : "") /> 功能建议
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="FeedbackType" value="投诉举报" @(preType == "投诉举报" ? "checked" : "") /> 投诉举报
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="FeedbackType" value="其他" @(preType == "其他" ? "checked" : "") /> 其他
+                    </label>
+                </div>
+                <div class="feedback-help" style="margin-top:6px;">选择最接近的类型有助于我们更快处理你的反馈。</div>
+            </div>
 
-    <div style="margin-top:12px;">
-        <button type="submit">提交反馈</button>
-        <a href="@Url.Action("Index","Home")" style="margin-left:12px;">返回首页</a>
+            <div class="form-group" style="margin-top:14px;">
+                <label class="feedback-label" for="Subject">主题 <span style="color:#ef4444">*</span></label>
+                <input id="Subject"
+                       name="Subject"
+                       type="text"
+                       class="form-control"
+                       placeholder="简短概述你的问题或建议（最多100字）"
+                       maxlength="100"
+                       required
+                       value="@(Html.Raw(HttpUtility.HtmlEncode(preSubject)))"
+                       style="padding:10px; width:100%; border:1px solid #e6edf3; border-radius:6px;" />
+            </div>
+
+            <div class="form-group" style="margin-top:12px;">
+                <label class="feedback-label" for="Description">
+                    详细描述 <span style="color:#ef4444">*</span>
+                    <span class="char-counter" id="descCounter">0 / 2000</span>
+                </label>
+                <textarea id="Description"
+                          name="Description"
+                          class="form-control"
+                          rows="8"
+                          minlength="10"
+                          maxlength="2000"
+                          required
+                          placeholder="请尽量详细描述重现步骤、期望行为与实际行为（至少10字）"
+                          style="padding:10px; width:100%; border:1px solid #e6edf3; border-radius:6px;">@Html.Raw(HttpUtility.HtmlEncode(preDescription))</textarea>
+                <div class="feedback-help" style="margin-top:8px;">附带页面截图或浏览器控制台错误可加快处理（可在回复中附上）。</div>
+            </div>
+
+            <div class="form-group" style="margin-top:12px;">
+                <label class="feedback-label" for="ContactEmail">联系邮箱（选填）</label>
+                <input id="ContactEmail"
+                       name="ContactEmail"
+                       type="email"
+                       class="form-control"
+                       placeholder="例如: example@domain.com（便于我们回复）"
+                       maxlength="100"
+                       value="@(Html.Raw(HttpUtility.HtmlEncode(preContact)))"
+                       style="padding:10px; width:100%; border:1px solid #e6edf3; border-radius:6px;" />
+            </div>
+
+            <div style="margin-top:18px; display:flex; align-items:center;">
+                <button id="submitBtn" type="submit" class="btn btn-primary" style="padding:10px 18px; border-radius:6px;">
+                    提交反馈
+                </button>
+                <a href="@Url.Action("Index","Home")" class="btn btn-link" style="margin-left:14px; color:#475569;">取消并返回首页</a>
+                <div style="flex:1"></div>
+            </div>
+        }
     </div>
-}
+</div>
 
 @section Scripts {
-    @* 不需要 AJAX：用标准表单提交。保留很小的提示脚本（可选） *@
-    <script type="text/javascript">
-        // 可选：阻止重复提交（简单实现）
+    <script>
         (function () {
-            var form = document.getElementById('feedbackForm');
-            if (!form) return;
-            form.addEventListener('submit', function (e) {
-                var btn = this.querySelector('button[type="submit"]');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.textContent = '提交中...';
+            // 字符计数器
+            var desc = document.getElementById('Description');
+            var counter = document.getElementById('descCounter');
+            var submitBtn = document.getElementById('submitBtn');
+            function updateCounter() {
+                if (!desc) return;
+                var len = desc.value.length;
+                counter.textContent = len + ' / ' + (desc.getAttribute('maxlength') || '2000');
+                // 简单 UI 提示
+                if (len < 10) {
+                    counter.style.color = '#b91c1c';
+                } else if (len > parseInt(desc.getAttribute('maxlength') || 2000) - 50) {
+                    counter.style.color = '#b45309';
+                } else {
+                    counter.style.color = '#6b7280';
                 }
-            });
+            }
+            if (desc) {
+                updateCounter();
+                desc.addEventListener('input', updateCounter);
+            }
+
+            // 防止重复提交
+            var form = document.getElementById('feedbackForm');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    // 浏览器原生验证：若不通过，则不禁用按钮
+                    if (!form.checkValidity()) {
+                        return; // 让浏览器显示验证提示
+                    }
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '提交中...';
+                });
+            }
         })();
     </script>
 }
