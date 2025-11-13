@@ -1,7 +1,146 @@
-﻿
-@{
-    ViewBag.Title = "Contact";
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml"; // 根据项目实际 Layout 修改
+    ViewBag.Title = "联系我们 - 在线客服";
 }
 
-<h2>Contact</h2>
+<style>
+    .chat-container {
+        width: 640px;
+        max-width: 95%;
+        margin: 24px auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        background: #fff;
+    }
 
+    .chat-header {
+        padding: 12px;
+        background: #f7f7f7;
+        border-bottom: 1px solid #eee;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .chat-messages {
+        height: 320px;
+        padding: 12px;
+        overflow-y: auto;
+        background: #fafafa;
+    }
+
+    .system-message {
+        text-align: center;
+        color: #666;
+        margin: 8px 0;
+        font-size: 14px;
+    }
+
+    .message-row {
+        margin: 8px 0;
+    }
+
+        .message-row .me {
+            text-align: right;
+            color: #0b7dda;
+        }
+
+        .message-row .agent {
+            text-align: left;
+            color: #333;
+        }
+
+    .chat-input {
+        display: flex;
+        gap: 8px;
+        padding: 12px;
+        border-top: 1px solid #eee;
+        background: #fff;
+    }
+
+        .chat-input textarea {
+            flex: 1;
+            resize: none;
+            height: 56px;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .chat-input button {
+            min-width: 88px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+</style>
+
+<div class="chat-container" role="region" aria-label="在线客服聊天">
+    <div class="chat-header">
+        在线人工客服
+    </div>
+
+    <div id="chatMessages" class="chat-messages" aria-live="polite">
+        <div class="system-message" id="systemNotice">您已进入人工客服的聊天频道</div>
+        <!-- 聊天消息将追加在这里 -->
+    </div>
+
+    <div class="chat-input">
+        <textarea id="chatInput" placeholder="请输入消息..." maxlength="500"></textarea>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <button id="sendBtn" class="btn btn-primary">发送</button>
+            <button id="backBtn" class="btn btn-default">返回</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        var messages = document.getElementById('chatMessages');
+        var input = document.getElementById('chatInput');
+        var sendBtn = document.getElementById('sendBtn');
+        var backBtn = document.getElementById('backBtn');
+
+        // 将系统提示置顶并居中（already in markup）
+        // 客户端发送逻辑（仅做示例：在聊天区追加消息）
+        function appendMessage(text, role) {
+            var row = document.createElement('div');
+            row.className = 'message-row ' + (role === 'me' ? 'me' : 'agent');
+            row.innerHTML = '<div>' + escapeHtml(text) + '</div>';
+            messages.appendChild(row);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function escapeHtml(s){
+            return s.replace(/[&<>"']/g, function(m){
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+            });
+        }
+
+        sendBtn.addEventListener('click', function(){
+            var v = input.value && input.value.trim();
+            if(!v) return;
+            appendMessage(v, 'me');
+            input.value = '';
+
+            // 模拟客服回复（可替换成 AJAX 调用后端接口）
+            setTimeout(function(){
+                appendMessage('感谢您的信息，我们的人工客服稍后会回复您。', 'agent');
+            }, 800);
+        });
+
+        input.addEventListener('keydown', function(e){
+            if(e.key === 'Enter' && !e.shiftKey){
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        backBtn.addEventListener('click', function(){
+            // 返回到上一个页面
+            window.history.back();
+        });
+
+        // 页面加载后将系统提示居中（如果需要动态修改）
+        document.getElementById('systemNotice').style.textAlign = 'center';
+    })();
+</script>
