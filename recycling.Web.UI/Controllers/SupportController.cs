@@ -8,8 +8,8 @@ namespace recycling.Web.UI.Controllers
 {
     public class SupportController : Controller
     {
-        // GET: Support
-        public ActionResult Index()
+        // GET: /Support/Contact
+        public ActionResult Contact()
         {
             return View();
         }
