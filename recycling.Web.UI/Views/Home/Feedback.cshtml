@@ -19,30 +19,39 @@
         background: #ffffff;
         border: 1px solid #eef2f6;
     }
-    .feedback-card .card-header {
-        padding: 18px 22px;
-        background: linear-gradient(90deg,#f7fbff 0%,#ffffff 100%);
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .feedback-card .card-body {
-        padding: 20px 22px;
-    }
+
+        .feedback-card .card-header {
+            padding: 18px 22px;
+            background: linear-gradient(90deg,#f7fbff 0%,#ffffff 100%);
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .feedback-card .card-body {
+            padding: 20px 22px;
+        }
+
     .feedback-label {
         font-weight: 600;
         color: #1f2937;
         display: block;
         margin-bottom: 6px;
     }
+
     .feedback-help {
         color: #6b7280;
         font-size: 13px;
     }
-    .feedback-radio-group label { margin-right: 12px; }
+
+    .feedback-radio-group label {
+        margin-right: 12px;
+    }
+
     .char-counter {
         float: right;
         font-size: 12px;
         color: #6b7280;
     }
+
     .validation-summary {
         background: #fff3f2;
         color: #7f1d1d;
@@ -51,8 +60,11 @@
         margin-bottom: 12px;
         border-radius: 6px;
     }
+
     @@media (max-width: 640px) {
-        .feedback-card { margin: 12px; }
+        .feedback-card {
+            margin: 12px;
+        }
     }
 </style>
 
@@ -160,6 +172,7 @@
             </div>
         }
     </div>
+    <div style="text-align:center;margin-top:18px;"><a href="/Support/Contact">联系我们</a></div>
 </div>
 
 @section Scripts {
