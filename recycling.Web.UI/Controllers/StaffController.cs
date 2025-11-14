@@ -2100,6 +2100,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取所有待处理的联系请求
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult GetPendingContactRequests()
         {
             try
@@ -2120,6 +2121,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取所有联系请求（包括已处理的）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult GetAllContactRequests()
         {
             try
@@ -2140,6 +2142,7 @@ namespace recycling.Web.UI.Controllers
         /// 管理员开始处理联系请求（创建会话）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult StartContactWithUser(int requestId, int userId)
         {
             try

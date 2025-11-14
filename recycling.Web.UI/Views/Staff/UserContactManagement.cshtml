@@ -3,6 +3,8 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <style>
     .chat-container {
         max-width: 1400px;
@@ -376,10 +378,17 @@
             try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
         }
 
+        function getAntiForgeryToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]').value;
+        }
+
         function loadPendingRequests() {
+            var formData = new FormData();
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
+            
             fetch('@Url.Action("GetPendingContactRequests", "Staff")', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                body: formData
             })
             .then(r => r.json())
             .then(data => {
@@ -419,10 +428,14 @@
                 return;
             }
             
+            var formData = new FormData();
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
+            formData.append('requestId', requestId);
+            formData.append('userId', userId);
+            
             fetch('@Url.Action("StartContactWithUser", "Staff")', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId: requestId, userId: userId })
+                body: formData
             })
             .then(r => r.json())
             .then(data => {
