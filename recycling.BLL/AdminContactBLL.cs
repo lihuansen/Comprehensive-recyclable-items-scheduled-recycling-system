@@ -49,7 +49,7 @@ namespace recycling.BLL
                 }
                 else
                 {
-                    return new OperationResult { Success = false, Message = "消息发送失败" };
+                    return new OperationResult { Success = false, Message = "对话已结束，无法发送消息" };
                 }
             }
             catch (Exception ex)

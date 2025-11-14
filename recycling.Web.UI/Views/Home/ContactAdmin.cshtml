@@ -268,9 +268,9 @@
                     <button class="btn-send" onclick="sendMessage()" disabled id="btnSend">
                         <i class="fas fa-paper-plane"></i> 发送
                     </button>
-                    <button class="btn-end" onclick="endConversation()" disabled id="btnEnd">
-                        <i class="fas fa-times"></i> 结束对话
-                    </button>
+                </div>
+                <div id="conversationStatus" style="margin-top: 10px; text-align: center; color: #666; font-size: 13px;">
+                    <!-- 会话状态将显示在这里 -->
                 </div>
             </div>
         </div>
@@ -282,6 +282,9 @@
         let currentConversationId = null;
         let currentUserId = null;
         let isHistoryMode = false;
+        let pollingInterval = null;
+        let isConversationEnded = false;
+        let lastMessageCount = 0;
 
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
@@ -304,8 +307,10 @@
                 if (data.success) {
                     currentConversationId = data.conversationId;
                     currentUserId = data.userId;
+                    isConversationEnded = false;
                     loadMessages();
-                    enableChatInput();
+                    checkConversationStatus();
+                    startPolling();
                 } else {
                     alert(data.message || '创建会话失败');
                 }
@@ -316,7 +321,67 @@
             });
         }
 
-        function loadMessages() {
+        // 开始轮询以实现实时更新
+        function startPolling() {
+            // 清除之前的轮询
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            
+            // 每3秒轮询一次
+            pollingInterval = setInterval(function() {
+                if (!isHistoryMode && currentUserId && !isConversationEnded) {
+                    loadMessages(true); // 静默加载，不滚动
+                    checkConversationStatus();
+                }
+            }, 3000);
+        }
+
+        // 停止轮询
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        // 检查会话状态
+        function checkConversationStatus() {
+            if (!currentUserId) return;
+
+            fetch('@Url.Action("GetUserAdminConversations", "Home")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.conversations && data.conversations.length > 0) {
+                    // 获取最新的会话状态
+                    const latestConv = data.conversations[0];
+                    if (latestConv.adminEnded) {
+                        isConversationEnded = true;
+                        disableChatInput();
+                        updateStatusDisplay('已结束', '#dc3545');
+                        stopPolling();
+                    } else {
+                        isConversationEnded = false;
+                        enableChatInput();
+                        updateStatusDisplay('进行中', '#28a745');
+                    }
+                }
+            })
+            .catch(err => console.error('检查会话状态出错', err));
+        }
+
+        // 更新状态显示
+        function updateStatusDisplay(status, color) {
+            const statusDiv = document.getElementById('conversationStatus');
+            if (statusDiv) {
+                statusDiv.innerHTML = '<i class="fas fa-circle" style="font-size: 8px; color: ' + color + ';"></i> 会话状态: <strong style="color: ' + color + ';">' + status + '</strong>';
+            }
+        }
+
+        function loadMessages(silent) {
             if (!currentUserId) return;
 
             fetch('@Url.Action("GetAdminContactMessages", "Home")', {
@@ -327,14 +392,20 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    displayMessages(data.messages);
+                    // 只有消息数量变化时才更新显示
+                    if (!silent || data.messages.length !== lastMessageCount) {
+                        lastMessageCount = data.messages.length;
+                        displayMessages(data.messages, silent);
+                    }
                 }
             })
             .catch(err => console.error('加载消息出错', err));
         }
 
-        function displayMessages(messages) {
+        function displayMessages(messages, silent) {
             const container = document.getElementById('chatMessages');
+            const wasAtBottom = container.scrollHeight - container.scrollTop === container.clientHeight;
+            
             container.innerHTML = '';
 
             if (!messages || messages.length === 0) {
@@ -343,7 +414,7 @@
             }
 
             messages.forEach(function(msg) {
-                const senderType = (msg.senderType || '').toLowerCase();
+                const senderType = (msg.senderType || msg.SenderType || '').toLowerCase();
                 const wrapper = document.createElement('div');
                 wrapper.className = 'message-wrapper ' + senderType;
 
@@ -351,18 +422,21 @@
                 messageDiv.className = 'message ' + senderType;
 
                 if (senderType === 'system') {
-                    messageDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content);
+                    messageDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content || msg.Content);
                 } else {
                     const senderLabel = senderType === 'user' ? '我' : '管理员';
-                    messageDiv.innerHTML = '<div>' + escapeHtml(msg.content) + '</div>' +
-                        '<div class="message-time">' + senderLabel + ' • ' + formatTime(msg.sentTime) + '</div>';
+                    messageDiv.innerHTML = '<div>' + escapeHtml(msg.content || msg.Content) + '</div>' +
+                        '<div class="message-time">' + senderLabel + ' • ' + formatTime(msg.sentTime || msg.SentTime) + '</div>';
                 }
 
                 wrapper.appendChild(messageDiv);
                 container.appendChild(wrapper);
             });
 
-            container.scrollTop = container.scrollHeight;
+            // 如果不是静默加载或用户在底部，自动滚动到底部
+            if (!silent || wasAtBottom) {
+                container.scrollTop = container.scrollHeight;
+            }
         }
 
         function sendMessage() {
@@ -379,6 +453,11 @@
                 return;
             }
 
+            if (isConversationEnded) {
+                alert('对话已结束，无法发送消息');
+                return;
+            }
+
             fetch('@Url.Action("SendAdminContactMessage", "Home")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -391,7 +470,7 @@
             .then(data => {
                 if (data.success) {
                     input.value = '';
-                    loadMessages();
+                    loadMessages(false);
                 } else {
                     alert(data.message || '发送失败');
                 }
@@ -399,32 +478,6 @@
             .catch(err => {
                 console.error('发送消息出错', err);
                 alert('发送失败，请重试');
-            });
-        }
-
-        function endConversation() {
-            if (!currentUserId) return;
-
-            if (!confirm('确定要结束对话吗？')) return;
-
-            fetch('@Url.Action("EndAdminContact", "Home")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: currentUserId })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    alert('对话已结束');
-                    loadMessages();
-                    disableChatInput();
-                } else {
-                    alert(data.message || '结束对话失败');
-                }
-            })
-            .catch(err => {
-                console.error('结束对话出错', err);
-                alert('操作失败，请重试');
             });
         }
 
@@ -442,6 +495,8 @@
 
         function showHistoryConversations() {
             isHistoryMode = true;
+            stopPolling(); // 停止实时更新
+            
             fetch('@Url.Action("GetUserAdminConversations", "Home")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
@@ -468,17 +523,18 @@
                 const item = document.createElement('div');
                 item.className = 'conversation-item';
                 item.onclick = function() {
-                    currentUserId = conv.userID;
+                    currentUserId = conv.userID || conv.UserID;
                     loadHistoryMessages(conv);
                     document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
                     item.classList.add('active');
                 };
 
-                const status = (conv.userEnded && conv.adminEnded) ? '已结束' : '进行中';
-                const statusColor = (conv.userEnded && conv.adminEnded) ? '#999' : '#28a745';
+                const adminEnded = conv.adminEnded || conv.AdminEnded;
+                const status = adminEnded ? '已结束' : '进行中';
+                const statusColor = adminEnded ? '#999' : '#28a745';
 
-                item.innerHTML = '<div><strong>对话 #' + conv.conversationID + '</strong></div>' +
-                    '<div class="conversation-time">' + formatTime(conv.startTime) + '</div>' +
+                item.innerHTML = '<div><strong>对话 #' + (conv.conversationID || conv.ConversationID) + '</strong></div>' +
+                    '<div class="conversation-time">' + formatTime(conv.startTime || conv.StartTime) + '</div>' +
                     '<div class="conversation-status" style="color:' + statusColor + '">' + status + '</div>';
 
                 container.appendChild(item);
@@ -486,8 +542,8 @@
         }
 
         function loadHistoryMessages(conversation) {
-            currentUserId = conversation.userID;
-            const endTime = conversation.adminEndedTime || conversation.userEndedTime;
+            currentUserId = conversation.userID || conversation.UserID;
+            const endTime = conversation.adminEndedTime || conversation.AdminEndedTime;
             
             fetch('@Url.Action("GetAdminContactMessages", "Home")', {
                 method: 'POST',
@@ -500,11 +556,19 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    displayMessages(data.messages);
-                    if (conversation.userEnded && conversation.adminEnded) {
+                    displayMessages(data.messages, false);
+                    const adminEnded = conversation.adminEnded || conversation.AdminEnded;
+                    if (adminEnded) {
+                        isConversationEnded = true;
                         disableChatInput();
+                        updateStatusDisplay('已结束', '#dc3545');
                     } else {
+                        isConversationEnded = false;
                         enableChatInput();
+                        updateStatusDisplay('进行中', '#28a745');
+                        // 如果是进行中的对话，切换回实时模式
+                        isHistoryMode = false;
+                        startPolling();
                     }
                 }
             })
@@ -526,6 +590,11 @@
 
             // 自动开始新对话
             startNewConversation();
+
+            // 页面关闭时停止轮询
+            window.addEventListener('beforeunload', function() {
+                stopPolling();
+            });
         });
     </script>
 }

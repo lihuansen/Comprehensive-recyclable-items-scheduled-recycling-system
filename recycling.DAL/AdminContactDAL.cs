@@ -13,6 +13,7 @@ namespace recycling.DAL
 
         /// <summary>
         /// 获取或创建用户与管理员的会话
+        /// 只有管理员未结束的会话才会被重用
         /// </summary>
         public (int ConversationId, bool IsNewConversation) GetOrCreateConversation(int userId, int? adminId = null)
         {
@@ -20,12 +21,12 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // 首先检查是否存在未结束的会话
+                // 检查是否存在管理员未结束的会话（只看AdminEnded）
                 string checkSql = @"
                     SELECT TOP 1 ConversationID 
                     FROM AdminContactConversations 
                     WHERE UserID = @UserID 
-                      AND (UserEnded = 0 OR AdminEnded = 0)
+                      AND AdminEnded = 0
                     ORDER BY StartTime DESC";
 
                 using (SqlCommand cmd = new SqlCommand(checkSql, conn))
@@ -70,6 +71,25 @@ namespace recycling.DAL
                 {
                     try
                     {
+                        // 检查会话是否已被管理员结束
+                        string checkSql = @"
+                            SELECT AdminEnded FROM AdminContactConversations 
+                            WHERE UserID = @UserID AND AdminEnded = 0
+                            ORDER BY StartTime DESC";
+
+                        using (SqlCommand cmd = new SqlCommand(checkSql, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@UserID", userId);
+                            object result = cmd.ExecuteScalar();
+                            
+                            // 如果没有找到未结束的会话，说明管理员已结束对话
+                            if (result == null)
+                            {
+                                transaction.Rollback();
+                                return false;
+                            }
+                        }
+
                         // 插入消息
                         string insertMessageSql = @"
                             INSERT INTO AdminContactMessages (UserID, AdminID, SenderType, Content, SentTime, IsRead)
@@ -89,7 +109,7 @@ namespace recycling.DAL
                             UPDATE AdminContactConversations 
                             SET LastMessageTime = GETDATE()
                             WHERE UserID = @UserID 
-                              AND (UserEnded = 0 OR AdminEnded = 0)";
+                              AND AdminEnded = 0";
 
                         using (SqlCommand cmd = new SqlCommand(updateConvSql, conn, transaction))
                         {
@@ -329,14 +349,14 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 检查会话是否已完全结束
+        /// 检查会话是否已被管理员结束
         /// </summary>
         public bool IsBothEnded(int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT TOP 1 UserEnded, AdminEnded
+                    SELECT TOP 1 AdminEnded
                     FROM AdminContactConversations
                     WHERE UserID = @UserID
                     ORDER BY StartTime DESC";
@@ -350,9 +370,8 @@ namespace recycling.DAL
                     {
                         if (reader.Read())
                         {
-                            bool userEnded = reader.GetBoolean(0);
-                            bool adminEnded = reader.GetBoolean(1);
-                            return userEnded && adminEnded;
+                            bool adminEnded = reader.GetBoolean(0);
+                            return adminEnded;
                         }
                     }
                 }
