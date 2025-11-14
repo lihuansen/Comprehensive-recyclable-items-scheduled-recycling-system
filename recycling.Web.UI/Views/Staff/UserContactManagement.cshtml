@@ -320,6 +320,8 @@
         let currentConversationId = null;
         let allConversations = [];
         let currentFilter = 'all';
+        let pollingInterval = null;
+        let lastMessageCount = 0;
 
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
@@ -360,9 +362,11 @@
 
             let filtered = allConversations;
             if (filter === 'active') {
-                filtered = allConversations.filter(c => !c.userEnded || !c.adminEnded);
+                // Show only conversations where admin hasn't ended it
+                filtered = allConversations.filter(c => !c.adminEnded);
             } else if (filter === 'ended') {
-                filtered = allConversations.filter(c => c.userEnded && c.adminEnded);
+                // Show only conversations where admin has ended it
+                filtered = allConversations.filter(c => c.adminEnded);
             }
 
             displayConversations(filtered);
@@ -379,7 +383,8 @@
             let html = '';
             conversations.forEach(function(conv) {
                 const isActive = currentUserId === conv.userID;
-                const isEnded = conv.userEnded && conv.adminEnded;
+                // Status is based on admin action only
+                const isEnded = conv.adminEnded;
                 const statusBadge = isEnded ? 
                     '<span class="conversation-badge ended">已结束</span>' : 
                     '<span class="conversation-badge active">进行中</span>';
@@ -401,6 +406,7 @@
         function selectConversation(userId, conversationId) {
             currentUserId = userId;
             currentConversationId = conversationId;
+            lastMessageCount = 0;
 
             // Update active state
             document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
@@ -410,14 +416,39 @@
             loadUserInfo(userId);
 
             // Load messages
-            loadMessages(userId);
+            loadMessages(userId, false);
 
             // Check if conversation is ended
             const conv = allConversations.find(c => c.conversationID === conversationId);
-            if (conv && conv.userEnded && conv.adminEnded) {
+            if (conv && conv.adminEnded) {
                 disableChatInput();
             } else {
                 enableChatInput();
+            }
+
+            // Start polling for this conversation
+            startPolling();
+        }
+
+        // Start real-time polling
+        function startPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            
+            // Poll every 3 seconds
+            pollingInterval = setInterval(function() {
+                if (currentUserId) {
+                    loadMessages(currentUserId, true); // Silent load
+                }
+            }, 3000);
+        }
+
+        // Stop polling
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
             }
         }
 
@@ -440,7 +471,7 @@
             .catch(err => console.error('加载用户信息出错', err));
         }
 
-        function loadMessages(userId) {
+        function loadMessages(userId, silent) {
             fetch('@Url.Action("GetAdminContactMessagesForAdmin", "Staff")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -449,14 +480,20 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    displayMessages(data.messages);
+                    // Only update if message count changed during silent polling
+                    if (!silent || data.messages.length !== lastMessageCount) {
+                        lastMessageCount = data.messages.length;
+                        displayMessages(data.messages, silent);
+                    }
                 }
             })
             .catch(err => console.error('加载消息出错', err));
         }
 
-        function displayMessages(messages) {
+        function displayMessages(messages, silent) {
             const container = document.getElementById('chatMessages');
+            const wasAtBottom = container.scrollHeight - container.scrollTop === container.clientHeight;
+            
             container.innerHTML = '';
 
             if (!messages || messages.length === 0) {
@@ -465,7 +502,7 @@
             }
 
             messages.forEach(function(msg) {
-                const senderType = (msg.senderType || '').toLowerCase();
+                const senderType = (msg.senderType || msg.SenderType || '').toLowerCase();
                 const wrapper = document.createElement('div');
                 wrapper.className = 'message-wrapper ' + senderType;
 
@@ -473,18 +510,21 @@
                 messageDiv.className = 'message ' + senderType;
 
                 if (senderType === 'system') {
-                    messageDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content);
+                    messageDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + escapeHtml(msg.content || msg.Content);
                 } else {
                     const senderLabel = senderType === 'user' ? '用户' : '管理员';
-                    messageDiv.innerHTML = '<div>' + escapeHtml(msg.content) + '</div>' +
-                        '<div class="message-time">' + senderLabel + ' • ' + formatTime(msg.sentTime) + '</div>';
+                    messageDiv.innerHTML = '<div>' + escapeHtml(msg.content || msg.Content) + '</div>' +
+                        '<div class="message-time">' + senderLabel + ' • ' + formatTime(msg.sentTime || msg.SentTime) + '</div>';
                 }
 
                 wrapper.appendChild(messageDiv);
                 container.appendChild(wrapper);
             });
 
-            container.scrollTop = container.scrollHeight;
+            // Auto scroll if not silent or user was at bottom
+            if (!silent || wasAtBottom) {
+                container.scrollTop = container.scrollHeight;
+            }
         }
 
         function sendMessage() {
@@ -513,7 +553,7 @@
             .then(data => {
                 if (data.success) {
                     input.value = '';
-                    loadMessages(currentUserId);
+                    loadMessages(currentUserId, false);
                 } else {
                     alert(data.message || '发送失败');
                 }
@@ -538,9 +578,10 @@
             .then(data => {
                 if (data.success) {
                     alert('对话已结束');
-                    loadMessages(currentUserId);
+                    loadMessages(currentUserId, false);
                     loadConversations(); // Refresh conversation list
                     disableChatInput();
+                    stopPolling(); // Stop polling when conversation ends
                 } else {
                     alert(data.message || '结束对话失败');
                 }
@@ -565,9 +606,7 @@
 
         // Auto-refresh conversations every 30 seconds
         setInterval(function() {
-            if (!currentUserId) {
-                loadConversations();
-            }
+            loadConversations();
         }, 30000);
 
         // 回车发送
@@ -578,6 +617,11 @@
                 if (e.key === 'Enter' && !this.disabled) {
                     sendMessage();
                 }
+            });
+
+            // Stop polling when page unloads
+            window.addEventListener('beforeunload', function() {
+                stopPolling();
             });
         });
     </script>
