@@ -21,6 +21,7 @@ namespace recycling.Web.UI.Controllers
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
         private readonly AdminContactBLL _adminContactBLL = new AdminContactBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
+        private readonly UserContactRequestsBLL _contactRequestsBLL = new UserContactRequestsBLL();
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -2088,6 +2089,84 @@ namespace recycling.Web.UI.Controllers
                 var result = _adminContactBLL.EndConversationByAdmin(userId, admin.AdminID);
 
                 return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取所有待处理的联系请求
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetPendingContactRequests()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var requests = _contactRequestsBLL.GetPendingRequests();
+                return Json(new { success = true, requests = requests });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取所有联系请求（包括已处理的）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetAllContactRequests()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var requests = _contactRequestsBLL.GetAllRequests();
+                return Json(new { success = true, requests = requests });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员开始处理联系请求（创建会话）
+        /// </summary>
+        [HttpPost]
+        public JsonResult StartContactWithUser(int requestId, int userId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var admin = (Admins)Session["LoginStaff"];
+                
+                // 标记请求为已处理
+                _contactRequestsBLL.MarkAsContacted(requestId, admin.AdminID);
+                
+                // 创建或获取会话
+                var (conversationId, isNewConversation) = _adminContactBLL.GetOrCreateConversation(userId, admin.AdminID);
+                
+                // 如果是新会话，发送系统欢迎消息
+                if (isNewConversation)
+                {
+                    _adminContactBLL.SendMessage(userId, admin.AdminID, "system", "管理在线客服");
+                }
+
+                return Json(new { 
+                    success = true, 
+                    conversationId = conversationId,
+                    userId = userId,
+                    message = "会话已创建，可以开始对话"
+                });
             }
             catch (Exception ex)
             {

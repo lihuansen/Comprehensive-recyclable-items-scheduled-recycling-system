@@ -264,6 +264,41 @@
         color: white;
         border-color: #667eea;
     }
+
+    .pending-requests-section {
+        background: #fff8dc;
+        border-bottom: 2px solid #ffa500;
+    }
+
+    .pending-request-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #ffe4b5;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .pending-request-item:hover {
+        background-color: #fff4c4;
+    }
+
+    .pending-badge {
+        background: #ffa500;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+
+    .section-title {
+        padding: 10px 15px;
+        background: #f8f9fa;
+        font-weight: bold;
+        font-size: 13px;
+        color: #333;
+        border-bottom: 1px solid #e0e0e0;
+    }
 </style>
 
 <div class="chat-container">
@@ -274,9 +309,16 @@
     <div class="chat-body">
         <div class="conversation-list">
             <div class="filter-buttons">
-                <button class="filter-btn active" onclick="filterConversations('all')">全部</button>
+                <button class="filter-btn active" onclick="filterConversations('pending')">待联系</button>
                 <button class="filter-btn" onclick="filterConversations('active')">进行中</button>
                 <button class="filter-btn" onclick="filterConversations('ended')">已结束</button>
+            </div>
+            
+            <div id="pendingRequestsList" class="pending-requests-section">
+                <div class="section-title">
+                    <i class="fas fa-bell"></i> 待处理的联系请求
+                </div>
+                <!-- 待处理请求将在这里显示 -->
             </div>
             <div id="conversationList">
                 <div class="empty-state">加载中...</div>
@@ -319,7 +361,8 @@
         let currentUserId = null;
         let currentConversationId = null;
         let allConversations = [];
-        let currentFilter = 'all';
+        let allPendingRequests = [];
+        let currentFilter = 'pending';
         let pollingInterval = null;
         let lastMessageCount = 0;
 
@@ -331,6 +374,75 @@
         function formatTime(iso) {
             if (!iso) return '';
             try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+        }
+
+        function loadPendingRequests() {
+            fetch('@Url.Action("GetPendingContactRequests", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    allPendingRequests = data.requests || [];
+                    displayPendingRequests(allPendingRequests);
+                }
+            })
+            .catch(err => {
+                console.error('加载待处理请求出错', err);
+            });
+        }
+
+        function displayPendingRequests(requests) {
+            const container = document.getElementById('pendingRequestsList');
+            
+            // 保留标题
+            let html = '<div class="section-title"><i class="fas fa-bell"></i> 待处理的联系请求 <span class="pending-badge">' + requests.length + '</span></div>';
+            
+            if (requests.length === 0) {
+                html += '<div class="empty-state" style="padding: 20px;">暂无待处理请求</div>';
+            } else {
+                requests.forEach(function(req) {
+                    html += '<div class="pending-request-item" onclick="handlePendingRequest(' + req.RequestID + ', ' + req.UserID + ', \'' + escapeHtml(req.UserName) + '\')">';
+                    html += '<div class="conversation-user">' + escapeHtml(req.UserName) + ' <span class="pending-badge">待联系</span></div>';
+                    html += '<div class="conversation-time">请求时间: ' + formatTime(req.RequestTime) + '</div>';
+                    html += '<div class="conversation-status">手机: ' + escapeHtml(req.Phone || '未提供') + '</div>';
+                    html += '</div>';
+                });
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function handlePendingRequest(requestId, userId, userName) {
+            if (!confirm('确定要开始与用户 "' + userName + '" 的对话吗？')) {
+                return;
+            }
+            
+            fetch('@Url.Action("StartContactWithUser", "Staff")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId: requestId, userId: userId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // 重新加载待处理请求和会话列表
+                    loadPendingRequests();
+                    loadConversations();
+                    // 自动选中该用户的会话
+                    setTimeout(function() {
+                        selectConversation(userId);
+                    }, 500);
+                } else {
+                    alert(data.message || '操作失败');
+                }
+            })
+            .catch(err => {
+                console.error('处理请求出错', err);
+                alert('操作失败，请重试');
+            });
         }
 
         function loadConversations() {
@@ -360,16 +472,26 @@
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            let filtered = allConversations;
-            if (filter === 'active') {
-                // Show only conversations where admin hasn't ended it
-                filtered = allConversations.filter(c => !c.adminEnded);
-            } else if (filter === 'ended') {
-                // Show only conversations where admin has ended it
-                filtered = allConversations.filter(c => c.adminEnded);
-            }
+            if (filter === 'pending') {
+                // 显示待处理请求
+                document.getElementById('pendingRequestsList').style.display = 'block';
+                document.getElementById('conversationList').style.display = 'none';
+            } else {
+                // 显示会话列表
+                document.getElementById('pendingRequestsList').style.display = 'none';
+                document.getElementById('conversationList').style.display = 'block';
+                
+                let filtered = allConversations;
+                if (filter === 'active') {
+                    // Show only conversations where admin hasn't ended it
+                    filtered = allConversations.filter(c => !c.adminEnded);
+                } else if (filter === 'ended') {
+                    // Show only conversations where admin has ended it
+                    filtered = allConversations.filter(c => c.adminEnded);
+                }
 
-            displayConversations(filtered);
+                displayConversations(filtered);
+            }
         }
 
         function displayConversations(conversations) {
@@ -604,14 +726,23 @@
             document.getElementById('btnEnd').disabled = true;
         }
 
-        // Auto-refresh conversations every 30 seconds
+        // Auto-refresh
         setInterval(function() {
-            loadConversations();
+            if (currentFilter === 'pending') {
+                loadPendingRequests();
+            } else {
+                loadConversations();
+            }
         }, 30000);
 
         // 回车发送
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始加载待处理请求和会话列表
+            loadPendingRequests();
             loadConversations();
+            
+            // 默认显示待处理请求
+            document.getElementById('conversationList').style.display = 'none';
 
             document.getElementById('messageInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter' && !this.disabled) {
