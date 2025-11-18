@@ -780,28 +780,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// 历史会话页面 - 回收员查看历史对话
-        /// </summary>
-        [HttpGet]
-        public ActionResult HistoryConversations()
-        {
-            // 检查登录
-            if (Session["LoginStaff"] == null)
-            {
-                return RedirectToAction("LoginSelect", "Home");
-            }
 
-            var staff = Session["LoginStaff"] as Recyclers;
-            var role = Session["StaffRole"] as string;
-
-            if (role != "recycler")
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
-            return View();
-        }
 
         #region Admin - User Management
 

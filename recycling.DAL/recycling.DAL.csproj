@@ -56,10 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminDAL.cs" />
-    <Compile Include="AdminContactDAL.cs" />
     <Compile Include="AppointmentDAL.cs" />
     <Compile Include="ConversationDAL.cs" />
-    <Compile Include="FeedbackDAL.cs" />
     <Compile Include="HomepageCarouselDAL.cs" />
     <Compile Include="InventoryDAL.cs" />
     <Compile Include="MessageDAL.cs" />
@@ -69,7 +67,6 @@
     <Compile Include="RecyclableItemDAL.cs" />
     <Compile Include="RecyclerOrderDAL.cs" />
     <Compile Include="StaffDAL.cs" />
-    <Compile Include="UserContactRequestsDAL.cs" />
     <Compile Include="UserDAL.cs" />
   </ItemGroup>
   <ItemGroup>
