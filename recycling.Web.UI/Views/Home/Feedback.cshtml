@@ -167,9 +167,21 @@
 
     <h2 class="page-title">问题反馈</h2>
 
-    <div id="alertMessage" style="display:none;"></div>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
 
-    <form id="feedbackForm">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <form id="feedbackForm" method="post" action="@Url.Action("SubmitFeedback", "Home")">
         @Html.AntiForgeryToken()
 
         <div class="form-group">
@@ -270,96 +282,46 @@
             $('#descCounter').text($(this).val().length);
         });
 
-        // 表单提交
-        $('#feedbackForm').on('submit', function(e) {
-            e.preventDefault();
-
-            // 客户端验证
+        // 表单提交时禁用提交按钮，防止重复提交
+        $('#feedbackForm').on('submit', function() {
             var feedbackType = $('input[name="FeedbackType"]:checked').val();
             var subject = $('#subject').val().trim();
             var description = $('#description').val().trim();
 
+            // 客户端验证
             if (!feedbackType) {
-                showAlert('请选择反馈类型', 'error');
-                return;
+                alert('请选择反馈类型');
+                return false;
             }
 
             if (!subject) {
-                showAlert('请输入反馈主题', 'error');
-                return;
+                alert('请输入反馈主题');
+                return false;
             }
 
             if (subject.length > 100) {
-                showAlert('反馈主题不能超过100字', 'error');
-                return;
+                alert('反馈主题不能超过100字');
+                return false;
             }
 
             if (!description) {
-                showAlert('请输入详细描述', 'error');
-                return;
+                alert('请输入详细描述');
+                return false;
             }
 
             if (description.length < 10) {
-                showAlert('详细描述至少需要10个字符', 'error');
-                return;
+                alert('详细描述至少需要10个字符');
+                return false;
             }
 
             if (description.length > 1000) {
-                showAlert('详细描述不能超过1000字', 'error');
-                return;
+                alert('详细描述不能超过1000字');
+                return false;
             }
 
             // 禁用提交按钮，防止重复提交
             $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 提交中...');
-
-            // AJAX提交
-            $.ajax({
-                url: '@Url.Action("SubmitFeedback", "Home")',
-                type: 'POST',
-                data: {
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
-                    FeedbackType: feedbackType,
-                    Subject: subject,
-                    Description: description,
-                    ContactEmail: $('#contactEmail').val()
-                },
-                success: function(response) {
-                    if (response.success) {
-                        showAlert('反馈提交成功！感谢您的反馈，我们会尽快处理。', 'success');
-                        // 清空表单
-                        $('#feedbackForm')[0].reset();
-                        $('#subjectCounter').text('0');
-                        $('#descCounter').text('0');
-                        // 2秒后跳转到首页
-                        setTimeout(function() {
-                            window.location.href = '@Url.Action("Index", "Home")';
-                        }, 2000);
-                    } else {
-                        showAlert(response.message || '提交失败，请稍后重试', 'error');
-                        $('#submitBtn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> 提交反馈');
-                    }
-                },
-                error: function() {
-                    showAlert('网络错误，请检查您的网络连接', 'error');
-                    $('#submitBtn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> 提交反馈');
-                }
-            });
+            return true;
         });
-
-        function showAlert(message, type) {
-            var alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-            var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-            
-            $('#alertMessage')
-                .removeClass('alert-success alert-error')
-                .addClass('alert ' + alertClass)
-                .html('<i class="fas ' + icon + '"></i> ' + message)
-                .fadeIn();
-
-            // 5秒后自动隐藏
-            setTimeout(function() {
-                $('#alertMessage').fadeOut();
-            }, 5000);
-        }
     });
 </script>

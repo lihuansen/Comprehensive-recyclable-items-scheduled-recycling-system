@@ -969,7 +969,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult SubmitFeedback(string FeedbackType, string Subject, 
+        public ActionResult SubmitFeedback(string FeedbackType, string Subject, 
                                           string Description, string ContactEmail)
         {
             try
@@ -977,7 +977,8 @@ namespace recycling.Web.UI.Controllers
                 // 检查登录状态
                 if (Session["LoginUser"] == null)
                 {
-                    return Json(new { success = false, message = "请先登录" });
+                    TempData["ErrorMessage"] = "请先登录";
+                    return RedirectToAction("LoginSelect", "Home");
                 }
 
                 var user = (Users)Session["LoginUser"];
@@ -997,11 +998,21 @@ namespace recycling.Web.UI.Controllers
                 // 调用BLL层添加反馈
                 var (success, message) = _feedbackBLL.AddFeedback(feedback);
 
-                return Json(new { success = success, message = message });
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "反馈提交成功！感谢您的反馈，我们会尽快处理。";
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = message;
+                    return RedirectToAction("Feedback", "Home");
+                }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "提交失败：" + ex.Message });
+                TempData["ErrorMessage"] = "提交失败：" + ex.Message;
+                return RedirectToAction("Feedback", "Home");
             }
         }
 
