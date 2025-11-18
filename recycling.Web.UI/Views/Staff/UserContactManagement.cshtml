@@ -459,7 +459,7 @@
         }
 
         function loadConversations() {
-            fetch('@Url.Action("GetAllAdminContacts", "Staff")', {
+            return fetch('@Url.Action("GetAllAdminContacts", "Staff")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             })
@@ -468,14 +468,22 @@
                 if (data.success) {
                     allConversations = data.conversations || [];
                     displayConversations(allConversations);
+                    return allConversations;
                 } else {
                     document.getElementById('conversationList').innerHTML = '<div class="empty-state">加载失败</div>';
+                    return [];
                 }
             })
             .catch(err => {
                 console.error('加载会话列表出错', err);
                 document.getElementById('conversationList').innerHTML = '<div class="empty-state">加载失败</div>';
+                return [];
             });
+        }
+
+        function showConversations() {
+            // 默认显示所有进行中的对话
+            filterConversations('active');
         }
 
         function filterConversations(filter) {
@@ -483,7 +491,16 @@
             
             // Update filter button states
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // Programmatically called, find and activate the correct button
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    if (btn.textContent.includes('进行中') && filter === 'active') {
+                        btn.classList.add('active');
+                    }
+                });
+            }
 
             if (filter === 'pending') {
                 // 显示待处理请求
@@ -750,12 +767,36 @@
 
         // 回车发送
         document.addEventListener('DOMContentLoaded', function() {
+            // 检查URL参数，看是否需要自动打开某个用户的对话
+            const urlParams = new URLSearchParams(window.location.search);
+            const userIdParam = urlParams.get('userId');
+
             // 初始加载待处理请求和会话列表
             loadPendingRequests();
             loadConversations();
             
-            // 默认显示待处理请求
-            document.getElementById('conversationList').style.display = 'none';
+            // 如果有userId参数，自动切换到对话列表并选择该用户
+            if (userIdParam) {
+                setTimeout(function() {
+                    showConversations();
+                    // 查找并选择该用户的会话
+                    const conversation = allConversations.find(c => c.UserID == userIdParam);
+                    if (conversation) {
+                        selectConversation(conversation.UserID, conversation.ConversationID);
+                    } else {
+                        // 如果会话列表中没有，可能是刚创建的，重新加载会话列表
+                        loadConversations().then(() => {
+                            const conv = allConversations.find(c => c.UserID == userIdParam);
+                            if (conv) {
+                                selectConversation(conv.UserID, conv.ConversationID);
+                            }
+                        });
+                    }
+                }, 500);
+            } else {
+                // 默认显示待处理请求
+                document.getElementById('conversationList').style.display = 'none';
+            }
 
             document.getElementById('messageInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter' && !this.disabled) {

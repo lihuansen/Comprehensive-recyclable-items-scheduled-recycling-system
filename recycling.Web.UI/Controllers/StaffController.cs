@@ -2097,6 +2097,40 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 从反馈管理发起与用户的对话
+        /// </summary>
+        [HttpPost]
+        public JsonResult InitiateContactFromFeedback(int userId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return Json(new { success = false, message = "无权限" });
+
+                var admin = (Staff)Session["LoginStaff"];
+
+                // 获取或创建会话
+                var (conversationId, isNewConversation) = _adminContactBLL.GetOrCreateConversation(userId, admin.AdminID);
+
+                // 如果是新会话，发送系统消息
+                if (isNewConversation)
+                {
+                    _adminContactBLL.SendMessage(userId, admin.AdminID, "system", "管理员已开启对话，有任何问题都可以咨询。");
+                }
+
+                return Json(new { success = true, conversationId = conversationId, userId = userId });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 获取所有待处理的联系请求
         /// </summary>
         [HttpPost]
