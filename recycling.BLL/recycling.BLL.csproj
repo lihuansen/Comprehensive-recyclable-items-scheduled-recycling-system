@@ -50,7 +50,6 @@
     <Compile Include="ConversationBLL.cs" />
     <Compile Include="FeedbackBLL.cs" />
     <Compile Include="HomepageCarouselBLL.cs" />
-    <Compile Include="InventoryBLL.cs" />
     <Compile Include="MessageBLL.cs" />
     <Compile Include="OrderBLL.cs" />
     <Compile Include="OrderReviewBLL.cs" />
