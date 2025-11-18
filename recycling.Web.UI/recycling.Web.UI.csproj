@@ -211,6 +211,7 @@
     <Content Include="Views\Home\EditProfile.cshtml" />
     <Content Include="Views\Home\ChangePassword.cshtml" />
     <Content Include="Views\Home\ReviewOrder.cshtml" />
+    <Content Include="Views\Home\Feedback.cshtml" />
     <Content Include="Views\Shared\_RecyclerLayout.cshtml" />
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
     <Content Include="Views\Shared\_SuperAdminLayout.cshtml" />
@@ -228,6 +229,7 @@
     <Content Include="Views\Staff\HomepageManagement.cshtml" />
     <Content Include="Views\Staff\HomepageCarouselManagement.cshtml" />
     <Content Include="Views\Staff\RecyclableItemsManagement.cshtml" />
+    <Content Include="Views\Staff\FeedbackManagement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
