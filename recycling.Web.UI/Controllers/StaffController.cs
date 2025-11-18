@@ -40,13 +40,13 @@ namespace recycling.Web.UI.Controllers
         {
             if (string.IsNullOrEmpty(field))
                 return string.Empty;
-            
+
             // If field contains comma, quote, or newline, wrap it in quotes and escape any quotes
             if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
             {
                 return "\"" + field.Replace("\"", "\"\"") + "\"";
             }
-            
+
             return field;
         }
 
@@ -563,7 +563,7 @@ namespace recycling.Web.UI.Controllers
                 var recycler = (Recyclers)Session["LoginStaff"];
                 var convBll = new ConversationBLL();
                 bool ok = convBll.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
-                
+
                 if (!ok)
                 {
                     var errorJson = JsonConvert.SerializeObject(new { success = false, message = "用户需要先结束对话" });
@@ -626,11 +626,11 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
-                
+
                 // 检查对话是否都已结束
                 var convBll = new ConversationBLL();
                 var (bothEnded, _) = convBll.HasBothEnded(appointmentId);
-                
+
                 if (!bothEnded)
                 {
                     var errorJson = JsonConvert.SerializeObject(new { success = false, message = "双方必须都结束对话后才能完成订单" });
@@ -640,7 +640,7 @@ namespace recycling.Web.UI.Controllers
                 // 写入库存
                 var inventoryBll = new InventoryBLL();
                 bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recycler.RecyclerID);
-                
+
                 if (!inventoryAdded)
                 {
                     var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
@@ -680,10 +680,10 @@ namespace recycling.Web.UI.Controllers
 
                 var recycler = (Recyclers)Session["LoginStaff"];
                 var inventoryBll = new InventoryBLL();
-                
+
                 // 获取所有库存汇总（不过滤回收员）
                 var summary = inventoryBll.GetInventorySummary(null);
-                
+
                 var result = summary.Select(s => new
                 {
                     categoryKey = s.CategoryKey,
@@ -745,13 +745,13 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var reviewBLL = new OrderReviewBLL();
-                
+
                 // 获取评价列表
                 var reviews = reviewBLL.GetReviewsByRecyclerId(staff.RecyclerID);
-                
+
                 // 获取评分摘要
                 var summary = reviewBLL.GetRecyclerRatingSummary(staff.RecyclerID);
-                
+
                 // 获取星级分布
                 var distribution = reviewBLL.GetRecyclerRatingDistribution(staff.RecyclerID);
 
@@ -850,10 +850,10 @@ namespace recycling.Web.UI.Controllers
 
                 // Create CSV content
                 var csv = new System.Text.StringBuilder();
-                
+
                 // Add UTF-8 BOM for proper Excel display of Chinese characters
                 csv.Append("\uFEFF");
-                
+
                 // Add header
                 csv.AppendLine("用户ID,用户名,邮箱,手机号,注册日期,最后登录日期,状态");
 
@@ -861,11 +861,11 @@ namespace recycling.Web.UI.Controllers
                 foreach (var user in users)
                 {
                     // Determine user status
-                    var isActive = user.LastLoginDate.HasValue && 
+                    var isActive = user.LastLoginDate.HasValue &&
                                   (DateTime.Now - user.LastLoginDate.Value).TotalDays <= 30;
                     var status = isActive ? "活跃" : "不活跃";
                     var lastLogin = user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
-                    
+
                     csv.AppendLine($"{user.UserID},{EscapeCsvField(user.Username)},{EscapeCsvField(user.Email)},{EscapeCsvField(user.PhoneNumber)},{user.RegistrationDate:yyyy-MM-dd HH:mm:ss},{EscapeCsvField(lastLogin)},{EscapeCsvField(status)}");
                 }
 
@@ -927,13 +927,13 @@ namespace recycling.Web.UI.Controllers
                 var recycler = _adminBLL.GetRecyclerById(recyclerId);
                 var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recyclerId);
 
-                return JsonContent(new { 
-                    success = true, 
-                    data = new 
-                    { 
-                        recycler = recycler, 
-                        completedOrders = completedOrders 
-                    } 
+                return JsonContent(new {
+                    success = true,
+                    data = new
+                    {
+                        recycler = recycler,
+                        completedOrders = completedOrders
+                    }
                 });
             }
             catch (Exception ex)
@@ -1029,10 +1029,10 @@ namespace recycling.Web.UI.Controllers
 
                 // Create CSV content
                 var csv = new System.Text.StringBuilder();
-                
+
                 // Add UTF-8 BOM for proper Excel display of Chinese characters
                 csv.Append("\uFEFF");
-                
+
                 // Add header
                 csv.AppendLine("回收员ID,用户名,姓名,手机号,区域,评分,完成订单数,是否可接单,账号状态,注册日期");
 
@@ -1044,7 +1044,7 @@ namespace recycling.Web.UI.Controllers
                     var availableStatus = recycler.Available ? "可接单" : "不可接单";
                     var activeStatus = recycler.IsActive ? "激活" : "禁用";
                     var createdDate = recycler.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
-                    
+
                     csv.AppendLine($"{recycler.RecyclerID},{EscapeCsvField(recycler.Username)},{EscapeCsvField(recycler.FullName ?? "-")},{EscapeCsvField(recycler.PhoneNumber)},{EscapeCsvField(recycler.Region)},{EscapeCsvField(recycler.Rating?.ToString("F1") ?? "0.0")},{completedOrders},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
 
@@ -1167,8 +1167,8 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var admin = _adminBLL.GetAdminById(adminId);
-                return JsonContent(new { 
-                    success = true, 
+                return JsonContent(new {
+                    success = true,
                     data = admin
                 });
             }
@@ -1289,10 +1289,10 @@ namespace recycling.Web.UI.Controllers
 
                 // Create CSV content
                 var csv = new System.Text.StringBuilder();
-                
+
                 // Add UTF-8 BOM for proper Excel display of Chinese characters
                 csv.Append("\uFEFF");
-                
+
                 // Add header
                 csv.AppendLine("管理员ID,用户名,姓名,创建日期,最后登录日期,账号状态");
 
@@ -1302,7 +1302,7 @@ namespace recycling.Web.UI.Controllers
                     var createdDate = admin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
                     var lastLoginDate = admin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
                     var activeStatus = (admin.IsActive ?? true) ? "激活" : "禁用";
-                    
+
                     csv.AppendLine($"{admin.AdminID},{EscapeCsvField(admin.Username)},{EscapeCsvField(admin.FullName)},{EscapeCsvField(createdDate)},{EscapeCsvField(lastLoginDate)},{EscapeCsvField(activeStatus)}");
                 }
 
@@ -1431,7 +1431,7 @@ namespace recycling.Web.UI.Controllers
                 {
                     // Validate file type
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
-                    
+
                     if (carousel.MediaType == "Image")
                     {
                         if (!AllowedImageExtensions.Contains(fileExtension))
@@ -1454,16 +1454,16 @@ namespace recycling.Web.UI.Controllers
                     // Generate unique filename
                     string fileName = Guid.NewGuid().ToString() + fileExtension;
                     string uploadPath = Server.MapPath("~/Uploads/Carousel/");
-                    
+
                     // Create directory if it doesn't exist
                     if (!System.IO.Directory.Exists(uploadPath))
                     {
                         System.IO.Directory.CreateDirectory(uploadPath);
                     }
-                    
+
                     string filePath = System.IO.Path.Combine(uploadPath, fileName);
                     MediaFile.SaveAs(filePath);
-                    
+
                     // Set MediaUrl to relative path
                     carousel.MediaUrl = "/Uploads/Carousel/" + fileName;
                 }
@@ -1509,7 +1509,7 @@ namespace recycling.Web.UI.Controllers
                 {
                     // Validate file type
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
-                    
+
                     if (carousel.MediaType == "Image")
                     {
                         if (!AllowedImageExtensions.Contains(fileExtension))
@@ -1537,7 +1537,7 @@ namespace recycling.Web.UI.Controllers
                         // Map the relative path and validate it's within our upload directory
                         string mappedPath = Server.MapPath("~" + oldCarousel.MediaUrl);
                         string uploadDir = Server.MapPath("~/Uploads/Carousel/");
-                        
+
                         // Ensure the resolved path is actually within the upload directory
                         if (mappedPath.StartsWith(uploadDir, StringComparison.OrdinalIgnoreCase))
                         {
@@ -1548,16 +1548,16 @@ namespace recycling.Web.UI.Controllers
                     // Generate unique filename
                     string fileName = Guid.NewGuid().ToString() + fileExtension;
                     string uploadPath = Server.MapPath("~/Uploads/Carousel/");
-                    
+
                     // Create directory if it doesn't exist
                     if (!System.IO.Directory.Exists(uploadPath))
                     {
                         System.IO.Directory.CreateDirectory(uploadPath);
                     }
-                    
+
                     string filePath = System.IO.Path.Combine(uploadPath, fileName);
                     MediaFile.SaveAs(filePath);
-                    
+
                     // Set MediaUrl to relative path
                     carousel.MediaUrl = "/Uploads/Carousel/" + fileName;
 
@@ -1815,17 +1815,5 @@ namespace recycling.Web.UI.Controllers
         }
 
         #endregion
-
-        #region 管理员联系功能
-
-        /// <summary>
-        /// 反馈管理页面
-        /// </summary>
-        [HttpGet]
-
-
-        #endregion
-
-
     }
 }
