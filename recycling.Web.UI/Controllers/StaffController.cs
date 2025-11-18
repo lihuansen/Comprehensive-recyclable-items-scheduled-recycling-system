@@ -2111,15 +2111,26 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return Json(new { success = false, message = "无权限" });
 
-                var admin = (Staff)Session["LoginStaff"];
+                // 根据角色获取AdminID
+                int adminId;
+                if (staffRole == "admin")
+                {
+                    var admin = (Admins)Session["LoginStaff"];
+                    adminId = admin.AdminID;
+                }
+                else // superadmin
+                {
+                    var superAdmin = (SuperAdmins)Session["LoginStaff"];
+                    adminId = superAdmin.SuperAdminID;
+                }
 
                 // 获取或创建会话
-                var (conversationId, isNewConversation) = _adminContactBLL.GetOrCreateConversation(userId, admin.AdminID);
+                var (conversationId, isNewConversation) = _adminContactBLL.GetOrCreateConversation(userId, adminId);
 
                 // 如果是新会话，发送系统消息
                 if (isNewConversation)
                 {
-                    _adminContactBLL.SendMessage(userId, admin.AdminID, "system", "管理员已开启对话，有任何问题都可以咨询。");
+                    _adminContactBLL.SendMessage(userId, adminId, "system", "管理员已开启对话，有任何问题都可以咨询。");
                 }
 
                 return Json(new { success = true, conversationId = conversationId, userId = userId });
