@@ -19,6 +19,7 @@ namespace recycling.Web.UI.Controllers
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly AdminContactBLL _adminContactBLL = new AdminContactBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
+        private readonly UserContactRequestsBLL _contactRequestsBLL = new UserContactRequestsBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -1028,7 +1029,7 @@ namespace recycling.Web.UI.Controllers
         // ==================== 管理员联系功能 ====================
 
         /// <summary>
-        /// 联系管理员页面
+        /// 联系管理员页面 - 记录联系请求
         /// </summary>
         [HttpGet]
         public ActionResult ContactAdmin()
@@ -1038,6 +1039,15 @@ namespace recycling.Web.UI.Controllers
             {
                 return RedirectToAction("LoginSelect", "Home");
             }
+
+            var user = (Users)Session["LoginUser"];
+            
+            // 创建联系请求
+            var result = _contactRequestsBLL.CreateContactRequest(user.UserID);
+            
+            // 传递结果消息到视图
+            ViewBag.RequestMessage = result.Message;
+            ViewBag.RequestSuccess = result.Success;
 
             return View();
         }
