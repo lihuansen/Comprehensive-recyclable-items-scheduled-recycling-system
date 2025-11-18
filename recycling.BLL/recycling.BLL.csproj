@@ -53,7 +53,6 @@
     <Compile Include="InventoryBLL.cs" />
     <Compile Include="MessageBLL.cs" />
     <Compile Include="OrderBLL.cs" />
-    <Compile Include="OrderReviewBLL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecyclableItemBLL.cs" />
     <Compile Include="RecyclerOrderBLL.cs" />
