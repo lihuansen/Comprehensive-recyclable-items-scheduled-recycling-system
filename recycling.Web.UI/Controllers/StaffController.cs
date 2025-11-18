@@ -19,6 +19,7 @@ namespace recycling.Web.UI.Controllers
         private readonly AdminBLL _adminBLL = new AdminBLL();
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
+        private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -1807,6 +1808,94 @@ namespace recycling.Web.UI.Controllers
 
                 int maxOrder = _recyclableItemBLL.GetMaxSortOrder();
                 return JsonContent(new { success = true, maxOrder = maxOrder });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region 反馈管理功能
+
+        /// <summary>
+        /// 反馈管理页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult FeedbackManagement()
+        {
+            // 检查登录状态
+            if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+            {
+                TempData["ErrorMessage"] = "您没有权限访问该页面";
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取所有反馈列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetAllFeedbacks(string status, string feedbackType)
+        {
+            try
+            {
+                // 检查登录状态和权限
+                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                {
+                    return JsonContent(new { success = false, message = "无权限" });
+                }
+
+                // 获取反馈列表
+                var feedbacks = _feedbackBLL.GetAllFeedbacks(status, feedbackType);
+
+                return JsonContent(new { success = true, feedbacks = feedbacks });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 更新反馈状态（AJAX）
+        /// </summary>
+        [HttpPost]
+        public JsonResult UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
+        {
+            try
+            {
+                // 检查登录状态和权限
+                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                {
+                    return JsonContent(new { success = false, message = "无权限" });
+                }
+
+                // 更新反馈状态
+                var (success, message) = _feedbackBLL.UpdateFeedbackStatus(feedbackId, status, adminReply);
+
+                return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
             {
