@@ -45,10 +45,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminBLL.cs" />
-    <Compile Include="AdminContactBLL.cs" />
     <Compile Include="AppointmentBLL.cs" />
     <Compile Include="ConversationBLL.cs" />
-    <Compile Include="FeedbackBLL.cs" />
     <Compile Include="HomepageCarouselBLL.cs" />
     <Compile Include="InventoryBLL.cs" />
     <Compile Include="MessageBLL.cs" />
@@ -59,7 +57,6 @@
     <Compile Include="RecyclerOrderBLL.cs" />
     <Compile Include="StaffBLL.cs" />
     <Compile Include="UserBLL.cs" />
-    <Compile Include="UserContactRequestsBLL.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\recycling.Common\recycling.Common.csproj">
