@@ -3,6 +3,8 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <style>
     .admin-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -364,6 +366,7 @@
             url: '@Url.Action("GetAllFeedbacks", "Staff")',
             type: 'POST',
             data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                 status: status,
                 feedbackType: feedbackType
             },
@@ -415,6 +418,7 @@
             url: '@Url.Action("GetAllFeedbacks", "Staff")',
             type: 'POST',
             data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                 status: status,
                 feedbackType: feedbackType
             },
@@ -456,6 +460,7 @@
             url: '@Url.Action("UpdateFeedbackStatus", "Staff")',
             type: 'POST',
             data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                 feedbackId: currentFeedbackId,
                 status: status,
                 adminReply: adminReply

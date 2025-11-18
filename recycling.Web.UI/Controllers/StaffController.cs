@@ -1845,6 +1845,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取所有反馈列表（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult GetAllFeedbacks(string status, string feedbackType)
         {
             try
@@ -1876,6 +1877,7 @@ namespace recycling.Web.UI.Controllers
         /// 更新反馈状态（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
         {
             try
