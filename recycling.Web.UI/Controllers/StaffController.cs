@@ -1846,7 +1846,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult GetAllFeedbacks(string status, string feedbackType)
+        public ContentResult GetAllFeedbacks(string status, string feedbackType)
         {
             try
             {
@@ -1878,7 +1878,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
+        public ContentResult UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
         {
             try
             {
