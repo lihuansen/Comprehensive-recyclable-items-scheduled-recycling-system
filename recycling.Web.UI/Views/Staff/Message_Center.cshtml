@@ -22,8 +22,6 @@
 <div class="row">
     <div class="col-md-4">
         <!-- 列表：每个订单只显示最新一条消息摘要 -->
-        <!-- 在页面合适位置添加一个按钮或面板（示例：顶部） -->
-        <button id="openHistoryBtn" class="btn btn-default" style="margin-bottom:10px;">查看历史会话</button>
         <div id="orderList" class="list-group">
             @{
                 var latestPerOrder = new Dictionary<int, recycling.Model.RecyclerMessageViewModel>();
@@ -376,11 +374,6 @@
             console.warn('标为已读失败', err);
         });
         }
-
-        // 打开回收员历史会话列表（导航到 HistoryConversations 视图）
-    document.getElementById('openHistoryBtn').addEventListener('click', function() {
-        window.location.href = '@Url.Action("HistoryConversations", "Staff")';
-    });
 
     // 回收员结束对话（调用 Staff/EndConversation）
     function recyclerEndConversation(orderId) {
