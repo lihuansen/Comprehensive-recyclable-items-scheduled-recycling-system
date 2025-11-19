@@ -1016,5 +1016,132 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 上传用户头像
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult UploadAvatar(HttpPostedFileBase avatarFile)
+        {
+            try
+            {
+                // 检查登录状态
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                // 检查文件是否为空
+                if (avatarFile == null || avatarFile.ContentLength == 0)
+                {
+                    return Json(new { success = false, message = "请选择要上传的图片" });
+                }
+
+                // 检查文件大小（限制为5MB）
+                if (avatarFile.ContentLength > 5 * 1024 * 1024)
+                {
+                    return Json(new { success = false, message = "图片大小不能超过5MB" });
+                }
+
+                // 检查文件类型
+                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+                string fileExtension = System.IO.Path.GetExtension(avatarFile.FileName).ToLower();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return Json(new { success = false, message = "只支持 JPG、PNG、GIF、BMP 格式的图片" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+
+                // 生成唯一文件名
+                string fileName = $"user_{user.UserID}_{DateTime.Now.Ticks}{fileExtension}";
+                string uploadPath = Server.MapPath("~/Uploads/Avatars/");
+                
+                // 确保目录存在
+                if (!System.IO.Directory.Exists(uploadPath))
+                {
+                    System.IO.Directory.CreateDirectory(uploadPath);
+                }
+
+                string filePath = System.IO.Path.Combine(uploadPath, fileName);
+
+                // 保存文件
+                avatarFile.SaveAs(filePath);
+
+                // 生成相对URL路径
+                string avatarUrl = $"/Uploads/Avatars/{fileName}";
+
+                // 更新数据库
+                bool success = _userBLL.UpdateUserAvatar(user.UserID, avatarUrl);
+                if (success)
+                {
+                    // 更新Session中的用户信息
+                    user.url = avatarUrl;
+                    Session["LoginUser"] = user;
+
+                    return Json(new { success = true, message = "头像上传成功", avatarUrl = avatarUrl });
+                }
+                else
+                {
+                    // 如果数据库更新失败，删除已上传的文件
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                    return Json(new { success = false, message = "头像上传失败，请重试" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "上传失败：" + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 设置默认头像
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SetDefaultAvatar(string avatarName)
+        {
+            try
+            {
+                // 检查登录状态
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                // 验证头像名称
+                string[] validAvatars = { "avatar1.svg", "avatar2.svg", "avatar3.svg", "avatar4.svg", "avatar5.svg" };
+                if (!validAvatars.Contains(avatarName))
+                {
+                    return Json(new { success = false, message = "无效的头像选择" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                string avatarUrl = $"/Uploads/Avatars/Default/{avatarName}";
+
+                // 更新数据库
+                bool success = _userBLL.UpdateUserAvatar(user.UserID, avatarUrl);
+                if (success)
+                {
+                    // 更新Session中的用户信息
+                    user.url = avatarUrl;
+                    Session["LoginUser"] = user;
+
+                    return Json(new { success = true, message = "默认头像设置成功", avatarUrl = avatarUrl });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "设置失败，请重试" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "设置失败：" + ex.Message });
+            }
+        }
+
     }
 }
