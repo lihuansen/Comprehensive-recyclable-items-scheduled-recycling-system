@@ -88,7 +88,6 @@
     <Compile Include="SuperAdmins.cs" />
     <Compile Include="UpdateProfileViewModel.cs" />
     <Compile Include="UserFeedback.cs" />
-    <Compile Include="Users.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.Config" />
