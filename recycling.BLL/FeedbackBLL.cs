@@ -114,5 +114,19 @@ namespace recycling.BLL
 
             return _feedbackDAL.UpdateFeedbackStatus(feedbackId, status, adminReply);
         }
+
+        /// <summary>
+        /// 获取指定用户的所有反馈（用户端）
+        /// </summary>
+        public List<UserFeedback> GetUserFeedbacks(int userId)
+        {
+            // 验证用户ID
+            if (userId <= 0)
+            {
+                return new List<UserFeedback>();
+            }
+
+            return _feedbackDAL.GetUserFeedbacks(userId);
+        }
     }
 }

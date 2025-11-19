@@ -1143,5 +1143,33 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 用户查看自己的反馈记录（我的反馈）
+        /// </summary>
+        [HttpGet]
+        public ActionResult MyFeedback()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                TempData["ReturnUrl"] = Url.Action("MyFeedback", "Home");
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            var user = (Users)Session["LoginUser"];
+            
+            try
+            {
+                // 获取用户的所有反馈记录
+                var feedbacks = _feedbackBLL.GetUserFeedbacks(user.UserID);
+                return View(feedbacks);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "加载反馈记录失败：" + ex.Message;
+                return View(new List<UserFeedback>());
+            }
+        }
+
     }
 }
