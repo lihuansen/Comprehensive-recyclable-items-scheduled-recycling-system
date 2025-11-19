@@ -1020,6 +1020,7 @@ namespace recycling.Web.UI.Controllers
         /// 上传用户头像
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult UploadAvatar(HttpPostedFileBase avatarFile)
         {
             try
@@ -1100,6 +1101,7 @@ namespace recycling.Web.UI.Controllers
         /// 设置默认头像
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult SetDefaultAvatar(string avatarName)
         {
             try
