@@ -96,15 +96,18 @@ namespace recycling.BLL
                 return (false, "反馈ID无效");
             }
 
-            // 验证状态
-            string[] validStatuses = { "反馈中", "已完成" };
-            if (string.IsNullOrEmpty(status) || Array.IndexOf(validStatuses, status) == -1)
+            // 验证状态（如果提供）
+            if (!string.IsNullOrEmpty(status))
             {
-                return (false, "请选择有效的状态");
+                string[] validStatuses = { "反馈中", "已完成" };
+                if (Array.IndexOf(validStatuses, status) == -1)
+                {
+                    return (false, "请选择有效的状态");
+                }
             }
 
             // 验证管理员回复长度（如果提供）
-            if (!string.IsNullOrEmpty(adminReply) && adminReply.Length > 1000)
+            if (adminReply != null && adminReply.Length > 1000)
             {
                 return (false, "管理员回复不能超过1000字");
             }

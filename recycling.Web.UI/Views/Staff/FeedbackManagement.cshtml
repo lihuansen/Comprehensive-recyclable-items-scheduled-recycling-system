@@ -89,11 +89,60 @@
         border-radius: 5px;
         cursor: pointer;
         transition: all 0.3s;
+        margin-right: 5px;
     }
 
     .btn-view:hover {
         background: #5568d3;
         transform: translateY(-2px);
+    }
+
+    .btn-reply {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 6px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-reply:hover {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        border-left: 3px solid #667eea;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+
+    .checkbox-group input[type="checkbox"]:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .checkbox-group label {
+        font-weight: 600;
+        color: #495057;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .checkbox-group label.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
     }
 
     .modal {
@@ -325,24 +374,24 @@
                 <div class="detail-content" id="detailCreatedDate"></div>
             </div>
 
+            <div class="detail-group" id="adminReplyDisplay" style="display: none;">
+                <div class="detail-label"><i class="fas fa-reply"></i> 管理员回复</div>
+                <div class="detail-content" id="detailAdminReply"></div>
+            </div>
+
             <hr style="margin: 25px 0;">
 
             <div class="form-group">
                 <label class="detail-label"><i class="fas fa-info-circle"></i> 状态</label>
-                <select id="updateStatus" class="form-control">
-                    <option value="反馈中">反馈中</option>
-                    <option value="已完成">已完成</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="detail-label"><i class="fas fa-reply"></i> 管理员回复（可选）</label>
-                <textarea id="adminReply" class="form-textarea" placeholder="输入您的回复..."></textarea>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="resolvedCheckbox" onchange="handleResolvedChange()">
+                    <label for="resolvedCheckbox" id="resolvedLabel">标记为已解决</label>
+                </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-update" onclick="updateFeedback()">
-                <i class="fas fa-save"></i> 保存更新
+            <button class="btn-update" onclick="updateFeedbackStatus()">
+                <i class="fas fa-save"></i> 保存状态
             </button>
             <button class="btn-cancel" onclick="closeModal()">
                 <i class="fas fa-times"></i> 取消
@@ -351,8 +400,43 @@
     </div>
 </div>
 
+<!-- 回复模态框 -->
+<div id="replyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close" onclick="closeReplyModal()">&times;</span>
+            <h3><i class="fas fa-reply"></i> 回复反馈</h3>
+        </div>
+        <div class="modal-body">
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-heading"></i> 反馈主题</div>
+                <div class="detail-content" id="replySubject"></div>
+            </div>
+
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-align-left"></i> 反馈描述</div>
+                <div class="detail-content" id="replyDescription"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="detail-label"><i class="fas fa-reply"></i> 管理员回复</label>
+                <textarea id="replyContent" class="form-textarea" placeholder="输入您的回复..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-update" onclick="submitReply()">
+                <i class="fas fa-paper-plane"></i> 发送回复
+            </button>
+            <button class="btn-cancel" onclick="closeReplyModal()">
+                <i class="fas fa-times"></i> 取消
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     var currentFeedbackId = null;
+    var replyFeedbackId = null;
 
     $(document).ready(function() {
         loadFeedbacks();
@@ -403,6 +487,7 @@
             html += '<td>' + createdDate + '</td>';
             html += '<td>';
             html += '<button class="btn-view" onclick="viewFeedback(' + feedback.FeedbackID + ')"><i class="fas fa-eye"></i> 查看</button>';
+            html += '<button class="btn-reply" onclick="replyFeedback(' + feedback.FeedbackID + ')"><i class="fas fa-reply"></i> 回复</button>';
             html += '</td>';
             html += '</tr>';
         });
@@ -433,8 +518,28 @@
                         $('#detailDescription').text(feedback.Description);
                         $('#detailEmail').text(feedback.ContactEmail || '未提供');
                         $('#detailCreatedDate').text(new Date(feedback.CreatedDate).toLocaleString('zh-CN'));
-                        $('#updateStatus').val(feedback.Status);
-                        $('#adminReply').val(feedback.AdminReply || '');
+                        
+                        // Display admin reply if exists
+                        if (feedback.AdminReply) {
+                            $('#detailAdminReply').text(feedback.AdminReply);
+                            $('#adminReplyDisplay').show();
+                        } else {
+                            $('#adminReplyDisplay').hide();
+                        }
+                        
+                        // Set checkbox based on status
+                        var isResolved = feedback.Status === '已完成';
+                        $('#resolvedCheckbox').prop('checked', isResolved);
+                        
+                        // Disable checkbox if already resolved
+                        if (isResolved) {
+                            $('#resolvedCheckbox').prop('disabled', true);
+                            $('#resolvedLabel').addClass('disabled').text('已解决（不可更改）');
+                        } else {
+                            $('#resolvedCheckbox').prop('disabled', false);
+                            $('#resolvedLabel').removeClass('disabled').text('标记为已解决');
+                        }
+                        
                         $('#detailModal').fadeIn();
                     }
                 }
@@ -447,14 +552,19 @@
         currentFeedbackId = null;
     }
 
-    function updateFeedback() {
+    function handleResolvedChange() {
+        // This function is called when checkbox changes
+        // No action needed as we handle it in updateFeedbackStatus
+    }
+
+    function updateFeedbackStatus() {
         if (!currentFeedbackId) {
             alert('无效的反馈ID');
             return;
         }
 
-        var status = $('#updateStatus').val();
-        var adminReply = $('#adminReply').val();
+        var isResolved = $('#resolvedCheckbox').prop('checked');
+        var status = isResolved ? '已完成' : '反馈中';
 
         $.ajax({
             url: '@Url.Action("UpdateFeedbackStatus", "Staff")',
@@ -463,11 +573,11 @@
                 __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                 feedbackId: currentFeedbackId,
                 status: status,
-                adminReply: adminReply
+                adminReply: '' // No reply in this modal
             },
             success: function(response) {
                 if (response.success) {
-                    alert('更新成功');
+                    alert('状态更新成功');
                     closeModal();
                     loadFeedbacks();
                 } else {
@@ -480,10 +590,83 @@
         });
     }
 
+    function replyFeedback(feedbackId) {
+        var status = $('#statusFilter').val();
+        var feedbackType = $('#typeFilter').val();
+
+        $.ajax({
+            url: '@Url.Action("GetAllFeedbacks", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                status: status,
+                feedbackType: feedbackType
+            },
+            success: function(response) {
+                if (response.success) {
+                    var feedback = response.feedbacks.find(f => f.FeedbackID === feedbackId);
+                    if (feedback) {
+                        replyFeedbackId = feedbackId;
+                        $('#replySubject').text(feedback.Subject);
+                        $('#replyDescription').text(feedback.Description);
+                        $('#replyContent').val(feedback.AdminReply || '');
+                        $('#replyModal').fadeIn();
+                    }
+                }
+            }
+        });
+    }
+
+    function closeReplyModal() {
+        $('#replyModal').fadeOut();
+        replyFeedbackId = null;
+        $('#replyContent').val('');
+    }
+
+    function submitReply() {
+        if (!replyFeedbackId) {
+            alert('无效的反馈ID');
+            return;
+        }
+
+        var replyContent = $('#replyContent').val();
+        
+        if (!replyContent || replyContent.trim() === '') {
+            alert('请输入回复内容');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("UpdateFeedbackStatus", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                feedbackId: replyFeedbackId,
+                status: '', // Empty means don't change status
+                adminReply: replyContent
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('回复成功');
+                    closeReplyModal();
+                    loadFeedbacks();
+                } else {
+                    alert(response.message || '回复失败');
+                }
+            },
+            error: function() {
+                alert('网络错误，请稍后重试');
+            }
+        });
+    }
+
     // 点击模态框外部关闭
     window.onclick = function(event) {
         if (event.target == document.getElementById('detailModal')) {
             closeModal();
+        }
+        if (event.target == document.getElementById('replyModal')) {
+            closeReplyModal();
         }
     }
 </script>

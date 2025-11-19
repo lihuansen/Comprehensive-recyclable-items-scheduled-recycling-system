@@ -129,18 +129,36 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"UPDATE UserFeedback 
-                                   SET Status = @Status, 
-                                       AdminReply = @AdminReply,
-                                       UpdatedDate = @UpdatedDate
-                                   WHERE FeedbackID = @FeedbackID";
+                    
+                    // Build SQL dynamically based on what needs to be updated
+                    string sql = "UPDATE UserFeedback SET UpdatedDate = @UpdatedDate";
+                    
+                    if (!string.IsNullOrEmpty(status))
+                    {
+                        sql += ", Status = @Status";
+                    }
+                    
+                    if (adminReply != null) // Check for null, not empty, to allow clearing replies
+                    {
+                        sql += ", AdminReply = @AdminReply";
+                    }
+                    
+                    sql += " WHERE FeedbackID = @FeedbackID";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        cmd.Parameters.AddWithValue("@Status", status);
-                        cmd.Parameters.AddWithValue("@AdminReply", string.IsNullOrEmpty(adminReply) ? (object)DBNull.Value : adminReply);
                         cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
                         cmd.Parameters.AddWithValue("@FeedbackID", feedbackId);
+                        
+                        if (!string.IsNullOrEmpty(status))
+                        {
+                            cmd.Parameters.AddWithValue("@Status", status);
+                        }
+                        
+                        if (adminReply != null)
+                        {
+                            cmd.Parameters.AddWithValue("@AdminReply", string.IsNullOrEmpty(adminReply) ? (object)DBNull.Value : adminReply);
+                        }
 
                         int result = cmd.ExecuteNonQuery();
                         return result > 0 ? (true, "更新成功") : (false, "更新失败");
