@@ -759,13 +759,14 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = @"INSERT INTO Admins (Username, PasswordHash, FullName, IsActive, CreatedDate) 
-                    VALUES (@Username, @PasswordHash, @FullName, @IsActive, GETDATE())";
+                string sql = @"INSERT INTO Admins (Username, PasswordHash, FullName, Character, IsActive, CreatedDate) 
+                    VALUES (@Username, @PasswordHash, @FullName, @Character, @IsActive, GETDATE())";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", admin.Username);
                 cmd.Parameters.AddWithValue("@PasswordHash", admin.PasswordHash);
                 cmd.Parameters.AddWithValue("@FullName", admin.FullName);
+                cmd.Parameters.AddWithValue("@Character", (object)admin.Character ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@IsActive", admin.IsActive ?? true);
 
                 return cmd.ExecuteNonQuery() > 0;
@@ -783,6 +784,7 @@ namespace recycling.DAL
                 string sql = @"UPDATE Admins SET 
                     Username = @Username,
                     FullName = @FullName,
+                    Character = @Character,
                     IsActive = @IsActive
                     WHERE AdminID = @AdminID";
 
@@ -790,6 +792,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@AdminID", admin.AdminID);
                 cmd.Parameters.AddWithValue("@Username", admin.Username);
                 cmd.Parameters.AddWithValue("@FullName", admin.FullName);
+                cmd.Parameters.AddWithValue("@Character", (object)admin.Character ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@IsActive", admin.IsActive ?? true);
 
                 return cmd.ExecuteNonQuery() > 0;

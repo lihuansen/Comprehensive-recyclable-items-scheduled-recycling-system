@@ -7,6 +7,7 @@ using recycling.BLL;
 using recycling.Model;
 using Newtonsoft.Json;
 using System.IO;
+using recycling.Web.UI.Filters;
 
 namespace recycling.Web.UI.Controllers
 {
@@ -788,6 +789,7 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// 管理员 - 用户管理页面
         /// </summary>
+        [AdminPermission(AdminPermissions.UserManagement)]
         public ActionResult UserManagement()
         {
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
@@ -890,6 +892,7 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// 管理员 - 回收员管理页面
         /// </summary>
+        [AdminPermission(AdminPermissions.RecyclerManagement)]
         public ActionResult RecyclerManagement()
         {
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
@@ -1327,6 +1330,7 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// Admin homepage management index page
         /// </summary>
+        [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult HomepageManagement()
         {
             if (Session["LoginStaff"] == null)
@@ -1823,6 +1827,7 @@ namespace recycling.Web.UI.Controllers
         /// 反馈管理页面
         /// </summary>
         [HttpGet]
+        [AdminPermission(AdminPermissions.FeedbackManagement)]
         public ActionResult FeedbackManagement()
         {
             // 检查登录状态

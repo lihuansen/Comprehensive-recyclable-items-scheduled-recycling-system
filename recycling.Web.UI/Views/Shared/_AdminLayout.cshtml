@@ -219,8 +219,22 @@
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav">@Html.ActionLink("用户管理", "UserManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("回收员管理", "RecyclerManagement", "Staff")</li>
+                        @{
+                            var admin = (recycling.Model.Admins)Session["LoginStaff"];
+                            var adminCharacter = admin?.Character;
+                            
+                            // 检查是否有用户管理权限
+                            if (recycling.Model.AdminPermissions.HasPermission(adminCharacter, recycling.Model.AdminPermissions.UserManagement))
+                            {
+                                <li class="normal-nav">@Html.ActionLink("用户管理", "UserManagement", "Staff")</li>
+                            }
+                            
+                            // 检查是否有回收员管理权限
+                            if (recycling.Model.AdminPermissions.HasPermission(adminCharacter, recycling.Model.AdminPermissions.RecyclerManagement))
+                            {
+                                <li class="normal-nav">@Html.ActionLink("回收员管理", "RecyclerManagement", "Staff")</li>
+                            }
+                        }
                     </ul>
 
                     <div class="diamond-nav">
@@ -231,8 +245,19 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav">@Html.ActionLink("反馈管理", "FeedbackManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("首页页面管理", "HomepageManagement", "Staff")</li>
+                        @{
+                            // 检查是否有反馈管理权限
+                            if (recycling.Model.AdminPermissions.HasPermission(adminCharacter, recycling.Model.AdminPermissions.FeedbackManagement))
+                            {
+                                <li class="normal-nav">@Html.ActionLink("反馈管理", "FeedbackManagement", "Staff")</li>
+                            }
+                            
+                            // 检查是否有首页页面管理权限
+                            if (recycling.Model.AdminPermissions.HasPermission(adminCharacter, recycling.Model.AdminPermissions.HomepageManagement))
+                            {
+                                <li class="normal-nav">@Html.ActionLink("首页页面管理", "HomepageManagement", "Staff")</li>
+                            }
+                        }
                     </ul>
                 </div>
             </div>
