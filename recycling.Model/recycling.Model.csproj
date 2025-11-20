@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AcceptOrderRequest.cs" />
+    <Compile Include="AdminPermissions.cs" />
     <Compile Include="Admins.cs" />
     <Compile Include="AppointmentCategories.cs" />
     <Compile Include="AppointmentOrder.cs" />
