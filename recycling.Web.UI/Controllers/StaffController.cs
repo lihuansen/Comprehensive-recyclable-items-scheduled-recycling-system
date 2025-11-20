@@ -1352,6 +1352,7 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// Admin homepage carousel management page
         /// </summary>
+        [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult HomepageCarouselManagement()
         {
             if (Session["LoginStaff"] == null)
@@ -1654,6 +1655,7 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// Admin recyclable items management page
         /// </summary>
+        [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult RecyclableItemsManagement()
         {
             if (Session["LoginStaff"] == null)
