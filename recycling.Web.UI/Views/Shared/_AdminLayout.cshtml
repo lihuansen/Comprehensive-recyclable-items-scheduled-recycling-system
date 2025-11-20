@@ -220,8 +220,8 @@
                 <div class="nav-container">
                     <ul class="left-navs">
                         @{
-                            var admin = (recycling.Model.Admins)Session["LoginStaff"];
-                            var adminCharacter = admin?.Character;
+                            var currentAdmin = (recycling.Model.Admins)Session["LoginStaff"];
+                            var adminCharacter = currentAdmin?.Character;
                             
                             // 检查是否有用户管理权限
                             if (recycling.Model.AdminPermissions.HasPermission(adminCharacter, recycling.Model.AdminPermissions.UserManagement))

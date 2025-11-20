@@ -881,7 +881,7 @@ namespace recycling.DAL
                 }
 
                 string query = $@"
-                    SELECT AdminID, Username, FullName, CreatedDate, LastLoginDate, IsActive 
+                    SELECT AdminID, Username, FullName, Character, CreatedDate, LastLoginDate, IsActive 
                     FROM Admins 
                     {whereClause}
                     ORDER BY CreatedDate DESC";
@@ -906,9 +906,10 @@ namespace recycling.DAL
                             AdminID = reader.GetInt32(0),
                             Username = reader.GetString(1),
                             FullName = reader.GetString(2),
-                            CreatedDate = reader.IsDBNull(3) ? (DateTime?)null : reader.GetDateTime(3),
-                            LastLoginDate = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
-                            IsActive = reader.IsDBNull(5) ? (bool?)null : reader.GetBoolean(5)
+                            Character = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            CreatedDate = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                            LastLoginDate = reader.IsDBNull(5) ? (DateTime?)null : reader.GetDateTime(5),
+                            IsActive = reader.IsDBNull(6) ? (bool?)null : reader.GetBoolean(6)
                         });
                     }
                 }
@@ -948,6 +949,7 @@ namespace recycling.DAL
                 Username = reader.GetString(reader.GetOrdinal("Username")),
                 PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
                 FullName = reader.GetString(reader.GetOrdinal("FullName")),
+                Character = reader.IsDBNull(reader.GetOrdinal("Character")) ? null : reader.GetString(reader.GetOrdinal("Character")),
                 CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
                 IsActive = reader.IsDBNull(reader.GetOrdinal("IsActive")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("IsActive"))
