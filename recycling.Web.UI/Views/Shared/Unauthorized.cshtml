@@ -1,6 +1,6 @@
 @{
-    ViewBag.Title = "权限不足";
-    var message = ViewData["Message"] as string ?? "您没有权限访问此功能";
+    ViewBag.Title = "暂无权限";
+    var message = ViewData["Message"] as string ?? "暂无权限访问此功能";
 }
 
 <!DOCTYPE html>
@@ -79,7 +79,7 @@
         <div class="unauthorized-icon">
             <i class="glyphicon glyphicon-ban-circle"></i>
         </div>
-        <h1 class="unauthorized-title">权限不足</h1>
+        <h1 class="unauthorized-title">暂无权限</h1>
         <p class="unauthorized-message">@message</p>
         <a href="@Url.Action("AdminDashboard", "Staff")" class="btn-return">
             <i class="glyphicon glyphicon-home"></i> 返回工作台
