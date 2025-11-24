@@ -489,9 +489,15 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 // 拼接完整地址：省 + 市 + 区 + 街道 + 详细地址
-                string streetName = Streets.LuohuStreets.ContainsKey(model.Street) 
-                    ? Streets.LuohuStreets[model.Street] 
-                    : model.Street;
+                string streetName = "";
+                if (!string.IsNullOrEmpty(model.Street) && Streets.LuohuStreets.ContainsKey(model.Street))
+                {
+                    streetName = Streets.LuohuStreets[model.Street];
+                }
+                else if (!string.IsNullOrEmpty(model.Street))
+                {
+                    streetName = model.Street;
+                }
                 string fullAddress = $"广东省深圳市罗湖区{streetName}{model.Address}";
                 model.Address = fullAddress;
 

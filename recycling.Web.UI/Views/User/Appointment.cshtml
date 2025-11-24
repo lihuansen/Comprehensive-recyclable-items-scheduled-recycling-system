@@ -473,7 +473,7 @@
 
                     <div class="form-group">
                         <label class="form-label required-field">街道</label>
-                        @Html.DropDownListFor(m => m.Street, new SelectList(ViewBag.Streets, "Key", "Value"), "请选择街道", new { @class = "form-control" })
+                        @Html.DropDownListFor(m => m.Street, new SelectList(ViewBag.Streets ?? new Dictionary<string, string>(), "Key", "Value"), "请选择街道", new { @class = "form-control" })
                         @Html.ValidationMessageFor(m => m.Street, "", new { @class = "text-danger" })
                     </div>
                 </div>
