@@ -13,6 +13,12 @@ namespace recycling.DAL
     public class RecyclerOrderDAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
+        
+        // 用于验证表别名的静态正则表达式（编译后缓存，提高性能）
+        // 仅允许字母、数字和下划线，必须以字母或下划线开头
+        private static readonly System.Text.RegularExpressions.Regex TableAliasRegex = 
+            new System.Text.RegularExpressions.Regex("^[a-zA-Z_][a-zA-Z0-9_]*$", 
+                System.Text.RegularExpressions.RegexOptions.Compiled);
 
         /// <summary>
         /// 获取回收员订单列表（带分页和筛选）
@@ -70,15 +76,14 @@ namespace recycling.DAL
                 // 回收员关联筛选（如果指定了回收员ID）
                 if (recyclerId > 0)
                 {
-                    conditions.Add("(a.RecyclerID = @RecyclerID OR a.RecyclerID IS NULL)");
+                    // 使用统一的过滤条件构建方法
+                    conditions.Add(BuildRecyclerFilterCondition(recyclerId, recyclerRegion, "a"));
                     parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
                     
-                    // 根据回收员的区域筛选订单
-                    // 只显示地址包含回收员区域的订单
+                    // 如果有区域过滤，添加区域参数（转义LIKE特殊字符）
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        conditions.Add("a.Address LIKE @RecyclerRegion");
-                        parameters.Add(new SqlParameter("@RecyclerRegion", "%" + recyclerRegion + "%"));
+                        parameters.Add(new SqlParameter("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%"));
                     }
                 }
 
@@ -297,7 +302,10 @@ namespace recycling.DAL
                 // 获取回收员的区域信息
                 string recyclerRegion = GetRecyclerRegion(recyclerId);
                 
-                string sql = @"
+                // 使用统一的过滤条件构建方法（不使用表别名，因为只查询单表）
+                string whereCondition = BuildRecyclerFilterCondition(recyclerId, recyclerRegion, "");
+                
+                string sql = $@"
                     SELECT 
                         COUNT(*) as TotalOrders,
                         COUNT(CASE WHEN Status = '已预约' THEN 1 END) as PendingOrders,
@@ -305,21 +313,16 @@ namespace recycling.DAL
                         COUNT(CASE WHEN Status = '已完成' AND RecyclerID = @RecyclerID THEN 1 END) as CompletedOrders,
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as CancelledOrders
                     FROM Appointments
-                    WHERE (RecyclerID = @RecyclerID OR RecyclerID IS NULL)";
-                
-                // 如果回收员有指定区域，则按区域筛选订单
-                if (!string.IsNullOrEmpty(recyclerRegion))
-                {
-                    sql += " AND Address LIKE @RecyclerRegion";
-                }
+                    WHERE {whereCondition}";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
                     
+                    // 添加区域参数（转义LIKE特殊字符）
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + recyclerRegion + "%");
+                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%");
                     }
 
                     conn.Open();
@@ -494,10 +497,17 @@ namespace recycling.DAL
         public OrderDetailModel GetOrderDetail(int appointmentId, int recyclerId)
         {
             var orderDetail = new OrderDetailModel();
+            
+            // 获取回收员的区域信息
+            string recyclerRegion = GetRecyclerRegion(recyclerId);
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"
+                // 使用统一的过滤条件构建方法
+                string recyclerFilter = BuildRecyclerFilterCondition(recyclerId, recyclerRegion, "a");
+                string whereClause = $"WHERE a.AppointmentID = @AppointmentID AND ({recyclerFilter})";
+                
+                string sql = $@"
             SELECT 
                 a.AppointmentID,
                 a.AppointmentType,
@@ -520,13 +530,18 @@ namespace recycling.DAL
                     FOR XML PATH('')
                 ), 1, 2, '') AS CategoryNames
             FROM Appointments a
-            WHERE a.AppointmentID = @AppointmentID
-              AND (a.RecyclerID = @RecyclerID OR a.RecyclerID IS NULL)";
+            {whereClause}";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                    
+                    // 如果使用区域过滤，添加区域参数（转义LIKE特殊字符）
+                    if (!string.IsNullOrEmpty(recyclerRegion))
+                    {
+                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%");
+                    }
 
                     conn.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -615,6 +630,60 @@ namespace recycling.DAL
                 }
             }
             return messages;
+        }
+
+        /// <summary>
+        /// 构建回收员订单过滤条件（用于WHERE子句）
+        /// 注意：此方法返回的SQL片段是安全的，因为：
+        /// 1. tableAlias参数经过严格验证，只允许字母、数字和下划线
+        /// 2. 所有用户输入的值（recyclerId, recyclerRegion）都使用SQL参数化（@RecyclerID, @RecyclerRegion）
+        /// 3. 此方法仅供内部调用，不直接暴露给用户输入
+        /// </summary>
+        /// <param name="recyclerId">回收员ID</param>
+        /// <param name="recyclerRegion">回收员负责的区域（将使用参数化查询）</param>
+        /// <param name="tableAlias">表别名（如"a"），传入空字符串表示不使用表别名，仅用于内部调用，受严格验证</param>
+        /// <returns>WHERE子句的过滤条件字符串（使用参数化占位符）</returns>
+        private string BuildRecyclerFilterCondition(int recyclerId, string recyclerRegion, string tableAlias = "")
+        {
+            // 验证表别名，防止SQL注入（仅允许字母、数字和下划线）
+            if (!string.IsNullOrEmpty(tableAlias))
+            {
+                if (!TableAliasRegex.IsMatch(tableAlias))
+                {
+                    throw new ArgumentException("Invalid table alias. Only letters, numbers, and underscores are allowed.", nameof(tableAlias));
+                }
+                tableAlias += ".";
+            }
+
+            // 如果回收员有指定区域，则显示：
+            // 1. 已分配给该回收员的订单（不管地址是否匹配）
+            // 2. 未分配但地址匹配回收员区域的订单
+            // 注意：@RecyclerID 和 @RecyclerRegion 是参数化查询占位符，由调用方添加实际参数
+            if (!string.IsNullOrEmpty(recyclerRegion))
+            {
+                return $"({tableAlias}RecyclerID = @RecyclerID OR ({tableAlias}RecyclerID IS NULL AND {tableAlias}Address LIKE @RecyclerRegion))";
+            }
+            else
+            {
+                // 如果回收员没有指定区域，则只显示已分配给该回收员的订单
+                return $"{tableAlias}RecyclerID = @RecyclerID";
+            }
+        }
+
+        /// <summary>
+        /// 转义SQL LIKE模式中的特殊字符，防止通配符注入
+        /// </summary>
+        /// <param name="value">要转义的字符串</param>
+        /// <returns>转义后的字符串</returns>
+        private string EscapeLikePattern(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+            
+            // 转义SQL LIKE中的特殊字符：% _ [ ]
+            return value.Replace("[", "[[]")
+                        .Replace("%", "[%]")
+                        .Replace("_", "[_]");
         }
 
         /// <summary>
