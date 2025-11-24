@@ -627,22 +627,31 @@ namespace recycling.DAL
 
         /// <summary>
         /// 构建回收员订单过滤条件（用于WHERE子句）
+        /// 注意：此方法返回的SQL片段是安全的，因为：
+        /// 1. tableAlias参数经过严格验证，只允许字母和点号
+        /// 2. 所有用户输入的值（recyclerId, recyclerRegion）都使用SQL参数化（@RecyclerID, @RecyclerRegion）
+        /// 3. 此方法仅供内部调用，不直接暴露给用户输入
         /// </summary>
         /// <param name="recyclerId">回收员ID</param>
-        /// <param name="recyclerRegion">回收员负责的区域</param>
-        /// <param name="tableAlias">表别名（如"a."），用于构建正确的列引用</param>
-        /// <returns>WHERE子句的过滤条件字符串</returns>
+        /// <param name="recyclerRegion">回收员负责的区域（将使用参数化查询）</param>
+        /// <param name="tableAlias">表别名（如"a"），仅用于内部表别名，受严格验证</param>
+        /// <returns>WHERE子句的过滤条件字符串（使用参数化占位符）</returns>
         private string BuildRecyclerFilterCondition(int recyclerId, string recyclerRegion, string tableAlias = "")
         {
-            // 确保表别名正确格式化
-            if (!string.IsNullOrEmpty(tableAlias) && !tableAlias.EndsWith("."))
+            // 验证表别名，防止SQL注入（仅允许字母、数字和下划线）
+            if (!string.IsNullOrEmpty(tableAlias))
             {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tableAlias, "^[a-zA-Z_][a-zA-Z0-9_]*$"))
+                {
+                    throw new ArgumentException("Invalid table alias. Only letters, numbers, and underscores are allowed.", nameof(tableAlias));
+                }
                 tableAlias += ".";
             }
 
             // 如果回收员有指定区域，则显示：
             // 1. 已分配给该回收员的订单（不管地址是否匹配）
             // 2. 未分配但地址匹配回收员区域的订单
+            // 注意：@RecyclerID 和 @RecyclerRegion 是参数化查询占位符，由调用方添加实际参数
             if (!string.IsNullOrEmpty(recyclerRegion))
             {
                 return $"({tableAlias}RecyclerID = @RecyclerID OR ({tableAlias}RecyclerID IS NULL AND {tableAlias}Address LIKE @RecyclerRegion))";
