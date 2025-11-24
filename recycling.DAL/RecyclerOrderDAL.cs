@@ -614,7 +614,7 @@ namespace recycling.DAL
                     string sql = "SELECT Region FROM Recyclers WHERE RecyclerID = @RecyclerID";
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                        cmd.Parameters.Add(new SqlParameter("@RecyclerID", SqlDbType.Int) { Value = recyclerId });
                         conn.Open();
                         var result = cmd.ExecuteScalar();
                         return result != null ? result.ToString() : string.Empty;
@@ -624,6 +624,7 @@ namespace recycling.DAL
             catch (SqlException ex)
             {
                 // 记录错误日志并返回空字符串，避免影响订单查询主流程
+                // 注意：生产环境应使用专业日志框架（如NLog、Serilog等）
                 System.Diagnostics.Debug.WriteLine($"获取回收员区域信息失败: {ex.Message}");
                 return string.Empty;
             }
