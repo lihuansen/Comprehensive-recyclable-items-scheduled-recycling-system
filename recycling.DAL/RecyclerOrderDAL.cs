@@ -26,6 +26,13 @@ namespace recycling.DAL
                 PageSize = filter.PageSize
             };
 
+            // 获取回收员的区域信息（在构建查询前获取，避免N+1查询问题）
+            string recyclerRegion = null;
+            if (recyclerId > 0)
+            {
+                recyclerRegion = GetRecyclerRegion(recyclerId);
+            }
+
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 // 构建查询条件
@@ -65,6 +72,14 @@ namespace recycling.DAL
                 {
                     conditions.Add("(a.RecyclerID = @RecyclerID OR a.RecyclerID IS NULL)");
                     parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
+                    
+                    // 根据回收员的区域筛选订单
+                    // 只显示地址包含回收员区域的订单
+                    if (!string.IsNullOrEmpty(recyclerRegion))
+                    {
+                        conditions.Add("a.Address LIKE @RecyclerRegion");
+                        parameters.Add(new SqlParameter("@RecyclerRegion", "%" + recyclerRegion + "%"));
+                    }
                 }
 
                 string whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
@@ -585,6 +600,40 @@ namespace recycling.DAL
                 }
             }
             return messages;
+        }
+
+        /// <summary>
+        /// 获取回收员的区域信息
+        /// </summary>
+        private string GetRecyclerRegion(int recyclerId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    string sql = "SELECT Region FROM Recyclers WHERE RecyclerID = @RecyclerID";
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.Add(new SqlParameter("@RecyclerID", SqlDbType.Int) { Value = recyclerId });
+                        conn.Open();
+                        var result = cmd.ExecuteScalar();
+                        return result != null ? result.ToString() : string.Empty;
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                // 记录错误日志并返回空字符串，避免影响订单查询主流程
+                // 注意：生产环境应使用专业日志框架（如NLog、Serilog等）
+                System.Diagnostics.Debug.WriteLine($"获取回收员区域信息失败: {ex.Message}");
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                // 捕获其他异常
+                System.Diagnostics.Debug.WriteLine($"获取回收员区域信息时发生意外错误: {ex.Message}");
+                return string.Empty;
+            }
         }
     }
 }
