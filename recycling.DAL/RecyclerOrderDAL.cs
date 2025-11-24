@@ -294,6 +294,9 @@ namespace recycling.DAL
             var statistics = new RecyclerOrderStatistics();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
+                // 获取回收员的区域信息
+                string recyclerRegion = GetRecyclerRegion(recyclerId);
+                
                 string sql = @"
                     SELECT 
                         COUNT(*) as TotalOrders,
@@ -301,11 +304,23 @@ namespace recycling.DAL
                         COUNT(CASE WHEN Status = '进行中' AND RecyclerID = @RecyclerID THEN 1 END) as ConfirmedOrders,
                         COUNT(CASE WHEN Status = '已完成' AND RecyclerID = @RecyclerID THEN 1 END) as CompletedOrders,
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as CancelledOrders
-                    FROM Appointments";
+                    FROM Appointments
+                    WHERE (RecyclerID = @RecyclerID OR RecyclerID IS NULL)";
+                
+                // 如果回收员有指定区域，则按区域筛选订单
+                if (!string.IsNullOrEmpty(recyclerRegion))
+                {
+                    sql += " AND Address LIKE @RecyclerRegion";
+                }
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                    
+                    if (!string.IsNullOrEmpty(recyclerRegion))
+                    {
+                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + recyclerRegion + "%");
+                    }
 
                     conn.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
