@@ -65,6 +65,16 @@ namespace recycling.DAL
                 {
                     conditions.Add("(a.RecyclerID = @RecyclerID OR a.RecyclerID IS NULL)");
                     parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
+                    
+                    // 根据回收员的区域筛选订单
+                    // 获取回收员的区域信息
+                    string recyclerRegion = GetRecyclerRegion(recyclerId);
+                    if (!string.IsNullOrEmpty(recyclerRegion))
+                    {
+                        // 只显示地址包含回收员区域的订单
+                        conditions.Add("a.Address LIKE @RecyclerRegion");
+                        parameters.Add(new SqlParameter("@RecyclerRegion", "%" + recyclerRegion + "%"));
+                    }
                 }
 
                 string whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
@@ -585,6 +595,24 @@ namespace recycling.DAL
                 }
             }
             return messages;
+        }
+
+        /// <summary>
+        /// 获取回收员的区域信息
+        /// </summary>
+        private string GetRecyclerRegion(int recyclerId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT Region FROM Recyclers WHERE RecyclerID = @RecyclerID";
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                    conn.Open();
+                    var result = cmd.ExecuteScalar();
+                    return result != null ? result.ToString() : string.Empty;
+                }
+            }
         }
     }
 }
