@@ -70,15 +70,20 @@ namespace recycling.DAL
                 // 回收员关联筛选（如果指定了回收员ID）
                 if (recyclerId > 0)
                 {
-                    conditions.Add("(a.RecyclerID = @RecyclerID OR a.RecyclerID IS NULL)");
-                    parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
-                    
-                    // 根据回收员的区域筛选订单
-                    // 只显示地址包含回收员区域的订单
+                    // 修改逻辑：
+                    // 1. 显示已分配给该回收员的订单（不管地址是否匹配）
+                    // 2. 显示未分配但地址匹配回收员区域的订单
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        conditions.Add("a.Address LIKE @RecyclerRegion");
+                        conditions.Add("(a.RecyclerID = @RecyclerID OR (a.RecyclerID IS NULL AND a.Address LIKE @RecyclerRegion))");
+                        parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
                         parameters.Add(new SqlParameter("@RecyclerRegion", "%" + recyclerRegion + "%"));
+                    }
+                    else
+                    {
+                        // 如果回收员没有指定区域，则只显示已分配给该回收员的订单
+                        conditions.Add("a.RecyclerID = @RecyclerID");
+                        parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
                     }
                 }
 
@@ -305,12 +310,17 @@ namespace recycling.DAL
                         COUNT(CASE WHEN Status = '已完成' AND RecyclerID = @RecyclerID THEN 1 END) as CompletedOrders,
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as CancelledOrders
                     FROM Appointments
-                    WHERE (RecyclerID = @RecyclerID OR RecyclerID IS NULL)";
+                    WHERE ";
                 
-                // 如果回收员有指定区域，则按区域筛选订单
+                // 修改逻辑：显示已分配给该回收员的订单或未分配但地址匹配区域的订单
                 if (!string.IsNullOrEmpty(recyclerRegion))
                 {
-                    sql += " AND Address LIKE @RecyclerRegion";
+                    sql += "(RecyclerID = @RecyclerID OR (RecyclerID IS NULL AND Address LIKE @RecyclerRegion))";
+                }
+                else
+                {
+                    // 如果回收员没有指定区域，则只显示已分配给该回收员的订单
+                    sql += "RecyclerID = @RecyclerID";
                 }
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -494,10 +504,25 @@ namespace recycling.DAL
         public OrderDetailModel GetOrderDetail(int appointmentId, int recyclerId)
         {
             var orderDetail = new OrderDetailModel();
+            
+            // 获取回收员的区域信息
+            string recyclerRegion = GetRecyclerRegion(recyclerId);
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"
+                // 修改逻辑：允许查看已分配给该回收员的订单或未分配但地址匹配区域的订单
+                string whereClause;
+                if (!string.IsNullOrEmpty(recyclerRegion))
+                {
+                    whereClause = "WHERE a.AppointmentID = @AppointmentID AND (a.RecyclerID = @RecyclerID OR (a.RecyclerID IS NULL AND a.Address LIKE @RecyclerRegion))";
+                }
+                else
+                {
+                    // 如果回收员没有指定区域，则只能查看已分配给该回收员的订单
+                    whereClause = "WHERE a.AppointmentID = @AppointmentID AND a.RecyclerID = @RecyclerID";
+                }
+                
+                string sql = $@"
             SELECT 
                 a.AppointmentID,
                 a.AppointmentType,
@@ -520,13 +545,18 @@ namespace recycling.DAL
                     FOR XML PATH('')
                 ), 1, 2, '') AS CategoryNames
             FROM Appointments a
-            WHERE a.AppointmentID = @AppointmentID
-              AND (a.RecyclerID = @RecyclerID OR a.RecyclerID IS NULL)";
+            {whereClause}";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                    
+                    // 如果使用区域过滤，添加区域参数
+                    if (!string.IsNullOrEmpty(recyclerRegion))
+                    {
+                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + recyclerRegion + "%");
+                    }
 
                     conn.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
