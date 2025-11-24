@@ -308,7 +308,7 @@ namespace recycling.DAL
                 string sql = $@"
                     SELECT 
                         COUNT(*) as TotalOrders,
-                        COUNT(CASE WHEN Status = '已预约' THEN 1 END) as PendingOrders,
+                        COUNT(CASE WHEN Status = '已预约' AND RecyclerID IS NULL THEN 1 END) as PendingOrders,
                         COUNT(CASE WHEN Status = '进行中' AND RecyclerID = @RecyclerID THEN 1 END) as ConfirmedOrders,
                         COUNT(CASE WHEN Status = '已完成' AND RecyclerID = @RecyclerID THEN 1 END) as CompletedOrders,
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as CancelledOrders
