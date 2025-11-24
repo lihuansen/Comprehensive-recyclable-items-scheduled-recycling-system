@@ -70,20 +70,14 @@ namespace recycling.DAL
                 // 回收员关联筛选（如果指定了回收员ID）
                 if (recyclerId > 0)
                 {
-                    // 修改逻辑：
-                    // 1. 显示已分配给该回收员的订单（不管地址是否匹配）
-                    // 2. 显示未分配但地址匹配回收员区域的订单
+                    // 使用统一的过滤条件构建方法
+                    conditions.Add(BuildRecyclerFilterCondition(recyclerId, recyclerRegion, "a"));
+                    parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
+                    
+                    // 如果有区域过滤，添加区域参数
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        conditions.Add("(a.RecyclerID = @RecyclerID OR (a.RecyclerID IS NULL AND a.Address LIKE @RecyclerRegion))");
-                        parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
                         parameters.Add(new SqlParameter("@RecyclerRegion", "%" + recyclerRegion + "%"));
-                    }
-                    else
-                    {
-                        // 如果回收员没有指定区域，则只显示已分配给该回收员的订单
-                        conditions.Add("a.RecyclerID = @RecyclerID");
-                        parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
                     }
                 }
 
@@ -302,7 +296,10 @@ namespace recycling.DAL
                 // 获取回收员的区域信息
                 string recyclerRegion = GetRecyclerRegion(recyclerId);
                 
-                string sql = @"
+                // 使用统一的过滤条件构建方法
+                string whereCondition = BuildRecyclerFilterCondition(recyclerId, recyclerRegion, "");
+                
+                string sql = $@"
                     SELECT 
                         COUNT(*) as TotalOrders,
                         COUNT(CASE WHEN Status = '已预约' THEN 1 END) as PendingOrders,
@@ -310,18 +307,7 @@ namespace recycling.DAL
                         COUNT(CASE WHEN Status = '已完成' AND RecyclerID = @RecyclerID THEN 1 END) as CompletedOrders,
                         COUNT(CASE WHEN Status = '已取消' THEN 1 END) as CancelledOrders
                     FROM Appointments
-                    WHERE ";
-                
-                // 修改逻辑：显示已分配给该回收员的订单或未分配但地址匹配区域的订单
-                if (!string.IsNullOrEmpty(recyclerRegion))
-                {
-                    sql += "(RecyclerID = @RecyclerID OR (RecyclerID IS NULL AND Address LIKE @RecyclerRegion))";
-                }
-                else
-                {
-                    // 如果回收员没有指定区域，则只显示已分配给该回收员的订单
-                    sql += "RecyclerID = @RecyclerID";
-                }
+                    WHERE {whereCondition}";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
@@ -510,17 +496,9 @@ namespace recycling.DAL
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                // 修改逻辑：允许查看已分配给该回收员的订单或未分配但地址匹配区域的订单
-                string whereClause;
-                if (!string.IsNullOrEmpty(recyclerRegion))
-                {
-                    whereClause = "WHERE a.AppointmentID = @AppointmentID AND (a.RecyclerID = @RecyclerID OR (a.RecyclerID IS NULL AND a.Address LIKE @RecyclerRegion))";
-                }
-                else
-                {
-                    // 如果回收员没有指定区域，则只能查看已分配给该回收员的订单
-                    whereClause = "WHERE a.AppointmentID = @AppointmentID AND a.RecyclerID = @RecyclerID";
-                }
+                // 使用统一的过滤条件构建方法
+                string recyclerFilter = BuildRecyclerFilterCondition(recyclerId, recyclerRegion, "a");
+                string whereClause = $"WHERE a.AppointmentID = @AppointmentID AND ({recyclerFilter})";
                 
                 string sql = $@"
             SELECT 
@@ -645,6 +623,35 @@ namespace recycling.DAL
                 }
             }
             return messages;
+        }
+
+        /// <summary>
+        /// 构建回收员订单过滤条件（用于WHERE子句）
+        /// </summary>
+        /// <param name="recyclerId">回收员ID</param>
+        /// <param name="recyclerRegion">回收员负责的区域</param>
+        /// <param name="tableAlias">表别名（如"a."），用于构建正确的列引用</param>
+        /// <returns>WHERE子句的过滤条件字符串</returns>
+        private string BuildRecyclerFilterCondition(int recyclerId, string recyclerRegion, string tableAlias = "")
+        {
+            // 确保表别名正确格式化
+            if (!string.IsNullOrEmpty(tableAlias) && !tableAlias.EndsWith("."))
+            {
+                tableAlias += ".";
+            }
+
+            // 如果回收员有指定区域，则显示：
+            // 1. 已分配给该回收员的订单（不管地址是否匹配）
+            // 2. 未分配但地址匹配回收员区域的订单
+            if (!string.IsNullOrEmpty(recyclerRegion))
+            {
+                return $"({tableAlias}RecyclerID = @RecyclerID OR ({tableAlias}RecyclerID IS NULL AND {tableAlias}Address LIKE @RecyclerRegion))";
+            }
+            else
+            {
+                // 如果回收员没有指定区域，则只显示已分配给该回收员的订单
+                return $"{tableAlias}RecyclerID = @RecyclerID";
+            }
         }
 
         /// <summary>
