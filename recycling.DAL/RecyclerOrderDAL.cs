@@ -13,6 +13,11 @@ namespace recycling.DAL
     public class RecyclerOrderDAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
+        
+        // 用于验证表别名的静态正则表达式（编译后缓存，提高性能）
+        private static readonly System.Text.RegularExpressions.Regex TableAliasRegex = 
+            new System.Text.RegularExpressions.Regex("^[a-zA-Z_][a-zA-Z0-9_]*$", 
+                System.Text.RegularExpressions.RegexOptions.Compiled);
 
         /// <summary>
         /// 获取回收员订单列表（带分页和筛选）
@@ -74,10 +79,10 @@ namespace recycling.DAL
                     conditions.Add(BuildRecyclerFilterCondition(recyclerId, recyclerRegion, "a"));
                     parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
                     
-                    // 如果有区域过滤，添加区域参数
+                    // 如果有区域过滤，添加区域参数（转义LIKE特殊字符）
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        parameters.Add(new SqlParameter("@RecyclerRegion", "%" + recyclerRegion + "%"));
+                        parameters.Add(new SqlParameter("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%"));
                     }
                 }
 
@@ -313,9 +318,10 @@ namespace recycling.DAL
                 {
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
                     
+                    // 添加区域参数（转义LIKE特殊字符）
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + recyclerRegion + "%");
+                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%");
                     }
 
                     conn.Open();
@@ -530,10 +536,10 @@ namespace recycling.DAL
                     cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
                     
-                    // 如果使用区域过滤，添加区域参数
+                    // 如果使用区域过滤，添加区域参数（转义LIKE特殊字符）
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + recyclerRegion + "%");
+                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%");
                     }
 
                     conn.Open();
@@ -641,7 +647,7 @@ namespace recycling.DAL
             // 验证表别名，防止SQL注入（仅允许字母、数字和下划线）
             if (!string.IsNullOrEmpty(tableAlias))
             {
-                if (!System.Text.RegularExpressions.Regex.IsMatch(tableAlias, "^[a-zA-Z_][a-zA-Z0-9_]*$"))
+                if (!TableAliasRegex.IsMatch(tableAlias))
                 {
                     throw new ArgumentException("Invalid table alias. Only letters, numbers, and underscores are allowed.", nameof(tableAlias));
                 }
@@ -661,6 +667,22 @@ namespace recycling.DAL
                 // 如果回收员没有指定区域，则只显示已分配给该回收员的订单
                 return $"{tableAlias}RecyclerID = @RecyclerID";
             }
+        }
+
+        /// <summary>
+        /// 转义SQL LIKE模式中的特殊字符，防止通配符注入
+        /// </summary>
+        /// <param name="value">要转义的字符串</param>
+        /// <returns>转义后的字符串</returns>
+        private string EscapeLikePattern(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+            
+            // 转义SQL LIKE中的特殊字符：% _ [ ]
+            return value.Replace("[", "[[]")
+                        .Replace("%", "[%]")
+                        .Replace("_", "[_]");
         }
 
         /// <summary>
