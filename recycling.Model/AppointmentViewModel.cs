@@ -35,6 +35,10 @@ namespace recycling.Model
         [Required(ErrorMessage = "请选择时间段")]
         public string TimeSlot { get; set; }
 
+        [Display(Name = "街道")]
+        [Required(ErrorMessage = "请选择街道")]
+        public string Street { get; set; }
+
         [Display(Name = "详细地址")]
         [Required(ErrorMessage = "请输入详细地址")]
         [StringLength(200, ErrorMessage = "地址长度不能超过200个字符")]
@@ -391,6 +395,23 @@ namespace recycling.Model
             { "afternoon", "下午 13:00-17:00" },
             { "evening", "晚上 18:00-21:00" },
             { "all_day", "全天 9:00-21:00" }
+        };
+    }
+
+    public static class Streets
+    {
+        public static readonly Dictionary<string, string> LuohuStreets = new Dictionary<string, string>
+        {
+            { "guiyuan", "桂园街道" },
+            { "huangbei", "黄贝街道" },
+            { "dongmen", "东门街道" },
+            { "cuizhu", "翠竹街道" },
+            { "dongxiao", "东晓街道" },
+            { "nanhu", "南湖街道" },
+            { "sungang", "笋岗街道" },
+            { "donghu", "东湖街道" },
+            { "liantang", "莲塘街道" },
+            { "qingshuihe", "清水河街道" }
         };
     }
 

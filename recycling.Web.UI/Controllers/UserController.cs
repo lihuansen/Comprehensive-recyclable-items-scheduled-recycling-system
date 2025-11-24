@@ -451,6 +451,7 @@ namespace recycling.Web.UI.Controllers
             ViewBag.AppointmentTypes = AppointmentTypes.AllTypes;
             ViewBag.RecyclingCategories = RecyclingCategories.AllCategories;
             ViewBag.TimeSlots = TimeSlots.AllSlots;
+            ViewBag.Streets = Streets.LuohuStreets;
 
             return View(model);
         }
@@ -472,6 +473,7 @@ namespace recycling.Web.UI.Controllers
             ViewBag.AppointmentTypes = AppointmentTypes.AllTypes;
             ViewBag.RecyclingCategories = RecyclingCategories.AllCategories;
             ViewBag.TimeSlots = TimeSlots.AllSlots;
+            ViewBag.Streets = Streets.LuohuStreets;
 
             // 验证至少选择一个品类
             if (model.SelectedCategories == null || !model.SelectedCategories.Any())
@@ -486,6 +488,19 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
+                // 拼接完整地址：省 + 市 + 区 + 街道 + 详细地址
+                string streetName = "";
+                if (!string.IsNullOrEmpty(model.Street) && Streets.LuohuStreets.ContainsKey(model.Street))
+                {
+                    streetName = Streets.LuohuStreets[model.Street];
+                }
+                else if (!string.IsNullOrEmpty(model.Street))
+                {
+                    streetName = model.Street;
+                }
+                string fullAddress = $"广东省深圳市罗湖区{streetName}{model.Address}";
+                model.Address = fullAddress;
+
                 // 创建品类详情视图模型
                 var detailModel = new CategoryDetailViewModel
                 {
