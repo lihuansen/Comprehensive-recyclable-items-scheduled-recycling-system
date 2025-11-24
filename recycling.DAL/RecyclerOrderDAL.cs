@@ -15,6 +15,7 @@ namespace recycling.DAL
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
         
         // 用于验证表别名的静态正则表达式（编译后缓存，提高性能）
+        // 仅允许字母、数字和下划线，必须以字母或下划线开头
         private static readonly System.Text.RegularExpressions.Regex TableAliasRegex = 
             new System.Text.RegularExpressions.Regex("^[a-zA-Z_][a-zA-Z0-9_]*$", 
                 System.Text.RegularExpressions.RegexOptions.Compiled);
@@ -301,7 +302,7 @@ namespace recycling.DAL
                 // 获取回收员的区域信息
                 string recyclerRegion = GetRecyclerRegion(recyclerId);
                 
-                // 使用统一的过滤条件构建方法
+                // 使用统一的过滤条件构建方法（不使用表别名，因为只查询单表）
                 string whereCondition = BuildRecyclerFilterCondition(recyclerId, recyclerRegion, "");
                 
                 string sql = $@"
@@ -634,13 +635,13 @@ namespace recycling.DAL
         /// <summary>
         /// 构建回收员订单过滤条件（用于WHERE子句）
         /// 注意：此方法返回的SQL片段是安全的，因为：
-        /// 1. tableAlias参数经过严格验证，只允许字母和点号
+        /// 1. tableAlias参数经过严格验证，只允许字母、数字和下划线
         /// 2. 所有用户输入的值（recyclerId, recyclerRegion）都使用SQL参数化（@RecyclerID, @RecyclerRegion）
         /// 3. 此方法仅供内部调用，不直接暴露给用户输入
         /// </summary>
         /// <param name="recyclerId">回收员ID</param>
         /// <param name="recyclerRegion">回收员负责的区域（将使用参数化查询）</param>
-        /// <param name="tableAlias">表别名（如"a"），仅用于内部表别名，受严格验证</param>
+        /// <param name="tableAlias">表别名（如"a"），传入空字符串表示不使用表别名，仅用于内部调用，受严格验证</param>
         /// <returns>WHERE子句的过滤条件字符串（使用参数化占位符）</returns>
         private string BuildRecyclerFilterCondition(int recyclerId, string recyclerRegion, string tableAlias = "")
         {
