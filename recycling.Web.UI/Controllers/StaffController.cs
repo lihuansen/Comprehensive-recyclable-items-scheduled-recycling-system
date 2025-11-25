@@ -1153,6 +1153,49 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
+        #region SuperAdmin - Data Dashboard
+
+        /// <summary>
+        /// 超级管理员 - 数据看板页面
+        /// </summary>
+        public ActionResult DataDashboard()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            var superAdmin = (SuperAdmins)Session["LoginStaff"];
+            ViewBag.StaffName = superAdmin.Username;
+
+            return View();
+        }
+
+        /// <summary>
+        /// 超级管理员 - 获取数据看板统计数据（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetDashboardStatistics()
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var stats = _adminBLL.GetDashboardStatistics();
+                return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
         #region SuperAdmin - Admin Management
 
         /// <summary>
