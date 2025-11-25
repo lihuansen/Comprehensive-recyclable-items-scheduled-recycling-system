@@ -343,6 +343,18 @@ namespace recycling.BLL
 
         #endregion
 
+        #region Dashboard Statistics
+
+        /// <summary>
+        /// Get comprehensive dashboard statistics for super admin
+        /// </summary>
+        public Dictionary<string, object> GetDashboardStatistics()
+        {
+            return _adminDAL.GetDashboardStatistics();
+        }
+
+        #endregion
+
         #region Helper Methods
 
         /// <summary>

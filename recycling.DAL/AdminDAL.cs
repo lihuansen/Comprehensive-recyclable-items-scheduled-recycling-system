@@ -920,6 +920,303 @@ namespace recycling.DAL
 
         #endregion
 
+        #region Dashboard Statistics
+
+        /// <summary>
+        /// Get comprehensive dashboard statistics for super admin
+        /// </summary>
+        public Dictionary<string, object> GetDashboardStatistics()
+        {
+            var stats = new Dictionary<string, object>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // === User Statistics ===
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Users", conn);
+                stats["TotalUsers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
+                    WHERE YEAR(RegistrationDate) = YEAR(GETDATE()) 
+                    AND MONTH(RegistrationDate) = MONTH(GETDATE())", conn);
+                stats["NewUsersThisMonth"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
+                    WHERE LastLoginDate >= DATEADD(day, -7, GETDATE())", conn);
+                stats["ActiveUsersThisWeek"] = (int)cmd.ExecuteScalar();
+
+                // === Recycler Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers", conn);
+                stats["TotalRecyclers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE IsActive = 1", conn);
+                stats["ActiveRecyclers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE Available = 1 AND IsActive = 1", conn);
+                stats["AvailableRecyclers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT ISNULL(AVG(Rating), 0) FROM Recyclers WHERE Rating IS NOT NULL", conn);
+                stats["AverageRecyclerRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // === Admin Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Admins", conn);
+                stats["TotalAdmins"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Admins WHERE IsActive = 1", conn);
+                stats["ActiveAdmins"] = (int)cmd.ExecuteScalar();
+
+                // === Order Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments", conn);
+                stats["TotalOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已预约'", conn);
+                stats["PendingOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'进行中'", conn);
+                stats["InProgressOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已完成'", conn);
+                stats["CompletedOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已取消'", conn);
+                stats["CancelledOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
+                    WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
+                    AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
+                stats["OrdersThisMonth"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
+                    WHERE CreatedDate >= DATEADD(day, -7, GETDATE())", conn);
+                stats["OrdersThisWeek"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
+                    WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
+                stats["OrdersToday"] = (int)cmd.ExecuteScalar();
+
+                // === Weight and Revenue Statistics ===
+                cmd = new SqlCommand("SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments WHERE Status = N'已完成'", conn);
+                stats["TotalWeightCollected"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                cmd = new SqlCommand("SELECT ISNULL(SUM(EstimatedPrice), 0) FROM Appointments WHERE Status = N'已完成'", conn);
+                stats["TotalRevenue"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments 
+                    WHERE Status = N'已完成' 
+                    AND YEAR(UpdatedDate) = YEAR(GETDATE()) 
+                    AND MONTH(UpdatedDate) = MONTH(GETDATE())", conn);
+                stats["WeightThisMonth"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedPrice), 0) FROM Appointments 
+                    WHERE Status = N'已完成' 
+                    AND YEAR(UpdatedDate) = YEAR(GETDATE()) 
+                    AND MONTH(UpdatedDate) = MONTH(GETDATE())", conn);
+                stats["RevenueThisMonth"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // === Order Trend (Last 7 days) ===
+                cmd = new SqlCommand(@"
+                    SELECT CAST(CreatedDate AS DATE) AS OrderDate, COUNT(*) AS OrderCount
+                    FROM Appointments
+                    WHERE CreatedDate >= DATEADD(day, -7, GETDATE())
+                    GROUP BY CAST(CreatedDate AS DATE)
+                    ORDER BY OrderDate", conn);
+
+                var orderTrend = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        orderTrend.Add(new Dictionary<string, object>
+                        {
+                            ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["OrderTrend"] = orderTrend;
+
+                // === User Registration Trend (Last 30 days) ===
+                cmd = new SqlCommand(@"
+                    SELECT CAST(RegistrationDate AS DATE) AS RegDate, COUNT(*) AS UserCount
+                    FROM Users
+                    WHERE RegistrationDate >= DATEADD(day, -30, GETDATE())
+                    GROUP BY CAST(RegistrationDate AS DATE)
+                    ORDER BY RegDate", conn);
+
+                var userTrend = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        userTrend.Add(new Dictionary<string, object>
+                        {
+                            ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["UserRegistrationTrend"] = userTrend;
+
+                // === Category Distribution ===
+                cmd = new SqlCommand(@"
+                    SELECT CategoryName, COUNT(*) AS Count
+                    FROM AppointmentCategories
+                    GROUP BY CategoryName
+                    ORDER BY Count DESC", conn);
+
+                var categoryDistribution = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        categoryDistribution.Add(new Dictionary<string, object>
+                        {
+                            ["Category"] = reader.GetString(0),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["CategoryDistribution"] = categoryDistribution;
+
+                // === Order Status Distribution ===
+                cmd = new SqlCommand(@"
+                    SELECT Status, COUNT(*) AS Count 
+                    FROM Appointments 
+                    GROUP BY Status 
+                    ORDER BY Count DESC", conn);
+
+                var statusDistribution = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        statusDistribution.Add(new Dictionary<string, object>
+                        {
+                            ["Status"] = reader.GetString(0),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["OrderStatusDistribution"] = statusDistribution;
+
+                // === Region Distribution ===
+                cmd = new SqlCommand(@"
+                    SELECT Region, COUNT(*) AS RecyclerCount
+                    FROM Recyclers
+                    WHERE IsActive = 1
+                    GROUP BY Region
+                    ORDER BY RecyclerCount DESC", conn);
+
+                var regionDistribution = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        regionDistribution.Add(new Dictionary<string, object>
+                        {
+                            ["Region"] = reader.GetString(0),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["RegionDistribution"] = regionDistribution;
+
+                // === Top Recyclers by Completed Orders ===
+                cmd = new SqlCommand(@"
+                    SELECT TOP 5 r.RecyclerID, ISNULL(r.FullName, r.Username) AS Name, 
+                           r.Rating, COUNT(a.AppointmentID) AS CompletedOrders
+                    FROM Recyclers r
+                    LEFT JOIN Appointments a ON r.RecyclerID = a.RecyclerID AND a.Status = N'已完成'
+                    WHERE r.IsActive = 1
+                    GROUP BY r.RecyclerID, r.FullName, r.Username, r.Rating
+                    ORDER BY CompletedOrders DESC", conn);
+
+                var topRecyclers = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        topRecyclers.Add(new Dictionary<string, object>
+                        {
+                            ["RecyclerID"] = reader.GetInt32(0),
+                            ["Name"] = reader.GetString(1),
+                            ["Rating"] = reader.IsDBNull(2) ? 0m : reader.GetDecimal(2),
+                            ["CompletedOrders"] = reader.GetInt32(3)
+                        });
+                    }
+                }
+                stats["TopRecyclers"] = topRecyclers;
+
+                // === Feedback Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM UserFeedback", conn);
+                stats["TotalFeedbacks"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM UserFeedback WHERE Status = N'反馈中'", conn);
+                stats["PendingFeedbacks"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM UserFeedback WHERE Status = N'已回复'", conn);
+                stats["ProcessedFeedbacks"] = (int)cmd.ExecuteScalar();
+
+                // === Review Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM OrderReviews", conn);
+                stats["TotalReviews"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT ISNULL(AVG(CAST(StarRating AS DECIMAL(3,2))), 0) FROM OrderReviews", conn);
+                stats["AverageReviewRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // === Monthly Order Trend (Last 6 months) ===
+                cmd = new SqlCommand(@"
+                    SELECT YEAR(CreatedDate) AS OrderYear, MONTH(CreatedDate) AS OrderMonth, COUNT(*) AS OrderCount
+                    FROM Appointments
+                    WHERE CreatedDate >= DATEADD(month, -6, GETDATE())
+                    GROUP BY YEAR(CreatedDate), MONTH(CreatedDate)
+                    ORDER BY OrderYear, OrderMonth", conn);
+
+                var monthlyOrderTrend = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int year = reader.GetInt32(0);
+                        int month = reader.GetInt32(1);
+                        monthlyOrderTrend.Add(new Dictionary<string, object>
+                        {
+                            ["Month"] = $"{year}-{month:D2}",
+                            ["Count"] = reader.GetInt32(2)
+                        });
+                    }
+                }
+                stats["MonthlyOrderTrend"] = monthlyOrderTrend;
+
+                // === Inventory Statistics ===
+                cmd = new SqlCommand(@"
+                    SELECT CategoryKey, CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
+                    FROM Inventory
+                    GROUP BY CategoryKey, CategoryName
+                    ORDER BY TotalWeight DESC", conn);
+
+                var inventoryStats = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        inventoryStats.Add(new Dictionary<string, object>
+                        {
+                            ["CategoryKey"] = reader.GetString(0),
+                            ["CategoryName"] = reader.GetString(1),
+                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(2))
+                        });
+                    }
+                }
+                stats["InventoryStats"] = inventoryStats;
+            }
+
+            return stats;
+        }
+
+        #endregion
+
         #region Helper Methods
 
         private Recyclers MapRecyclerFromReader(SqlDataReader reader)
