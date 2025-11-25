@@ -991,16 +991,9 @@ namespace recycling.DAL
                     WHERE CreatedDate >= DATEADD(day, -7, GETDATE())", conn);
                 stats["OrdersThisWeek"] = (int)cmd.ExecuteScalar();
 
-                cmd = new SqlCommand("SELECT CAST(CreatedDate AS DATE) AS OrderDate FROM Appointments WHERE CreatedDate >= DATEADD(day, -1, GETDATE())", conn);
-                int todayOrders = 0;
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        todayOrders++;
-                    }
-                }
-                stats["OrdersToday"] = todayOrders;
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
+                    WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
+                stats["OrdersToday"] = (int)cmd.ExecuteScalar();
 
                 // === Weight and Revenue Statistics ===
                 cmd = new SqlCommand("SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments WHERE Status = N'已完成'", conn);
@@ -1174,21 +1167,23 @@ namespace recycling.DAL
 
                 // === Monthly Order Trend (Last 6 months) ===
                 cmd = new SqlCommand(@"
-                    SELECT FORMAT(CreatedDate, 'yyyy-MM') AS Month, COUNT(*) AS OrderCount
+                    SELECT YEAR(CreatedDate) AS OrderYear, MONTH(CreatedDate) AS OrderMonth, COUNT(*) AS OrderCount
                     FROM Appointments
                     WHERE CreatedDate >= DATEADD(month, -6, GETDATE())
-                    GROUP BY FORMAT(CreatedDate, 'yyyy-MM')
-                    ORDER BY Month", conn);
+                    GROUP BY YEAR(CreatedDate), MONTH(CreatedDate)
+                    ORDER BY OrderYear, OrderMonth", conn);
 
                 var monthlyOrderTrend = new List<Dictionary<string, object>>();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
+                        int year = reader.GetInt32(0);
+                        int month = reader.GetInt32(1);
                         monthlyOrderTrend.Add(new Dictionary<string, object>
                         {
-                            ["Month"] = reader.GetString(0),
-                            ["Count"] = reader.GetInt32(1)
+                            ["Month"] = $"{year}-{month:D2}",
+                            ["Count"] = reader.GetInt32(2)
                         });
                     }
                 }
