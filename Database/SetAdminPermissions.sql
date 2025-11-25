@@ -24,8 +24,11 @@ ORDER BY AdminID;
 -- 示例4: 设置管理员为"首页页面管理"权限
 -- UPDATE Admins SET Character = 'homepage_management' WHERE AdminID = 4;
 
--- 示例5: 设置管理员为"全部权限"
--- UPDATE Admins SET Character = 'full_access' WHERE AdminID = 5;
+-- 示例5: 设置管理员为"仓库管理"权限
+-- UPDATE Admins SET Character = 'warehouse_management' WHERE AdminID = 5;
+
+-- 示例6: 设置管理员为"全部权限"
+-- UPDATE Admins SET Character = 'full_access' WHERE AdminID = 6;
 
 -- =============================================
 -- 权限值说明
@@ -34,6 +37,7 @@ ORDER BY AdminID;
 -- recycler_management   - 回收员管理权限
 -- feedback_management   - 反馈管理权限
 -- homepage_management   - 首页页面管理权限
+-- warehouse_management  - 仓库管理权限
 -- full_access          - 全部权限
 
 -- =============================================
@@ -55,6 +59,7 @@ SELECT
         WHEN 'recycler_management' THEN '回收员管理'
         WHEN 'feedback_management' THEN '反馈管理'
         WHEN 'homepage_management' THEN '首页页面管理'
+        WHEN 'warehouse_management' THEN '仓库管理'
         WHEN 'full_access' THEN '全部权限'
         ELSE '未设置权限'
     END AS PermissionName,
