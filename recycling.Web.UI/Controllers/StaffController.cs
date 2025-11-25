@@ -662,16 +662,20 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 仓库管理页面
+        // 仓库管理页面 - 管理员端
         public ActionResult WarehouseManagement()
         {
             if (Session["LoginStaff"] == null)
                 return RedirectToAction("Login", "Staff");
 
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+                return RedirectToAction("Login", "Staff");
+
             return View();
         }
 
-        // 获取库存汇总数据
+        // 获取库存汇总数据 - 管理员端
         [HttpPost]
         public JsonResult GetInventorySummary()
         {
@@ -680,7 +684,10 @@ namespace recycling.Web.UI.Controllers
                 if (Session["LoginStaff"] == null)
                     return Json(new { success = false, message = "请先登录" });
 
-                var recycler = (Recyclers)Session["LoginStaff"];
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return Json(new { success = false, message = "权限不足" });
+
                 var inventoryBll = new InventoryBLL();
 
                 // 获取所有库存汇总（不过滤回收员）
@@ -699,6 +706,33 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // 获取库存明细数据 - 管理员端
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetInventoryDetail(int page = 1, int pageSize = 20, string categoryKey = null)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                    return JsonContent(new { success = false, message = "权限不足" });
+
+                var inventoryBll = new InventoryBLL();
+
+                // 获取库存明细列表（包含回收员信息）
+                var result = inventoryBll.GetInventoryDetailWithRecycler(page, pageSize, categoryKey);
+
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
