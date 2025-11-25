@@ -663,6 +663,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         // 仓库管理页面 - 管理员端
+        [AdminPermission(AdminPermissions.WarehouseManagement)]
         public ActionResult WarehouseManagement()
         {
             if (Session["LoginStaff"] == null)
