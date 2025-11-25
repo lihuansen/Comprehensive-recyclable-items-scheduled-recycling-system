@@ -3,6 +3,8 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
@@ -366,7 +368,8 @@
             var url = '@Url.Action("GetInventoryDetail", "Staff")';
             var params = new URLSearchParams({
                 page: currentPage,
-                pageSize: pageSize
+                pageSize: pageSize,
+                __RequestVerificationToken: document.querySelector('input[name="__RequestVerificationToken"]').value
             });
 
             if (currentCategoryKey) {

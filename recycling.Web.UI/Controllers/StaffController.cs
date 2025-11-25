@@ -711,6 +711,7 @@ namespace recycling.Web.UI.Controllers
 
         // 获取库存明细数据 - 管理员端
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetInventoryDetail(int page = 1, int pageSize = 20, string categoryKey = null)
         {
             try
