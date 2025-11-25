@@ -81,9 +81,10 @@ namespace recycling.DAL
                     parameters.Add(new SqlParameter("@RecyclerID", recyclerId));
                     
                     // 如果有区域过滤，添加区域参数（转义LIKE特殊字符）
+                    // 使用前缀匹配（region%），确保订单地址以回收员负责区域开头
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        parameters.Add(new SqlParameter("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%"));
+                        parameters.Add(new SqlParameter("@RecyclerRegion", EscapeLikePattern(recyclerRegion) + "%"));
                     }
                 }
 
@@ -320,9 +321,10 @@ namespace recycling.DAL
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
                     
                     // 添加区域参数（转义LIKE特殊字符）
+                    // 使用前缀匹配（region%），确保订单地址以回收员负责区域开头
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%");
+                        cmd.Parameters.AddWithValue("@RecyclerRegion", EscapeLikePattern(recyclerRegion) + "%");
                     }
 
                     conn.Open();
@@ -538,9 +540,10 @@ namespace recycling.DAL
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
                     
                     // 如果使用区域过滤，添加区域参数（转义LIKE特殊字符）
+                    // 使用前缀匹配（region%），确保订单地址以回收员负责区域开头
                     if (!string.IsNullOrEmpty(recyclerRegion))
                     {
-                        cmd.Parameters.AddWithValue("@RecyclerRegion", "%" + EscapeLikePattern(recyclerRegion) + "%");
+                        cmd.Parameters.AddWithValue("@RecyclerRegion", EscapeLikePattern(recyclerRegion) + "%");
                     }
 
                     conn.Open();
@@ -657,7 +660,9 @@ namespace recycling.DAL
 
             // 如果回收员有指定区域，则显示：
             // 1. 已分配给该回收员的订单（不管地址是否匹配）
-            // 2. 未分配但地址匹配回收员区域的订单
+            // 2. 未分配但地址以回收员负责区域开头的订单（前缀匹配）
+            // 例如：回收员负责"广东省深圳市罗湖区某某街道"，
+            //       只能看到地址以"广东省深圳市罗湖区某某街道"开头的订单
             // 注意：@RecyclerID 和 @RecyclerRegion 是参数化查询占位符，由调用方添加实际参数
             if (!string.IsNullOrEmpty(recyclerRegion))
             {
