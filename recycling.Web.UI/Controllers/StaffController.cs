@@ -313,6 +313,96 @@ namespace recycling.Web.UI.Controllers
             return View(messages);
         }
 
+        /// <summary>
+        /// 联系用户视图（回收员端）
+        /// </summary>
+        [HttpGet]
+        public ActionResult ContactUser(int orderId)
+        {
+            // 验证回收员登录状态
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            try
+            {
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                // 通过BLL层获取订单详情
+                var orderResult = _recyclerOrderBLL.GetOrderDetail(orderId, recycler.RecyclerID);
+                if (orderResult.Detail == null)
+                {
+                    ViewBag.ErrorMsg = "无法联系用户：订单不存在或无权访问";
+                    return View();
+                }
+
+                // 获取用户信息
+                var userBLL = new UserBLL();
+                var user = userBLL.GetUserById(orderResult.Detail.UserID);
+                if (user == null)
+                {
+                    ViewBag.ErrorMsg = "用户信息不存在";
+                    return View();
+                }
+
+                // 设置ViewBag变量供视图使用
+                ViewBag.OrderId = orderId;
+                ViewBag.OrderNumber = orderResult.Detail.OrderNumber;
+                ViewBag.UserName = user.Username;
+                ViewBag.UserId = user.UserID;
+                ViewBag.RecyclerId = recycler.RecyclerID;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = $"加载联系页面失败：{ex.Message}";
+                return View();
+            }
+        }
+
+        /// <summary>
+        /// 获取历史对话消息（在结束时间之前的消息）- 回收员端
+        /// </summary>
+        [HttpPost]
+        public ContentResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return JsonContent(new { success = false, message = "请先登录" });
+
+                if (orderId <= 0 || string.IsNullOrWhiteSpace(endedTime))
+                    return JsonContent(new { success = false, message = "参数不完整" });
+
+                if (!DateTime.TryParse(endedTime, out DateTime et))
+                    return JsonContent(new { success = false, message = "结束时间格式错误" });
+
+                var conversationBLL = new ConversationBLL();
+                var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
+
+                var result = messages.Select(m => new
+                {
+                    messageId = m.MessageID,
+                    orderId = m.OrderID,
+                    senderType = (m.SenderType ?? string.Empty).ToLower(),
+                    senderId = m.SenderID,
+                    content = m.Content ?? string.Empty,
+                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
+                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
+                                : string.Empty,
+                    isRead = m.IsRead
+                }).ToList();
+
+                return JsonContent(new { success = true, messages = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
         // 获取订单对话（回收员端），已包含 conversationEnded/endedBy/endedTime
         [HttpPost]
         public ContentResult GetOrderConversation(int orderId)
@@ -343,11 +433,12 @@ namespace recycling.Web.UI.Controllers
 
                 // 获取最近结束信息（供前端显示“谁结束了/是否双方都结束”）
                 var convBll = new ConversationBLL();
-                var latestConv = convBll.GetLatestConversation(orderId);
                 var bothInfo = convBll.HasBothEnded(orderId); // (bool, DateTime?)
                 bool conversationBothEnded = bothInfo.BothEnded;
                 string latestEndedTimeIso = bothInfo.LatestEndedTime.HasValue ? bothInfo.LatestEndedTime.Value.ToString("o") : string.Empty;
-                string lastEndedBy = latestConv != null ? latestConv.Status ?? "" : "";
+                
+                // 使用公共方法确定谁已经结束了对话
+                string lastEndedBy = convBll.GetConversationEndedByStatus(orderId);
 
                 return JsonContent(new
                 {

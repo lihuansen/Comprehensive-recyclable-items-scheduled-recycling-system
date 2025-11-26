@@ -512,6 +512,7 @@ namespace recycling.DAL
                 string sql = $@"
             SELECT 
                 a.AppointmentID,
+                a.UserID,
                 a.AppointmentType,
                 a.AppointmentDate,
                 a.TimeSlot,
@@ -552,6 +553,7 @@ namespace recycling.DAL
                         if (reader.Read())
                         {
                             orderDetail.OrderNumber = $"AP{Convert.ToInt32(reader["AppointmentID"]):D6}";
+                            orderDetail.UserID = Convert.ToInt32(reader["UserID"]);
                             orderDetail.AppointmentType = GetAppointmentTypeChinese(reader["AppointmentType"].ToString());
                             orderDetail.AppointmentDate = Convert.ToDateTime(reader["AppointmentDate"]).ToString("yyyy-MM-dd");
                             orderDetail.TimeSlot = GetTimeSlotChinese(reader["TimeSlot"].ToString());

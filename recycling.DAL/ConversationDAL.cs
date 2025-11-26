@@ -201,10 +201,10 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT TOP 1 ConversationID, OrderID, UserID, RecyclerID, Status, CreatedTime, EndedTime
+                    SELECT TOP 1 ConversationID, OrderID, UserID, RecyclerID, Status, CreatedTime, EndedTime, UserEnded, RecyclerEnded
                     FROM Conversations
                     WHERE OrderID = @OrderID
-                    ORDER BY EndedTime DESC, ConversationID DESC";
+                    ORDER BY ConversationID DESC";
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@ORDERID", orderId);
@@ -219,7 +219,9 @@ namespace recycling.DAL
                                 OrderID = Convert.ToInt32(reader["OrderID"]),
                                 CreatedTime = reader["CreatedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["CreatedTime"]),
                                 EndedTime = reader["EndedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["EndedTime"]),
-                                Status = reader["Status"].ToString()
+                                Status = reader["Status"].ToString(),
+                                UserEnded = reader["UserEnded"] != DBNull.Value && Convert.ToBoolean(reader["UserEnded"]),
+                                RecyclerEnded = reader["RecyclerEnded"] != DBNull.Value && Convert.ToBoolean(reader["RecyclerEnded"])
                             };
                         }
                     }
@@ -377,6 +379,93 @@ namespace recycling.DAL
                 }
             }
             return messages;
+        }
+
+        /// <summary>
+        /// 检查当前对话状态并在双方都已结束后创建新对话
+        /// 返回：是否需要开始新对话
+        /// </summary>
+        public bool EnsureActiveConversation(int orderId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                
+                // 检查是否存在会话且双方都已结束
+                string checkSql = @"
+                    SELECT TOP 1 ConversationID, UserEnded, RecyclerEnded, EndedTime
+                    FROM Conversations 
+                    WHERE OrderID = @OrderID 
+                    ORDER BY ConversationID DESC";
+                
+                bool bothEnded = false;
+                
+                using (SqlCommand cmd = new SqlCommand(checkSql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@OrderID", orderId);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            bool userEnded = reader["UserEnded"] != DBNull.Value && Convert.ToBoolean(reader["UserEnded"]);
+                            bool recyclerEnded = reader["RecyclerEnded"] != DBNull.Value && Convert.ToBoolean(reader["RecyclerEnded"]);
+                            bothEnded = userEnded && recyclerEnded;
+                        }
+                    }
+                }
+                
+                // 如果双方都已结束，创建新的对话记录
+                if (bothEnded)
+                {
+                    int userId = 0, recyclerId = 0;
+                    
+                    // 获取订单参与者
+                    string getParticipants = "SELECT UserID, RecyclerID FROM Appointments WHERE AppointmentID = @AppointmentID";
+                    using (SqlCommand cmd = new SqlCommand(getParticipants, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@AppointmentID", orderId);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                if (reader["UserID"] != DBNull.Value) int.TryParse(reader["UserID"].ToString(), out userId);
+                                if (reader["RecyclerID"] != DBNull.Value) int.TryParse(reader["RecyclerID"].ToString(), out recyclerId);
+                            }
+                        }
+                    }
+                    
+                    // 创建新会话
+                    string insertSql = @"
+                        INSERT INTO Conversations (OrderID, UserID, RecyclerID, Status, CreatedTime, UserEnded, RecyclerEnded)
+                        VALUES (@OrderID, @UserID, @RecyclerID, 'active', @CreatedTime, 0, 0)";
+                    
+                    using (SqlCommand cmd = new SqlCommand(insertSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@OrderID", orderId);
+                        cmd.Parameters.AddWithValue("@UserID", userId);
+                        cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                        cmd.Parameters.AddWithValue("@CreatedTime", DateTime.Now);
+                        cmd.ExecuteNonQuery();
+                    }
+                    
+                    // 插入系统消息表示新对话开始
+                    string insertMsgSql = @"
+                        INSERT INTO Messages (OrderID, SenderType, SenderID, Content, SentTime, IsRead)
+                        VALUES (@OrderID, 'system', NULL, @Content, @SentTime, 1)";
+                    
+                    using (SqlCommand cmd = new SqlCommand(insertMsgSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@OrderID", orderId);
+                        cmd.Parameters.AddWithValue("@Content", "新的对话已开始");
+                        cmd.Parameters.AddWithValue("@SentTime", DateTime.Now);
+                        cmd.ExecuteNonQuery();
+                    }
+                    
+                    return true;
+                }
+                
+                return false;
+            }
         }
     }
 }

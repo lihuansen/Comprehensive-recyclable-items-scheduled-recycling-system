@@ -17,5 +17,7 @@ namespace recycling.Model
         public DateTime? CreatedTime { get; set; }
         public DateTime? EndedTime { get; set; }
         public string Status { get; set; }
+        public bool UserEnded { get; set; }
+        public bool RecyclerEnded { get; set; }
     }
 }
