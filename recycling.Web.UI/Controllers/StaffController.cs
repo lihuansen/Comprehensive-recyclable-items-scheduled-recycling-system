@@ -662,6 +662,43 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        // 直接完成订单（从订单列表，不检查对话状态）
+        [HttpPost]
+        public ContentResult CompleteOrderDirect(int appointmentId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                // 写入库存
+                var inventoryBll = new InventoryBLL();
+                bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recycler.RecyclerID);
+
+                if (!inventoryAdded)
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                // 完成订单
+                var orderBll = new OrderBLL();
+                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID);
+                var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+            }
+        }
+
         // 仓库管理页面 - 管理员端
         [AdminPermission(AdminPermissions.WarehouseManagement)]
         public ActionResult WarehouseManagement()

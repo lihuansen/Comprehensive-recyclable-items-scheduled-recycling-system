@@ -887,9 +887,6 @@ select.form-control::-ms-expand {
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" id="completeOrderBtn" class="btn btn-success" style="display: none;" onclick="completeOrderFromDetail()">
-                    <i class="fas fa-check-circle"></i> 完成订单
-                </button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
         </div>
@@ -1035,6 +1032,33 @@ select.form-control::-ms-expand {
                     </button>
                     <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                         <i class="fas fa-eye"></i>查看详情
+                    </button>
+                </div>
+            `;
+                } else if (order.Status === '进行中') {
+                    // 进行中订单：查看详情 + 联系用户 + 完成订单
+                    actionButtons = `
+                <div class="order-actions">
+                    <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
+                        <i class="fas fa-eye"></i>查看详情
+                    </button>
+                    <button class="btn-action warning" onclick="openConversationModal(${order.AppointmentID}, '${order.OrderNumber}')">
+                        <i class="fas fa-comments"></i>联系用户
+                    </button>
+                    <button class="btn-action success" onclick="completeOrderDirect(${order.AppointmentID})">
+                        <i class="fas fa-check-circle"></i>完成订单
+                    </button>
+                </div>
+            `;
+                } else if (order.Status === '已完成') {
+                    // 已完成订单：查看详情 + 联系用户（仍可交流）
+                    actionButtons = `
+                <div class="order-actions">
+                    <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
+                        <i class="fas fa-eye"></i>查看详情
+                    </button>
+                    <button class="btn-action warning" onclick="openConversationModal(${order.AppointmentID}, '${order.OrderNumber}')">
+                        <i class="fas fa-comments"></i>联系用户
                     </button>
                 </div>
             `;
@@ -1205,6 +1229,57 @@ select.form-control::-ms-expand {
             });
         }
 
+        // 直接完成订单（从订单列表）
+        function completeOrderDirect(appointmentId) {
+            if (!appointmentId || appointmentId <= 0) {
+                alert('订单ID无效');
+                return;
+            }
+
+            if (!confirm('确认完成此订单？完成后将写入库存记录。')) {
+                return;
+            }
+
+            // 找到按钮并禁用防止重复点击
+            const btn = event.target.closest('button');
+            if (btn) {
+                btn.disabled = true;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+            }
+
+            fetch('@Url.Action("CompleteOrderDirect", "Staff")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ appointmentId: appointmentId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i>完成订单';
+                }
+
+                if (data.success) {
+                    showAlert('订单已完成，库存已更新', 'success');
+                    loadOrders(currentPage); // 刷新订单列表
+                } else {
+                    showAlert('完成失败：' + (data.message || ''), 'error');
+                }
+            })
+            .catch(error => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i>完成订单';
+                }
+                console.error('完成订单出错：', error);
+                showAlert('完成订单出错', 'error');
+            });
+        }
+
            // 查看订单详情
     function viewOrderDetail(appointmentId) {
         const modal = $('#orderDetailModal');
@@ -1282,86 +1357,6 @@ function renderOrderDetail(order) {
     } else {
         categoriesContainer.innerHTML = '<span class="text-muted">暂无品类信息</span>';
     }
-
-    // 保存订单ID用于完成订单操作
-    const completeBtn = document.getElementById('completeOrderBtn');
-    completeBtn.setAttribute('data-appointment-id', order.AppointmentID);
-    
-    // 检查是否可以完成订单（仅"进行中"状态）
-    if (order.Status === '进行中') {
-        // 检查双方是否都已结束对话
-        fetch('@Url.Action("CheckBothEnded", "Staff")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ orderId: order.AppointmentID })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.bothEnded) {
-                completeBtn.style.display = 'inline-block';
-            } else {
-                completeBtn.style.display = 'none';
-            }
-        })
-        .catch(error => {
-            console.error('检查对话状态出错：', error);
-            completeBtn.style.display = 'none';
-        });
-    } else {
-        completeBtn.style.display = 'none';
-    }
-}
-
-// 从订单详情完成订单
-function completeOrderFromDetail() {
-    const completeBtn = document.getElementById('completeOrderBtn');
-    const appointmentId = parseInt(completeBtn.getAttribute('data-appointment-id'), 10);
-    
-    if (!appointmentId || appointmentId <= 0) {
-        alert('订单ID无效');
-        return;
-    }
-
-    if (!confirm('确认完成此订单？完成后将写入库存记录。')) {
-        return;
-    }
-
-    // 禁用按钮防止重复点击
-    completeBtn.disabled = true;
-    const originalText = completeBtn.innerHTML;
-    completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
-
-    fetch('@Url.Action("CompleteOrder", "Staff")', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({ appointmentId: appointmentId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        completeBtn.disabled = false;
-        completeBtn.innerHTML = originalText;
-
-        if (data.success) {
-            alert('订单已完成，库存已更新');
-            $('#orderDetailModal').modal('hide');
-            // 刷新订单列表
-            loadOrders(currentPage);
-        } else {
-            alert('完成失败：' + (data.message || ''));
-        }
-    })
-    .catch(error => {
-        completeBtn.disabled = false;
-        completeBtn.innerHTML = originalText;
-        console.error('完成订单出错：', error);
-        alert('完成订单出错');
-    });
 }
 
         // 打开对话模态框

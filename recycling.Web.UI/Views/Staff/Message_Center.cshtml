@@ -80,13 +80,6 @@
                         </span>
                     </div>
                 </div>
-                
-                <!-- Complete Order Button (显示当双方都结束对话时) -->
-                <div id="completeOrderSection" class="mt-3" style="display: none;">
-                    <button id="completeOrderBtn" class="btn btn-success btn-block" style="height: 50px; font-size: 16px; font-weight: bold;">
-                        <i class="fas fa-check-circle"></i> 完成订单
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -192,9 +185,6 @@
             if (data.success) {
                 var messages = data.messages || data.data || [];
                 renderConversationMessages(messages);
-
-                // 检查对话是否双方都已结束
-                checkBothEnded(orderId);
             } else {
                 var container = document.getElementById('conversationContainer');
                 if (container) container.innerHTML = '<div class="text-danger">加载对话失败：' + escapeHtml(data.message || '') + '</div>';
@@ -206,36 +196,6 @@
             if (container) container.innerHTML = '<div class="text-danger">加载对话出错，请重试</div>';
         });
     }
-
-    function checkBothEnded(orderId) {
-        fetch('@Url.Action("CheckBothEnded", "Staff")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ orderId: orderId })
-        })
-        .then(function (res) {
-            return res.json();
-        })
-        .then(function (data) {
-            var completeSection = document.getElementById('completeOrderSection');
-            if (data.bothEnded) {
-                completeSection.style.display = 'block';
-            } else {
-                completeSection.style.display = 'none';
-            }
-        })
-        .catch(function (err) {
-            console.error('检查对话状态出错：', err);
-            var container = document.getElementById('conversationContainer');
-            if (container) {
-                container.innerHTML = '<div class="text-danger">加载对话出错，请重试</div>';
-            }
-        });
-    }
-
 
     function renderConversationMessages(messages) {
         var container = document.getElementById('conversationContainer');
@@ -457,57 +417,12 @@
                 .then(r=>r.json())
                 .then(data=>{
                     if (data.success) {
-                        // 重新载入消息（会自动检查双方是否都已结束）
+                        // 重新载入消息
                         loadConversationMessages(currentOrderId);
                     } else {
                         alert('结束失败：' + (data.message || ''));
                     }
                 }).catch(err=> { console.error(err); alert('结束出错'); });
-            });
-        }
-    });
-
-    // Complete Order Button Handler
-    document.addEventListener('DOMContentLoaded', function() {
-        var completeBtn = document.getElementById('completeOrderBtn');
-        if (completeBtn) {
-            completeBtn.addEventListener('click', function() {
-                if (!currentOrderId) {
-                    alert('请先选择订单');
-                    return;
-                }
-
-                if (!confirm('确认完成此订单？完成后将写入库存记录。')) {
-                    return;
-                }
-
-                var btn = this;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
-
-                fetch('@Url.Action("CompleteOrder","Staff")', {
-                    method: 'POST',
-                    headers: { 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
-                    body: JSON.stringify({ appointmentId: currentOrderId })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-check-circle"></i> 完成订单';
-
-                    if (data.success) {
-                        alert('订单已完成，库存已更新');
-                        location.reload();
-                    } else {
-                        alert('完成失败：' + (data.message || ''));
-                    }
-                })
-                .catch(err => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-check-circle"></i> 完成订单';
-                    console.error('完成订单出错：', err);
-                    alert('完成订单出错');
-                });
             });
         }
     });
