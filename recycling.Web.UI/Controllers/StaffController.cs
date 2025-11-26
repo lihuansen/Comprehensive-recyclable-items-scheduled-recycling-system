@@ -639,21 +639,7 @@ namespace recycling.Web.UI.Controllers
                     return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
-                // 写入库存
-                var inventoryBll = new InventoryBLL();
-                bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recycler.RecyclerID);
-
-                if (!inventoryAdded)
-                {
-                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
-                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
-                }
-
-                // 完成订单
-                var orderBll = new OrderBLL();
-                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID);
-                var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
-                return Content(json, "application/json", System.Text.Encoding.UTF8);
+                return ExecuteOrderCompletion(appointmentId, recycler.RecyclerID);
             }
             catch (Exception ex)
             {
@@ -675,28 +661,33 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
-
-                // 写入库存
-                var inventoryBll = new InventoryBLL();
-                bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recycler.RecyclerID);
-
-                if (!inventoryAdded)
-                {
-                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
-                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
-                }
-
-                // 完成订单
-                var orderBll = new OrderBLL();
-                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID);
-                var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
-                return Content(json, "application/json", System.Text.Encoding.UTF8);
+                return ExecuteOrderCompletion(appointmentId, recycler.RecyclerID);
             }
             catch (Exception ex)
             {
                 var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
                 return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
             }
+        }
+
+        // 共享方法：执行订单完成操作（写入库存和更新状态）
+        private ContentResult ExecuteOrderCompletion(int appointmentId, int recyclerId)
+        {
+            // 写入库存
+            var inventoryBll = new InventoryBLL();
+            bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recyclerId);
+
+            if (!inventoryAdded)
+            {
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+            }
+
+            // 完成订单
+            var orderBll = new OrderBLL();
+            var result = orderBll.CompleteOrder(appointmentId, recyclerId);
+            var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
+            return Content(json, "application/json", System.Text.Encoding.UTF8);
         }
 
         // 仓库管理页面 - 管理员端
