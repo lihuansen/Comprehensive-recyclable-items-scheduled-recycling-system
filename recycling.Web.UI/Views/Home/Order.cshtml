@@ -807,12 +807,16 @@
                             </div>
                         `;
                     } else if (order.status === '已完成') {
-                        // 已完成订单：查看详情 + 评价订单
+                        // 已完成订单：查看详情 + 联系回收员（仍可交流） + 评价订单
                         actionButtons = `
                             <div class="order-actions">
                                 <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
                                     <i class="fas fa-eye"></i>查看详情
                                 </button>
+                                <a href='@Url.Action("ContactRecycler", "Home")?orderId=${order.id}&recyclerId=${order.recyclerID || ""}'
+                                   class="btn-action success contact-recycler">
+                                    <i class="fas fa-comments"></i>联系回收员
+                                </a>
                                 <button class="btn-action warning" onclick="reviewOrder(${order.id})" data-order-id="${order.id}">
                                     <i class="fas fa-star"></i>评价订单
                                 </button>
