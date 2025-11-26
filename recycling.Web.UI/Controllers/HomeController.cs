@@ -753,6 +753,40 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        // 获取用户的历史消息（超过1个月的消息）
+        [HttpPost]
+        public JsonResult GetUserHistoricalMessages(int orderId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
+                var conversationBLL = new ConversationBLL();
+                var messages = conversationBLL.GetUserHistoricalMessages(orderId, user.UserID);
+
+                var result = messages.Select(m => new
+                {
+                    messageId = m.MessageID,
+                    orderId = m.OrderID,
+                    senderType = (m.SenderType ?? string.Empty).ToLower(),
+                    senderId = m.SenderID,
+                    content = m.Content ?? string.Empty,
+                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
+                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
+                                : string.Empty,
+                    isRead = m.IsRead
+                }).ToList();
+
+                return Json(new { success = true, messages = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         /// <summary>
         /// 联系回收员视图（用户端）
         /// </summary>

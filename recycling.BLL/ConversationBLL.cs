@@ -48,6 +48,15 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 获取用户的历史消息（超过1个月的消息）
+        /// </summary>
+        public List<Messages> GetUserHistoricalMessages(int orderId, int userId)
+        {
+            if (orderId <= 0 || userId <= 0) return new List<Messages>();
+            return _conversationDAL.GetUserHistoricalMessages(orderId, userId);
+        }
+
+        /// <summary>
         /// 确保有一个活跃的对话会话
         /// 如果双方都已结束之前的对话，则创建新的对话
         /// </summary>
