@@ -145,9 +145,9 @@
     <script src="~/Scripts/jquery-3.4.1.min.js"></script>
     <script>
         // 页面初始化参数（从ViewBag获取）
-        var orderId = @ViewBag.OrderId;
-        var recyclerId = @ViewBag.RecyclerId;
-        var userId = @ViewBag.UserId;
+        var orderId = @Html.Raw(Json.Encode(ViewBag.OrderId));
+        var recyclerId = @Html.Raw(Json.Encode(ViewBag.RecyclerId));
+        var userId = @Html.Raw(Json.Encode(ViewBag.UserId));
         var conversationEnded = false;
         var currentConversationEndedTime = null;
 

@@ -585,23 +585,8 @@ namespace recycling.Web.UI.Controllers
                 var latestConv = convBll.GetLatestConversation(orderId);
                 bool conversationEnded = latestConv != null && latestConv.EndedTime.HasValue;
                 
-                // 确定谁已经结束了对话
-                string endedBy = "";
-                if (latestConv != null)
-                {
-                    if (latestConv.UserEnded && latestConv.RecyclerEnded)
-                    {
-                        endedBy = "both";
-                    }
-                    else if (latestConv.UserEnded)
-                    {
-                        endedBy = "user";
-                    }
-                    else if (latestConv.RecyclerEnded)
-                    {
-                        endedBy = "recycler";
-                    }
-                }
+                // 使用公共方法确定谁已经结束了对话
+                string endedBy = convBll.GetConversationEndedByStatus(orderId);
                 
                 string endedTimeIso = conversationEnded ? latestConv.EndedTime.Value.ToString("o") : string.Empty;
 

@@ -433,26 +433,12 @@ namespace recycling.Web.UI.Controllers
 
                 // 获取最近结束信息（供前端显示“谁结束了/是否双方都结束”）
                 var convBll = new ConversationBLL();
-                var latestConv = convBll.GetLatestConversation(orderId);
                 var bothInfo = convBll.HasBothEnded(orderId); // (bool, DateTime?)
                 bool conversationBothEnded = bothInfo.BothEnded;
                 string latestEndedTimeIso = bothInfo.LatestEndedTime.HasValue ? bothInfo.LatestEndedTime.Value.ToString("o") : string.Empty;
-                string lastEndedBy = "";
-                if (latestConv != null)
-                {
-                    if (latestConv.UserEnded && latestConv.RecyclerEnded)
-                    {
-                        lastEndedBy = "both";
-                    }
-                    else if (latestConv.UserEnded)
-                    {
-                        lastEndedBy = "user";
-                    }
-                    else if (latestConv.RecyclerEnded)
-                    {
-                        lastEndedBy = "recycler";
-                    }
-                }
+                
+                // 使用公共方法确定谁已经结束了对话
+                string lastEndedBy = convBll.GetConversationEndedByStatus(orderId);
 
                 return JsonContent(new
                 {

@@ -56,5 +56,29 @@ namespace recycling.BLL
             if (orderId <= 0) return false;
             return _conversationDAL.EnsureActiveConversation(orderId);
         }
+
+        /// <summary>
+        /// 获取对话结束状态信息
+        /// 返回：谁已结束对话的字符串("user", "recycler", "both", 或空字符串)
+        /// </summary>
+        public string GetConversationEndedByStatus(int orderId)
+        {
+            var latestConv = GetLatestConversation(orderId);
+            if (latestConv == null) return "";
+
+            if (latestConv.UserEnded && latestConv.RecyclerEnded)
+            {
+                return "both";
+            }
+            else if (latestConv.UserEnded)
+            {
+                return "user";
+            }
+            else if (latestConv.RecyclerEnded)
+            {
+                return "recycler";
+            }
+            return "";
+        }
     }
 }
