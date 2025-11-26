@@ -1036,30 +1036,24 @@ select.form-control::-ms-expand {
                 </div>
             `;
                 } else if (order.Status === '进行中') {
-                    // 进行中订单：查看详情 + 联系用户 + 完成订单
+                    // 进行中订单：查看详情 + 完成订单（联系用户请通过消息中心）
                     actionButtons = `
                 <div class="order-actions">
                     <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                         <i class="fas fa-eye"></i>查看详情
                     </button>
-                    <a href="@Url.Action("ContactUser", "Staff")?orderId=${order.AppointmentID}" class="btn-action warning">
-                        <i class="fas fa-comments"></i>联系用户
-                    </a>
                     <button class="btn-action success" onclick="completeOrderDirect(${order.AppointmentID})">
                         <i class="fas fa-check-circle"></i>完成订单
                     </button>
                 </div>
             `;
                 } else if (order.Status === '已完成') {
-                    // 已完成订单：查看详情 + 联系用户（仍可交流）
+                    // 已完成订单：查看详情（联系用户请通过消息中心）
                     actionButtons = `
                 <div class="order-actions">
                     <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                         <i class="fas fa-eye"></i>查看详情
                     </button>
-                    <a href="@Url.Action("ContactUser", "Staff")?orderId=${order.AppointmentID}" class="btn-action warning">
-                        <i class="fas fa-comments"></i>联系用户
-                    </a>
                 </div>
             `;
                 } else {

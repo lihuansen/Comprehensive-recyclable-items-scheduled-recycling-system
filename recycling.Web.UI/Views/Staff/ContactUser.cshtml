@@ -10,11 +10,6 @@
         color: white;
     }
 
-    #endConversationBtn {
-        background-color: #e74c3c;
-        color: white;
-    }
-
     .message-bubble {
         display: inline-block;
         max-width: 70%;
@@ -50,46 +45,6 @@
         max-width: 900px;
         margin: 0 auto;
     }
-
-    .history-section {
-        margin-top: 20px;
-    }
-
-    .history-header {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 10px 10px 0 0;
-        cursor: pointer;
-        border: 1px solid #e9ecef;
-    }
-
-    .history-header:hover {
-        background: #e9ecef;
-    }
-
-    .history-content {
-        display: none;
-        border: 1px solid #e9ecef;
-        border-top: none;
-        border-radius: 0 0 10px 10px;
-        max-height: 300px;
-        overflow-y: auto;
-        padding: 15px;
-        background: #fafafa;
-    }
-
-    .history-content.show {
-        display: block;
-    }
-
-    .conversation-ended-notice {
-        text-align: center;
-        padding: 15px;
-        background: #fff3cd;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        color: #856404;
-    }
 </style>
 
 <div class="container mt-4 chat-container">
@@ -113,30 +68,14 @@
                 <span class="input-group-btn">
                     <button id="sendMessage" class="btn btn-primary">发送</button>
                 </span>
-                <span class="input-group-btn">
-                    <button id="endConversationBtn" class="btn btn-danger">结束对话</button>
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 历史对话区域 -->
-    <div class="history-section" id="historySection" style="display: none;">
-        <div class="history-header" onclick="toggleHistory()">
-            <i class="fas fa-history"></i> 查看历史对话
-            <i class="fas fa-chevron-down float-right" id="historyArrow"></i>
-        </div>
-        <div class="history-content" id="historyContent">
-            <div id="historyMessages">
-                <!-- 历史消息通过AJAX加载 -->
             </div>
         </div>
     </div>
 
     <!-- 返回按钮 -->
     <div class="mt-3">
-        <a href="@Url.Action("Recycler_OrderManagement", "Staff")" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> 返回订单管理
+        <a href="@Url.Action("Message_Center", "Staff")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> 返回消息中心
         </a>
     </div>
 </div>
@@ -148,10 +87,8 @@
         var orderId = @Html.Raw(Json.Encode(ViewBag.OrderId));
         var recyclerId = @Html.Raw(Json.Encode(ViewBag.RecyclerId));
         var userId = @Html.Raw(Json.Encode(ViewBag.UserId));
-        var conversationEnded = false;
-        var currentConversationEndedTime = null;
 
-        // 加载消息（包括检查对话状态）
+        // 加载消息
         function loadMessages() {
             $.ajax({
                 url: "/Staff/GetOrderConversation",
@@ -160,29 +97,9 @@
                 data: JSON.stringify({ orderId: orderId }),
                 success: function (res) {
                     if (res.success) {
-                        // 检查是否有已结束的对话
-                        if (res.conversationBothEnded) {
-                            // 双方都已结束，显示历史对话区域，当前聊天区域显示新对话
-                            showHistorySection();
-                            loadHistoryMessages(res.conversationLatestEndedTime);
-                            // 开始新对话 - 只显示结束后的消息
-                            renderCurrentMessages(res.messages, res.conversationLatestEndedTime);
-                            enableInput();
-                        } else if (res.conversationLastEndedBy === 'user' || res.conversationLastEndedBy === 'recycler') {
-                            // 有一方已结束但另一方未结束
-                            renderMessages(res.messages);
-                            if (res.conversationLastEndedBy === 'recycler') {
-                                // 回收员已结束，等待用户结束
-                                disableInput("等待用户结束对话...");
-                            } else {
-                                // 用户已结束，回收员可以结束
-                                enableInput();
-                            }
-                        } else {
-                            // 正常对话中
-                            renderMessages(res.messages);
-                            enableInput();
-                        }
+                        // 直接渲染所有消息，不再检查对话结束状态
+                        renderMessages(res.messages);
+                        enableInput();
                         $("#loadingMsg").hide();
                     } else {
                         $("#chatMessages").html(`<div class="text-danger text-center">加载失败：${res.message}</div>`);
@@ -192,89 +109,6 @@
                     $("#chatMessages").html(`<div class="text-danger text-center">网络错误，无法加载消息</div>`);
                 }
             });
-        }
-
-        // 显示历史对话区域
-        function showHistorySection() {
-            $("#historySection").show();
-        }
-
-        // 加载历史消息
-        function loadHistoryMessages(endedTime) {
-            if (!endedTime) return;
-            
-            $.ajax({
-                url: "/Staff/GetConversationMessagesBeforeEnd",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ orderId: orderId, endedTime: endedTime }),
-                success: function (res) {
-                    if (res.success) {
-                        renderHistoryMessages(res.messages);
-                    }
-                }
-            });
-        }
-
-        // 渲染历史消息
-        function renderHistoryMessages(messages) {
-            var messagesHtml = "";
-            if (!messages || messages.length === 0) {
-                messagesHtml = "<p class='text-muted text-center'>暂无历史消息</p>";
-            } else {
-                messages.forEach(function (msg) {
-                    if (msg.senderType === "system") {
-                        messagesHtml += `
-                            <div class="text-center mb-3">
-                                <div style="display: inline-block; padding: 8px 16px; background-color: #f0f0f0; border-radius: 15px; color: #666; font-size: 14px;">
-                                    <i class="fas fa-info-circle"></i> ${escapeHtml(msg.content)}
-                                </div>
-                                <div style="font-size: 12px; color: #999; margin-top: 4px;">${formatTime(msg.sentTime)}</div>
-                            </div>
-                        `;
-                    } else {
-                        var isRecyclerMessage = msg.senderType === "recycler";
-                        var alignClass = isRecyclerMessage ? "text-right" : "text-left";
-                        var bubbleClass = isRecyclerMessage ? "recycler-message" : "user-message";
-                        var senderName = isRecyclerMessage ? "我" : (msg.senderName || "用户");
-
-                        messagesHtml += `
-                            <div class="${alignClass} mb-3">
-                                <div class="message-sender">${senderName}</div>
-                                <div class="message-bubble ${bubbleClass}">
-                                    ${escapeHtml(msg.content)}
-                                </div>
-                                <div class="message-time">${formatTime(msg.sentTime)}</div>
-                            </div>
-                        `;
-                    }
-                });
-            }
-            $("#historyMessages").html(messagesHtml);
-        }
-
-        // 渲染当前消息（新对话 - 只显示结束时间之后的消息）
-        function renderCurrentMessages(messages, endedTime) {
-            var endedDate = endedTime ? new Date(endedTime) : null;
-            var filteredMessages = messages.filter(function(msg) {
-                if (!endedDate) return true;
-                var msgTime = new Date(msg.sentTime);
-                return msgTime > endedDate;
-            });
-            
-            if (filteredMessages.length === 0) {
-                // 显示新对话开始提示
-                var messagesHtml = `
-                    <div class="text-center mb-3">
-                        <div style="display: inline-block; padding: 8px 16px; background-color: #d4edda; border-radius: 15px; color: #155724; font-size: 14px;">
-                            <i class="fas fa-comments"></i> 新的对话开始
-                        </div>
-                    </div>
-                `;
-                $("#chatMessages").html(messagesHtml);
-            } else {
-                renderMessages(filteredMessages);
-            }
         }
 
         // 渲染消息列表（区分用户/回收员/系统消息位置）
@@ -318,27 +152,12 @@
         function disableInput(message) {
             $("#messageContent").prop('disabled', true).attr('placeholder', message || '对话已结束');
             $("#sendMessage").prop('disabled', true);
-            $("#endConversationBtn").prop('disabled', true);
         }
 
         // 启用输入
         function enableInput() {
             $("#messageContent").prop('disabled', false).attr('placeholder', '请输入消息内容...');
             $("#sendMessage").prop('disabled', false);
-            $("#endConversationBtn").prop('disabled', false);
-        }
-
-        // 切换历史对话显示
-        function toggleHistory() {
-            var content = $("#historyContent");
-            var arrow = $("#historyArrow");
-            if (content.hasClass('show')) {
-                content.removeClass('show');
-                arrow.removeClass('fa-chevron-up').addClass('fa-chevron-down');
-            } else {
-                content.addClass('show');
-                arrow.removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            }
         }
 
         // HTML转义函数
@@ -400,31 +219,6 @@
                 complete: function () {
                     $btn.prop('disabled', false);
                     $btn.html(originalText);
-                }
-            });
-        });
-
-        // 结束对话功能
-        $("#endConversationBtn").click(function () {
-            if (!confirm("确认结束本次对话？")) {
-                return;
-            }
-
-            $.ajax({
-                url: "/Staff/EndConversation",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ orderId: orderId }),
-                success: function (res) {
-                    if (res.success) {
-                        alert("对话已结束");
-                        loadMessages(); // 重新加载消息以显示对话结束状态
-                    } else {
-                        alert("结束对话失败：" + res.message);
-                    }
-                },
-                error: function () {
-                    alert("网络错误，无法结束对话");
                 }
             });
         });

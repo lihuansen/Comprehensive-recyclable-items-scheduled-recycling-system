@@ -231,28 +231,29 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 获取某用户的历史会话列表（按 EndedTime 降序）
+        /// 获取某用户的历史会话列表（超过1个月的会话自动归入历史对话）
         /// </summary>
         public List<ConversationViewModel> GetUserConversations(int userId, int pageIndex = 1, int pageSize = 50)
         {
             var list = new List<ConversationViewModel>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
+                // 获取超过1个月的会话记录
                 string sql = @"
-                    SELECT 
-                        c.ConversationID,
-                        c.OrderID,
+                    SELECT DISTINCT
+                        m.OrderID,
                         a.AppointmentID as OrderNumber,
-                        c.RecyclerID,
+                        a.RecyclerID,
                         ISNULL(r.Username, '') as RecyclerName,
-                        c.CreatedTime,
-                        c.EndedTime,
-                        c.Status
-                    FROM Conversations c
-                    INNER JOIN Appointments a ON c.OrderID = a.AppointmentID
-                    LEFT JOIN Recyclers r ON c.RecyclerID = r.RecyclerID
-                    WHERE a.UserID = @UserID AND c.EndedTime IS NOT NULL
-                    ORDER BY c.EndedTime DESC
+                        MIN(m.SentTime) as CreatedTime,
+                        MAX(m.SentTime) as LastMessageTime
+                    FROM Messages m
+                    INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
+                    LEFT JOIN Recyclers r ON a.RecyclerID = r.RecyclerID
+                    WHERE a.UserID = @UserID 
+                    AND m.SentTime < DATEADD(MONTH, -1, GETDATE())
+                    GROUP BY m.OrderID, a.AppointmentID, a.RecyclerID, r.Username
+                    ORDER BY LastMessageTime DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -268,20 +269,63 @@ namespace recycling.DAL
                         {
                             list.Add(new ConversationViewModel
                             {
-                                ConversationID = Convert.ToInt32(reader["ConversationID"]),
+                                ConversationID = 0, // No specific conversation ID for time-based history
                                 OrderID = Convert.ToInt32(reader["OrderID"]),
                                 OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
                                 RecyclerID = reader["RecyclerID"] != DBNull.Value ? Convert.ToInt32(reader["RecyclerID"]) : 0,
                                 RecyclerName = reader["RecyclerName"].ToString(),
                                 CreatedTime = reader["CreatedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["CreatedTime"]),
-                                EndedTime = reader["EndedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["EndedTime"]),
-                                Status = reader["Status"].ToString()
+                                EndedTime = reader["LastMessageTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["LastMessageTime"]),
+                                Status = "历史"
                             });
                         }
                     }
                 }
             }
             return list;
+        }
+
+        /// <summary>
+        /// 获取用户的历史消息（超过1个月的消息）
+        /// </summary>
+        public List<Messages> GetUserHistoricalMessages(int orderId, int userId)
+        {
+            var messages = new List<Messages>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+                    SELECT m.MessageID, m.OrderID, m.SenderType, m.SenderID, m.Content, m.SentTime, m.IsRead
+                    FROM Messages m
+                    INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
+                    WHERE m.OrderID = @OrderID AND a.UserID = @UserID
+                    AND m.SentTime < DATEADD(MONTH, -1, GETDATE())
+                    ORDER BY m.SentTime ASC";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@OrderID", orderId);
+                    cmd.Parameters.AddWithValue("@UserID", userId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            messages.Add(new Messages
+                            {
+                                MessageID = Convert.ToInt32(reader["MessageID"]),
+                                OrderID = Convert.ToInt32(reader["OrderID"]),
+                                SenderType = reader["SenderType"].ToString(),
+                                SenderID = reader["SenderID"] != DBNull.Value ? Convert.ToInt32(reader["SenderID"]) : (int?)null,
+                                Content = reader["Content"].ToString(),
+                                SentTime = Convert.ToDateTime(reader["SentTime"]),
+                                IsRead = Convert.ToBoolean(reader["IsRead"])
+                            });
+                        }
+                    }
+                }
+            }
+            return messages;
         }
 
         /// <summary>

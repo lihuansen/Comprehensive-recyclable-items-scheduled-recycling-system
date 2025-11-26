@@ -4,6 +4,7 @@
 }
 
 <h3>历史会话</h3>
+<p class="text-muted">显示超过1个月的聊天记录</p>
 
 <div class="row">
     <div class="col-md-4">
@@ -26,7 +27,6 @@
 @section scripts {
     <script>
     var selectedHistoryOrderId = null;
-    var selectedHistoryEndedTime = null;
 
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
@@ -54,7 +54,6 @@
                     a.href = 'javascript:void(0);';
                     a.className = 'list-group-item list-group-item-action history-item';
                     a.dataset.orderId = c.orderId;
-                    a.dataset.endedTime = c.endedTime;
                     a.innerHTML = '<div class="d-flex w-100 justify-content-between"><h5 class="mb-1">订单：' + escapeHtml(c.orderNumber) + '</h5><small>' + escapeHtml(formatTime(c.endedTime)) + '</small></div><p class="mb-1 text-truncate">回收员：' + escapeHtml(c.recyclerName || '') + '</p>';
                     container.appendChild(a);
                 });
@@ -64,25 +63,23 @@
                     while (t && !t.classList.contains('history-item')) t = t.parentElement;
                     if (!t) return;
                     var oid = t.dataset.orderId;
-                    var et = t.dataset.endedTime;
-                    openHistoryConversation(parseInt(oid,10), et);
+                    openHistoryConversation(parseInt(oid,10));
                 });
             } else {
-                container.innerHTML = '<div class="empty-state text-muted">暂无历史会话</div>';
+                container.innerHTML = '<div class="empty-state text-muted text-center p-4">暂无超过1个月的历史会话</div>';
             }
         })
         .catch(err => console.error('加载历史会话出错', err));
     }
 
-    function openHistoryConversation(orderId, endedTime) {
+    function openHistoryConversation(orderId) {
         selectedHistoryOrderId = orderId;
-        selectedHistoryEndedTime = endedTime;
         document.getElementById('historyHeader').innerText = '历史会话 - 订单：AP' + ('000000' + orderId).slice(-6);
-        // 请求历史消息（SentTime <= endedTime）
-        fetch('@Url.Action("GetConversationMessagesBeforeEnd","Home")', {
+        // 请求历史消息（超过1个月的消息）
+        fetch('@Url.Action("GetUserHistoricalMessages","Home")', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Requested-With':'XMLHttpRequest' },
-            body: JSON.stringify({ orderId: orderId, endedTime: endedTime })
+            body: JSON.stringify({ orderId: orderId })
         })
         .then(r => r.json())
         .then(data => {
@@ -109,12 +106,12 @@
                     var align = isUser ? 'text-right' : 'text-left';
                     var bg = isUser ? 'bg-primary text-white' : 'bg-light';
                     var timeText = formatTime(m.sentTime);
-                    var html = '<div class="' + align + ' mb-3"><small class="d-block text-muted">' + (isUser ? '用户' : '回收员') + ' ' + escapeHtml(timeText) + '</small><span class="px-3 py-2 rounded ' + bg + '">' + escapeHtml(m.content) + '</span></div>';
+                    var html = '<div class="' + align + ' mb-3"><small class="d-block text-muted">' + (isUser ? '我' : '回收员') + ' ' + escapeHtml(timeText) + '</small><span class="px-3 py-2 rounded ' + bg + '">' + escapeHtml(m.content) + '</span></div>';
                     container.innerHTML += html;
                 });
                 container.scrollTop = container.scrollHeight;
             } else {
-                container.innerHTML = '<div class="empty-state text-muted">无历史消息</div>';
+                container.innerHTML = '<div class="empty-state text-muted text-center p-4">无历史消息</div>';
             }
         })
         .catch(err => console.error('加载历史消息出错', err));
