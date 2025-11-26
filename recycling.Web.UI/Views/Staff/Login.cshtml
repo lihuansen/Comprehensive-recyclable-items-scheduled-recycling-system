@@ -160,14 +160,10 @@
             // 绑定验证码点击刷新事件
             document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
 
-            // 处理验证错误后的验证码刷新
+            // 处理验证错误后的验证码刷新（任何错误都需要刷新验证码以防止重放攻击）
             @if (!ViewData.ModelState.IsValid)
             {
-                bool hasCaptchaError = ViewData.ModelState.Values.Any(v => v.Errors.Any(e => e.ErrorMessage.Contains("验证码")));
-                if (hasCaptchaError)
-                {
-                    @:refreshCaptcha();
-                }
+                @:refreshCaptcha();
             }
 
             // 表单提交前验证（与用户登录完全一致）
