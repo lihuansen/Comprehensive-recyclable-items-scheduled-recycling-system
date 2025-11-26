@@ -769,8 +769,8 @@
                     // 根据订单状态显示不同的操作按钮
                     let actionButtons = '';
 
-                    if (order.status === '待确认') {
-                        // 待确认订单：查看详情 + 取消订单
+                    if (order.status === '已预约') {
+                        // 已预约订单：查看详情 + 取消订单
                         actionButtons = `
                             <div class="order-actions">
                                 <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
