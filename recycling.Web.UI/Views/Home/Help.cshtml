@@ -1,7 +1,1169 @@
-﻿
 @{
-    ViewBag.Title = "Help";
+    ViewBag.Title = "帮助中心";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Help</h2>
+<!-- 引入Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+<style>
+    .help-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    /* 页面头部 */
+    .help-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 50px 30px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .help-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>');
+        opacity: 0.5;
+    }
+
+    .help-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .help-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+
+    .help-title {
+        font-size: 36px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .help-subtitle {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+
+    /* 搜索框 */
+    .search-section {
+        max-width: 600px;
+        margin: -25px auto 40px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .search-box {
+        display: flex;
+        background: white;
+        border-radius: 50px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        overflow: hidden;
+    }
+
+    .search-input {
+        flex: 1;
+        border: none;
+        padding: 20px 30px;
+        font-size: 16px;
+        outline: none;
+    }
+
+    .search-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 20px 30px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .search-btn:hover {
+        opacity: 0.9;
+    }
+
+    /* 快速入口卡片 */
+    .quick-access {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-bottom: 50px;
+    }
+
+    .quick-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        cursor: pointer;
+    }
+
+    .quick-card:hover {
+        transform: translateY(-5px);
+        border-color: #667eea;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    }
+
+    .quick-card-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 28px;
+        color: white;
+    }
+
+    .quick-card-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .quick-card-desc {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    /* 分节标题 */
+    .section-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .section-title i {
+        color: #667eea;
+    }
+
+    .section-title::after {
+        content: '';
+        flex: 1;
+        height: 2px;
+        background: linear-gradient(to right, #667eea, transparent);
+    }
+
+    /* 新手指南 */
+    .guide-section {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 50px;
+    }
+
+    .guide-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        justify-content: center;
+    }
+
+    .guide-step {
+        flex: 1;
+        min-width: 200px;
+        max-width: 250px;
+        text-align: center;
+        position: relative;
+    }
+
+    .step-number {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        margin: 0 auto 15px;
+    }
+
+    .step-icon {
+        font-size: 48px;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .step-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .step-desc {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .guide-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 25px;
+        right: -15px;
+        width: 30px;
+        height: 2px;
+        background: #667eea;
+    }
+
+    @@media (max-width: 768px) {
+        .guide-step:not(:last-child)::after {
+            display: none;
+        }
+    }
+
+    /* FAQ部分 */
+    .faq-section {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 50px;
+    }
+
+    .faq-categories {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .faq-category-btn {
+        padding: 12px 24px;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        background: white;
+        color: #666;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .faq-category-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .faq-category-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+    }
+
+    .faq-item {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .faq-item:hover {
+        border-color: #667eea;
+    }
+
+    .faq-question {
+        padding: 20px;
+        background: #f8f9fa;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: #333;
+        transition: all 0.3s;
+    }
+
+    .faq-question:hover {
+        background: #e9ecef;
+    }
+
+    .faq-question i {
+        transition: transform 0.3s;
+    }
+
+    .faq-item.open .faq-question i {
+        transform: rotate(180deg);
+    }
+
+    .faq-answer {
+        padding: 0 20px;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .faq-item.open .faq-answer {
+        padding: 20px;
+        max-height: 500px;
+    }
+
+    .faq-answer p {
+        color: #666;
+        line-height: 1.8;
+        margin: 0;
+    }
+
+    .faq-answer ul {
+        color: #666;
+        line-height: 1.8;
+        padding-left: 20px;
+        margin: 10px 0;
+    }
+
+    /* 服务流程图 */
+    .process-section {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 50px;
+    }
+
+    .process-timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+
+    .process-timeline::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(to bottom, #667eea, #764ba2);
+        border-radius: 2px;
+    }
+
+    .process-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    .process-item:nth-child(odd) {
+        flex-direction: row;
+    }
+
+    .process-item:nth-child(even) {
+        flex-direction: row-reverse;
+    }
+
+    .process-content {
+        flex: 1;
+        padding: 25px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        max-width: 45%;
+    }
+
+    .process-item:nth-child(odd) .process-content {
+        margin-right: 30px;
+        text-align: right;
+    }
+
+    .process-item:nth-child(even) .process-content {
+        margin-left: 30px;
+        text-align: left;
+    }
+
+    .process-icon {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border: 4px solid #667eea;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #667eea;
+        z-index: 1;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .process-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .process-desc {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 768px) {
+        .process-timeline::before {
+            left: 30px;
+        }
+
+        .process-item,
+        .process-item:nth-child(odd),
+        .process-item:nth-child(even) {
+            flex-direction: row;
+        }
+
+        .process-icon {
+            left: 30px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .process-content,
+        .process-item:nth-child(odd) .process-content,
+        .process-item:nth-child(even) .process-content {
+            max-width: none;
+            margin-left: 20px;
+            margin-right: 0;
+            text-align: left;
+        }
+    }
+
+    /* 价格说明 */
+    .pricing-section {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 50px;
+    }
+
+    .pricing-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .pricing-table th,
+    .pricing-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .pricing-table th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+    }
+
+    .pricing-table th:first-child {
+        border-radius: 10px 0 0 0;
+    }
+
+    .pricing-table th:last-child {
+        border-radius: 0 10px 0 0;
+    }
+
+    .pricing-table tr:hover td {
+        background: #f8f9fa;
+    }
+
+    .pricing-note {
+        margin-top: 20px;
+        padding: 15px;
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        border-radius: 5px;
+        color: #856404;
+    }
+
+    /* 联系我们 */
+    .contact-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 50px 40px;
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+    .contact-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .contact-desc {
+        font-size: 16px;
+        opacity: 0.9;
+        margin-bottom: 30px;
+    }
+
+    .contact-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .contact-card {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 25px;
+        transition: all 0.3s;
+    }
+
+    .contact-card:hover {
+        background: rgba(255,255,255,0.25);
+        transform: translateY(-5px);
+    }
+
+    .contact-card-icon {
+        font-size: 36px;
+        margin-bottom: 15px;
+    }
+
+    .contact-card-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .contact-card-info {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .btn-feedback {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: white;
+        color: #667eea;
+        padding: 15px 30px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: bold;
+        margin-top: 30px;
+        transition: all 0.3s;
+    }
+
+    .btn-feedback:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        color: #667eea;
+        text-decoration: none;
+    }
+
+    /* 响应式设计 */
+    @@media (max-width: 768px) {
+        .help-header {
+            padding: 30px 20px;
+        }
+
+        .help-title {
+            font-size: 28px;
+        }
+
+        .help-icon {
+            font-size: 48px;
+        }
+
+        .guide-section,
+        .faq-section,
+        .process-section,
+        .pricing-section {
+            padding: 25px;
+        }
+
+        .section-title {
+            font-size: 22px;
+        }
+
+        .contact-section {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<div class="help-container">
+    <!-- 页面头部 -->
+    <div class="help-header">
+        <div class="help-header-content">
+            <div class="help-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h1 class="help-title">帮助中心</h1>
+            <p class="help-subtitle">欢迎来到圾时达约帮助中心，我们随时为您解答疑问</p>
+        </div>
+    </div>
+
+    <!-- 搜索框 -->
+    <div class="search-section">
+        <div class="search-box">
+            <input type="text" class="search-input" id="helpSearchInput" placeholder="搜索您想了解的问题..." onkeyup="searchFAQ(event)">
+            <button class="search-btn" onclick="performSearch()">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 快速入口 -->
+    <div class="quick-access">
+        <div class="quick-card" onclick="scrollToSection('guide-section')">
+            <div class="quick-card-icon">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <div class="quick-card-title">新手指南</div>
+            <div class="quick-card-desc">第一次使用？这里有详细的使用教程</div>
+        </div>
+        <div class="quick-card" onclick="scrollToSection('faq-section')">
+            <div class="quick-card-icon">
+                <i class="fas fa-comments"></i>
+            </div>
+            <div class="quick-card-title">常见问题</div>
+            <div class="quick-card-desc">查看其他用户经常遇到的问题</div>
+        </div>
+        <div class="quick-card" onclick="scrollToSection('process-section')">
+            <div class="quick-card-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="quick-card-title">服务流程</div>
+            <div class="quick-card-desc">了解完整的回收服务流程</div>
+        </div>
+        <div class="quick-card" onclick="scrollToSection('pricing-section')">
+            <div class="quick-card-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div class="quick-card-title">价格说明</div>
+            <div class="quick-card-desc">了解各类回收物品的价格</div>
+        </div>
+    </div>
+
+    <!-- 新手指南 -->
+    <div class="guide-section" id="guide-section">
+        <h2 class="section-title"><i class="fas fa-rocket"></i> 新手指南</h2>
+        <div class="guide-steps">
+            <div class="guide-step">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+                <div class="step-title">注册账号</div>
+                <div class="step-desc">使用手机号或邮箱快速注册，创建您的个人账户</div>
+            </div>
+            <div class="guide-step">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i class="fas fa-search"></i></div>
+                <div class="step-title">查看价格</div>
+                <div class="step-desc">在首页浏览各类可回收物品的实时价格</div>
+            </div>
+            <div class="guide-step">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i class="fas fa-calendar-check"></i></div>
+                <div class="step-title">预约上门</div>
+                <div class="step-desc">选择回收品类、时间和地址，一键预约</div>
+            </div>
+            <div class="guide-step">
+                <div class="step-number">4</div>
+                <div class="step-icon"><i class="fas fa-handshake"></i></div>
+                <div class="step-title">完成回收</div>
+                <div class="step-desc">回收员上门服务，称重结算，轻松完成</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 常见问题FAQ -->
+    <div class="faq-section" id="faq-section">
+        <h2 class="section-title"><i class="fas fa-comments"></i> 常见问题</h2>
+        
+        <!-- FAQ分类按钮 -->
+        <div class="faq-categories">
+            <button class="faq-category-btn active" onclick="filterFAQ('all')">全部</button>
+            <button class="faq-category-btn" onclick="filterFAQ('account')">账户相关</button>
+            <button class="faq-category-btn" onclick="filterFAQ('service')">服务相关</button>
+            <button class="faq-category-btn" onclick="filterFAQ('price')">价格相关</button>
+            <button class="faq-category-btn" onclick="filterFAQ('order')">订单相关</button>
+        </div>
+
+        <!-- FAQ列表 -->
+        <div class="faq-list">
+            <!-- 账户相关 -->
+            <div class="faq-item" data-category="account">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-user"></i> 如何注册账号？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>注册账号非常简单：</p>
+                    <ul>
+                        <li>点击页面右上角的"注册"按钮</li>
+                        <li>填写用户名、手机号和邮箱</li>
+                        <li>设置您的登录密码</li>
+                        <li>点击"注册"完成账号创建</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="account">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-sign-in-alt"></i> 支持哪些登录方式？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>我们支持三种登录方式：</p>
+                    <ul>
+                        <li><strong>密码登录：</strong>使用用户名和密码登录</li>
+                        <li><strong>手机验证码登录：</strong>输入手机号获取验证码登录</li>
+                        <li><strong>邮箱验证码登录：</strong>输入邮箱获取验证码登录</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="account">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-key"></i> 忘记密码怎么办？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>如果您忘记了密码，可以通过以下步骤重置：</p>
+                    <ul>
+                        <li>点击登录页面的"忘记密码"链接</li>
+                        <li>输入您注册时使用的手机号</li>
+                        <li>获取并输入验证码</li>
+                        <li>设置新密码即可</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 服务相关 -->
+            <div class="faq-item" data-category="service">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-recycle"></i> 你们回收哪些物品？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>我们目前支持以下品类的回收：</p>
+                    <ul>
+                        <li><strong>纸类：</strong>报纸、书籍、纸箱、广告纸等</li>
+                        <li><strong>塑料：</strong>塑料瓶、塑料桶、塑料制品等</li>
+                        <li><strong>金属：</strong>易拉罐、铁制品、铜、铝等</li>
+                        <li><strong>玻璃：</strong>玻璃瓶、玻璃制品等</li>
+                        <li><strong>纺织品：</strong>旧衣物、布料等</li>
+                        <li><strong>电子产品：</strong>旧手机、电脑配件等</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="service">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-clock"></i> 服务时间是什么时候？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>我们的服务时间安排如下：</p>
+                    <ul>
+                        <li><strong>工作日：</strong>8:00 - 20:00</li>
+                        <li><strong>周末节假日：</strong>9:00 - 18:00</li>
+                    </ul>
+                    <p>您可以在预约时选择具体的上门时间段。</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="service">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-map-marker-alt"></i> 服务范围覆盖哪些区域？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>目前我们的服务主要覆盖深圳市罗湖区各街道，包括：</p>
+                    <ul>
+                        <li>桂园街道、黄贝街道、东门街道、南湖街道</li>
+                        <li>笋岗街道、东湖街道、莲塘街道、东晓街道</li>
+                        <li>清水河街道、翠竹街道</li>
+                    </ul>
+                    <p>我们正在逐步扩大服务范围，敬请期待！</p>
+                </div>
+            </div>
+
+            <!-- 价格相关 -->
+            <div class="faq-item" data-category="price">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-calculator"></i> 价格是如何计算的？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>价格计算基于以下因素：</p>
+                    <ul>
+                        <li><strong>基础单价：</strong>每种物品都有基础单价（元/公斤）</li>
+                        <li><strong>物品状态：</strong>物品的新旧程度、清洁度会影响价格</li>
+                        <li><strong>重量：</strong>按实际称重计算</li>
+                        <li><strong>加急服务：</strong>选择加急服务会有20%的服务费加成</li>
+                    </ul>
+                    <p>具体价格以回收员上门称重后的实际报价为准。</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="price">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-bolt"></i> 什么是加急服务？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>加急服务是为有紧急回收需求的用户提供的优先服务：</p>
+                    <ul>
+                        <li>优先安排回收员上门</li>
+                        <li>更短的响应时间</li>
+                        <li>服务费用增加20%</li>
+                    </ul>
+                    <p>如果您的物品需要尽快处理，可以在预约时选择加急服务。</p>
+                </div>
+            </div>
+
+            <!-- 订单相关 -->
+            <div class="faq-item" data-category="order">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-edit"></i> 如何预约回收服务？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>预约回收服务的步骤：</p>
+                    <ul>
+                        <li>登录账号后，点击首页的"预约上门"按钮</li>
+                        <li>选择预约类型（普通/加急）</li>
+                        <li>选择要回收的物品品类</li>
+                        <li>填写预估重量和上门地址</li>
+                        <li>选择期望的上门日期和时间段</li>
+                        <li>确认信息后提交预约</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="order">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-times-circle"></i> 如何取消订单？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>取消订单的方法：</p>
+                    <ul>
+                        <li>进入"我的订单"页面</li>
+                        <li>找到需要取消的订单</li>
+                        <li>点击"取消订单"按钮</li>
+                    </ul>
+                    <p><strong>注意：</strong>只有"已预约"状态的订单可以取消，"进行中"的订单无法取消。</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="order">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-comments"></i> 如何联系回收员？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>在订单状态为"进行中"或"已完成"时，您可以：</p>
+                    <ul>
+                        <li>进入"我的订单"页面</li>
+                        <li>点击对应订单的"联系回收员"按钮</li>
+                        <li>在聊天界面与回收员实时沟通</li>
+                    </ul>
+                    <p>您也可以通过"我的消息"页面查看和回复消息。</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="order">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span><i class="fas fa-star"></i> 如何评价订单？</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>订单完成后，您可以对回收员的服务进行评价：</p>
+                    <ul>
+                        <li>进入"我的订单"页面</li>
+                        <li>找到已完成的订单</li>
+                        <li>点击"评价订单"按钮</li>
+                        <li>选择星级评分并填写评价内容</li>
+                        <li>提交评价</li>
+                    </ul>
+                    <p>您的评价将帮助我们提升服务质量，感谢您的反馈！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 服务流程 -->
+    <div class="process-section" id="process-section">
+        <h2 class="section-title"><i class="fas fa-tasks"></i> 服务流程</h2>
+        <div class="process-timeline">
+            <div class="process-item">
+                <div class="process-content">
+                    <div class="process-title">在线预约</div>
+                    <div class="process-desc">选择回收品类、上门时间和地址，填写预估重量，提交预约申请</div>
+                </div>
+                <div class="process-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+            </div>
+            <div class="process-item">
+                <div class="process-content">
+                    <div class="process-title">订单确认</div>
+                    <div class="process-desc">系统自动匹配附近的回收员，回收员接单后您会收到通知</div>
+                </div>
+                <div class="process-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+            <div class="process-item">
+                <div class="process-content">
+                    <div class="process-title">上门回收</div>
+                    <div class="process-desc">回收员按预约时间上门，对物品进行分类、称重和评估</div>
+                </div>
+                <div class="process-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+            </div>
+            <div class="process-item">
+                <div class="process-content">
+                    <div class="process-title">现场结算</div>
+                    <div class="process-desc">根据实际重量和物品状态，当场结算费用，您确认后完成交易</div>
+                </div>
+                <div class="process-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+            </div>
+            <div class="process-item">
+                <div class="process-content">
+                    <div class="process-title">服务评价</div>
+                    <div class="process-desc">订单完成后，您可以对回收员的服务进行评价，帮助我们提升服务质量</div>
+                </div>
+                <div class="process-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 价格说明 -->
+    <div class="pricing-section" id="pricing-section">
+        <h2 class="section-title"><i class="fas fa-tags"></i> 价格参考</h2>
+        <p style="color: #666; margin-bottom: 20px;">以下价格仅供参考，实际价格以回收员上门评估为准</p>
+        
+        <table class="pricing-table">
+            <thead>
+                <tr>
+                    <th>回收品类</th>
+                    <th>参考价格</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><i class="fas fa-newspaper" style="color: #667eea;"></i> 纸类</td>
+                    <td>0.5 - 1.5 元/公斤</td>
+                    <td>包括报纸、书籍、纸箱等，价格因品质而异</td>
+                </tr>
+                <tr>
+                    <td><i class="fas fa-wine-bottle" style="color: #667eea;"></i> 塑料</td>
+                    <td>0.5 - 2.0 元/公斤</td>
+                    <td>塑料瓶、塑料制品，干净完整价格更高</td>
+                </tr>
+                <tr>
+                    <td><i class="fas fa-cogs" style="color: #667eea;"></i> 金属</td>
+                    <td>2.0 - 8.0 元/公斤</td>
+                    <td>铁、铜、铝等，不同金属价格差异较大</td>
+                </tr>
+                <tr>
+                    <td><i class="fas fa-glass-martini" style="color: #667eea;"></i> 玻璃</td>
+                    <td>0.1 - 0.3 元/公斤</td>
+                    <td>玻璃瓶、玻璃制品</td>
+                </tr>
+                <tr>
+                    <td><i class="fas fa-tshirt" style="color: #667eea;"></i> 纺织品</td>
+                    <td>0.3 - 1.0 元/公斤</td>
+                    <td>旧衣物、布料，干净整洁价格更高</td>
+                </tr>
+                <tr>
+                    <td><i class="fas fa-mobile-alt" style="color: #667eea;"></i> 电子产品</td>
+                    <td>按件计价</td>
+                    <td>旧手机、电脑配件等，需单独评估</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pricing-note">
+            <i class="fas fa-info-circle"></i>
+            <strong>温馨提示：</strong>
+            实际回收价格会根据物品的具体状态、市场行情等因素有所浮动。如有疑问，欢迎咨询客服。
+        </div>
+    </div>
+
+    <!-- 联系我们 -->
+    <div class="contact-section">
+        <h2 class="contact-title">还有其他问题？</h2>
+        <p class="contact-desc">我们的客服团队随时为您提供帮助</p>
+        
+        <div class="contact-cards">
+            <div class="contact-card">
+                <div class="contact-card-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="contact-card-title">客服热线</div>
+                <div class="contact-card-info">400-888-8888</div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="contact-card-title">电子邮箱</div>
+                <div class="contact-card-info">service&#64;jishidayue.com</div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="contact-card-title">服务时间</div>
+                <div class="contact-card-info">周一至周日 8:00-20:00</div>
+            </div>
+        </div>
+
+        <a href="@Url.Action("Feedback", "Home")" class="btn-feedback">
+            <i class="fas fa-comment-dots"></i> 提交问题反馈
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 滚动到指定区域
+        function scrollToSection(sectionId) {
+            var element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // 切换FAQ展开/收起
+        function toggleFAQ(element) {
+            var faqItem = element.parentElement;
+            var isOpen = faqItem.classList.contains('open');
+            
+            // 关闭所有已打开的FAQ
+            document.querySelectorAll('.faq-item.open').forEach(function(item) {
+                item.classList.remove('open');
+            });
+            
+            // 如果当前不是打开状态，则打开它
+            if (!isOpen) {
+                faqItem.classList.add('open');
+            }
+        }
+
+        // 筛选FAQ分类
+        function filterFAQ(category) {
+            // 更新按钮状态
+            document.querySelectorAll('.faq-category-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 筛选FAQ项
+            document.querySelectorAll('.faq-item').forEach(function(item) {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+                // 关闭所有展开的FAQ
+                item.classList.remove('open');
+            });
+        }
+
+        // 搜索FAQ
+        function searchFAQ(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        }
+
+        function performSearch() {
+            var searchTerm = document.getElementById('helpSearchInput').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                // 如果搜索词为空，显示所有FAQ
+                document.querySelectorAll('.faq-item').forEach(function(item) {
+                    item.style.display = 'block';
+                });
+                return;
+            }
+
+            // 重置分类按钮
+            document.querySelectorAll('.faq-category-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.faq-category-btn').classList.add('active');
+
+            var found = false;
+            document.querySelectorAll('.faq-item').forEach(function(item) {
+                var question = item.querySelector('.faq-question span').textContent.toLowerCase();
+                var answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    found = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // 滚动到FAQ区域
+            if (found) {
+                scrollToSection('faq-section');
+            } else {
+                alert('未找到相关问题，请尝试其他关键词或联系客服');
+            }
+        }
+
+        // 页面加载时的动画效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为快速入口卡片添加动画
+            var cards = document.querySelectorAll('.quick-card');
+            cards.forEach(function(card, index) {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(function() {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+}
