@@ -362,47 +362,6 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// 获取历史对话消息（在结束时间之前的消息）- 回收员端
-        /// </summary>
-        [HttpPost]
-        public ContentResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
-        {
-            try
-            {
-                if (Session["LoginStaff"] == null)
-                    return JsonContent(new { success = false, message = "请先登录" });
-
-                if (orderId <= 0 || string.IsNullOrWhiteSpace(endedTime))
-                    return JsonContent(new { success = false, message = "参数不完整" });
-
-                if (!DateTime.TryParse(endedTime, out DateTime et))
-                    return JsonContent(new { success = false, message = "结束时间格式错误" });
-
-                var conversationBLL = new ConversationBLL();
-                var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
-
-                var result = messages.Select(m => new
-                {
-                    messageId = m.MessageID,
-                    orderId = m.OrderID,
-                    senderType = (m.SenderType ?? string.Empty).ToLower(),
-                    senderId = m.SenderID,
-                    content = m.Content ?? string.Empty,
-                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
-                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
-                                : string.Empty,
-                    isRead = m.IsRead
-                }).ToList();
-
-                return JsonContent(new { success = true, messages = result });
-            }
-            catch (Exception ex)
-            {
-                return JsonContent(new { success = false, message = ex.Message });
-            }
-        }
-
         // 获取订单对话（回收员端），已包含 conversationEnded/endedBy/endedTime
         [HttpPost]
         public ContentResult GetOrderConversation(int orderId)
