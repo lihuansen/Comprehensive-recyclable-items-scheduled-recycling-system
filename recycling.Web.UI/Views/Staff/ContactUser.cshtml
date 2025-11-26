@@ -1,7 +1,7 @@
-﻿@model dynamic
+@model dynamic
 @{
-    ViewBag.Title = "联系回收员";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "联系用户";
+    Layout = "~/Views/Shared/_RecyclerLayout.cshtml";
 }
 
 <style>
@@ -23,12 +23,12 @@
         word-wrap: break-word;
     }
 
-    .message-bubble.user-message {
+    .message-bubble.recycler-message {
         background-color: #3498db;
         color: white;
     }
 
-    .message-bubble.recycler-message {
+    .message-bubble.user-message {
         background-color: #ecf0f1;
         color: #2c3e50;
     }
@@ -81,13 +81,22 @@
     .history-content.show {
         display: block;
     }
+
+    .conversation-ended-notice {
+        text-align: center;
+        padding: 15px;
+        background: #fff3cd;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        color: #856404;
+    }
 </style>
 
 <div class="container mt-4 chat-container">
     <div class="card">
         <!-- 聊天头部（含订单信息） -->
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">与 @ViewBag.RecyclerName 对话</h5>
+            <h5 class="mb-0">与 @ViewBag.UserName 对话</h5>
             <small>订单编号：@ViewBag.OrderNumber</small>
         </div>
 
@@ -126,8 +135,8 @@
 
     <!-- 返回按钮 -->
     <div class="mt-3">
-        <a href="@Url.Action("Order", "Home")" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> 返回我的订单
+        <a href="@Url.Action("Recycler_OrderManagement", "Staff")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> 返回订单管理
         </a>
     </div>
 </div>
@@ -137,35 +146,38 @@
     <script>
         // 页面初始化参数（从ViewBag获取）
         var orderId = @ViewBag.OrderId;
-        var userId = @ViewBag.UserId;
         var recyclerId = @ViewBag.RecyclerId;
+        var userId = @ViewBag.UserId;
         var conversationEnded = false;
         var currentConversationEndedTime = null;
 
         // 加载消息（包括检查对话状态）
         function loadMessages() {
             $.ajax({
-                url: "/Home/GetOrderMessages",
+                url: "/Staff/GetOrderConversation",
                 type: "POST",
-                data: { orderId: orderId },
+                contentType: "application/json",
+                data: JSON.stringify({ orderId: orderId }),
                 success: function (res) {
                     if (res.success) {
                         // 检查是否有已结束的对话
-                        if (res.conversationEnded) {
-                            // 对话已结束，显示历史对话区域，当前聊天区域开始新对话
+                        if (res.conversationBothEnded) {
+                            // 双方都已结束，显示历史对话区域，当前聊天区域显示新对话
                             showHistorySection();
-                            loadHistoryMessages(res.endedTime);
+                            loadHistoryMessages(res.conversationLatestEndedTime);
                             // 开始新对话 - 只显示结束后的消息
-                            renderCurrentMessages(res.messages, res.endedTime);
+                            renderCurrentMessages(res.messages, res.conversationLatestEndedTime);
                             enableInput();
-                        } else if (res.endedBy === 'user') {
-                            // 用户已结束，等待回收员结束
+                        } else if (res.conversationLastEndedBy === 'user' || res.conversationLastEndedBy === 'recycler') {
+                            // 有一方已结束但另一方未结束
                             renderMessages(res.messages);
-                            disableInput("等待回收员结束对话...");
-                        } else if (res.endedBy === 'recycler') {
-                            // 回收员已结束，用户可以结束
-                            renderMessages(res.messages);
-                            enableInput();
+                            if (res.conversationLastEndedBy === 'recycler') {
+                                // 回收员已结束，等待用户结束
+                                disableInput("等待用户结束对话...");
+                            } else {
+                                // 用户已结束，回收员可以结束
+                                enableInput();
+                            }
                         } else {
                             // 正常对话中
                             renderMessages(res.messages);
@@ -192,9 +204,10 @@
             if (!endedTime) return;
             
             $.ajax({
-                url: "/Home/GetConversationMessagesBeforeEnd",
+                url: "/Staff/GetConversationMessagesBeforeEnd",
                 type: "POST",
-                data: { orderId: orderId, endedTime: endedTime },
+                contentType: "application/json",
+                data: JSON.stringify({ orderId: orderId, endedTime: endedTime }),
                 success: function (res) {
                     if (res.success) {
                         renderHistoryMessages(res.messages);
@@ -220,10 +233,10 @@
                             </div>
                         `;
                     } else {
-                        var isUserMessage = msg.senderType === "user" && msg.senderId === userId;
-                        var alignClass = isUserMessage ? "text-right" : "text-left";
-                        var bubbleClass = isUserMessage ? "user-message" : "recycler-message";
-                        var senderName = isUserMessage ? "我" : (msg.senderName || "回收员");
+                        var isRecyclerMessage = msg.senderType === "recycler";
+                        var alignClass = isRecyclerMessage ? "text-right" : "text-left";
+                        var bubbleClass = isRecyclerMessage ? "recycler-message" : "user-message";
+                        var senderName = isRecyclerMessage ? "我" : (msg.senderName || "用户");
 
                         messagesHtml += `
                             <div class="${alignClass} mb-3">
@@ -279,11 +292,11 @@
                         </div>
                     `;
                 } else {
-                    // 判断发送者类型，用户消息居右，回收员消息居左
-                    var isUserMessage = msg.senderType === "user" && msg.senderId === userId;
-                    var alignClass = isUserMessage ? "text-right" : "text-left";
-                    var bubbleClass = isUserMessage ? "user-message" : "recycler-message";
-                    var senderName = isUserMessage ? "我" : (msg.senderName || "回收员");
+                    // 判断发送者类型，回收员消息居右，用户消息居左
+                    var isRecyclerMessage = msg.senderType === "recycler";
+                    var alignClass = isRecyclerMessage ? "text-right" : "text-left";
+                    var bubbleClass = isRecyclerMessage ? "recycler-message" : "user-message";
+                    var senderName = isRecyclerMessage ? "我" : (msg.senderName || "用户");
 
                     messagesHtml += `
                         <div class="${alignClass} mb-3">
@@ -366,12 +379,13 @@
             $btn.html('<i class="fas fa-spinner fa-spin"></i> 发送中...');
 
             $.ajax({
-                url: "/Home/UserSendMessageToRecycler",
+                url: "/Staff/SendMessageToUser",
                 type: "POST",
-                data: {
+                contentType: "application/json",
+                data: JSON.stringify({
                     OrderID: orderId,
                     Content: content
-                },
+                }),
                 success: function (res) {
                     if (res.success) {
                         $("#messageContent").val("");
@@ -397,9 +411,10 @@
             }
 
             $.ajax({
-                url: "/Home/EndConversation",
+                url: "/Staff/EndConversation",
                 type: "POST",
-                data: { orderId: orderId },
+                contentType: "application/json",
+                data: JSON.stringify({ orderId: orderId }),
                 success: function (res) {
                     if (res.success) {
                         alert("对话已结束");
@@ -429,7 +444,12 @@
         $(function () {
             loadMessages();
             // 标记消息为已读
-            $.post("/Home/MarkUserMessagesAsRead", { orderId: orderId });
+            $.ajax({
+                url: "/Staff/MarkMessagesAsRead",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ orderId: orderId })
+            });
         });
     </script>
 }

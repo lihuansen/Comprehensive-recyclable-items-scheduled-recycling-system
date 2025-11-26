@@ -46,5 +46,15 @@ namespace recycling.BLL
         {
             return _conversationDAL.GetRecyclerConversations(recyclerId, pageIndex, pageSize);
         }
+
+        /// <summary>
+        /// 确保有一个活跃的对话会话
+        /// 如果双方都已结束之前的对话，则创建新的对话
+        /// </summary>
+        public bool EnsureActiveConversation(int orderId)
+        {
+            if (orderId <= 0) return false;
+            return _conversationDAL.EnsureActiveConversation(orderId);
+        }
     }
 }

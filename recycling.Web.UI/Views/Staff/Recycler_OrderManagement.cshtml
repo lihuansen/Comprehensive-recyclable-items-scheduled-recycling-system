@@ -1042,9 +1042,9 @@ select.form-control::-ms-expand {
                     <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                         <i class="fas fa-eye"></i>查看详情
                     </button>
-                    <button class="btn-action warning" onclick="openConversationModal(${order.AppointmentID}, '${order.OrderNumber}')">
+                    <a href="@Url.Action("ContactUser", "Staff")?orderId=${order.AppointmentID}" class="btn-action warning">
                         <i class="fas fa-comments"></i>联系用户
-                    </button>
+                    </a>
                     <button class="btn-action success" onclick="completeOrderDirect(${order.AppointmentID})">
                         <i class="fas fa-check-circle"></i>完成订单
                     </button>
@@ -1057,9 +1057,9 @@ select.form-control::-ms-expand {
                     <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                         <i class="fas fa-eye"></i>查看详情
                     </button>
-                    <button class="btn-action warning" onclick="openConversationModal(${order.AppointmentID}, '${order.OrderNumber}')">
+                    <a href="@Url.Action("ContactUser", "Staff")?orderId=${order.AppointmentID}" class="btn-action warning">
                         <i class="fas fa-comments"></i>联系用户
-                    </button>
+                    </a>
                 </div>
             `;
                 } else {
