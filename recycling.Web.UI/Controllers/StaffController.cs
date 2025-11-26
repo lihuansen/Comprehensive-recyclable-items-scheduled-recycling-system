@@ -120,10 +120,8 @@ namespace recycling.Web.UI.Controllers
                 {
                     model.Password = "";
                 }
-                else if (errorMsg.Contains("验证码"))
-                {
-                    model.Captcha = "";
-                }
+                // 无论哪种错误，都需要清空验证码输入并生成新验证码
+                model.Captcha = "";
                 model.GeneratedCaptcha = GenerateCaptcha();
                 return View(model);
             }
