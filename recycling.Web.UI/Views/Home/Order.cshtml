@@ -656,7 +656,10 @@
 
             // 更新标签状态
             allTabs.forEach(tab => tab.classList.remove('active'));
-            document.querySelector(`.status-tab[data-status="${status}"]`).classList.add('active');
+            const targetTab = document.querySelector(`.status-tab[data-status="${status}"]`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
 
             // 更新内容显示
             allSections.forEach(section => {
@@ -764,7 +767,7 @@
                             <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
                                 <i class="fas fa-eye"></i>查看详情
                             </button>
-                            <button class="btn-action danger" onclick="cancelOrder(${order.id}, '${order.number}')">
+                            <button class="btn-action danger" onclick="cancelOrder(${order.id}, '${order.number}', event)">
                                 <i class="fas fa-times"></i>取消订单
                             </button>
                         </div>
@@ -892,16 +895,19 @@
         });
 
         // 取消订单函数
-        function cancelOrder(orderId, orderNumber) {
+        function cancelOrder(orderId, orderNumber, event) {
             if (!confirm(`确定要取消订单 ${orderNumber} 吗？`)) {
                 return;
             }
 
-            // 显示加载状态
-            const cancelBtn = event.target;
-            const originalText = cancelBtn.innerHTML;
-            cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 取消中...';
-            cancelBtn.disabled = true;
+            // 显示加载状态 - 从event获取按钮元素，如果event不存在则通过data-order-id查找
+            let cancelBtn = event ? event.currentTarget : document.querySelector(`.order-item[data-order-id="${orderId}"] .btn-action.danger`);
+            let originalText = '';
+            if (cancelBtn) {
+                originalText = cancelBtn.innerHTML;
+                cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 取消中...';
+                cancelBtn.disabled = true;
+            }
 
             fetch('@Url.Action("CancelOrder", "Home")', {
                 method: 'POST',
@@ -993,15 +999,19 @@
                     }
                 } else {
                     showAlert('取消失败：' + data.message, 'error');
-                    cancelBtn.innerHTML = originalText;
-                    cancelBtn.disabled = false;
+                    if (cancelBtn) {
+                        cancelBtn.innerHTML = originalText;
+                        cancelBtn.disabled = false;
+                    }
                 }
             })
             .catch(error => {
                 console.error('取消订单失败:', error);
                 showAlert('网络错误，请稍后重试', 'error');
-                cancelBtn.innerHTML = originalText;
-                cancelBtn.disabled = false;
+                if (cancelBtn) {
+                    cancelBtn.innerHTML = originalText;
+                    cancelBtn.disabled = false;
+                }
             });
         }
 
