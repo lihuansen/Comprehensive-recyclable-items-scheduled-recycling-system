@@ -2350,7 +2350,7 @@ namespace recycling.Web.UI.Controllers
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
 
                 // 记录导出操作
-                LogAdminOperation(OperationLogBLL.Modules.UserManagement, OperationLogBLL.OperationTypes.Export, $"导出操作日志，共{logs.Count}条记录");
+                LogAdminOperation(OperationLogBLL.Modules.LogManagement, OperationLogBLL.OperationTypes.Export, $"导出操作日志，共{logs.Count}条记录");
 
                 return File(fileBytes, "text/csv", fileName);
             }

@@ -80,6 +80,7 @@ namespace recycling.BLL
             public const string RecyclerManagement = "RecyclerManagement";
             public const string FeedbackManagement = "FeedbackManagement";
             public const string HomepageManagement = "HomepageManagement";
+            public const string LogManagement = "LogManagement";
         }
 
         public static class OperationTypes
@@ -104,6 +105,7 @@ namespace recycling.BLL
                 case Modules.RecyclerManagement: return "回收员管理";
                 case Modules.FeedbackManagement: return "反馈管理";
                 case Modules.HomepageManagement: return "首页页面管理";
+                case Modules.LogManagement: return "日志管理";
                 default: return module;
             }
         }

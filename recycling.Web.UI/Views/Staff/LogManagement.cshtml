@@ -228,7 +228,7 @@
         </div>
         <div class="col-md-3">
             <div class="stats-card">
-                <div class="stats-number" id="moduleCount">4</div>
+                <div class="stats-number" id="moduleCount">5</div>
                 <div class="stats-label"><i class="fas fa-cubes"></i> 监控模块</div>
             </div>
         </div>
@@ -244,6 +244,7 @@
                 <option value="RecyclerManagement">回收员管理</option>
                 <option value="FeedbackManagement">反馈管理</option>
                 <option value="HomepageManagement">首页页面管理</option>
+                <option value="LogManagement">日志管理</option>
             </select>
         </div>
 
@@ -332,7 +333,7 @@
 
         // Enter key search
         $('#searchInput').keypress(function(e) {
-            if (e.which == 13) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
                 loadLogs();
             }
         });
@@ -400,7 +401,14 @@
         data.Items.forEach(function(log) {
             var moduleBadge = getModuleBadge(log.Module);
             var operationBadge = getOperationBadge(log.OperationType);
-            var resultBadge = log.Result === 'Success' ? '<span class="badge badge-success">成功</span>' : '<span class="badge badge-failed">失败</span>';
+            var resultBadge;
+            if (log.Result === 'Success') {
+                resultBadge = '<span class="badge badge-success">成功</span>';
+            } else if (log.Result === 'Failed') {
+                resultBadge = '<span class="badge badge-failed">失败</span>';
+            } else {
+                resultBadge = '<span class="badge" style="background-color:#6c757d;color:white;">' + (log.Result || '-') + '</span>';
+            }
             var operationTime = new Date(log.OperationTime).toLocaleString('zh-CN');
 
             html += '<tr>';
@@ -440,6 +448,10 @@
             case 'HomepageManagement':
                 displayName = '首页页面管理';
                 badgeClass = 'badge-homepage';
+                break;
+            case 'LogManagement':
+                displayName = '日志管理';
+                badgeClass = 'badge-user';
                 break;
             default:
                 displayName = module;
