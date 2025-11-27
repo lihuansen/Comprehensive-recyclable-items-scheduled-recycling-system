@@ -21,6 +21,7 @@ namespace recycling.Web.UI.Controllers
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
+        private readonly OperationLogBLL _operationLogBLL = new OperationLogBLL();
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -50,6 +51,54 @@ namespace recycling.Web.UI.Controllers
             }
 
             return field;
+        }
+
+        /// <summary>
+        /// 获取客户端IP地址
+        /// </summary>
+        private string GetClientIpAddress()
+        {
+            string ipAddress = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            if (string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = Request.ServerVariables["REMOTE_ADDR"];
+            }
+            return ipAddress ?? "Unknown";
+        }
+
+        /// <summary>
+        /// 获取当前管理员信息
+        /// </summary>
+        private (int AdminID, string Username) GetCurrentAdmin()
+        {
+            if (Session["LoginStaff"] == null)
+                return (0, null);
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole == "admin")
+            {
+                var admin = (Admins)Session["LoginStaff"];
+                return (admin.AdminID, admin.Username);
+            }
+            else if (staffRole == "superadmin")
+            {
+                var superAdmin = (SuperAdmins)Session["LoginStaff"];
+                return (superAdmin.SuperAdminID, superAdmin.Username);
+            }
+
+            return (0, null);
+        }
+
+        /// <summary>
+        /// 记录管理员操作日志
+        /// </summary>
+        private void LogAdminOperation(string module, string operationType, string description, int? targetId = null, string targetName = null, string result = "Success", string details = null)
+        {
+            var (adminId, adminUsername) = GetCurrentAdmin();
+            if (adminId > 0)
+            {
+                _operationLogBLL.LogOperation(adminId, adminUsername, module, operationType, description, targetId, targetName, GetClientIpAddress(), result, details);
+            }
         }
 
         /// <summary>
@@ -987,6 +1036,9 @@ namespace recycling.Web.UI.Controllers
                 var fileName = $"用户数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
 
+                // 记录导出操作日志
+                LogAdminOperation(OperationLogBLL.Modules.UserManagement, OperationLogBLL.OperationTypes.Export, $"导出用户数据，共{users.Count}条记录");
+
                 return File(fileBytes, "text/csv", fileName);
             }
             catch (Exception ex)
@@ -1066,6 +1118,17 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var result = _adminBLL.AddRecycler(recycler, password);
+                
+                // 记录操作日志
+                if (result.Success)
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Create, $"添加回收员：{recycler.Username}", null, recycler.Username, "Success");
+                }
+                else
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Create, $"添加回收员失败：{recycler.Username}", null, recycler.Username, "Failed");
+                }
+                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1083,6 +1146,13 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var result = _adminBLL.UpdateRecycler(recycler);
+                
+                // 记录操作日志
+                if (result.Success)
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Update, $"更新回收员信息：{recycler.Username}", recycler.RecyclerID, recycler.Username, "Success");
+                }
+                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1099,7 +1169,15 @@ namespace recycling.Web.UI.Controllers
         {
             try
             {
+                // 获取回收员信息用于日志记录
+                var recycler = _adminBLL.GetRecyclerById(recyclerId);
+                string recyclerName = recycler?.Username ?? $"ID:{recyclerId}";
+                
                 var result = _adminBLL.DeleteRecycler(recyclerId);
+                
+                // 记录操作日志
+                LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Delete, $"删除回收员：{recyclerName}", recyclerId, recyclerName, result.Success ? "Success" : "Failed");
+                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1166,6 +1244,9 @@ namespace recycling.Web.UI.Controllers
                 // Generate file
                 var fileName = $"回收员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                // 记录导出操作日志
+                LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Export, $"导出回收员数据，共{recyclers.Count}条记录");
 
                 return File(fileBytes, "text/csv", fileName);
             }
@@ -1640,6 +1721,13 @@ namespace recycling.Web.UI.Controllers
                     adminId = ((SuperAdmins)Session["LoginStaff"]).SuperAdminID;
 
                 var (success, message) = _carouselBLL.Add(carousel, adminId);
+                
+                // 记录操作日志
+                if (success)
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Create, $"添加轮播内容：{carousel.Title}", null, carousel.Title, "Success");
+                }
+                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -1751,6 +1839,13 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var (success, message) = _carouselBLL.Update(carousel);
+                
+                // 记录操作日志
+                if (success)
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Update, $"更新轮播内容：{carousel.Title}", carousel.CarouselID, carousel.Title, "Success");
+                }
+                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -1775,8 +1870,16 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
+                // 获取轮播内容信息用于日志记录
+                var carousel = _carouselBLL.GetById(id);
+                string carouselTitle = carousel?.Title ?? $"ID:{id}";
+
                 // Use HardDelete to permanently remove from database
                 var (success, message) = _carouselBLL.HardDelete(id);
+                
+                // 记录操作日志
+                LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除轮播内容：{carouselTitle}", id, carouselTitle, success ? "Success" : "Failed");
+                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -1895,6 +1998,13 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足" });
 
                 var (success, message) = _recyclableItemBLL.Add(item);
+                
+                // 记录操作日志
+                if (success)
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Create, $"添加可回收物品：{item.ItemName}", null, item.ItemName, "Success");
+                }
+                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -1920,6 +2030,13 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足" });
 
                 var (success, message) = _recyclableItemBLL.Update(item);
+                
+                // 记录操作日志
+                if (success)
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Update, $"更新可回收物品：{item.ItemName}", item.ItemID, item.ItemName, "Success");
+                }
+                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -1944,8 +2061,16 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
+                // 获取物品信息用于日志记录
+                var item = _recyclableItemBLL.GetById(id);
+                string itemName = item?.ItemName ?? $"ID:{id}";
+
                 // Use HardDelete instead of soft delete
                 var (success, message) = _recyclableItemBLL.HardDelete(id);
+                
+                // 记录操作日志
+                LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除可回收物品：{itemName}", id, itemName, success ? "Success" : "Failed");
+                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -2058,11 +2183,181 @@ namespace recycling.Web.UI.Controllers
                 // 更新反馈状态
                 var (success, message) = _feedbackBLL.UpdateFeedbackStatus(feedbackId, status, adminReply);
 
+                // 记录操作日志
+                if (success)
+                {
+                    string operationType = !string.IsNullOrEmpty(adminReply) ? OperationLogBLL.OperationTypes.Reply : OperationLogBLL.OperationTypes.Update;
+                    string description = !string.IsNullOrEmpty(adminReply) ? $"回复反馈 #{feedbackId}" : $"更新反馈状态为：{status}";
+                    LogAdminOperation(OperationLogBLL.Modules.FeedbackManagement, operationType, description, feedbackId, null, "Success");
+                }
+
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
             {
                 return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region 日志管理功能
+
+        /// <summary>
+        /// 日志管理页面
+        /// </summary>
+        [HttpGet]
+        [AdminPermission(AdminPermissions.UserManagement)]
+        public ActionResult LogManagement()
+        {
+            // 检查登录状态
+            if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+            {
+                TempData["ErrorMessage"] = "您没有权限访问该页面";
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取操作日志列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetOperationLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, string startDate = null, string endDate = null, string searchTerm = null)
+        {
+            try
+            {
+                // 检查登录状态和权限
+                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                {
+                    return JsonContent(new { success = false, message = "无权限" });
+                }
+
+                DateTime? start = null;
+                DateTime? end = null;
+
+                if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime startParsed))
+                {
+                    start = startParsed;
+                }
+                if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out DateTime endParsed))
+                {
+                    end = endParsed.AddDays(1).AddSeconds(-1); // Include the entire end day
+                }
+
+                var logs = _operationLogBLL.GetLogs(page, pageSize, module, operationType, start, end, searchTerm);
+
+                return JsonContent(new { success = true, data = logs });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取日志统计信息（AJAX）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetLogStatistics()
+        {
+            try
+            {
+                // 检查登录状态和权限
+                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var staffRole = Session["StaffRole"] as string;
+                if (staffRole != "admin" && staffRole != "superadmin")
+                {
+                    return JsonContent(new { success = false, message = "无权限" });
+                }
+
+                var stats = _operationLogBLL.GetLogStatistics();
+                return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 导出操作日志
+        /// </summary>
+        [HttpGet]
+        public ActionResult ExportOperationLogs(string module = null, string operationType = null, string startDate = null, string endDate = null, string searchTerm = null)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || (Session["StaffRole"].ToString() != "admin" && Session["StaffRole"].ToString() != "superadmin"))
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            try
+            {
+                DateTime? start = null;
+                DateTime? end = null;
+
+                if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime startParsed))
+                {
+                    start = startParsed;
+                }
+                if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out DateTime endParsed))
+                {
+                    end = endParsed.AddDays(1).AddSeconds(-1);
+                }
+
+                var logs = _operationLogBLL.GetLogsForExport(module, operationType, start, end, searchTerm);
+
+                // Create CSV content
+                var csv = new System.Text.StringBuilder();
+
+                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                csv.Append("\uFEFF");
+
+                // Add header
+                csv.AppendLine("日志ID,操作时间,管理员ID,管理员用户名,模块,操作类型,操作描述,目标ID,目标名称,IP地址,结果");
+
+                // Add data rows
+                foreach (var log in logs)
+                {
+                    var moduleDisplay = OperationLogBLL.GetModuleDisplayName(log.Module);
+                    var operationDisplay = OperationLogBLL.GetOperationTypeDisplayName(log.OperationType);
+                    var resultDisplay = log.Result == "Success" ? "成功" : "失败";
+
+                    csv.AppendLine($"{log.LogID},{EscapeCsvField(log.OperationTime.ToString("yyyy-MM-dd HH:mm:ss"))},{log.AdminID},{EscapeCsvField(log.AdminUsername)},{EscapeCsvField(moduleDisplay)},{EscapeCsvField(operationDisplay)},{EscapeCsvField(log.Description)},{log.TargetID},{EscapeCsvField(log.TargetName)},{EscapeCsvField(log.IPAddress)},{EscapeCsvField(resultDisplay)}");
+                }
+
+                // Generate file
+                var fileName = $"操作日志_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                // 记录导出操作
+                LogAdminOperation(OperationLogBLL.Modules.LogManagement, OperationLogBLL.OperationTypes.Export, $"导出操作日志，共{logs.Count}条记录");
+
+                return File(fileBytes, "text/csv", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
+                return RedirectToAction("LogManagement");
             }
         }
 
