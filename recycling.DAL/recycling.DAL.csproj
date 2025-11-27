@@ -62,6 +62,7 @@
     <Compile Include="HomepageCarouselDAL.cs" />
     <Compile Include="InventoryDAL.cs" />
     <Compile Include="MessageDAL.cs" />
+    <Compile Include="OperationLogDAL.cs" />
     <Compile Include="OrderDAL.cs" />
     <Compile Include="OrderReviewDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
