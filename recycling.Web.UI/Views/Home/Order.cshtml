@@ -984,17 +984,7 @@
                             setTimeout(function() {
                                 orderElement.style.backgroundColor = '';
                             }, 1500);
-                            
-                            // 刷新"已取消"标签页的数据缓存，以便切换时能看到新取消的订单
-                            const cancelledSection = document.getElementById('cancelled-orders');
-                            if (cancelledSection) {
-                                cancelledSection.innerHTML = `
-                                    <div class="loading-spinner">
-                                        <div class="spinner"></div>
-                                        <p>正在加载已取消订单...</p>
-                                    </div>
-                                `;
-                            }
+                            // 注意：当用户切换到"已取消"标签页时，switchToTab会自动加载最新数据
                         }
                     }
                 } else {
