@@ -668,6 +668,44 @@ select.form-control::-ms-expand {
         flex-wrap: wrap;
         gap: 10px;
     }
+
+    /* 品类详细信息样式 */
+    .category-questions-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+    }
+
+    .category-questions-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 15px;
+    }
+
+    .question-answer-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed #e9ecef;
+    }
+
+    .question-answer-item:last-child {
+        border-bottom: none;
+    }
+
+    .question-text {
+        color: #6c757d;
+        font-size: 13px;
+    }
+
+    .answer-text {
+        color: #2c3e50;
+        font-weight: 500;
+        font-size: 13px;
+    }
 </style>
 
 <div class="order-management-container">
@@ -883,6 +921,14 @@ select.form-control::-ms-expand {
                             <i class="fas fa-boxes"></i>回收品类
                         </h6>
                         <div id="detailCategories" class="categories-list"></div>
+                    </div>
+
+                    <!-- 用户填写的品类详细信息 -->
+                    <div class="detail-section" id="categoryQuestionsSection" style="display: none;">
+                        <h6 class="section-title">
+                            <i class="fas fa-clipboard-check"></i>用户填写信息
+                        </h6>
+                        <div id="detailCategoryQuestions"></div>
                     </div>
                 </div>
             </div>
@@ -1351,6 +1397,127 @@ function renderOrderDetail(order) {
     } else {
         categoriesContainer.innerHTML = '<span class="text-muted">暂无品类信息</span>';
     }
+
+    // 显示用户填写的品类详细信息（问题和答案）
+    const categoryQuestionsSection = document.getElementById('categoryQuestionsSection');
+    const categoryQuestionsContainer = document.getElementById('detailCategoryQuestions');
+    categoryQuestionsContainer.innerHTML = ''; // 清空容器
+
+    if (order.Categories && Array.isArray(order.Categories) && order.Categories.length > 0) {
+        let hasQuestionAnswers = false;
+        let questionsHTML = '';
+
+        order.Categories.forEach(cat => {
+            if (cat && cat.QuestionsAnswers && cat.QuestionsAnswers.trim() !== '' && cat.QuestionsAnswers !== '{}') {
+                try {
+                    const qaData = JSON.parse(cat.QuestionsAnswers);
+                    const qaEntries = Object.entries(qaData);
+                    if (qaEntries.length > 0) {
+                        hasQuestionAnswers = true;
+                        questionsHTML += `<div class="category-questions-item">`;
+                        questionsHTML += `<div class="category-questions-title"><i class="fas fa-tag"></i> ${cat.CategoryName || '未知品类'}</div>`;
+                        
+                        qaEntries.forEach(([questionId, answer]) => {
+                            const questionText = getQuestionTextByIdRecycler(questionId);
+                            const answerText = getAnswerTextByValueRecycler(questionId, answer);
+                            
+                            questionsHTML += `<div class="question-answer-item">`;
+                            questionsHTML += `<span class="question-text">${questionText}</span>`;
+                            questionsHTML += `<span class="answer-text">${answerText}</span>`;
+                            questionsHTML += `</div>`;
+                        });
+                        
+                        questionsHTML += `</div>`;
+                    }
+                } catch (e) {
+                    console.error('解析QuestionsAnswers失败:', e);
+                }
+            }
+        });
+
+        if (hasQuestionAnswers) {
+            categoryQuestionsContainer.innerHTML = questionsHTML;
+            categoryQuestionsSection.style.display = 'block';
+        } else {
+            categoryQuestionsSection.style.display = 'none';
+        }
+    } else {
+        categoryQuestionsSection.style.display = 'none';
+    }
+}
+
+// 根据问题ID获取问题文本（回收员端）
+function getQuestionTextByIdRecycler(questionId) {
+    const questionMap = {
+        'glass_condition': '玻璃物品整体状况',
+        'glass_clean': '是否已清洁处理',
+        'glass_quantity': '物品数量规模',
+        'metal_condition': '金属物品整体状况',
+        'metal_clean': '是否已清洁处理',
+        'metal_purity': '金属纯度情况',
+        'plastic_condition': '塑料物品整体状况',
+        'plastic_clean': '是否已清洁处理',
+        'plastic_sorted': '是否已分类整理',
+        'paper_condition': '纸类物品整体状况',
+        'paper_clean': '是否干净无油污',
+        'paper_sorted': '是否已分类整理',
+        'fabric_condition': '纺织品整体状况',
+        'fabric_clean': '是否已清洗',
+        'fabric_sorted': '是否已分类整理',
+        'glass_type': '玻璃类型',
+        'metal_type': '金属类型',
+        'plastic_type': '塑料类型',
+        'plastic_color': '塑料颜色',
+        'paper_type': '纸张类型',
+        'fabric_type': '纺织品类型'
+    };
+    return questionMap[questionId] || questionId;
+}
+
+// 根据问题ID和答案值获取答案文本（回收员端）
+function getAnswerTextByValueRecycler(questionId, answerValue) {
+    const answerMap = {
+        'complete': '完整无损',
+        'minor_damage': '轻微破损',
+        'broken': '严重破损',
+        'clean': '已清洁',
+        'partial': '部分处理',
+        'dirty': '未清洁',
+        'small': '少量（10件以下）',
+        'medium': '中等（10-50件）',
+        'large': '大量（50件以上）',
+        'good': '状况良好',
+        'rusty': '有锈迹/氧化',
+        'damaged': '损坏/变形',
+        'pure': '单一金属',
+        'mostly_pure': '以某种金属为主',
+        'mixed': '混合',
+        'worn': '有磨损/褪色',
+        'sorted': '已分类整理',
+        'unsorted': '未整理',
+        'dry': '干燥完好',
+        'damp': '有潮湿',
+        'soiled': '有污染/破损',
+        'minor': '轻微污渍',
+        'bottle': '瓶子',
+        'window': '窗户玻璃',
+        'other': '其他',
+        'iron': '铁制品',
+        'aluminum': '铝制品',
+        'copper': '铜制品',
+        'pet': 'PET（饮料瓶）',
+        'hdpe': 'HDPE（洗发水瓶）',
+        'pvc': 'PVC（管道）',
+        'transparent': '透明',
+        'colored': '有色',
+        'newspaper': '报纸',
+        'cardboard': '纸板箱',
+        'office': '办公用纸',
+        'cotton': '棉织品',
+        'wool': '毛织品',
+        'synthetic': '化纤'
+    };
+    return answerMap[answerValue] || answerValue;
 }
 
         // 打开对话模态框

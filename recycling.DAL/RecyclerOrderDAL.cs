@@ -571,6 +571,32 @@ namespace recycling.DAL
                         }
                     }
                 }
+
+                // 获取品类详细信息（包含QuestionsAnswers）
+                if (!string.IsNullOrEmpty(orderDetail.OrderNumber))
+                {
+                    string categorySql = @"
+                        SELECT CategoryName, CategoryKey, QuestionsAnswers 
+                        FROM AppointmentCategories 
+                        WHERE AppointmentID = @AppointmentID";
+
+                    using (SqlCommand cmd = new SqlCommand(categorySql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                orderDetail.Categories.Add(new CategoryDetailInfo
+                                {
+                                    CategoryName = reader["CategoryName"] == DBNull.Value ? "" : reader["CategoryName"].ToString(),
+                                    CategoryKey = reader["CategoryKey"] == DBNull.Value ? "" : reader["CategoryKey"].ToString(),
+                                    QuestionsAnswers = reader["QuestionsAnswers"] == DBNull.Value ? "" : reader["QuestionsAnswers"].ToString()
+                                });
+                            }
+                        }
+                    }
+                }
             }
 
             return orderDetail;
