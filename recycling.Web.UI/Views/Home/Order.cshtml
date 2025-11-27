@@ -628,11 +628,261 @@
 
 @section Scripts {
     <script>
+        // 全局函数：显示消息提示
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+
+            const alertHTML = `
+                <div class="alert-message ${alertClass}">
+                    <i class="fas ${icon}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            alertContainer.innerHTML = alertHTML;
+
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // 全局函数：切换到指定标签页
+        function switchToTab(status) {
+            const allTabs = document.querySelectorAll('.status-tab');
+            const allSections = document.querySelectorAll('.order-section');
+
+            // 更新标签状态
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            const targetTab = document.querySelector(`.status-tab[data-status="${status}"]`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+
+            // 更新内容显示
+            allSections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === `${status}-orders`) {
+                    section.classList.add('active');
+                }
+            });
+
+            // 加载对应状态订单数据
+            loadOrdersByStatus(status);
+        }
+
+        // 全局函数：加载订单数据
+        function loadOrdersByStatus(status) {
+            console.log(`加载 ${status} 状态的订单数据`);
+
+            const currentSection = document.getElementById(`${status}-orders`);
+
+            // 显示加载状态
+            currentSection.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载订单数据...</p>
+                </div>
+            `;
+
+            // 调用后端API加载订单数据
+            fetch('@Url.Action("GetOrdersByStatus", "Home")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ status: status })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应不正常');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('API响应:', data);
+                if (data.success) {
+                    renderOrders(currentSection, data.orders, status);
+                } else {
+                    showError(currentSection, data.message || '加载订单失败');
+                }
+            })
+            .catch(error => {
+                console.error('加载订单失败:', error);
+                showError(currentSection, '网络错误，请稍后重试');
+            });
+        }
+
+        // 全局函数：渲染订单列表
+        function renderOrders(container, orders, status) {
+            if (!orders || orders.length === 0) {
+                let emptyMessage = '';
+                let emptyIcon = 'fas fa-clipboard-list';
+
+                switch (status) {
+                    case 'all':
+                        emptyMessage = '您还没有创建任何回收预约订单';
+                        break;
+                    case 'pending':
+                        emptyMessage = '您没有已预约的回收订单';
+                        emptyIcon = 'fas fa-clock';
+                        break;
+                    case 'confirmed':
+                        emptyMessage = '您没有进行中的回收订单';
+                        emptyIcon = 'fas fa-check-circle';
+                        break;
+                    case 'completed':
+                        emptyMessage = '您没有已完成的回收订单';
+                        emptyIcon = 'fas fa-flag-checkered';
+                        break;
+                    case 'cancelled':
+                        emptyMessage = '您没有已取消的回收订单';
+                        emptyIcon = 'fas fa-times-circle';
+                        break;
+                }
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="${emptyIcon}"></i>
+                        <h3>${emptyMessage}</h3>
+                        ${status === 'all' ? '<a href="@Url.Action("Appointment", "User")" class="btn-new-appointment"><i class="fas fa-calendar-plus"></i>立即预约</a>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            let ordersHTML = '<div class="order-list">';
+
+            orders.forEach(order => {
+                // 根据订单状态显示不同的操作按钮
+                let actionButtons = '';
+
+                if (order.status === '已预约') {
+                    // 已预约订单：查看详情 + 取消订单
+                    actionButtons = `
+                        <div class="order-actions">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                <i class="fas fa-eye"></i>查看详情
+                            </button>
+                            <button class="btn-action danger" onclick="cancelOrder(${order.id}, '${order.number}', event)">
+                                <i class="fas fa-times"></i>取消订单
+                            </button>
+                        </div>
+                    `;
+                } else if (order.status === '已取消') {
+                    // 已取消订单：查看详情 + 再预约一单
+                    actionButtons = `
+                        <div class="order-actions">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                <i class="fas fa-eye"></i>查看详情
+                            </button>
+                            <button class="btn-action success" onclick="reAppointment(${order.id})">
+                                <i class="fas fa-redo"></i>再预约一单
+                            </button>
+                        </div>
+                    `;
+                } else if (order.status === '进行中') {
+                    // 进行中订单：查看详情 + 联系回收员（跳转到新视图）
+                    actionButtons = `
+                        <div class="order-actions">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                <i class="fas fa-eye"></i>查看详情
+                            </button>
+                            <a href='@Url.Action("ContactRecycler", "Home")?orderId=${order.id}&recyclerId=${order.recyclerID || ""}'
+                               class="btn-action success contact-recycler">
+                                <i class="fas fa-comments"></i>联系回收员
+                            </a>
+                        </div>
+                    `;
+                } else if (order.status === '已完成') {
+                    // 已完成订单：查看详情 + 联系回收员（仍可交流） + 评价订单
+                    actionButtons = `
+                        <div class="order-actions">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                <i class="fas fa-eye"></i>查看详情
+                            </button>
+                            <a href='@Url.Action("ContactRecycler", "Home")?orderId=${order.id}&recyclerId=${order.recyclerID || ""}'
+                               class="btn-action success contact-recycler">
+                                <i class="fas fa-comments"></i>联系回收员
+                            </a>
+                            <button class="btn-action warning" onclick="reviewOrder(${order.id})" data-order-id="${order.id}">
+                                <i class="fas fa-star"></i>评价订单
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // 其他状态订单：只显示查看详情
+                    actionButtons = `
+                        <div class="order-actions">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                <i class="fas fa-eye"></i>查看详情
+                            </button>
+                        </div>
+                    `;
+                }
+
+                ordersHTML += `
+                    <div class="order-item" data-order-id="${order.id}">
+                        <div class="order-header-info">
+                            <div class="order-number">${order.number}</div>
+                            <div class="order-status ${order.statusBadge}">${order.status}</div>
+                        </div>
+
+                        <div class="order-details">
+                            <div class="detail-item">
+                                <span class="detail-label">预约类型</span>
+                                <span class="detail-value">${order.type}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">预约时间</span>
+                                <span class="detail-value">${order.date} ${order.timeSlot}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">预估重量</span>
+                                <span class="detail-value">${order.weight} 公斤</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">预估价格</span>
+                                <span class="detail-value">¥${order.price}</span>
+                            </div>
+                        </div>
+
+                        ${order.categories && order.categories.length > 0 ? `
+                        <div class="order-categories">
+                            ${order.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+                        </div>
+                        ` : ''}
+
+                        ${actionButtons}
+                    </div>
+                `;
+            });
+
+            ordersHTML += '</div>';
+            container.innerHTML = ordersHTML;
+        }
+
+        // 全局函数：显示错误信息
+        function showError(container, message) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>加载失败</h3>
+                    <p>${message}</p>
+                    <button class="btn-action primary" onclick="loadOrdersByStatus('all')">
+                        <i class="fas fa-redo"></i>重新加载
+                    </button>
+                </div>
+            `;
+        }
+
+        // DOM加载完成后初始化
         document.addEventListener('DOMContentLoaded', function () {
             // 状态标签切换功能
             const statusTabs = document.querySelectorAll('.status-tab');
-            const orderSections = document.querySelectorAll('.order-section');
-
             statusTabs.forEach(tab => {
                 tab.addEventListener('click', function () {
                     const status = this.getAttribute('data-status');
@@ -640,269 +890,24 @@
                 });
             });
 
-            // 显示消息提示
-            function showAlert(message, type) {
-                const alertContainer = document.getElementById('alertContainer');
-                const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-                const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
-
-                const alertHTML = `
-                    <div class="alert-message ${alertClass}">
-                        <i class="fas ${icon}"></i>
-                        <span>${message}</span>
-                    </div>
-                `;
-
-                alertContainer.innerHTML = alertHTML;
-
-                // 5秒后自动隐藏
-                setTimeout(() => {
-                    alertContainer.innerHTML = '';
-                }, 5000);
-            }
-
-            // 切换到指定标签页
-            function switchToTab(status) {
-                const allTabs = document.querySelectorAll('.status-tab');
-                const allSections = document.querySelectorAll('.order-section');
-
-                // 更新标签状态
-                allTabs.forEach(tab => tab.classList.remove('active'));
-                document.querySelector(`.status-tab[data-status="${status}"]`).classList.add('active');
-
-                // 更新内容显示
-                allSections.forEach(section => {
-                    section.classList.remove('active');
-                    if (section.id === `${status}-orders`) {
-                        section.classList.add('active');
-                    }
-                });
-
-                // 加载对应状态订单数据
-                loadOrdersByStatus(status);
-            }
-
-            // 加载订单数据的函数
-            function loadOrdersByStatus(status) {
-                console.log(`加载 ${status} 状态的订单数据`);
-
-                const currentSection = document.getElementById(`${status}-orders`);
-
-                // 显示加载状态
-                currentSection.innerHTML = `
-                    <div class="loading-spinner">
-                        <div class="spinner"></div>
-                        <p>正在加载订单数据...</p>
-                    </div>
-                `;
-
-                // 调用后端API加载订单数据
-                fetch('@Url.Action("GetOrdersByStatus", "Home")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ status: status })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('网络响应不正常');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('API响应:', data);
-                    if (data.success) {
-                        renderOrders(currentSection, data.orders, status);
-                    } else {
-                        showError(currentSection, data.message || '加载订单失败');
-                    }
-                })
-                .catch(error => {
-                    console.error('加载订单失败:', error);
-                    showError(currentSection, '网络错误，请稍后重试');
-                });
-            }
-
-            // 渲染订单列表
-            function renderOrders(container, orders, status) {
-                if (!orders || orders.length === 0) {
-                    let emptyMessage = '';
-                    let emptyIcon = 'fas fa-clipboard-list';
-
-                    switch (status) {
-                        case 'all':
-                            emptyMessage = '您还没有创建任何回收预约订单';
-                            break;
-                        case 'pending':
-                            emptyMessage = '您没有已预约的回收订单';
-                            emptyIcon = 'fas fa-clock';
-                            break;
-                        case 'confirmed':
-                            emptyMessage = '您没有进行中的回收订单';
-                            emptyIcon = 'fas fa-check-circle';
-                            break;
-                        case 'completed':
-                            emptyMessage = '您没有已完成的回收订单';
-                            emptyIcon = 'fas fa-flag-checkered';
-                            break;
-                        case 'cancelled':
-                            emptyMessage = '您没有已取消的回收订单';
-                            emptyIcon = 'fas fa-times-circle';
-                            break;
-                    }
-
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="${emptyIcon}"></i>
-                            <h3>${emptyMessage}</h3>
-                            ${status === 'all' ? '<a href="@Url.Action("Appointment", "User")" class="btn-new-appointment"><i class="fas fa-calendar-plus"></i>立即预约</a>' : ''}
-                        </div>
-                    `;
-                    return;
-                }
-
-                let ordersHTML = '<div class="order-list">';
-
-                orders.forEach(order => {
-                    // 根据订单状态显示不同的操作按钮
-                    let actionButtons = '';
-
-                    if (order.status === '已预约') {
-                        // 已预约订单：查看详情 + 取消订单
-                        actionButtons = `
-                            <div class="order-actions">
-                                <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
-                                    <i class="fas fa-eye"></i>查看详情
-                                </button>
-                                <button class="btn-action danger" onclick="cancelOrder(${order.id}, '${order.number}')">
-                                    <i class="fas fa-times"></i>取消订单
-                                </button>
-                            </div>
-                        `;
-                    } else if (order.status === '已取消') {
-                        // 已取消订单：查看详情 + 再预约一单
-                        actionButtons = `
-                            <div class="order-actions">
-                                <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
-                                    <i class="fas fa-eye"></i>查看详情
-                                </button>
-                                <button class="btn-action success" onclick="reAppointment(${order.id})">
-                                    <i class="fas fa-redo"></i>再预约一单
-                                </button>
-                            </div>
-                        `;
-                    } else if (order.status === '进行中') {
-                        // 进行中订单：查看详情 + 联系回收员（跳转到新视图）
-                        actionButtons = `
-                            <div class="order-actions">
-                                <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
-                                    <i class="fas fa-eye"></i>查看详情
-                                </button>
-                                <a href='@Url.Action("ContactRecycler", "Home")?orderId=${order.id}&recyclerId=${order.recyclerID || ""}'
-                                   class="btn-action success contact-recycler">
-                                    <i class="fas fa-comments"></i>联系回收员
-                                </a>
-                            </div>
-                        `;
-                    } else if (order.status === '已完成') {
-                        // 已完成订单：查看详情 + 联系回收员（仍可交流） + 评价订单
-                        actionButtons = `
-                            <div class="order-actions">
-                                <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
-                                    <i class="fas fa-eye"></i>查看详情
-                                </button>
-                                <a href='@Url.Action("ContactRecycler", "Home")?orderId=${order.id}&recyclerId=${order.recyclerID || ""}'
-                                   class="btn-action success contact-recycler">
-                                    <i class="fas fa-comments"></i>联系回收员
-                                </a>
-                                <button class="btn-action warning" onclick="reviewOrder(${order.id})" data-order-id="${order.id}">
-                                    <i class="fas fa-star"></i>评价订单
-                                </button>
-                            </div>
-                        `;
-                    } else {
-                        // 其他状态订单：只显示查看详情
-                        actionButtons = `
-                            <div class="order-actions">
-                                <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
-                                    <i class="fas fa-eye"></i>查看详情
-                                </button>
-                            </div>
-                        `;
-                    }
-
-                    ordersHTML += `
-                        <div class="order-item" data-order-id="${order.id}">
-                            <div class="order-header-info">
-                                <div class="order-number">${order.number}</div>
-                                <div class="order-status ${order.statusBadge}">${order.status}</div>
-                            </div>
-
-                            <div class="order-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">预约类型</span>
-                                    <span class="detail-value">${order.type}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">预约时间</span>
-                                    <span class="detail-value">${order.date} ${order.timeSlot}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">预估重量</span>
-                                    <span class="detail-value">${order.weight} 公斤</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">预估价格</span>
-                                    <span class="detail-value">¥${order.price}</span>
-                                </div>
-                            </div>
-
-                            ${order.categories && order.categories.length > 0 ? `
-                            <div class="order-categories">
-                                ${order.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
-                            </div>
-                            ` : ''}
-
-                            ${actionButtons}
-                        </div>
-                    `;
-                });
-
-                ordersHTML += '</div>';
-                container.innerHTML = ordersHTML;
-            }
-
-            // 显示错误信息
-            function showError(container, message) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>加载失败</h3>
-                        <p>${message}</p>
-                        <button class="btn-action primary" onclick="loadOrdersByStatus('all')">
-                            <i class="fas fa-redo"></i>重新加载
-                        </button>
-                    </div>
-                `;
-            }
-
             // 初始化加载全部订单
             loadOrdersByStatus('all');
         });
 
         // 取消订单函数
-        function cancelOrder(orderId, orderNumber) {
+        function cancelOrder(orderId, orderNumber, event) {
             if (!confirm(`确定要取消订单 ${orderNumber} 吗？`)) {
                 return;
             }
 
-            // 显示加载状态
-            const cancelBtn = event.target;
-            const originalText = cancelBtn.innerHTML;
-            cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 取消中...';
-            cancelBtn.disabled = true;
+            // 显示加载状态 - 从event获取按钮元素，如果event不存在则通过data-order-id查找
+            let cancelBtn = event ? event.currentTarget : document.querySelector(`.order-item[data-order-id="${orderId}"] .btn-action.danger`);
+            let originalText = '';
+            if (cancelBtn) {
+                originalText = cancelBtn.innerHTML;
+                cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 取消中...';
+                cancelBtn.disabled = true;
+            }
 
             fetch('@Url.Action("CancelOrder", "Home")', {
                 method: 'POST',
@@ -916,19 +921,87 @@
             .then(data => {
                 if (data.success) {
                     showAlert('订单取消成功', 'success');
-                    // 重新加载当前页面
-                    location.reload();
+                    // 实时更新UI：找到被取消的订单元素
+                    const orderElement = document.querySelector(`.order-item[data-order-id="${orderId}"]`);
+                    if (orderElement) {
+                        // 更新订单状态样式
+                        const statusElement = orderElement.querySelector('.order-status');
+                        if (statusElement) {
+                            statusElement.textContent = '已取消';
+                            statusElement.className = 'order-status status-cancelled-badge';
+                        }
+                        
+                        // 更新操作按钮为已取消状态的按钮
+                        const actionsElement = orderElement.querySelector('.order-actions');
+                        if (actionsElement) {
+                            actionsElement.innerHTML = `
+                                <button class="btn-action primary" onclick="viewOrderDetail(${orderId})">
+                                    <i class="fas fa-eye"></i>查看详情
+                                </button>
+                                <button class="btn-action success" onclick="reAppointment(${orderId})">
+                                    <i class="fas fa-redo"></i>再预约一单
+                                </button>
+                            `;
+                        }
+                        
+                        // 添加过渡动画效果
+                        orderElement.style.transition = 'all 0.5s ease';
+                        orderElement.style.backgroundColor = '#fff3cd';
+                        
+                        // 获取当前激活的标签页
+                        const activeTab = document.querySelector('.status-tab.active');
+                        const currentStatus = activeTab ? activeTab.getAttribute('data-status') : 'all';
+                        
+                        // 如果当前在"已预约"标签页，需要移除该订单并切换到"已取消"标签页
+                        if (currentStatus === 'pending') {
+                            setTimeout(function() {
+                                // 添加淡出动画
+                                orderElement.style.opacity = '0';
+                                orderElement.style.transform = 'translateX(100px)';
+                                
+                                setTimeout(function() {
+                                    // 移除订单元素
+                                    orderElement.remove();
+                                    
+                                    // 检查是否还有其他订单，如果没有则显示空状态
+                                    const pendingSection = document.getElementById('pending-orders');
+                                    const remainingOrders = pendingSection.querySelectorAll('.order-item');
+                                    if (remainingOrders.length === 0) {
+                                        pendingSection.innerHTML = `
+                                            <div class="empty-state">
+                                                <i class="fas fa-clock"></i>
+                                                <h3>您没有已预约的回收订单</h3>
+                                            </div>
+                                        `;
+                                    }
+                                    
+                                    // 自动切换到"已取消"标签页显示取消的订单
+                                    switchToTab('cancelled');
+                                }, 300);
+                            }, 500);
+                        } else {
+                            // 在"全部订单"标签页，保留订单但更新状态
+                            setTimeout(function() {
+                                orderElement.style.backgroundColor = '';
+                            }, 1500);
+                            // 注意：当用户切换到"已取消"标签页时，switchToTab会自动加载最新数据
+                        }
+                    }
                 } else {
                     showAlert('取消失败：' + data.message, 'error');
-                    cancelBtn.innerHTML = originalText;
-                    cancelBtn.disabled = false;
+                    if (cancelBtn) {
+                        cancelBtn.innerHTML = originalText;
+                        cancelBtn.disabled = false;
+                    }
                 }
             })
             .catch(error => {
                 console.error('取消订单失败:', error);
                 showAlert('网络错误，请稍后重试', 'error');
-                cancelBtn.innerHTML = originalText;
-                cancelBtn.disabled = false;
+                if (cancelBtn) {
+                    cancelBtn.innerHTML = originalText;
+                    cancelBtn.disabled = false;
+                }
             });
         }
 
