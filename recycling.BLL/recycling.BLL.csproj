@@ -51,6 +51,7 @@
     <Compile Include="HomepageCarouselBLL.cs" />
     <Compile Include="InventoryBLL.cs" />
     <Compile Include="MessageBLL.cs" />
+    <Compile Include="OperationLogBLL.cs" />
     <Compile Include="OrderBLL.cs" />
     <Compile Include="OrderReviewBLL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
