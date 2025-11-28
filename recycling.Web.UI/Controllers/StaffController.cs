@@ -2069,7 +2069,7 @@ namespace recycling.Web.UI.Controllers
                 var (success, message) = _recyclableItemBLL.HardDelete(id);
                 
                 // 记录操作日志
-                LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除可回收物品：{Name}", id, Name, success ? "Success" : "Failed");
+                LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除可回收物品：{itemName}", id, itemName, success ? "Success" : "Failed");
                 
                 return JsonContent(new { success = success, message = message });
             }
