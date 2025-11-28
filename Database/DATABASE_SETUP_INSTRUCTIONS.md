@@ -6,6 +6,28 @@
 
 ## 必需的数据库表 (Required Database Tables)
 
+### 0. 管理员操作日志表 (Admin Operation Logs Table)
+
+**表名**: `AdminOperationLogs`
+
+**用途**: 记录管理员的所有操作日志，用于日志管理功能
+
+**创建脚本**: `CreateAdminOperationLogsTable.sql`
+
+**执行方法**:
+```sql
+-- 在 SQL Server Management Studio 中运行以下脚本
+-- 或使用命令行工具执行
+sqlcmd -S localhost -d RecyclingDB -i CreateAdminOperationLogsTable.sql
+```
+
+**验证表创建**:
+```sql
+SELECT COUNT(*) AS RecordCount FROM AdminOperationLogs;
+-- 如果返回 0，表示表已创建成功但没有数据
+-- 管理员进行任何操作后，可以在此表中看到记录
+```
+
 ### 1. 用户反馈表 (User Feedback Table)
 
 **表名**: `UserFeedback`
@@ -43,6 +65,7 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 2. 连接到您的数据库服务器
 3. 选择 `RecyclingDB` 数据库（或您的数据库名称）
 4. 依次打开并执行以下脚本：
+   - `CreateAdminOperationLogsTable.sql`（管理员日志表 - **推荐首先执行**）
    - `CreateUserFeedbackTable.sql`
    - `CreateAdminContactMessagesTable.sql`
    - `CreateHomepageCarouselTable.sql`（如果需要）
@@ -55,7 +78,10 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 # 进入 Database 目录
 cd Database
 
-# 依次执行必需的脚本
+# 首先执行管理员操作日志表脚本
+sqlcmd -S localhost -d RecyclingDB -i CreateAdminOperationLogsTable.sql
+
+# 依次执行其他必需的脚本
 sqlcmd -S localhost -d RecyclingDB -i CreateUserFeedbackTable.sql
 sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 
@@ -151,6 +177,37 @@ EXEC sp_help 'AdminContactMessages';
 ```
 
 ## 功能测试 (Feature Testing)
+
+### 测试日志管理功能
+
+1. 使用管理员账户登录
+2. 执行一些管理操作（如导出用户数据、更新回收员信息等）
+3. 导航到 "日志管理" 页面
+4. 验证日志是否正确记录到数据库：
+
+```sql
+-- 查看最近的操作日志
+SELECT TOP 20 
+    LogID,
+    AdminUsername AS '管理员',
+    Module AS '模块',
+    OperationType AS '操作类型',
+    Description AS '描述',
+    OperationTime AS '操作时间',
+    Result AS '结果'
+FROM AdminOperationLogs 
+ORDER BY OperationTime DESC;
+
+-- 查看今日操作统计
+SELECT 
+    Module AS '模块',
+    OperationType AS '操作类型',
+    COUNT(*) AS '操作次数'
+FROM AdminOperationLogs 
+WHERE CAST(OperationTime AS DATE) = CAST(GETDATE() AS DATE)
+GROUP BY Module, OperationType
+ORDER BY COUNT(*) DESC;
+```
 
 ### 测试用户反馈功能
 
