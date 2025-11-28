@@ -1148,10 +1148,9 @@ namespace recycling.Web.UI.Controllers
                 var result = _adminBLL.UpdateRecycler(recycler);
                 
                 // 记录操作日志
-                if (result.Success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Update, $"更新回收员信息：{recycler.Username}", recycler.RecyclerID, recycler.Username, "Success");
-                }
+                LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Update, 
+                    result.Success ? $"更新回收员信息：{recycler.Username}" : $"更新回收员信息失败：{recycler.Username}", 
+                    recycler.RecyclerID, recycler.Username, result.Success ? "Success" : "Failed");
                 
                 return Json(new { success = result.Success, message = result.Message });
             }
@@ -1432,6 +1431,17 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var result = _adminBLL.AddAdmin(admin, password);
+                
+                // 记录操作日志
+                if (result.Success)
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Create, $"添加管理员：{admin.Username}", null, admin.Username, "Success");
+                }
+                else
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Create, $"添加管理员失败：{admin.Username}", null, admin.Username, "Failed");
+                }
+                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1455,6 +1465,12 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var result = _adminBLL.UpdateAdmin(admin);
+                
+                // 记录操作日志
+                LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Update, 
+                    result.Success ? $"更新管理员信息：{admin.Username}" : $"更新管理员信息失败：{admin.Username}", 
+                    admin.AdminID, admin.Username, result.Success ? "Success" : "Failed");
+                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1477,7 +1493,15 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
+                // 获取管理员信息用于日志记录
+                var admin = _adminBLL.GetAdminById(adminId);
+                string adminName = admin?.Username ?? $"ID:{adminId}";
+                
                 var result = _adminBLL.DeleteAdmin(adminId);
+                
+                // 记录操作日志
+                LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Delete, $"删除管理员：{adminName}", adminId, adminName, result.Success ? "Success" : "Failed");
+                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1548,6 +1572,9 @@ namespace recycling.Web.UI.Controllers
                 // Generate file
                 var fileName = $"管理员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                // 记录导出操作日志
+                LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Export, $"导出管理员数据，共{admins.Count}条记录");
 
                 return File(fileBytes, "text/csv", fileName);
             }
