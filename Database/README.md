@@ -24,6 +24,64 @@ SetupRequiredTables.bat
 
 ## 脚本文件列表
 
+### CreateAdminOperationLogsTable.sql
+**用途：** 创建管理员操作日志表（AdminOperationLogs）
+
+**功能说明：**
+- 创建 AdminOperationLogs 表用于记录所有管理员的操作日志
+- 支持多模块记录：用户管理、回收员管理、反馈管理、首页页面管理、日志管理
+- 支持多种操作类型：查看、新增、更新、删除、导出、回复、搜索
+- 记录操作结果（成功/失败）
+- 记录操作者IP地址
+- 自动创建必要的索引以提高查询性能
+- 包含智能检测：如果表已存在则跳过创建
+
+**使用方法：**
+```sql
+-- 在 SQL Server Management Studio 中执行
+USE RecyclingDB;
+GO
+
+-- 然后执行脚本内容
+```
+或使用命令行：
+```batch
+sqlcmd -S localhost -d RecyclingDB -i CreateAdminOperationLogsTable.sql
+```
+
+**表结构：**
+- `LogID`: 日志ID（主键，自增）
+- `AdminID`: 管理员ID（INT，NOT NULL）
+- `AdminUsername`: 管理员用户名（NVARCHAR(50)，可空）
+- `Module`: 操作模块（NVARCHAR(50)，NOT NULL）
+  - `UserManagement`: 用户管理
+  - `RecyclerManagement`: 回收员管理
+  - `FeedbackManagement`: 反馈管理
+  - `HomepageManagement`: 首页页面管理
+  - `LogManagement`: 日志管理
+- `OperationType`: 操作类型（NVARCHAR(50)，NOT NULL）
+  - `View`: 查看
+  - `Create`: 新增
+  - `Update`: 更新
+  - `Delete`: 删除
+  - `Export`: 导出
+  - `Reply`: 回复
+  - `Search`: 搜索
+- `Description`: 操作描述（NVARCHAR(500)，可空）
+- `TargetID`: 目标对象ID（INT，可空）
+- `TargetName`: 目标对象名称（NVARCHAR(100)，可空）
+- `IPAddress`: 操作者IP地址（NVARCHAR(50)，可空）
+- `OperationTime`: 操作时间（DATETIME，默认当前时间）
+- `Result`: 操作结果（NVARCHAR(20)，可空）- Success/Failed
+- `Details`: 附加详情（NVARCHAR(MAX)，可空，JSON格式）
+
+**索引：**
+- `IX_AdminOperationLogs_AdminID`: 按管理员ID查询
+- `IX_AdminOperationLogs_Module`: 按模块查询
+- `IX_AdminOperationLogs_OperationType`: 按操作类型查询
+- `IX_AdminOperationLogs_OperationTime`: 按操作时间查询（降序）
+- `IX_AdminOperationLogs_Result`: 按操作结果查询
+
 ### CreateUserFeedbackTable.sql
 **用途：** 创建用户反馈表（UserFeedback）
 
@@ -187,8 +245,9 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 ## 执行顺序建议
 
 如果是全新安装，建议按以下顺序执行脚本：
-1. `CreateInventoryTable.sql` - 创建库存表（包含 Price 列）
-2. `CreateOrderReviewsTable.sql` - 创建订单评价表
+1. `CreateAdminOperationLogsTable.sql` - 创建管理员操作日志表（用于日志管理功能）
+2. `CreateInventoryTable.sql` - 创建库存表（包含 Price 列）
+3. `CreateOrderReviewsTable.sql` - 创建订单评价表
 
 如果表已存在但缺少某些列：
 - 执行 `AddInventoryPriceColumn.sql` - 为已存在的 Inventory 表添加 Price 列
