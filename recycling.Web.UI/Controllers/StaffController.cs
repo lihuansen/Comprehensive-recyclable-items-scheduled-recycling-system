@@ -2063,7 +2063,7 @@ namespace recycling.Web.UI.Controllers
 
                 // 获取物品信息用于日志记录
                 var item = _recyclableItemBLL.GetById(id);
-                string Name = item?.Name ?? $"ID:{id}";
+                string itemName = item?.Name ?? $"ID:{id}";
 
                 // Use HardDelete instead of soft delete
                 var (success, message) = _recyclableItemBLL.HardDelete(id);
