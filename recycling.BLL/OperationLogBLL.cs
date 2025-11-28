@@ -19,7 +19,7 @@ namespace recycling.BLL
         /// </summary>
         public bool LogOperation(int adminId, string adminUsername, string module, string operationType, string description, int? targetId = null, string targetName = null, string ipAddress = null, string result = "Success", string details = null)
         {
-            var log = new AdminOperationLog
+            var log = new AdminOperationLogs
             {
                 AdminID = adminId,
                 AdminUsername = adminUsername,
@@ -48,7 +48,7 @@ namespace recycling.BLL
         /// <summary>
         /// 获取操作日志列表（分页）
         /// </summary>
-        public PagedResult<AdminOperationLog> GetLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
+        public PagedResult<AdminOperationLogs> GetLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
         {
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
@@ -67,7 +67,7 @@ namespace recycling.BLL
         /// <summary>
         /// 导出日志（不分页）
         /// </summary>
-        public List<AdminOperationLog> GetLogsForExport(string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
+        public List<AdminOperationLogs> GetLogsForExport(string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
         {
             return _logDAL.GetLogsForExport(module, operationType, startDate, endDate, searchTerm);
         }
