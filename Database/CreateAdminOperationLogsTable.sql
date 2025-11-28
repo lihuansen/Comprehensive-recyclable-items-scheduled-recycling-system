@@ -91,61 +91,83 @@ BEGIN
 END
 GO
 
--- 添加表和列的扩展属性（注释）
-IF NOT EXISTS (SELECT * FROM fn_listextendedproperty(N'MS_Description', N'SCHEMA', N'dbo', N'TABLE', N'AdminOperationLogs', NULL, NULL))
+-- 添加表和列的扩展属性（注释）- 仅当表存在时执行
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AdminOperationLogs]') AND type in (N'U'))
 BEGIN
-    EXEC sp_addextendedproperty 
-        @name = N'MS_Description', 
-        @value = N'管理员操作日志表，记录所有管理操作', 
-        @level0type = N'SCHEMA', @level0name = N'dbo', 
-        @level1type = N'TABLE', @level1name = N'AdminOperationLogs';
-    PRINT '已添加表注释。';
+    IF NOT EXISTS (SELECT * FROM fn_listextendedproperty(N'MS_Description', N'SCHEMA', N'dbo', N'TABLE', N'AdminOperationLogs', NULL, NULL))
+    BEGIN
+        EXEC sp_addextendedproperty 
+            @name = N'MS_Description', 
+            @value = N'管理员操作日志表，记录所有管理操作', 
+            @level0type = N'SCHEMA', @level0name = N'dbo', 
+            @level1type = N'TABLE', @level1name = N'AdminOperationLogs';
+        PRINT '已添加表注释。';
+    END
 END
 GO
 
 -- ==============================================================================
--- 验证表创建结果
+-- 验证表创建结果（仅当表存在时执行）
 -- ==============================================================================
-PRINT '';
-PRINT '============================================';
-PRINT '表结构验证:';
-PRINT '============================================';
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AdminOperationLogs]') AND type in (N'U'))
+BEGIN
+    PRINT '';
+    PRINT '============================================';
+    PRINT '表结构验证:';
+    PRINT '============================================';
+END
+GO
 
-SELECT 
-    COLUMN_NAME AS '列名',
-    DATA_TYPE AS '数据类型',
-    CHARACTER_MAXIMUM_LENGTH AS '最大长度',
-    IS_NULLABLE AS '可为空',
-    COLUMN_DEFAULT AS '默认值'
-FROM 
-    INFORMATION_SCHEMA.COLUMNS 
-WHERE 
-    TABLE_NAME = 'AdminOperationLogs'
-ORDER BY 
-    ORDINAL_POSITION;
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AdminOperationLogs]') AND type in (N'U'))
+BEGIN
+    SELECT 
+        COLUMN_NAME AS '列名',
+        DATA_TYPE AS '数据类型',
+        CHARACTER_MAXIMUM_LENGTH AS '最大长度',
+        IS_NULLABLE AS '可为空',
+        COLUMN_DEFAULT AS '默认值'
+    FROM 
+        INFORMATION_SCHEMA.COLUMNS 
+    WHERE 
+        TABLE_NAME = 'AdminOperationLogs'
+    ORDER BY 
+        ORDINAL_POSITION;
+END
+GO
 
-PRINT '';
-PRINT '============================================';
-PRINT '索引列表:';
-PRINT '============================================';
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AdminOperationLogs]') AND type in (N'U'))
+BEGIN
+    PRINT '';
+    PRINT '============================================';
+    PRINT '索引列表:';
+    PRINT '============================================';
 
-SELECT 
-    i.name AS '索引名称',
-    c.name AS '列名',
-    i.type_desc AS '索引类型'
-FROM 
-    sys.indexes i
-    INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
-    INNER JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
-WHERE 
-    i.object_id = OBJECT_ID('AdminOperationLogs')
-    AND i.name IS NOT NULL
-ORDER BY 
-    i.name;
+    SELECT 
+        i.name AS '索引名称',
+        c.name AS '列名',
+        i.type_desc AS '索引类型'
+    FROM 
+        sys.indexes i
+        INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+        INNER JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+    WHERE 
+        i.object_id = OBJECT_ID('AdminOperationLogs')
+        AND i.name IS NOT NULL
+    ORDER BY 
+        i.name;
 
-PRINT '';
-PRINT '============================================';
-PRINT 'AdminOperationLogs 表设置完成！';
-PRINT '现在可以在管理员端访问日志管理功能了。';
-PRINT '============================================';
+    PRINT '';
+    PRINT '============================================';
+    PRINT 'AdminOperationLogs 表设置完成！';
+    PRINT '现在可以在管理员端访问日志管理功能了。';
+    PRINT '============================================';
+END
+ELSE
+BEGIN
+    PRINT '';
+    PRINT '============================================';
+    PRINT '警告: AdminOperationLogs 表不存在或创建失败！';
+    PRINT '请检查数据库连接和权限后重新执行脚本。';
+    PRINT '============================================';
+END
 GO
