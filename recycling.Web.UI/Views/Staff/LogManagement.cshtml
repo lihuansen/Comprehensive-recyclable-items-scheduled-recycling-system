@@ -110,6 +110,8 @@
     .badge-recycler { background-color: #28a745; color: white; }
     .badge-feedback { background-color: #ffc107; color: #000; }
     .badge-homepage { background-color: #6f42c1; color: white; }
+    .badge-warehouse { background-color: #fd7e14; color: white; }
+    .badge-admin { background-color: #e83e8c; color: white; }
 
     .badge-operation {
         padding: 4px 8px;
@@ -228,7 +230,7 @@
         </div>
         <div class="col-md-3">
             <div class="stats-card">
-                <div class="stats-number" id="moduleCount">5</div>
+                <div class="stats-number" id="moduleCount">7</div>
                 <div class="stats-label"><i class="fas fa-cubes"></i> 监控模块</div>
             </div>
         </div>
@@ -245,6 +247,8 @@
                 <option value="FeedbackManagement">反馈管理</option>
                 <option value="HomepageManagement">首页页面管理</option>
                 <option value="LogManagement">日志管理</option>
+                <option value="WarehouseManagement">仓库管理</option>
+                <option value="AdminManagement">管理员管理</option>
             </select>
         </div>
 
@@ -452,6 +456,14 @@
             case 'LogManagement':
                 displayName = '日志管理';
                 badgeClass = 'badge-user';
+                break;
+            case 'WarehouseManagement':
+                displayName = '仓库管理';
+                badgeClass = 'badge-warehouse';
+                break;
+            case 'AdminManagement':
+                displayName = '管理员管理';
+                badgeClass = 'badge-admin';
                 break;
             default:
                 displayName = module;
