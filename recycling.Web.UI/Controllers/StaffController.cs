@@ -1148,10 +1148,9 @@ namespace recycling.Web.UI.Controllers
                 var result = _adminBLL.UpdateRecycler(recycler);
                 
                 // 记录操作日志
-                if (result.Success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Update, $"更新回收员信息：{recycler.Username}", recycler.RecyclerID, recycler.Username, "Success");
-                }
+                LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Update, 
+                    result.Success ? $"更新回收员信息：{recycler.Username}" : $"更新回收员信息失败：{recycler.Username}", 
+                    recycler.RecyclerID, recycler.Username, result.Success ? "Success" : "Failed");
                 
                 return Json(new { success = result.Success, message = result.Message });
             }
@@ -1468,10 +1467,9 @@ namespace recycling.Web.UI.Controllers
                 var result = _adminBLL.UpdateAdmin(admin);
                 
                 // 记录操作日志
-                if (result.Success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Update, $"更新管理员信息：{admin.Username}", admin.AdminID, admin.Username, "Success");
-                }
+                LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Update, 
+                    result.Success ? $"更新管理员信息：{admin.Username}" : $"更新管理员信息失败：{admin.Username}", 
+                    admin.AdminID, admin.Username, result.Success ? "Success" : "Failed");
                 
                 return Json(new { success = result.Success, message = result.Message });
             }
