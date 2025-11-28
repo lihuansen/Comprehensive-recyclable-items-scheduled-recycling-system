@@ -144,6 +144,7 @@
                             <option value="feedback_management">反馈管理</option>
                             <option value="homepage_management">首页页面管理</option>
                             <option value="warehouse_management">仓库管理</option>
+                            <option value="log_management">日志管理</option>
                             <option value="full_access">全部权限</option>
                         </select>
                         <small class="form-text text-muted">选择管理员可访问的功能模块</small>
@@ -232,6 +233,7 @@ function getPermissionText(character) {
         case 'feedback_management': return '反馈管理';
         case 'homepage_management': return '首页页面管理';
         case 'warehouse_management': return '仓库管理';
+        case 'log_management': return '日志管理';
         case 'full_access': return '全部权限';
         default: return '未设置';
     }

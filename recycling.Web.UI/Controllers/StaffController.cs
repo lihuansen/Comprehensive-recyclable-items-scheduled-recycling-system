@@ -2207,7 +2207,7 @@ namespace recycling.Web.UI.Controllers
         /// 日志管理页面
         /// </summary>
         [HttpGet]
-        [AdminPermission(AdminPermissions.UserManagement)]
+        [AdminPermission(AdminPermissions.LogManagement)]
         public ActionResult LogManagement()
         {
             // 检查登录状态
