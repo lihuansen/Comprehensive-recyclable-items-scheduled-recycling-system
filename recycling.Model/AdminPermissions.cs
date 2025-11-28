@@ -11,6 +11,7 @@ namespace recycling.Model
         public const string FeedbackManagement = "feedback_management";
         public const string HomepageManagement = "homepage_management";
         public const string WarehouseManagement = "warehouse_management";
+        public const string LogManagement = "log_management";
         public const string FullAccess = "full_access";
 
         // 权限显示名称映射
@@ -28,6 +29,8 @@ namespace recycling.Model
                     return "首页页面管理";
                 case WarehouseManagement:
                     return "仓库管理";
+                case LogManagement:
+                    return "日志管理";
                 case FullAccess:
                     return "全部权限";
                 default:
@@ -45,6 +48,7 @@ namespace recycling.Model
                 FeedbackManagement,
                 HomepageManagement,
                 WarehouseManagement,
+                LogManagement,
                 FullAccess
             };
         }
@@ -57,6 +61,7 @@ namespace recycling.Model
                    permission == FeedbackManagement ||
                    permission == HomepageManagement ||
                    permission == WarehouseManagement ||
+                   permission == LogManagement ||
                    permission == FullAccess;
         }
 
