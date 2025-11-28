@@ -2002,7 +2002,7 @@ namespace recycling.Web.UI.Controllers
                 // 记录操作日志
                 if (success)
                 {
-                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Create, $"添加可回收物品：{item.ItemName}", null, item.ItemName, "Success");
+                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Create, $"添加可回收物品：{item.Name}", null, item.Name, "Success");
                 }
                 
                 return JsonContent(new { success = success, message = message });
@@ -2034,7 +2034,7 @@ namespace recycling.Web.UI.Controllers
                 // 记录操作日志
                 if (success)
                 {
-                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Update, $"更新可回收物品：{item.ItemName}", item.ItemID, item.ItemName, "Success");
+                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Update, $"更新可回收物品：{item.Name}", item.ItemId, item.Name, "Success");
                 }
                 
                 return JsonContent(new { success = success, message = message });
@@ -2063,13 +2063,13 @@ namespace recycling.Web.UI.Controllers
 
                 // 获取物品信息用于日志记录
                 var item = _recyclableItemBLL.GetById(id);
-                string itemName = item?.ItemName ?? $"ID:{id}";
+                string Name = item?.Name ?? $"ID:{id}";
 
                 // Use HardDelete instead of soft delete
                 var (success, message) = _recyclableItemBLL.HardDelete(id);
                 
                 // 记录操作日志
-                LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除可回收物品：{itemName}", id, itemName, success ? "Success" : "Failed");
+                LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除可回收物品：{Name}", id, Name, success ? "Success" : "Failed");
                 
                 return JsonContent(new { success = success, message = message });
             }
