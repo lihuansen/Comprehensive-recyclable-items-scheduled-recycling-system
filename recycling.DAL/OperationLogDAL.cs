@@ -14,7 +14,7 @@ namespace recycling.DAL
         /// <summary>
         /// 添加操作日志
         /// </summary>
-        public bool AddLog(AdminOperationLog log)
+        public bool AddLog(AdminOperationLogs log)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -44,13 +44,13 @@ namespace recycling.DAL
         /// <summary>
         /// 获取操作日志列表（分页）
         /// </summary>
-        public PagedResult<AdminOperationLog> GetLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
+        public PagedResult<AdminOperationLogs> GetLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
         {
-            var result = new PagedResult<AdminOperationLog>
+            var result = new PagedResult<AdminOperationLogs>
             {
                 PageIndex = page,
                 PageSize = pageSize,
-                Items = new List<AdminOperationLog>()
+                Items = new List<AdminOperationLogs>()
             };
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -179,9 +179,9 @@ namespace recycling.DAL
         /// <summary>
         /// 导出日志（不分页）
         /// </summary>
-        public List<AdminOperationLog> GetLogsForExport(string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
+        public List<AdminOperationLogs> GetLogsForExport(string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
         {
-            var logs = new List<AdminOperationLog>();
+            var logs = new List<AdminOperationLogs>();
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -253,9 +253,9 @@ namespace recycling.DAL
             }
         }
 
-        private AdminOperationLog MapLogFromReader(SqlDataReader reader)
+        private AdminOperationLogs MapLogFromReader(SqlDataReader reader)
         {
-            return new AdminOperationLog
+            return new AdminOperationLogs
             {
                 LogID = reader.GetInt32(reader.GetOrdinal("LogID")),
                 AdminID = reader.GetInt32(reader.GetOrdinal("AdminID")),
