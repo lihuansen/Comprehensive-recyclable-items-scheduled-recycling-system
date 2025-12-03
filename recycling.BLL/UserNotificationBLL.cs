@@ -13,6 +13,14 @@ namespace recycling.BLL
         private readonly UserNotificationDAL _notificationDAL = new UserNotificationDAL();
 
         /// <summary>
+        /// 格式化订单号
+        /// </summary>
+        private static string FormatOrderNumber(int orderId)
+        {
+            return $"#AP{orderId:D6}";
+        }
+
+        /// <summary>
         /// 发送订单创建通知
         /// </summary>
         public bool SendOrderCreatedNotification(int userId, int orderId)
@@ -22,7 +30,7 @@ namespace recycling.BLL
                 UserID = userId,
                 NotificationType = NotificationTypes.OrderCreated,
                 Title = "预约订单已生成",
-                Content = $"您的预约订单 #AP{orderId:D6} 已成功创建，请等待回收员接单。",
+                Content = $"您的预约订单 {FormatOrderNumber(orderId)} 已成功创建，请等待回收员接单。",
                 RelatedOrderID = orderId,
                 CreatedDate = DateTime.Now,
                 IsRead = false
@@ -37,14 +45,18 @@ namespace recycling.BLL
         public bool SendOrderAcceptedNotification(int orderId, string recyclerName)
         {
             int userId = _notificationDAL.GetUserIdByOrderId(orderId);
-            if (userId <= 0) return false;
+            if (userId <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取订单 {orderId} 的用户ID，接单通知发送失败");
+                return false;
+            }
 
             var notification = new UserNotifications
             {
                 UserID = userId,
                 NotificationType = NotificationTypes.OrderAccepted,
                 Title = "回收员已接单",
-                Content = $"您的订单 #AP{orderId:D6} 已被回收员 {recyclerName} 接单，请保持电话畅通。",
+                Content = $"您的订单 {FormatOrderNumber(orderId)} 已被回收员 {recyclerName} 接单，请保持电话畅通。",
                 RelatedOrderID = orderId,
                 CreatedDate = DateTime.Now,
                 IsRead = false
@@ -59,14 +71,18 @@ namespace recycling.BLL
         public bool SendOrderCompletedNotification(int orderId)
         {
             int userId = _notificationDAL.GetUserIdByOrderId(orderId);
-            if (userId <= 0) return false;
+            if (userId <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取订单 {orderId} 的用户ID，完成通知发送失败");
+                return false;
+            }
 
             var notification = new UserNotifications
             {
                 UserID = userId,
                 NotificationType = NotificationTypes.OrderCompleted,
                 Title = "订单已完成",
-                Content = $"您的订单 #AP{orderId:D6} 已完成，感谢您支持环保回收！",
+                Content = $"您的订单 {FormatOrderNumber(orderId)} 已完成，感谢您支持环保回收！",
                 RelatedOrderID = orderId,
                 CreatedDate = DateTime.Now,
                 IsRead = false
@@ -81,14 +97,18 @@ namespace recycling.BLL
         public bool SendReviewReminderNotification(int orderId)
         {
             int userId = _notificationDAL.GetUserIdByOrderId(orderId);
-            if (userId <= 0) return false;
+            if (userId <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取订单 {orderId} 的用户ID，评价提醒发送失败");
+                return false;
+            }
 
             var notification = new UserNotifications
             {
                 UserID = userId,
                 NotificationType = NotificationTypes.ReviewReminder,
                 Title = "评价提醒",
-                Content = $"您的订单 #AP{orderId:D6} 已完成，请对本次服务进行评价，帮助我们提升服务质量！",
+                Content = $"您的订单 {FormatOrderNumber(orderId)} 已完成，请对本次服务进行评价，帮助我们提升服务质量！",
                 RelatedOrderID = orderId,
                 CreatedDate = DateTime.Now,
                 IsRead = false
@@ -107,7 +127,7 @@ namespace recycling.BLL
                 UserID = userId,
                 NotificationType = NotificationTypes.OrderCancelled,
                 Title = "订单已取消",
-                Content = $"您的订单 #AP{orderId:D6} 已成功取消。",
+                Content = $"您的订单 {FormatOrderNumber(orderId)} 已成功取消。",
                 RelatedOrderID = orderId,
                 CreatedDate = DateTime.Now,
                 IsRead = false
@@ -150,7 +170,11 @@ namespace recycling.BLL
         public bool SendFeedbackRepliedNotification(int feedbackId, string feedbackSubject)
         {
             int userId = _notificationDAL.GetUserIdByFeedbackId(feedbackId);
-            if (userId <= 0) return false;
+            if (userId <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取反馈 {feedbackId} 的用户ID，反馈回复通知发送失败");
+                return false;
+            }
 
             var notification = new UserNotifications
             {
@@ -173,7 +197,7 @@ namespace recycling.BLL
         {
             if (userId <= 0) return new List<UserNotifications>();
             if (pageIndex < 1) pageIndex = 1;
-            if (pageSize < 1) pageSize = 20;
+            if (pageSize < 1 || pageSize > 100) pageSize = 20; // 限制最大页面大小为100
 
             return _notificationDAL.GetUserNotifications(userId, pageIndex, pageSize);
         }

@@ -166,8 +166,9 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@ReadDate", DateTime.Now);
 
                 conn.Open();
-                int rowsAffected = cmd.ExecuteNonQuery();
-                return rowsAffected >= 0; // Return true even if no rows updated
+                cmd.ExecuteNonQuery();
+                // 返回true表示操作执行成功，即使没有未读通知需要更新
+                return true;
             }
         }
 

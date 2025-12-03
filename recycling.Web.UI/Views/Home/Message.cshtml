@@ -428,7 +428,8 @@
         }
 
         function goToOrder(orderId) {
-            window.location.href = '@Url.Action("Order", "Home")';
+            // 导航到订单页面，用户可在订单列表中查看相关订单
+            window.location.href = '@Url.Action("Order", "Home")' + '#order-' + orderId;
         }
 
         function goToReview(orderId) {
