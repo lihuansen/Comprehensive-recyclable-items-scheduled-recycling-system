@@ -537,7 +537,7 @@ BEGIN
         [TargetID] INT NULL,                             -- 目标对象ID
         [TargetName] NVARCHAR(100) NULL,                 -- 目标对象名称
         [IPAddress] NVARCHAR(50) NULL,                   -- IP地址
-        [OperationTime] DATETIME NOT NULL DEFAULT GETDATE(), -- 操作时间
+        [OperationTime] DATETIME2 NOT NULL DEFAULT GETDATE(), -- 操作时间
         [Result] NVARCHAR(20) NULL,                      -- 操作结果
         [Details] NVARCHAR(MAX) NULL                     -- 附加详情（JSON）
     );
@@ -606,7 +606,7 @@ BEGIN
         CONSTRAINT FK_AdminContactMessages_Users FOREIGN KEY ([UserID]) 
             REFERENCES [dbo].[Users]([UserID]) ON DELETE CASCADE,
         CONSTRAINT CK_AdminContactMessages_SenderType 
-            CHECK ([SenderType] IN ('user', 'admin', 'system'))
+            CHECK ([SenderType] IN (N'user', N'admin', N'system'))
     );
 
     -- 创建索引

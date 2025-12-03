@@ -27,9 +27,11 @@
 | 13 | UserFeedback | recycling.Model.UserFeedback | 用户反馈表 |
 | 14 | UserNotifications | recycling.Model.UserNotifications | 用户通知表 |
 | 15 | AdminOperationLogs | recycling.Model.AdminOperationLogs | 管理员操作日志表 |
-| 16 | UserContactRequests | - | 用户联系请求表 |
-| 17 | AdminContactMessages | - | 管理员联系消息表 |
-| 18 | AdminContactConversations | - | 管理员联系会话表 |
+| 16 | UserContactRequests | 使用ADO.NET直接访问 | 用户联系请求表 |
+| 17 | AdminContactMessages | 使用ADO.NET直接访问 | 管理员联系消息表 |
+| 18 | AdminContactConversations | 使用ADO.NET直接访问 | 管理员联系会话表 |
+
+> **注意**: 表 16-18 没有对应的实体类，因为这些表通过 ADO.NET 直接访问，不通过 Entity Framework。
 
 **使用方法：**
 ```sql
