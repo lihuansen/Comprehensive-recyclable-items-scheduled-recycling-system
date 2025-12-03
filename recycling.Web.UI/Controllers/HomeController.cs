@@ -1303,6 +1303,30 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取未读通知数量（用于导航栏，GET请求）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetUnreadCountForNav()
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, unreadCount = 0 }, JsonRequestBehavior.AllowGet);
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var unreadCount = _notificationBLL.GetUnreadCount(user.UserID);
+
+                return Json(new { success = true, unreadCount = unreadCount }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, unreadCount = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
         /// 标记通知为已读（AJAX）
         /// </summary>
         [HttpPost]

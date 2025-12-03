@@ -93,6 +93,38 @@
 
         .normal-nav {
             margin: 0 8px;
+            position: relative;
+        }
+
+        /* 未读消息提示徽章样式 */
+        .nav-unread-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            animation: badge-pulse 2s ease-in-out infinite;
+        }
+
+        .nav-unread-badge:empty {
+            display: none;
+        }
+
+        @@keyframes badge-pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
         }
 
         .left-navs, .right-navs {
@@ -277,7 +309,10 @@
                     <ul class="left-navs">
                         <li class="normal-nav">@Html.ActionLink("首页", "Index", "Home")</li>
                         <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
-                        <li class="normal-nav">@Html.ActionLink("我的消息", "Message", "Home")</li>
+                        <li class="normal-nav" id="nav-message-item">
+                            @Html.ActionLink("我的消息", "Message", "Home")
+                            <span id="nav-unread-badge" class="nav-unread-badge"></span>
+                        </li>
                     </ul>
 
                     <div class="diamond-nav">
@@ -307,6 +342,54 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    
+    @* 导航栏未读消息数加载脚本 *@
+    @if (Session["LoginUser"] != null)
+    {
+        <script type="text/javascript">
+            (function() {
+                function updateUnreadBadge() {
+                    var badge = document.getElementById('nav-unread-badge');
+                    if (!badge) return;
+                    
+                    fetch('@Url.Action("GetUnreadCountForNav", "Home")', {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (data.success && data.unreadCount > 0) {
+                            badge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.textContent = '';
+                            badge.style.display = 'none';
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('获取未读消息数失败', err);
+                        badge.style.display = 'none';
+                    });
+                }
+                
+                // 页面加载时获取未读数
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateUnreadBadge);
+                } else {
+                    updateUnreadBadge();
+                }
+                
+                // 每60秒自动刷新一次未读数
+                setInterval(updateUnreadBadge, 60000);
+                
+                // 将更新函数暴露到全局，以便其他页面可以手动刷新
+                window.updateNavUnreadBadge = updateUnreadBadge;
+            })();
+        </script>
+    }
+    
     @RenderSection("scripts", required: false)
 </body>
 </html>
