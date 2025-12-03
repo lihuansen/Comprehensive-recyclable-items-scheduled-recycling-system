@@ -1320,8 +1320,9 @@ namespace recycling.Web.UI.Controllers
 
                 return Json(new { success = true, unreadCount = unreadCount }, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"获取导航栏未读消息数失败: {ex.Message}");
                 return Json(new { success = false, unreadCount = 0 }, JsonRequestBehavior.AllowGet);
             }
         }
