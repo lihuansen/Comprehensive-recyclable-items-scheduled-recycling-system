@@ -381,6 +381,11 @@
                         } else {
                             badge.style.display = 'none';
                         }
+                        
+                        // 同步更新导航栏未读徽章
+                        if (typeof window.updateNavUnreadBadge === 'function') {
+                            window.updateNavUnreadBadge();
+                        }
                     }
                 })
                 .catch(err => console.error('标记已读失败', err));
@@ -402,6 +407,11 @@
                 if (data.success) {
                     // Reload notifications
                     loadNotifications(currentPage);
+                    
+                    // 同步更新导航栏未读徽章
+                    if (typeof window.updateNavUnreadBadge === 'function') {
+                        window.updateNavUnreadBadge();
+                    }
                 }
             })
             .catch(err => console.error('标记全部已读失败', err));
