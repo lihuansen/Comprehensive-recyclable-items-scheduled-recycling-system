@@ -13,6 +13,73 @@ namespace recycling.DAL
     public class UserNotificationDAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
+        private static bool _tableChecked = false;
+        private static readonly object _lockObject = new object();
+
+        /// <summary>
+        /// 构造函数 - 确保UserNotifications表存在
+        /// </summary>
+        public UserNotificationDAL()
+        {
+            EnsureTableExists();
+        }
+
+        /// <summary>
+        /// 确保UserNotifications表存在（如果不存在则创建）
+        /// </summary>
+        private void EnsureTableExists()
+        {
+            if (_tableChecked) return;
+
+            lock (_lockObject)
+            {
+                if (_tableChecked) return;
+
+                try
+                {
+                    using (SqlConnection conn = new SqlConnection(_connectionString))
+                    {
+                        conn.Open();
+                        
+                        // Check if table exists and create it if not
+                        string checkSql = @"
+                            IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[UserNotifications]') AND type in (N'U'))
+                            BEGIN
+                                CREATE TABLE [dbo].[UserNotifications] (
+                                    [NotificationID] INT PRIMARY KEY IDENTITY(1,1),
+                                    [UserID] INT NOT NULL,
+                                    [NotificationType] NVARCHAR(50) NULL,
+                                    [Title] NVARCHAR(200) NULL,
+                                    [Content] NVARCHAR(1000) NULL,
+                                    [RelatedOrderID] INT NULL,
+                                    [RelatedFeedbackID] INT NULL,
+                                    [CreatedDate] DATETIME2 NOT NULL,
+                                    [IsRead] BIT NOT NULL DEFAULT 0,
+                                    [ReadDate] DATETIME2 NULL,
+                                    
+                                    CONSTRAINT FK_UserNotifications_Users FOREIGN KEY ([UserID]) 
+                                        REFERENCES [dbo].[Users]([UserID]) ON DELETE CASCADE
+                                );
+
+                                CREATE INDEX IX_UserNotifications_UserID ON [dbo].[UserNotifications]([UserID]);
+                                CREATE INDEX IX_UserNotifications_CreatedDate ON [dbo].[UserNotifications]([CreatedDate]);
+                                CREATE INDEX IX_UserNotifications_IsRead ON [dbo].[UserNotifications]([IsRead]);
+                                CREATE INDEX IX_UserNotifications_NotificationType ON [dbo].[UserNotifications]([NotificationType]);
+                            END";
+
+                        SqlCommand cmd = new SqlCommand(checkSql, conn);
+                        cmd.ExecuteNonQuery();
+                        
+                        _tableChecked = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't mark as checked, allowing retry on next instantiation
+                    System.Diagnostics.Debug.WriteLine($"确保UserNotifications表存在时发生错误: {ex.Message}");
+                }
+            }
+        }
 
         /// <summary>
         /// 添加通知
