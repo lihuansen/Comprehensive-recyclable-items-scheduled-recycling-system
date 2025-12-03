@@ -2,6 +2,45 @@
 
 本目录包含数据库相关的SQL脚本文件。
 
+## ⭐ 完整建表脚本（推荐）
+
+如果您需要创建整个数据库的所有表，请使用：
+
+**CreateAllTables.sql** - 包含所有实体类对应的数据库表
+
+此脚本包含以下18个表的完整定义：
+
+| 序号 | 表名 | 实体类 | 说明 |
+|------|------|--------|------|
+| 1 | Users | recycling.Model.Users | 用户表 |
+| 2 | Recyclers | recycling.Model.Recyclers | 回收员表 |
+| 3 | Admins | recycling.Model.Admins | 管理员表 |
+| 4 | SuperAdmins | recycling.Model.SuperAdmins | 超级管理员表 |
+| 5 | RecyclableItems | recycling.Model.RecyclableItems | 可回收物品表 |
+| 6 | Appointments | recycling.Model.Appointments | 预约订单表 |
+| 7 | AppointmentCategories | recycling.Model.AppointmentCategories | 预约品类表 |
+| 8 | Messages | recycling.Model.Messages | 消息表 |
+| 9 | Conversations | recycling.Model.Conversations | 会话表 |
+| 10 | HomepageCarousel | recycling.Model.HomepageCarousel | 首页轮播图表 |
+| 11 | Inventory | recycling.Model.Inventory | 库存表 |
+| 12 | OrderReviews | recycling.Model.OrderReviews | 订单评价表 |
+| 13 | UserFeedback | recycling.Model.UserFeedback | 用户反馈表 |
+| 14 | UserNotifications | recycling.Model.UserNotifications | 用户通知表 |
+| 15 | AdminOperationLogs | recycling.Model.AdminOperationLogs | 管理员操作日志表 |
+| 16 | UserContactRequests | 使用ADO.NET直接访问 | 用户联系请求表 |
+| 17 | AdminContactMessages | 使用ADO.NET直接访问 | 管理员联系消息表 |
+| 18 | AdminContactConversations | 使用ADO.NET直接访问 | 管理员联系会话表 |
+
+> **注意**: 表 16-18 没有对应的实体类，因为这些表通过 ADO.NET 直接访问，不通过 Entity Framework。
+
+**使用方法：**
+```sql
+-- 在 SQL Server Management Studio (SSMS) 中执行
+-- 直接运行 CreateAllTables.sql 即可创建所有表
+```
+
+---
+
 ## 快速开始（必需表）
 
 如果您遇到以下错误：
@@ -260,3 +299,59 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 - 业务逻辑层位于：`recycling.BLL/InventoryBLL.cs`
 
 数据库表结构必须与 Entity Framework 模型保持一致。
+
+## 实体类与非实体类说明
+
+### 实体类（对应数据库表）
+
+以下是 recycling.Model 项目中的实体类，对应数据库中的表：
+
+| 实体类 | 表名 | 说明 |
+|--------|------|------|
+| Users | Users | 用户表 |
+| Recyclers | Recyclers | 回收员表 |
+| Admins | Admins | 管理员表 |
+| SuperAdmins | SuperAdmins | 超级管理员表 |
+| Appointments | Appointments | 预约订单表 |
+| AppointmentCategories | AppointmentCategories | 预约品类表 |
+| RecyclableItems | RecyclableItems | 可回收物品表 |
+| Messages | Messages | 消息表 |
+| Conversations | Conversations | 会话表 |
+| HomepageCarousel | HomepageCarousel | 首页轮播图表 |
+| Inventory | Inventory | 库存表 |
+| OrderReviews | OrderReviews | 订单评价表 |
+| UserFeedback | UserFeedback | 用户反馈表 |
+| UserNotifications | UserNotifications | 用户通知表 |
+| AdminOperationLogs | AdminOperationLogs | 管理员操作日志表 |
+
+### 非实体类（View Model / 辅助类）
+
+以下是 recycling.Model 项目中的非实体类，不需要对应数据库表：
+
+| 类名 | 类型 | 说明 |
+|------|------|------|
+| AdminPermissions | 常量类 | 管理员权限常量定义 |
+| LoginViewModel | 视图模型 | 登录表单数据 |
+| RegisterViewModel | 视图模型 | 注册表单数据 |
+| ChangePasswordViewModel | 视图模型 | 修改密码表单数据 |
+| ForgotPasswordViewModel | 视图模型 | 忘记密码表单数据 |
+| EmailLoginViewModel | 视图模型 | 邮箱登录表单数据 |
+| PhoneLoginViewModel | 视图模型 | 手机登录表单数据 |
+| StaffLoginViewModel | 视图模型 | 员工登录表单数据 |
+| UpdateProfileViewModel | 视图模型 | 更新个人资料表单数据 |
+| AppointmentViewModel | 视图模型 | 预约信息展示 |
+| AppointmentSubmissionModel | 视图模型 | 预约提交数据 |
+| AppointmentOrder | 视图模型 | 预约订单展示 |
+| OrderDetailModel | 视图模型 | 订单详情展示 |
+| OrderFilterModel | 视图模型 | 订单筛选条件 |
+| RecyclableQueryModel | 视图模型 | 可回收物查询条件 |
+| RecyclerOrderViewModel | 视图模型 | 回收员订单展示 |
+| RecyclerOrderStatistics | 视图模型 | 回收员订单统计 |
+| RecyclerMessageViewModel | 视图模型 | 回收员消息展示 |
+| ContactRecyclerViewModel | 视图模型 | 联系回收员展示 |
+| ConversationViewModel | 视图模型 | 会话展示 |
+| InventoryDetailViewModel | 视图模型 | 库存详情展示 |
+| PagedResult | 辅助类 | 分页结果封装 |
+| OperationResult | 辅助类 | 操作结果封装 |
+| AcceptOrderRequest | 请求模型 | 接单请求数据 |
+| SendMessageRequest | 请求模型 | 发送消息请求数据 |
