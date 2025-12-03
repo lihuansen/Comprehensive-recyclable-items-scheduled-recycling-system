@@ -18,6 +18,7 @@ namespace recycling.Web.UI.Controllers
         private readonly StaffBLL _staffBLL = new StaffBLL();
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
+        private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -257,6 +258,12 @@ namespace recycling.Web.UI.Controllers
                 var orderBLL = new OrderBLL();
                 var result = orderBLL.CancelOrder(appointmentId, user.UserID);
 
+                // 发送订单取消通知
+                if (result.Success)
+                {
+                    _notificationBLL.SendOrderCancelledNotification(user.UserID, appointmentId);
+                }
+
                 return Json(new
                 {
                     success = result.Success,
@@ -282,6 +289,9 @@ namespace recycling.Web.UI.Controllers
             // 已登录，传递一些必要信息到视图（可在视图显示用户名等）
             var user = (recycling.Model.Users)Session["LoginUser"];
             ViewBag.UserName = user?.Username ?? "";
+            
+            // 获取未读通知数量
+            ViewBag.UnreadCount = _notificationBLL.GetUnreadCount(user.UserID);
 
             return View();
         }
@@ -1205,6 +1215,165 @@ namespace recycling.Web.UI.Controllers
             {
                 ViewBag.ErrorMessage = "加载反馈记录失败：" + ex.Message;
                 return View(new List<UserFeedback>());
+            }
+        }
+
+        // ==================== 用户通知功能 ====================
+
+        /// <summary>
+        /// 获取用户通知列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult GetUserNotifications(int pageIndex = 1, int pageSize = 20)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                // 验证分页参数，防止DoS攻击
+                if (pageIndex < 1) pageIndex = 1;
+                if (pageSize < 1) pageSize = 20;
+                if (pageSize > 100) pageSize = 100; // 限制最大页面大小
+
+                var user = (Users)Session["LoginUser"];
+                var notifications = _notificationBLL.GetUserNotifications(user.UserID, pageIndex, pageSize);
+                var totalCount = _notificationBLL.GetTotalCount(user.UserID);
+                var unreadCount = _notificationBLL.GetUnreadCount(user.UserID);
+
+                var result = notifications.Select(n => new
+                {
+                    notificationId = n.NotificationID,
+                    notificationType = n.NotificationType,
+                    typeDisplayName = NotificationTypes.GetDisplayName(n.NotificationType),
+                    typeIcon = NotificationTypes.GetIcon(n.NotificationType),
+                    typeColor = NotificationTypes.GetColor(n.NotificationType),
+                    title = n.Title,
+                    content = n.Content,
+                    relatedOrderId = n.RelatedOrderID,
+                    relatedFeedbackId = n.RelatedFeedbackID,
+                    createdDate = n.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
+                    isRead = n.IsRead,
+                    readDate = n.ReadDate?.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    notifications = result,
+                    totalCount = totalCount,
+                    unreadCount = unreadCount,
+                    pageIndex = pageIndex,
+                    pageSize = pageSize,
+                    totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取未读通知数量（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult GetUnreadNotificationCount()
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var unreadCount = _notificationBLL.GetUnreadCount(user.UserID);
+
+                return Json(new { success = true, unreadCount = unreadCount });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 标记通知为已读（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult MarkNotificationAsRead(int notificationId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var result = _notificationBLL.MarkAsRead(notificationId, user.UserID);
+
+                return Json(new { success = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 标记所有通知为已读（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult MarkAllNotificationsAsRead()
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var result = _notificationBLL.MarkAllAsRead(user.UserID);
+
+                return Json(new { success = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 删除通知（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult DeleteNotification(int notificationId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var result = _notificationBLL.DeleteNotification(notificationId, user.UserID);
+
+                return Json(new { success = result, message = result ? "删除成功" : "删除失败" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
