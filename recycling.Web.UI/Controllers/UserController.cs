@@ -11,6 +11,7 @@ namespace recycling.Web.UI.Controllers
     public class UserController : Controller
     {
         private readonly UserBLL _userBLL = new UserBLL();
+        private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
         // GET: User
         public ActionResult Index()
         {
@@ -714,6 +715,9 @@ namespace recycling.Web.UI.Controllers
                     TempData["ErrorMessage"] = errorMessage;
                     return View("CategoryDetails", detailModel);
                 }
+
+                // 发送订单创建通知
+                _notificationBLL.SendOrderCreatedNotification(user.UserID, appointmentId);
 
                 // 清除Session中的临时数据
                 Session.Remove("AppointmentBasicInfo");

@@ -128,5 +128,18 @@ namespace recycling.BLL
 
             return _feedbackDAL.GetUserFeedbacks(userId);
         }
+
+        /// <summary>
+        /// 根据反馈ID获取反馈详情
+        /// </summary>
+        public UserFeedback GetFeedbackById(int feedbackId)
+        {
+            if (feedbackId <= 0)
+            {
+                return null;
+            }
+
+            return _feedbackDAL.GetFeedbackById(feedbackId);
+        }
     }
 }

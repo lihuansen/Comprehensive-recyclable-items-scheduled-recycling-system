@@ -223,5 +223,54 @@ namespace recycling.DAL
             
             return feedbacks;
         }
+
+        /// <summary>
+        /// 根据反馈ID获取反馈详情
+        /// </summary>
+        public UserFeedback GetFeedbackById(int feedbackId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT FeedbackID, UserID, FeedbackType, Subject, Description, 
+                                          ContactEmail, Status, AdminReply, CreatedDate, UpdatedDate 
+                                   FROM UserFeedback
+                                   WHERE FeedbackID = @FeedbackID";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@FeedbackID", feedbackId);
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new UserFeedback
+                                {
+                                    FeedbackID = reader.GetInt32(reader.GetOrdinal("FeedbackID")),
+                                    UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                                    FeedbackType = reader.GetString(reader.GetOrdinal("FeedbackType")),
+                                    Subject = reader.GetString(reader.GetOrdinal("Subject")),
+                                    Description = reader.GetString(reader.GetOrdinal("Description")),
+                                    ContactEmail = reader.IsDBNull(reader.GetOrdinal("ContactEmail")) ? null : reader.GetString(reader.GetOrdinal("ContactEmail")),
+                                    Status = reader.GetString(reader.GetOrdinal("Status")),
+                                    AdminReply = reader.IsDBNull(reader.GetOrdinal("AdminReply")) ? null : reader.GetString(reader.GetOrdinal("AdminReply")),
+                                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                                    UpdatedDate = reader.IsDBNull(reader.GetOrdinal("UpdatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("UpdatedDate"))
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取反馈详情时发生错误: {ex.Message}");
+            }
+            
+            return null;
+        }
     }
 }

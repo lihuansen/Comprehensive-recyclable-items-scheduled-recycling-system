@@ -22,6 +22,7 @@ namespace recycling.Web.UI.Controllers
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
         private readonly OperationLogBLL _operationLogBLL = new OperationLogBLL();
+        private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -320,7 +321,7 @@ namespace recycling.Web.UI.Controllers
 
                 if (result.Success)
                 {
-                    // 发送系统消息通知用户
+                    // 发送系统消息通知用户（聊天消息）
                     var systemMessage = new SendMessageRequest
                     {
                         OrderID = appointmentId,
@@ -329,6 +330,9 @@ namespace recycling.Web.UI.Controllers
                         Content = $"回收员 {recycler.Username} 已接收您的订单，请保持电话畅通。"
                     };
                     _messageBLL.SendMessage(systemMessage);
+
+                    // 发送用户通知消息
+                    _notificationBLL.SendOrderAcceptedNotification(appointmentId, recycler.Username);
 
                     return Json(new { success = true, message = result.Message });
                 }
@@ -783,6 +787,14 @@ namespace recycling.Web.UI.Controllers
             // 完成订单
             var orderBll = new OrderBLL();
             var result = orderBll.CompleteOrder(appointmentId, recyclerId);
+            
+            // 发送订单完成通知和评价提醒
+            if (result.Success)
+            {
+                _notificationBLL.SendOrderCompletedNotification(appointmentId);
+                _notificationBLL.SendReviewReminderNotification(appointmentId);
+            }
+            
             var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
             return Content(json, "application/json", System.Text.Encoding.UTF8);
         }
@@ -1753,6 +1765,8 @@ namespace recycling.Web.UI.Controllers
                 if (success)
                 {
                     LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Create, $"添加轮播内容：{carousel.Title}", null, carousel.Title, "Success");
+                    // 发送轮播图更新通知给所有用户
+                    _notificationBLL.SendCarouselUpdatedNotification("add", carousel.Title ?? "新内容");
                 }
                 
                 return JsonContent(new { success = success, message = message });
@@ -1871,6 +1885,8 @@ namespace recycling.Web.UI.Controllers
                 if (success)
                 {
                     LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Update, $"更新轮播内容：{carousel.Title}", carousel.CarouselID, carousel.Title, "Success");
+                    // 发送轮播图更新通知给所有用户
+                    _notificationBLL.SendCarouselUpdatedNotification("update", carousel.Title ?? "已有内容");
                 }
                 
                 return JsonContent(new { success = success, message = message });
@@ -1906,6 +1922,12 @@ namespace recycling.Web.UI.Controllers
                 
                 // 记录操作日志
                 LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除轮播内容：{carouselTitle}", id, carouselTitle, success ? "Success" : "Failed");
+                
+                // 发送轮播图更新通知给所有用户
+                if (success)
+                {
+                    _notificationBLL.SendCarouselUpdatedNotification("delete", carouselTitle);
+                }
                 
                 return JsonContent(new { success = success, message = message });
             }
@@ -2207,6 +2229,10 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "无权限" });
                 }
 
+                // 获取反馈信息用于通知
+                var feedback = _feedbackBLL.GetFeedbackById(feedbackId);
+                string feedbackSubject = feedback?.Subject ?? $"反馈#{feedbackId}";
+
                 // 更新反馈状态
                 var (success, message) = _feedbackBLL.UpdateFeedbackStatus(feedbackId, status, adminReply);
 
@@ -2216,6 +2242,12 @@ namespace recycling.Web.UI.Controllers
                     string operationType = !string.IsNullOrEmpty(adminReply) ? OperationLogBLL.OperationTypes.Reply : OperationLogBLL.OperationTypes.Update;
                     string description = !string.IsNullOrEmpty(adminReply) ? $"回复反馈 #{feedbackId}" : $"更新反馈状态为：{status}";
                     LogAdminOperation(OperationLogBLL.Modules.FeedbackManagement, operationType, description, feedbackId, null, "Success");
+
+                    // 发送反馈回复通知（当有管理员回复或状态更新为已完成时）
+                    if (!string.IsNullOrEmpty(adminReply) || status == "已完成")
+                    {
+                        _notificationBLL.SendFeedbackRepliedNotification(feedbackId, feedbackSubject);
+                    }
                 }
 
                 return JsonContent(new { success = success, message = message });
