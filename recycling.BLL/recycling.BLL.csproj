@@ -59,6 +59,7 @@
     <Compile Include="RecyclerOrderBLL.cs" />
     <Compile Include="StaffBLL.cs" />
     <Compile Include="UserBLL.cs" />
+    <Compile Include="UserNotificationBLL.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\recycling.Common\recycling.Common.csproj">
