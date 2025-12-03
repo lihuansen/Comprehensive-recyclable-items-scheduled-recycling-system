@@ -194,6 +194,7 @@
 </style>
 
 <div class="notification-container">
+    @Html.AntiForgeryToken()
     <div class="notification-header">
         <div>
             <h3>
@@ -235,6 +236,7 @@
         var currentPage = 1;
         var totalPages = 1;
         var pageSize = 15;
+        var antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
@@ -257,9 +259,10 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': antiForgeryToken
                 },
-                body: 'pageIndex=' + page + '&pageSize=' + pageSize
+                body: '__RequestVerificationToken=' + encodeURIComponent(antiForgeryToken) + '&pageIndex=' + page + '&pageSize=' + pageSize
             })
             .then(r => r.json())
             .then(data => {
@@ -358,9 +361,10 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'RequestVerificationToken': antiForgeryToken
                     },
-                    body: 'notificationId=' + notificationId
+                    body: '__RequestVerificationToken=' + encodeURIComponent(antiForgeryToken) + '&notificationId=' + notificationId
                 })
                 .then(r => r.json())
                 .then(data => {
@@ -388,8 +392,10 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: '__RequestVerificationToken=' + encodeURIComponent(antiForgeryToken)
             })
             .then(r => r.json())
             .then(data => {
@@ -408,9 +414,10 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': antiForgeryToken
                 },
-                body: 'notificationId=' + notificationId
+                body: '__RequestVerificationToken=' + encodeURIComponent(antiForgeryToken) + '&notificationId=' + notificationId
             })
             .then(r => r.json())
             .then(data => {

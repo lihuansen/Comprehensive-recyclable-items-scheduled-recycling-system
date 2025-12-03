@@ -1224,6 +1224,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取用户通知列表（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult GetUserNotifications(int pageIndex = 1, int pageSize = 20)
         {
             try
@@ -1280,6 +1281,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取未读通知数量（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult GetUnreadNotificationCount()
         {
             try
@@ -1304,6 +1306,7 @@ namespace recycling.Web.UI.Controllers
         /// 标记通知为已读（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult MarkNotificationAsRead(int notificationId)
         {
             try
@@ -1328,6 +1331,7 @@ namespace recycling.Web.UI.Controllers
         /// 标记所有通知为已读（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult MarkAllNotificationsAsRead()
         {
             try
@@ -1352,6 +1356,7 @@ namespace recycling.Web.UI.Controllers
         /// 删除通知（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult DeleteNotification(int notificationId)
         {
             try
