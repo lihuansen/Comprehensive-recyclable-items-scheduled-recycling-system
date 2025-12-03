@@ -70,6 +70,7 @@
     <Compile Include="RecyclerOrderDAL.cs" />
     <Compile Include="StaffDAL.cs" />
     <Compile Include="UserDAL.cs" />
+    <Compile Include="UserNotificationDAL.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\recycling.Model\recycling.Model.csproj">
