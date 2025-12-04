@@ -1452,7 +1452,6 @@ namespace recycling.Web.UI.Controllers
                     district = a.District,
                     street = a.Street,
                     detailAddress = a.DetailAddress,
-                    fullAddress = a.FullAddress,
                     contactName = a.ContactName,
                     contactPhone = a.ContactPhone,
                     isDefault = a.IsDefault,
@@ -1636,7 +1635,6 @@ namespace recycling.Web.UI.Controllers
                         district = address.District,
                         street = address.Street,
                         detailAddress = address.DetailAddress,
-                        fullAddress = address.FullAddress,
                         contactName = address.ContactName,
                         contactPhone = address.ContactPhone,
                         isDefault = address.IsDefault
