@@ -15,15 +15,15 @@ namespace recycling.Model
 
         [Required]
         [StringLength(50)]
-        public string Province { get; set; } = "�㶫ʡ";
+        public string Province { get; set; } = "�㶫ʡ";
 
         [Required]
         [StringLength(50)]
-        public string City { get; set; } = "������";
+        public string City { get; set; } = "������";
 
         [Required]
         [StringLength(50)]
-        public string District { get; set; } = "�޺���";
+        public string District { get; set; } = "�޺���";
 
         [Required]
         [StringLength(50)]
@@ -48,5 +48,17 @@ namespace recycling.Model
 
         [Column(TypeName = "datetime2")]
         public DateTime? UpdatedDate { get; set; }
+
+        /// <summary>
+        /// 完整地址 (组合省份、城市、区域、街道和详细地址)
+        /// </summary>
+        [NotMapped]
+        public string FullAddress
+        {
+            get
+            {
+                return $"{Province ?? ""}{City ?? ""}{District ?? ""}{Street ?? ""}{DetailAddress ?? ""}";
+            }
+        }
     }
 }
