@@ -521,7 +521,44 @@ END
 GO
 
 -- ==============================================================================
--- 15. AdminOperationLogs 表（管理员操作日志表）
+-- 15. UserAddresses 表（用户地址表）
+-- 实体类: recycling.Model.UserAddresses
+-- 用途: 存储用户的收货地址信息
+-- ==============================================================================
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[UserAddresses]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[UserAddresses] (
+        [AddressID] INT PRIMARY KEY IDENTITY(1,1),       -- 地址ID（主键）
+        [UserID] INT NOT NULL,                           -- 用户ID（外键关联Users表）
+        [Province] NVARCHAR(50) NOT NULL DEFAULT N'广东省', -- 省份（默认：广东省）
+        [City] NVARCHAR(50) NOT NULL DEFAULT N'深圳市',    -- 城市（默认：深圳市）
+        [District] NVARCHAR(50) NOT NULL DEFAULT N'罗湖区', -- 区域（默认：罗湖区）
+        [Street] NVARCHAR(50) NOT NULL,                  -- 街道（罗湖区10个街道之一）
+        [DetailAddress] NVARCHAR(200) NOT NULL,          -- 详细地址（用户填写的具体地址）
+        [ContactName] NVARCHAR(50) NOT NULL,             -- 联系人姓名
+        [ContactPhone] NVARCHAR(20) NOT NULL,            -- 联系电话
+        [IsDefault] BIT NOT NULL DEFAULT 0,              -- 是否为默认地址（1=是，0=否）
+        [CreatedDate] DATETIME2 NOT NULL DEFAULT GETDATE(), -- 创建时间
+        [UpdatedDate] DATETIME2 NULL,                    -- 更新时间
+        
+        CONSTRAINT FK_UserAddresses_Users FOREIGN KEY ([UserID]) 
+            REFERENCES [dbo].[Users]([UserID]) ON DELETE CASCADE
+    );
+
+    -- 创建索引以提高查询性能
+    CREATE INDEX IX_UserAddresses_UserID ON [dbo].[UserAddresses]([UserID]);
+    CREATE INDEX IX_UserAddresses_IsDefault ON [dbo].[UserAddresses]([IsDefault]);
+
+    PRINT 'UserAddresses 表创建成功';
+END
+ELSE
+BEGIN
+    PRINT 'UserAddresses 表已存在';
+END
+GO
+
+-- ==============================================================================
+-- 16. AdminOperationLogs 表（管理员操作日志表）
 -- 实体类: recycling.Model.AdminOperationLogs
 -- 用途: 记录管理员端的所有操作日志
 -- ==============================================================================
@@ -558,7 +595,7 @@ END
 GO
 
 -- ==============================================================================
--- 16. UserContactRequests 表（用户联系请求表）
+-- 17. UserContactRequests 表（用户联系请求表）
 -- 用途: 记录用户点击"联系我们"的请求
 -- ==============================================================================
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[UserContactRequests]') AND type in (N'U'))
@@ -589,7 +626,7 @@ END
 GO
 
 -- ==============================================================================
--- 17. AdminContactMessages 表（管理员联系消息表）
+-- 18. AdminContactMessages 表（管理员联系消息表）
 -- 用途: 存储用户和管理员之间的聊天消息
 -- ==============================================================================
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AdminContactMessages]') AND type in (N'U'))
@@ -623,7 +660,7 @@ END
 GO
 
 -- ==============================================================================
--- 18. AdminContactConversations 表（管理员联系会话表）
+-- 19. AdminContactConversations 表（管理员联系会话表）
 -- 用途: 跟踪用户和管理员之间的会话状态
 -- ==============================================================================
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AdminContactConversations]') AND type in (N'U'))
@@ -678,10 +715,11 @@ PRINT ' 11. Inventory - 库存表';
 PRINT ' 12. OrderReviews - 订单评价表';
 PRINT ' 13. UserFeedback - 用户反馈表';
 PRINT ' 14. UserNotifications - 用户通知表';
-PRINT ' 15. AdminOperationLogs - 管理员操作日志表';
-PRINT ' 16. UserContactRequests - 用户联系请求表';
-PRINT ' 17. AdminContactMessages - 管理员联系消息表';
-PRINT ' 18. AdminContactConversations - 管理员联系会话表';
+PRINT ' 15. UserAddresses - 用户地址表';
+PRINT ' 16. AdminOperationLogs - 管理员操作日志表';
+PRINT ' 17. UserContactRequests - 用户联系请求表';
+PRINT ' 18. AdminContactMessages - 管理员联系消息表';
+PRINT ' 19. AdminContactConversations - 管理员联系会话表';
 PRINT '';
 PRINT '对应的实体类位于: recycling.Model 项目';
 PRINT '';
