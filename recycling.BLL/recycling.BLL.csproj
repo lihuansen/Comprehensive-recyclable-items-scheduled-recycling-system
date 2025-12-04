@@ -58,6 +58,7 @@
     <Compile Include="RecyclableItemBLL.cs" />
     <Compile Include="RecyclerOrderBLL.cs" />
     <Compile Include="StaffBLL.cs" />
+    <Compile Include="UserAddressBLL.cs" />
     <Compile Include="UserBLL.cs" />
     <Compile Include="UserNotificationBLL.cs" />
   </ItemGroup>
