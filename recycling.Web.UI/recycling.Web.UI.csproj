@@ -215,6 +215,7 @@
     <Content Include="Views\Home\ReviewOrder.cshtml" />
     <Content Include="Views\Home\Feedback.cshtml" />
     <Content Include="Views\Home\MyFeedback.cshtml" />
+    <Content Include="Views\Home\AddressManagement.cshtml" />
     <Content Include="Views\Shared\_RecyclerLayout.cshtml" />
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
     <Content Include="Views\Shared\_SuperAdminLayout.cshtml" />
@@ -234,6 +235,8 @@
     <Content Include="Views\Staff\RecyclableItemsManagement.cshtml" />
     <Content Include="Views\Staff\FeedbackManagement.cshtml" />
     <Content Include="Views\Staff\DataDashboard.cshtml" />
+    <Content Include="Views\Staff\ContactUser.cshtml" />
+    <Content Include="Views\Staff\LogManagement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
