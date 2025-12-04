@@ -19,6 +19,7 @@ namespace recycling.Web.UI.Controllers
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
+        private readonly UserAddressBLL _addressBLL = new UserAddressBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -1395,6 +1396,252 @@ namespace recycling.Web.UI.Controllers
                 var result = _notificationBLL.DeleteNotification(notificationId, user.UserID);
 
                 return Json(new { success = result, message = result ? "删除成功" : "删除失败" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ==================== 地址管理功能 ====================
+
+        /// <summary>
+        /// 地址管理页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult AddressManagement()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                TempData["ReturnUrl"] = Url.Action("AddressManagement", "Home");
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            var user = (Users)Session["LoginUser"];
+            var addresses = _addressBLL.GetUserAddresses(user.UserID);
+            
+            // 传递街道数据到视图
+            ViewBag.Streets = Streets.LuohuStreets;
+            
+            return View(addresses);
+        }
+
+        /// <summary>
+        /// 获取用户地址列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult GetAddresses()
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var addresses = _addressBLL.GetUserAddresses(user.UserID);
+
+                var result = addresses.Select(a => new
+                {
+                    addressId = a.AddressID,
+                    province = a.Province,
+                    city = a.City,
+                    district = a.District,
+                    street = a.Street,
+                    detailAddress = a.DetailAddress,
+                    fullAddress = a.FullAddress,
+                    contactName = a.ContactName,
+                    contactPhone = a.ContactPhone,
+                    isDefault = a.IsDefault,
+                    createdDate = a.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return Json(new { success = true, addresses = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 添加新地址（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult AddAddress(string street, string detailAddress, string contactName, string contactPhone, bool isDefault = false)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+
+                // 获取街道名称
+                string streetName = street;
+                if (Streets.LuohuStreets.ContainsKey(street))
+                {
+                    streetName = Streets.LuohuStreets[street];
+                }
+
+                var address = new UserAddresses
+                {
+                    UserID = user.UserID,
+                    Street = streetName,
+                    DetailAddress = detailAddress,
+                    ContactName = contactName,
+                    ContactPhone = contactPhone,
+                    IsDefault = isDefault
+                };
+
+                var (success, message, addressId) = _addressBLL.AddAddress(address);
+
+                return Json(new { success = success, message = message, addressId = addressId });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "添加地址失败：" + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 更新地址（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult UpdateAddress(int addressId, string street, string detailAddress, string contactName, string contactPhone)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+
+                // 获取街道名称
+                string streetName = street;
+                if (Streets.LuohuStreets.ContainsKey(street))
+                {
+                    streetName = Streets.LuohuStreets[street];
+                }
+
+                var address = new UserAddresses
+                {
+                    AddressID = addressId,
+                    UserID = user.UserID,
+                    Street = streetName,
+                    DetailAddress = detailAddress,
+                    ContactName = contactName,
+                    ContactPhone = contactPhone
+                };
+
+                var (success, message) = _addressBLL.UpdateAddress(address);
+
+                return Json(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "更新地址失败：" + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 删除地址（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult DeleteAddress(int addressId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var (success, message) = _addressBLL.DeleteAddress(addressId, user.UserID);
+
+                return Json(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "删除地址失败：" + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 设置默认地址（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SetDefaultAddress(int addressId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var (success, message) = _addressBLL.SetDefaultAddress(addressId, user.UserID);
+
+                return Json(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "设置默认地址失败：" + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取单个地址详情（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult GetAddressDetail(int addressId)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var address = _addressBLL.GetAddressById(addressId, user.UserID);
+
+                if (address == null)
+                {
+                    return Json(new { success = false, message = "地址不存在" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    address = new
+                    {
+                        addressId = address.AddressID,
+                        province = address.Province,
+                        city = address.City,
+                        district = address.District,
+                        street = address.Street,
+                        detailAddress = address.DetailAddress,
+                        fullAddress = address.FullAddress,
+                        contactName = address.ContactName,
+                        contactPhone = address.ContactPhone,
+                        isDefault = address.IsDefault
+                    }
+                });
             }
             catch (Exception ex)
             {
