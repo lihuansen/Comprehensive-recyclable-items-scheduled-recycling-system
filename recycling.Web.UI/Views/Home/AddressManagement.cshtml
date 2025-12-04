@@ -461,7 +461,10 @@
                     <label class="form-label required">街道</label>
                     <select class="form-control" id="streetSelect" name="street" required>
                         <option value="">请选择街道</option>
-                        @foreach (var street in ViewBag.Streets as Dictionary<string, string>)
+                        @{
+                            var streets = ViewBag.Streets as Dictionary<string, string> ?? new Dictionary<string, string>();
+                        }
+                        @foreach (var street in streets)
                         {
                             <option value="@street.Key">@street.Value</option>
                         }

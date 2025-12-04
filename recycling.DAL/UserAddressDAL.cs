@@ -10,6 +10,10 @@ namespace recycling.DAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
+        // 共用的SELECT列表，避免重复
+        private const string SelectColumns = @"AddressID, UserID, Province, City, District, Street, DetailAddress, 
+                              ContactName, ContactPhone, IsDefault, CreatedDate, UpdatedDate";
+
         /// <summary>
         /// 获取用户的所有地址
         /// </summary>
@@ -18,8 +22,7 @@ namespace recycling.DAL
             var addresses = new List<UserAddresses>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT AddressID, UserID, Province, City, District, Street, DetailAddress, 
-                              ContactName, ContactPhone, IsDefault, CreatedDate, UpdatedDate 
+                string sql = $@"SELECT {SelectColumns} 
                        FROM UserAddresses 
                        WHERE UserID = @UserID 
                        ORDER BY IsDefault DESC, CreatedDate DESC";
@@ -46,8 +49,7 @@ namespace recycling.DAL
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT AddressID, UserID, Province, City, District, Street, DetailAddress, 
-                              ContactName, ContactPhone, IsDefault, CreatedDate, UpdatedDate 
+                string sql = $@"SELECT {SelectColumns} 
                        FROM UserAddresses 
                        WHERE AddressID = @AddressID AND UserID = @UserID";
 
@@ -74,8 +76,7 @@ namespace recycling.DAL
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT AddressID, UserID, Province, City, District, Street, DetailAddress, 
-                              ContactName, ContactPhone, IsDefault, CreatedDate, UpdatedDate 
+                string sql = $@"SELECT {SelectColumns} 
                        FROM UserAddresses 
                        WHERE UserID = @UserID AND IsDefault = 1";
 

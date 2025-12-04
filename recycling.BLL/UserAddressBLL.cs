@@ -10,6 +10,7 @@ namespace recycling.BLL
     {
         private UserAddressDAL _addressDAL = new UserAddressDAL();
         private const int MAX_ADDRESSES = 10; // 每个用户最多10个地址
+        private static readonly Regex PhoneRegex = new Regex(@"^1[3-9]\d{9}$", RegexOptions.Compiled);
 
         /// <summary>
         /// 获取用户的所有地址
@@ -51,7 +52,7 @@ namespace recycling.BLL
                 }
 
                 // 验证联系电话格式
-                if (!Regex.IsMatch(address.ContactPhone, @"^1[3-9]\d{9}$"))
+                if (!PhoneRegex.IsMatch(address.ContactPhone ?? string.Empty))
                 {
                     return (false, "请输入有效的11位手机号码", 0);
                 }
@@ -119,7 +120,7 @@ namespace recycling.BLL
                 }
 
                 // 验证联系电话格式
-                if (!Regex.IsMatch(address.ContactPhone, @"^1[3-9]\d{9}$"))
+                if (!PhoneRegex.IsMatch(address.ContactPhone ?? string.Empty))
                 {
                     return (false, "请输入有效的11位手机号码");
                 }

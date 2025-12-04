@@ -19,6 +19,7 @@ namespace recycling.Web.UI.Controllers
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
+        private readonly UserAddressBLL _addressBLL = new UserAddressBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -1403,8 +1404,6 @@ namespace recycling.Web.UI.Controllers
         }
 
         // ==================== 地址管理功能 ====================
-
-        private readonly UserAddressBLL _addressBLL = new UserAddressBLL();
 
         /// <summary>
         /// 地址管理页面
