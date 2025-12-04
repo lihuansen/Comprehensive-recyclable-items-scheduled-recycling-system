@@ -91,7 +91,6 @@
     <Compile Include="StaffLoginViewModel.cs" />
     <Compile Include="SuperAdmins.cs" />
     <Compile Include="UpdateProfileViewModel.cs" />
-    <Compile Include="UserAddresses.cs" />
     <Compile Include="UserFeedback.cs" />
     <Compile Include="UserNotifications.cs" />
     <Compile Include="Users.cs" />
