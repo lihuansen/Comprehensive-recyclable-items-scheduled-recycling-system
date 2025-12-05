@@ -3,6 +3,10 @@
 @{
     ViewBag.Title = "预约上门回收 - 第一步";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    // Declare variables at the top so they are accessible throughout the view including @section Scripts
+    var userAddresses = ViewBag.UserAddresses as List<recycling.Model.UserAddresses> ?? new List<recycling.Model.UserAddresses>();
+    var streets = ViewBag.Streets as Dictionary<string, string> ?? new Dictionary<string, string>();
 }
 
 <!-- 引入Font Awesome -->
@@ -526,8 +530,6 @@
                     <label class="form-label required-field">选择收货地址</label>
                     <div class="address-selection-wrapper">
                         @{
-                            var userAddresses = ViewBag.UserAddresses as List<recycling.Model.UserAddresses> ?? new List<recycling.Model.UserAddresses>();
-                            var streets = ViewBag.Streets as Dictionary<string, string> ?? new Dictionary<string, string>();
                             var addressOptions = new List<SelectListItem>
                             {
                                 new SelectListItem { Value = "0", Text = "-- 新增地址 --" }
