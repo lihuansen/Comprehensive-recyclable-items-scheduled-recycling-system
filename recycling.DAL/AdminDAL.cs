@@ -437,7 +437,7 @@ namespace recycling.DAL
                 cmd = new SqlCommand(@"
                     SELECT CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
                     FROM Inventory
-                    WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE)
+                    WHERE CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))
                     GROUP BY CategoryName
                     ORDER BY TotalWeight DESC", conn);
 
@@ -458,7 +458,7 @@ namespace recycling.DAL
                 // Total daily weight
                 cmd = new SqlCommand(@"
                     SELECT ISNULL(SUM(Weight), 0) FROM Inventory 
-                    WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
+                    WHERE CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))", conn);
                 stats["TodayTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
                 // === Regional Recycling Totals (十个街道区域回收总量) ===
@@ -521,13 +521,14 @@ namespace recycling.DAL
                 // Today's completed orders
                 cmd = new SqlCommand(@"
                     SELECT COUNT(*) FROM Appointments 
-                    WHERE Status = N'已完成' AND CAST(UpdatedDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
+                    WHERE Status = N'已完成' AND UpdatedDate >= CAST(GETDATE() AS DATE) AND UpdatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))", conn);
                 stats["TodayCompletedOrders"] = (int)cmd.ExecuteScalar();
 
                 // This month's total weight
                 cmd = new SqlCommand(@"
                     SELECT ISNULL(SUM(Weight), 0) FROM Inventory 
-                    WHERE YEAR(CreatedDate) = YEAR(GETDATE()) AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
+                    WHERE CreatedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
+                    AND CreatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
                 stats["MonthTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
                 // All-time total weight
