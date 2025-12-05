@@ -42,6 +42,10 @@ namespace recycling.BLL
                     return ValidateAdmin(username, passwordHash);
                 case "superadmin":
                     return ValidateSuperAdmin(username, passwordHash);
+                case "transporter":
+                    return ValidateTransporter(username, passwordHash);
+                case "sortingcenterworker":
+                    return ValidateSortingCenterWorker(username, passwordHash);
                 default:
                     return ("无效的角色", null);
             }
@@ -118,6 +122,64 @@ namespace recycling.BLL
                 // 登录成功，更新最后登录时间
                 _staffDAL.UpdateSuperAdminLastLogin(superAdmin.SuperAdminID);
                 return (null, superAdmin);
+            }
+            catch (Exception ex)
+            {
+                return ($"登录失败：{ex.Message}", null);
+            }
+        }
+
+        /// <summary>
+        /// 验证运输人员登录
+        /// </summary>
+        private (string ErrorMsg, Transporters Staff) ValidateTransporter(string username, string passwordHash)
+        {
+            try
+            {
+                var transporter = _staffDAL.GetTransporterByUsername(username);
+                if (transporter == null)
+                    return ("运输人员账号不存在", null);
+
+                // 不区分大小写比较哈希值
+                if (!string.Equals(transporter.PasswordHash, passwordHash, StringComparison.OrdinalIgnoreCase))
+                    return ("密码错误", null);
+
+                // 检查账号是否被禁用
+                if (!transporter.IsActive)
+                    return ("账号已被禁用，无法登录", null);
+
+                // 登录成功，更新最后登录时间
+                _staffDAL.UpdateTransporterLastLogin(transporter.TransporterID);
+                return (null, transporter);
+            }
+            catch (Exception ex)
+            {
+                return ($"登录失败：{ex.Message}", null);
+            }
+        }
+
+        /// <summary>
+        /// 验证分拣中心工作人员登录
+        /// </summary>
+        private (string ErrorMsg, SortingCenterWorkers Staff) ValidateSortingCenterWorker(string username, string passwordHash)
+        {
+            try
+            {
+                var worker = _staffDAL.GetSortingCenterWorkerByUsername(username);
+                if (worker == null)
+                    return ("分拣中心工作人员账号不存在", null);
+
+                // 不区分大小写比较哈希值
+                if (!string.Equals(worker.PasswordHash, passwordHash, StringComparison.OrdinalIgnoreCase))
+                    return ("密码错误", null);
+
+                // 检查账号是否被禁用
+                if (!worker.IsActive)
+                    return ("账号已被禁用，无法登录", null);
+
+                // 登录成功，更新最后登录时间
+                _staffDAL.UpdateSortingCenterWorkerLastLogin(worker.WorkerID);
+                return (null, worker);
             }
             catch (Exception ex)
             {

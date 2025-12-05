@@ -239,6 +239,170 @@ namespace recycling.DAL
         }
         #endregion
 
+        #region 运输人员登录验证（对应Transporters表）
+        /// <summary>
+        /// 根据用户名查询运输人员信息
+        /// </summary>
+        public Transporters GetTransporterByUsername(string username)
+        {
+            Transporters transporter = null;
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    string sql = @"SELECT TransporterID, Username, PasswordHash, FullName, PhoneNumber, 
+                                          VehicleType, VehiclePlateNumber, Region, Available, CurrentStatus,
+                                          LastLoginDate, IsActive 
+                                  FROM Transporters 
+                                  WHERE Username = @Username";
+
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@Username", username);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            transporter = new Transporters
+                            {
+                                TransporterID = Convert.ToInt32(reader["TransporterID"]),
+                                Username = reader["Username"].ToString(),
+                                PasswordHash = reader["PasswordHash"].ToString(),
+                                FullName = reader["FullName"]?.ToString(),
+                                PhoneNumber = reader["PhoneNumber"].ToString(),
+                                VehicleType = reader["VehicleType"].ToString(),
+                                VehiclePlateNumber = reader["VehiclePlateNumber"].ToString(),
+                                Region = reader["Region"].ToString(),
+                                Available = Convert.ToBoolean(reader["Available"]),
+                                CurrentStatus = reader["CurrentStatus"].ToString(),
+                                LastLoginDate = reader["LastLoginDate"] != DBNull.Value
+                                    ? Convert.ToDateTime(reader["LastLoginDate"])
+                                    : (DateTime?)null,
+                                IsActive = Convert.ToBoolean(reader["IsActive"])
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("查询运输人员失败：" + ex.Message);
+                }
+            }
+            return transporter;
+        }
+
+        /// <summary>
+        /// 更新运输人员最后登录时间
+        /// </summary>
+        public void UpdateTransporterLastLogin(int transporterId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Transporters 
+                               SET LastLoginDate = @LastLoginDate 
+                               WHERE TransporterID = @TransporterID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@LastLoginDate", DateTime.Now);
+                cmd.Parameters.AddWithValue("@TransporterID", transporterId);
+
+                try
+                {
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("更新运输人员登录时间失败：" + ex.Message);
+                }
+            }
+        }
+        #endregion
+
+        #region 分拣中心工作人员登录验证（对应SortingCenterWorkers表）
+        /// <summary>
+        /// 根据用户名查询分拣中心工作人员信息
+        /// </summary>
+        public SortingCenterWorkers GetSortingCenterWorkerByUsername(string username)
+        {
+            SortingCenterWorkers worker = null;
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, 
+                                          SortingCenterID, SortingCenterName, Position, WorkStation,
+                                          ShiftType, Available, CurrentStatus, LastLoginDate, IsActive 
+                                  FROM SortingCenterWorkers 
+                                  WHERE Username = @Username";
+
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@Username", username);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            worker = new SortingCenterWorkers
+                            {
+                                WorkerID = Convert.ToInt32(reader["WorkerID"]),
+                                Username = reader["Username"].ToString(),
+                                PasswordHash = reader["PasswordHash"].ToString(),
+                                FullName = reader["FullName"]?.ToString(),
+                                PhoneNumber = reader["PhoneNumber"].ToString(),
+                                SortingCenterID = Convert.ToInt32(reader["SortingCenterID"]),
+                                SortingCenterName = reader["SortingCenterName"].ToString(),
+                                Position = reader["Position"].ToString(),
+                                WorkStation = reader["WorkStation"]?.ToString(),
+                                ShiftType = reader["ShiftType"].ToString(),
+                                Available = Convert.ToBoolean(reader["Available"]),
+                                CurrentStatus = reader["CurrentStatus"].ToString(),
+                                LastLoginDate = reader["LastLoginDate"] != DBNull.Value
+                                    ? Convert.ToDateTime(reader["LastLoginDate"])
+                                    : (DateTime?)null,
+                                IsActive = Convert.ToBoolean(reader["IsActive"])
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("查询分拣中心工作人员失败：" + ex.Message);
+                }
+            }
+            return worker;
+        }
+
+        /// <summary>
+        /// 更新分拣中心工作人员最后登录时间
+        /// </summary>
+        public void UpdateSortingCenterWorkerLastLogin(int workerId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE SortingCenterWorkers 
+                               SET LastLoginDate = @LastLoginDate 
+                               WHERE WorkerID = @WorkerID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@LastLoginDate", DateTime.Now);
+                cmd.Parameters.AddWithValue("@WorkerID", workerId);
+
+                try
+                {
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("更新分拣中心工作人员登录时间失败：" + ex.Message);
+                }
+            }
+        }
+        #endregion
+
         // 在StaffDAL类中添加
         /// <summary>
         /// 根据ID获取回收员信息（供BLL层调用）
