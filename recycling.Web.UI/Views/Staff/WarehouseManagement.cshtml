@@ -1,48 +1,53 @@
 @{
     ViewBag.Title = "仓库管理";
-    Layout = "~/Views/Shared/_RecyclerLayout.cshtml";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
+
+@Html.AntiForgeryToken()
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
     .warehouse-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 30px auto;
         padding: 20px;
     }
 
     .warehouse-header {
-        text-align: center;
-        margin-bottom: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
-    .warehouse-title {
-        font-size: 32px;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 10px;
+    .warehouse-header h2 {
+        margin: 0;
+        font-size: 28px;
     }
 
-    .warehouse-subtitle {
-        font-size: 16px;
-        color: #7f8c8d;
+    .warehouse-header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
     }
 
     .inventory-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 25px;
-        margin-top: 30px;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
     }
 
     .inventory-card {
         background: white;
         border-radius: 15px;
-        padding: 25px;
+        padding: 20px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
         border-left: 5px solid #3498db;
+        cursor: pointer;
     }
 
     .inventory-card:hover {
@@ -50,36 +55,40 @@
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
 
-    .inventory-icon {
-        font-size: 48px;
-        color: #3498db;
-        margin-bottom: 15px;
+    .inventory-card.active {
+        border-color: #27ae60;
+        box-shadow: 0 10px 30px rgba(39, 174, 96, 0.3);
     }
 
-    .inventory-category {
-        font-size: 20px;
-        font-weight: bold;
-        color: #2c3e50;
+    .inventory-icon {
+        font-size: 36px;
+        color: #3498db;
         margin-bottom: 10px;
     }
 
+    .inventory-category {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
     .inventory-weight {
-        font-size: 36px;
+        font-size: 28px;
         font-weight: bold;
         color: #27ae60;
-        margin-bottom: 5px;
+        margin-bottom: 3px;
     }
 
     .inventory-price {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: bold;
         color: #e67e22;
-        margin-top: 10px;
-        margin-bottom: 5px;
+        margin-top: 8px;
     }
 
     .inventory-unit {
-        font-size: 18px;
+        font-size: 14px;
         color: #7f8c8d;
     }
 
@@ -101,35 +110,106 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border-radius: 15px;
-        padding: 30px;
-        margin-bottom: 30px;
+        padding: 25px;
+        margin-bottom: 25px;
         text-align: center;
         box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
-    .total-summary h2 {
+    .total-summary h3 {
         margin: 0;
-        font-size: 24px;
-        margin-bottom: 15px;
+        font-size: 20px;
+        margin-bottom: 12px;
     }
 
     .total-summary .total-weight {
-        font-size: 48px;
+        font-size: 40px;
         font-weight: bold;
         margin-bottom: 5px;
+    }
+
+    /* Detail table styles */
+    .detail-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-top: 30px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .detail-header h3 {
+        margin: 0;
+        color: #333;
+    }
+
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .detail-table thead {
+        background: #f8f9fa;
+    }
+
+    .detail-table th {
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .detail-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .detail-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .badge-category {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-glass { background: #e3f2fd; color: #1976d2; }
+    .badge-metal { background: #eceff1; color: #546e7a; }
+    .badge-plastic { background: #ffebee; color: #c62828; }
+    .badge-paper { background: #fff3e0; color: #e65100; }
+    .badge-fabric { background: #f3e5f5; color: #7b1fa2; }
+
+    .pagination-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 </style>
 
 <div class="warehouse-container">
+    <!-- Header -->
     <div class="warehouse-header">
-        <h1 class="warehouse-title">
-            <i class="fas fa-warehouse"></i> 仓库管理
-        </h1>
-        <p class="warehouse-subtitle">查看各类别库存重量</p>
+        <h2><i class="fas fa-warehouse"></i> 仓库管理</h2>
+        <p>查看库存统计与明细，了解每一单的回收员负责情况</p>
     </div>
 
+    <!-- Total Summary -->
     <div id="totalSummary" class="total-summary" style="display: none;">
-        <h2><i class="fas fa-box-open"></i> 总库存</h2>
+        <h3><i class="fas fa-box-open"></i> 总库存</h3>
         <div class="row">
             <div class="col-md-6">
                 <div class="total-weight" id="totalWeightDisplay">0</div>
@@ -146,11 +226,49 @@
         <i class="fas fa-spinner fa-spin"></i> 加载中...
     </div>
 
+    <!-- Category Summary Cards -->
     <div id="inventoryGrid" class="inventory-grid"></div>
 
     <div id="noData" class="no-data" style="display: none;">
         <i class="fas fa-box-open" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
         暂无库存数据
+    </div>
+
+    <!-- Detail Section -->
+    <div id="detailSection" class="detail-section" style="display: none;">
+        <div class="detail-header">
+            <h3><i class="fas fa-list"></i> 库存明细 <span id="detailTitle"></span></h3>
+            <button class="btn btn-default" onclick="showAllDetails()">
+                <i class="fas fa-refresh"></i> 显示全部
+            </button>
+        </div>
+
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th>订单号</th>
+                    <th>品类</th>
+                    <th>重量(kg)</th>
+                    <th>价格(元)</th>
+                    <th>回收员</th>
+                    <th>入库时间</th>
+                </tr>
+            </thead>
+            <tbody id="detailTableBody">
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div id="paginationInfo"></div>
+                </div>
+                <div class="col-md-6 text-right">
+                    <ul class="pagination" id="pagination" style="margin: 0;"></ul>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -174,6 +292,10 @@
             'fabric': '#9b59b6'
         };
 
+        var currentPage = 1;
+        var pageSize = 20;
+        var currentCategoryKey = null;
+
         // 加载库存数据
         function loadInventorySummary() {
             fetch('@Url.Action("GetInventorySummary", "Staff")', {
@@ -189,6 +311,8 @@
 
                 if (data.success && data.data && data.data.length > 0) {
                     renderInventory(data.data);
+                    // 加载明细数据
+                    loadInventoryDetail();
                 } else {
                     document.getElementById('noData').style.display = 'block';
                 }
@@ -214,7 +338,7 @@
                 var color = categoryColors[item.categoryKey] || '#3498db';
 
                 html += `
-                    <div class="inventory-card" style="border-left-color: ${color};">
+                    <div class="inventory-card" data-category="${item.categoryKey}" onclick="filterByCategory('${item.categoryKey}')" style="border-left-color: ${color};">
                         <div class="inventory-icon" style="color: ${color};">
                             <i class="fas ${icon}"></i>
                         </div>
@@ -235,6 +359,167 @@
                 document.getElementById('totalWeightDisplay').textContent = totalWeight.toFixed(1);
                 document.getElementById('totalPriceDisplay').textContent = '¥' + totalPrice.toFixed(2);
             }
+        }
+
+        // 加载库存明细
+        function loadInventoryDetail() {
+            document.getElementById('detailSection').style.display = 'block';
+
+            var url = '@Url.Action("GetInventoryDetail", "Staff")';
+            var params = new URLSearchParams({
+                page: currentPage,
+                pageSize: pageSize,
+                __RequestVerificationToken: document.querySelector('input[name="__RequestVerificationToken"]').value
+            });
+
+            if (currentCategoryKey) {
+                params.append('categoryKey', currentCategoryKey);
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderDetailTable(data.data);
+                } else {
+                    alert('加载明细失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('加载明细失败：', error);
+            });
+        }
+
+        // 渲染明细表格
+        function renderDetailTable(data) {
+            var tbody = document.getElementById('detailTableBody');
+            tbody.innerHTML = '';
+
+            if (!data.Items || data.Items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">暂无明细数据</td></tr>';
+                document.getElementById('paginationInfo').textContent = '';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            data.Items.forEach(function(item) {
+                var badgeClass = 'badge-' + item.CategoryKey;
+                var price = item.Price != null ? '¥' + item.Price.toFixed(2) : '-';
+                var createdDate = formatDate(item.CreatedDate);
+
+                var row = `
+                    <tr>
+                        <td><strong>${item.OrderNumber}</strong></td>
+                        <td><span class="badge-category ${badgeClass}">${item.CategoryName}</span></td>
+                        <td>${item.Weight.toFixed(2)}</td>
+                        <td>${price}</td>
+                        <td>${item.RecyclerName}</td>
+                        <td>${createdDate}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            renderPagination(data);
+        }
+
+        // 渲染分页
+        function renderPagination(data) {
+            var pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            var startItem = (data.PageIndex - 1) * data.PageSize + 1;
+            var endItem = Math.min(data.PageIndex * data.PageSize, data.TotalCount);
+            document.getElementById('paginationInfo').textContent = 
+                '显示 ' + startItem + ' - ' + endItem + ' 条，共 ' + data.TotalCount + ' 条';
+
+            if (data.TotalPages <= 1) return;
+
+            // Previous
+            var prevDisabled = data.PageIndex == 1 ? 'disabled' : '';
+            pagination.innerHTML += `
+                <li class="${prevDisabled}">
+                    <a href="#" onclick="goToPage(${data.PageIndex - 1}); return false;">上一页</a>
+                </li>
+            `;
+
+            // Page numbers
+            var startPage = Math.max(1, data.PageIndex - 2);
+            var endPage = Math.min(data.TotalPages, data.PageIndex + 2);
+
+            for (var i = startPage; i <= endPage; i++) {
+                var activeClass = i == data.PageIndex ? 'active' : '';
+                pagination.innerHTML += `
+                    <li class="${activeClass}">
+                        <a href="#" onclick="goToPage(${i}); return false;">${i}</a>
+                    </li>
+                `;
+            }
+
+            // Next
+            var nextDisabled = data.PageIndex >= data.TotalPages ? 'disabled' : '';
+            pagination.innerHTML += `
+                <li class="${nextDisabled}">
+                    <a href="#" onclick="goToPage(${data.PageIndex + 1}); return false;">下一页</a>
+                </li>
+            `;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            loadInventoryDetail();
+        }
+
+        // 按类别筛选
+        function filterByCategory(categoryKey) {
+            // 更新卡片样式
+            document.querySelectorAll('.inventory-card').forEach(function(card) {
+                card.classList.remove('active');
+            });
+            document.querySelector('.inventory-card[data-category="' + categoryKey + '"]').classList.add('active');
+
+            // 更新标题
+            var categoryNames = {
+                'glass': '玻璃',
+                'metal': '金属',
+                'plastic': '塑料',
+                'paper': '纸类',
+                'fabric': '布料'
+            };
+            document.getElementById('detailTitle').textContent = ' - ' + (categoryNames[categoryKey] || categoryKey);
+
+            currentCategoryKey = categoryKey;
+            currentPage = 1;
+            loadInventoryDetail();
+        }
+
+        // 显示全部
+        function showAllDetails() {
+            document.querySelectorAll('.inventory-card').forEach(function(card) {
+                card.classList.remove('active');
+            });
+            document.getElementById('detailTitle').textContent = '';
+            currentCategoryKey = null;
+            currentPage = 1;
+            loadInventoryDetail();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            var date = new Date(dateString);
+            if (isNaN(date.getTime())) return '-';
+            return date.getFullYear() + '-' +
+                String(date.getMonth() + 1).padStart(2, '0') + '-' +
+                String(date.getDate()).padStart(2, '0') + ' ' +
+                String(date.getHours()).padStart(2, '0') + ':' +
+                String(date.getMinutes()).padStart(2, '0');
         }
 
         // 页面加载时获取数据

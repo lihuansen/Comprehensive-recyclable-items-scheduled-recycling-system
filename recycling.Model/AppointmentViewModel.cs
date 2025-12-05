@@ -35,18 +35,21 @@ namespace recycling.Model
         [Required(ErrorMessage = "请选择时间段")]
         public string TimeSlot { get; set; }
 
+        [Display(Name = "选择地址")]
+        public int? SelectedAddressID { get; set; }
+
+        [Display(Name = "街道")]
+        public string Street { get; set; }
+
         [Display(Name = "详细地址")]
-        [Required(ErrorMessage = "请输入详细地址")]
         [StringLength(200, ErrorMessage = "地址长度不能超过200个字符")]
         public string Address { get; set; }
 
         [Display(Name = "联系人姓名")]
-        [Required(ErrorMessage = "请输入联系人姓名")]
         [StringLength(50, ErrorMessage = "姓名长度不能超过50个字符")]
         public string ContactName { get; set; }
 
         [Display(Name = "联系电话")]
-        [Required(ErrorMessage = "请输入联系电话")]
         [RegularExpression(@"^1[3-9]\d{9}$", ErrorMessage = "请输入有效的手机号码")]
         public string ContactPhone { get; set; }
 
@@ -136,7 +139,7 @@ namespace recycling.Model
             { Fabric, "纺织品" }
         };
 
-        // 每个品类的问题定义
+        // 每个品类的问题定义 - 针对大类的通用问题，不涉及具体小类
         public static Dictionary<string, CategoryQuestions> GetCategoryQuestions()
         {
             return new Dictionary<string, CategoryQuestions>
@@ -150,38 +153,40 @@ namespace recycling.Model
                             new Question
                             {
                                 Id = "glass_condition",
-                                Text = "玻璃瓶子是否完整？",
-                                Type = "radio",
-                                Weight = 0.3m,
-                                Options = new List<Option>
-                                {
-                                    new Option { Value = "complete", Text = "完整", PriceEffect = 1.0m },
-                                    new Option { Value = "broken", Text = "有破损", PriceEffect = 0.6m }
-                                }
-                            },
-                            new Question
-                            {
-                                Id = "glass_type",
-                                Text = "玻璃类型？",
+                                Text = "玻璃物品整体状况如何？",
                                 Type = "radio",
                                 Weight = 0.4m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "bottle", Text = "瓶子", PriceEffect = 1.0m },
-                                    new Option { Value = "window", Text = "窗户玻璃", PriceEffect = 0.8m },
-                                    new Option { Value = "other", Text = "其他", PriceEffect = 0.5m }
+                                    new Option { Value = "complete", Text = "完整无损", PriceEffect = 1.0m },
+                                    new Option { Value = "minor_damage", Text = "轻微破损", PriceEffect = 0.8m },
+                                    new Option { Value = "broken", Text = "严重破损", PriceEffect = 0.5m }
                                 }
                             },
                             new Question
                             {
                                 Id = "glass_clean",
-                                Text = "是否清洁干净？",
+                                Text = "玻璃物品是否已清洁处理？",
                                 Type = "radio",
                                 Weight = 0.3m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "clean", Text = "是", PriceEffect = 1.0m },
-                                    new Option { Value = "dirty", Text = "否", PriceEffect = 0.7m }
+                                    new Option { Value = "clean", Text = "已清洁", PriceEffect = 1.0m },
+                                    new Option { Value = "partial", Text = "部分清洁", PriceEffect = 0.85m },
+                                    new Option { Value = "dirty", Text = "未清洁", PriceEffect = 0.7m }
+                                }
+                            },
+                            new Question
+                            {
+                                Id = "glass_quantity",
+                                Text = "玻璃物品的数量规模？",
+                                Type = "radio",
+                                Weight = 0.3m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "small", Text = "少量（10件以下）", PriceEffect = 0.9m },
+                                    new Option { Value = "medium", Text = "中等（10-50件）", PriceEffect = 1.0m },
+                                    new Option { Value = "large", Text = "大量（50件以上）", PriceEffect = 1.1m }
                                 }
                             }
                         }
@@ -195,41 +200,41 @@ namespace recycling.Model
                         {
                             new Question
                             {
-                                Id = "metal_type",
-                                Text = "金属类型？",
-                                Type = "radio",
-                                Weight = 0.5m,
-                                Options = new List<Option>
-                                {
-                                    new Option { Value = "iron", Text = "铁制品", PriceEffect = 1.0m },
-                                    new Option { Value = "aluminum", Text = "铝制品", PriceEffect = 1.2m },
-                                    new Option { Value = "copper", Text = "铜制品", PriceEffect = 1.5m },
-                                    new Option { Value = "mixed", Text = "混合金属", PriceEffect = 0.8m }
-                                }
-                            },
-                            new Question
-                            {
                                 Id = "metal_condition",
-                                Text = "金属状况？",
+                                Text = "金属物品整体状况如何？",
                                 Type = "radio",
-                                Weight = 0.3m,
+                                Weight = 0.4m,
                                 Options = new List<Option>
                                 {
                                     new Option { Value = "good", Text = "状况良好", PriceEffect = 1.0m },
-                                    new Option { Value = "rusty", Text = "有锈迹", PriceEffect = 0.7m },
-                                    new Option { Value = "broken", Text = "破损严重", PriceEffect = 0.5m }
+                                    new Option { Value = "rusty", Text = "有锈迹/氧化", PriceEffect = 0.7m },
+                                    new Option { Value = "damaged", Text = "损坏/变形", PriceEffect = 0.5m }
                                 }
                             },
                             new Question
                             {
                                 Id = "metal_clean",
-                                Text = "是否清洁？",
+                                Text = "金属物品是否已清洁处理？",
                                 Type = "radio",
-                                Weight = 0.2m,
+                                Weight = 0.3m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "clean", Text = "是", PriceEffect = 1.0m },
-                                    new Option { Value = "dirty", Text = "否", PriceEffect = 0.8m }
+                                    new Option { Value = "clean", Text = "已清洁", PriceEffect = 1.0m },
+                                    new Option { Value = "partial", Text = "部分清洁", PriceEffect = 0.9m },
+                                    new Option { Value = "dirty", Text = "未清洁", PriceEffect = 0.8m }
+                                }
+                            },
+                            new Question
+                            {
+                                Id = "metal_purity",
+                                Text = "金属物品的纯度情况？",
+                                Type = "radio",
+                                Weight = 0.3m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "pure", Text = "单一金属", PriceEffect = 1.2m },
+                                    new Option { Value = "mostly_pure", Text = "以某种金属为主", PriceEffect = 1.0m },
+                                    new Option { Value = "mixed", Text = "混合金属", PriceEffect = 0.8m }
                                 }
                             }
                         }
@@ -243,41 +248,41 @@ namespace recycling.Model
                         {
                             new Question
                             {
-                                Id = "plastic_type",
-                                Text = "塑料类型？",
+                                Id = "plastic_condition",
+                                Text = "塑料物品整体状况如何？",
                                 Type = "radio",
                                 Weight = 0.4m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "pet", Text = "PET（饮料瓶）", PriceEffect = 1.2m },
-                                    new Option { Value = "hdpe", Text = "HDPE（洗发水瓶）", PriceEffect = 1.0m },
-                                    new Option { Value = "pvc", Text = "PVC（管道）", PriceEffect = 0.8m },
-                                    new Option { Value = "other", Text = "其他塑料", PriceEffect = 0.6m }
+                                    new Option { Value = "good", Text = "完好无损", PriceEffect = 1.0m },
+                                    new Option { Value = "worn", Text = "有使用痕迹", PriceEffect = 0.85m },
+                                    new Option { Value = "damaged", Text = "破损/老化", PriceEffect = 0.6m }
                                 }
                             },
                             new Question
                             {
                                 Id = "plastic_clean",
-                                Text = "是否清洁？",
+                                Text = "塑料物品是否已清洁处理？",
                                 Type = "radio",
                                 Weight = 0.3m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "clean", Text = "是", PriceEffect = 1.0m },
-                                    new Option { Value = "dirty", Text = "否", PriceEffect = 0.7m }
+                                    new Option { Value = "clean", Text = "已清洁", PriceEffect = 1.0m },
+                                    new Option { Value = "partial", Text = "部分清洁", PriceEffect = 0.85m },
+                                    new Option { Value = "dirty", Text = "未清洁", PriceEffect = 0.7m }
                                 }
                             },
                             new Question
                             {
-                                Id = "plastic_color",
-                                Text = "塑料颜色？",
+                                Id = "plastic_sorted",
+                                Text = "塑料物品是否已分类整理？",
                                 Type = "radio",
                                 Weight = 0.3m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "transparent", Text = "透明", PriceEffect = 1.1m },
-                                    new Option { Value = "colored", Text = "有色", PriceEffect = 1.0m },
-                                    new Option { Value = "mixed", Text = "混合颜色", PriceEffect = 0.9m }
+                                    new Option { Value = "sorted", Text = "已分类", PriceEffect = 1.1m },
+                                    new Option { Value = "partial", Text = "部分分类", PriceEffect = 1.0m },
+                                    new Option { Value = "unsorted", Text = "未分类", PriceEffect = 0.9m }
                                 }
                             }
                         }
@@ -291,41 +296,41 @@ namespace recycling.Model
                         {
                             new Question
                             {
-                                Id = "paper_type",
-                                Text = "纸张类型？",
-                                Type = "radio",
-                                Weight = 0.5m,
-                                Options = new List<Option>
-                                {
-                                    new Option { Value = "newspaper", Text = "报纸", PriceEffect = 1.0m },
-                                    new Option { Value = "cardboard", Text = "纸板箱", PriceEffect = 1.1m },
-                                    new Option { Value = "office", Text = "办公用纸", PriceEffect = 1.2m },
-                                    new Option { Value = "mixed", Text = "混合纸张", PriceEffect = 0.8m }
-                                }
-                            },
-                            new Question
-                            {
                                 Id = "paper_condition",
-                                Text = "纸张状况？",
+                                Text = "纸类物品整体状况如何？",
                                 Type = "radio",
-                                Weight = 0.3m,
+                                Weight = 0.4m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "dry", Text = "干燥", PriceEffect = 1.0m },
-                                    new Option { Value = "damp", Text = "潮湿", PriceEffect = 0.6m },
-                                    new Option { Value = "soiled", Text = "污染", PriceEffect = 0.3m }
+                                    new Option { Value = "dry", Text = "干燥完好", PriceEffect = 1.0m },
+                                    new Option { Value = "damp", Text = "有潮湿", PriceEffect = 0.6m },
+                                    new Option { Value = "soiled", Text = "有污染/破损", PriceEffect = 0.3m }
                                 }
                             },
                             new Question
                             {
                                 Id = "paper_clean",
-                                Text = "是否干净？",
+                                Text = "纸类物品是否干净无油污？",
                                 Type = "radio",
-                                Weight = 0.2m,
+                                Weight = 0.3m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "clean", Text = "是", PriceEffect = 1.0m },
-                                    new Option { Value = "dirty", Text = "否", PriceEffect = 0.7m }
+                                    new Option { Value = "clean", Text = "干净无污", PriceEffect = 1.0m },
+                                    new Option { Value = "minor", Text = "轻微污渍", PriceEffect = 0.8m },
+                                    new Option { Value = "dirty", Text = "有明显污渍", PriceEffect = 0.5m }
+                                }
+                            },
+                            new Question
+                            {
+                                Id = "paper_sorted",
+                                Text = "纸类物品是否已分类整理？",
+                                Type = "radio",
+                                Weight = 0.3m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "sorted", Text = "已分类整理", PriceEffect = 1.1m },
+                                    new Option { Value = "partial", Text = "部分整理", PriceEffect = 1.0m },
+                                    new Option { Value = "unsorted", Text = "未整理", PriceEffect = 0.9m }
                                 }
                             }
                         }
@@ -339,41 +344,41 @@ namespace recycling.Model
                         {
                             new Question
                             {
-                                Id = "fabric_type",
-                                Text = "纺织品类型？",
-                                Type = "radio",
-                                Weight = 0.4m,
-                                Options = new List<Option>
-                                {
-                                    new Option { Value = "cotton", Text = "棉织品", PriceEffect = 1.0m },
-                                    new Option { Value = "wool", Text = "毛织品", PriceEffect = 1.1m },
-                                    new Option { Value = "synthetic", Text = "化纤", PriceEffect = 0.8m },
-                                    new Option { Value = "mixed", Text = "混合面料", PriceEffect = 0.9m }
-                                }
-                            },
-                            new Question
-                            {
                                 Id = "fabric_condition",
-                                Text = "纺织品状况？",
+                                Text = "纺织品整体状况如何？",
                                 Type = "radio",
                                 Weight = 0.4m,
                                 Options = new List<Option>
                                 {
                                     new Option { Value = "good", Text = "状况良好", PriceEffect = 1.0m },
-                                    new Option { Value = "worn", Text = "有磨损", PriceEffect = 0.7m },
-                                    new Option { Value = "damaged", Text = "破损", PriceEffect = 0.4m }
+                                    new Option { Value = "worn", Text = "有磨损/褪色", PriceEffect = 0.7m },
+                                    new Option { Value = "damaged", Text = "破损严重", PriceEffect = 0.4m }
                                 }
                             },
                             new Question
                             {
                                 Id = "fabric_clean",
-                                Text = "是否清洁？",
+                                Text = "纺织品是否已清洗？",
                                 Type = "radio",
-                                Weight = 0.2m,
+                                Weight = 0.3m,
                                 Options = new List<Option>
                                 {
-                                    new Option { Value = "clean", Text = "是", PriceEffect = 1.0m },
-                                    new Option { Value = "dirty", Text = "否", PriceEffect = 0.6m }
+                                    new Option { Value = "clean", Text = "已清洗", PriceEffect = 1.0m },
+                                    new Option { Value = "partial", Text = "部分清洗", PriceEffect = 0.8m },
+                                    new Option { Value = "dirty", Text = "未清洗", PriceEffect = 0.6m }
+                                }
+                            },
+                            new Question
+                            {
+                                Id = "fabric_sorted",
+                                Text = "纺织品是否已分类整理？",
+                                Type = "radio",
+                                Weight = 0.3m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "sorted", Text = "已分类整理", PriceEffect = 1.1m },
+                                    new Option { Value = "partial", Text = "部分整理", PriceEffect = 1.0m },
+                                    new Option { Value = "unsorted", Text = "未整理", PriceEffect = 0.9m }
                                 }
                             }
                         }
@@ -391,6 +396,23 @@ namespace recycling.Model
             { "afternoon", "下午 13:00-17:00" },
             { "evening", "晚上 18:00-21:00" },
             { "all_day", "全天 9:00-21:00" }
+        };
+    }
+
+    public static class Streets
+    {
+        public static readonly Dictionary<string, string> LuohuStreets = new Dictionary<string, string>
+        {
+            { "guiyuan", "桂园街道" },
+            { "huangbei", "黄贝街道" },
+            { "dongmen", "东门街道" },
+            { "cuizhu", "翠竹街道" },
+            { "dongxiao", "东晓街道" },
+            { "nanhu", "南湖街道" },
+            { "sungang", "笋岗街道" },
+            { "donghu", "东湖街道" },
+            { "liantang", "莲塘街道" },
+            { "qingshuihe", "清水河街道" }
         };
     }
 

@@ -95,6 +95,42 @@
             margin: 0 8px;
         }
 
+        /* 带徽章的导航项需要相对定位 */
+        .normal-nav.has-badge {
+            position: relative;
+        }
+
+        /* 未读消息提示徽章样式 */
+        .nav-unread-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            animation: badge-pulse 2s ease-in-out infinite;
+        }
+
+        .nav-unread-badge:empty {
+            display: none;
+        }
+
+        @@keyframes badge-pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
         .left-navs, .right-navs {
             display: flex;
             align-items: center;
@@ -220,7 +256,19 @@
                 {
                     // 用户已登录状态
                     var user = (recycling.Model.Users)Session["LoginUser"];
-                    <span>您好，@user.Username</span>
+                    <div style="display: inline-flex; align-items: center; gap: 10px;">
+                        @if (!string.IsNullOrEmpty(user.url))
+                        {
+                            <img src="@user.url" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid white;" />
+                        }
+                        else
+                        {
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; border: 2px solid white;">
+                                <i class="fas fa-user" style="font-size: 14px;"></i>
+                            </div>
+                        }
+                        <span>您好，@user.Username</span>
+                    </div>
                     @Html.ActionLink("退出登录", "Logout", "User")
                 }
                 else if (Session["LoginStaff"] != null)
@@ -265,7 +313,10 @@
                     <ul class="left-navs">
                         <li class="normal-nav">@Html.ActionLink("首页", "Index", "Home")</li>
                         <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
-                        <li class="normal-nav">@Html.ActionLink("我的消息", "Message", "Home")</li>
+                        <li class="normal-nav has-badge" id="nav-message-item">
+                            @Html.ActionLink("我的消息", "Message", "Home")
+                            <span id="nav-unread-badge" class="nav-unread-badge"></span>
+                        </li>
                     </ul>
 
                     <div class="diamond-nav">
@@ -295,6 +346,53 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    
+    @* 导航栏未读消息数加载脚本 *@
+    @if (Session["LoginUser"] != null)
+    {
+        <script type="text/javascript">
+            (function() {
+                function updateUnreadBadge() {
+                    var badge = document.getElementById('nav-unread-badge');
+                    if (!badge) return;
+                    
+                    fetch('@Url.Action("GetUnreadCountForNav", "Home")', {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (data.success && data.unreadCount > 0) {
+                            badge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                        } else {
+                            badge.textContent = '';
+                        }
+                        // CSS规则 .nav-unread-badge:empty 会自动隐藏空徽章
+                    })
+                    .catch(function(err) {
+                        console.error('获取未读消息数失败', err);
+                        badge.textContent = '';
+                    });
+                }
+                
+                // 页面加载时获取未读数
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateUnreadBadge);
+                } else {
+                    updateUnreadBadge();
+                }
+                
+                // 每60秒自动刷新一次未读数
+                setInterval(updateUnreadBadge, 60000);
+                
+                // 将更新函数暴露到全局，以便其他页面可以手动刷新
+                window.updateNavUnreadBadge = updateUnreadBadge;
+            })();
+        </script>
+    }
+    
     @RenderSection("scripts", required: false)
 </body>
 </html>

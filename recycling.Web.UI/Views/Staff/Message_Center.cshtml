@@ -10,11 +10,6 @@
         background-color: #3498db;
         color: white;
     }
-
-    #endConversationBtn {
-        background-color: #e74c3c;
-        color: white;
-    }
 </style>
 
 <h3>消息中心 - 与已接收订单用户对话</h3>
@@ -22,8 +17,6 @@
 <div class="row">
     <div class="col-md-4">
         <!-- 列表：每个订单只显示最新一条消息摘要 -->
-        <!-- 在页面合适位置添加一个按钮或面板（示例：顶部） -->
-        <button id="openHistoryBtn" class="btn btn-default" style="margin-bottom:10px;">查看历史会话</button>
         <div id="orderList" class="list-group">
             @{
                 var latestPerOrder = new Dictionary<int, recycling.Model.RecyclerMessageViewModel>();
@@ -77,17 +70,7 @@
                         <span class="input-group-btn">
                             <button id="sendMessageBtn" class="btn btn-primary">发送</button>
                         </span>
-                        <span class="input-group-btn">
-                            <button id="endConversationBtn" class="btn btn-danger">结束对话</button>
-                        </span>
                     </div>
-                </div>
-                
-                <!-- Complete Order Button (显示当双方都结束对话时) -->
-                <div id="completeOrderSection" class="mt-3" style="display: none;">
-                    <button id="completeOrderBtn" class="btn btn-success btn-block" style="height: 50px; font-size: 16px; font-weight: bold;">
-                        <i class="fas fa-check-circle"></i> 完成订单
-                    </button>
                 </div>
             </div>
         </div>
@@ -194,9 +177,6 @@
             if (data.success) {
                 var messages = data.messages || data.data || [];
                 renderConversationMessages(messages);
-
-                // 检查对话是否双方都已结束
-                checkBothEnded(orderId);
             } else {
                 var container = document.getElementById('conversationContainer');
                 if (container) container.innerHTML = '<div class="text-danger">加载对话失败：' + escapeHtml(data.message || '') + '</div>';
@@ -208,36 +188,6 @@
             if (container) container.innerHTML = '<div class="text-danger">加载对话出错，请重试</div>';
         });
     }
-
-    function checkBothEnded(orderId) {
-        fetch('@Url.Action("CheckBothEnded", "Staff")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ orderId: orderId })
-        })
-        .then(function (res) {
-            return res.json();
-        })
-        .then(function (data) {
-            var completeSection = document.getElementById('completeOrderSection');
-            if (data.bothEnded) {
-                completeSection.style.display = 'block';
-            } else {
-                completeSection.style.display = 'none';
-            }
-        })
-        .catch(function (err) {
-            console.error('检查对话状态出错：', err);
-            var container = document.getElementById('conversationContainer');
-            if (container) {
-                container.innerHTML = '<div class="text-danger">加载对话出错，请重试</div>';
-            }
-        });
-    }
-
 
     function renderConversationMessages(messages) {
         var container = document.getElementById('conversationContainer');
@@ -377,33 +327,12 @@
         });
         }
 
-        // 打开回收员历史会话列表（导航到 HistoryConversations 视图）
-    document.getElementById('openHistoryBtn').addEventListener('click', function() {
-        window.location.href = '@Url.Action("HistoryConversations", "Staff")';
-    });
-
-    // 回收员结束对话（调用 Staff/EndConversation）
-    function recyclerEndConversation(orderId) {
-        if (!confirm('回收员确认结束会话？')) return;
-        fetch('@Url.Action("EndConversation","Staff")', {
-            method: 'POST',
-            headers:{ 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
-            body: JSON.stringify({ orderId: orderId })
-        }).then(r=>r.json()).then(data=>{
-            if (data.success) {
-                loadConversationMessages(orderId); // 重新加载会话（会带 conversationEnded 元信息）
-                // 刷新订单列表以显示 Complete 按钮（或只刷新该订单项）
-                refreshRecyclerOrders();
-            } else alert('结束失败：' + (data.message||''));
-        });
-    }
-
     // 回收员完成订单按钮
     document.addEventListener('click', function(e){
         if (e.target && e.target.classList.contains('complete-order-btn')) {
             var appointmentId = parseInt(e.target.dataset.appointmentId, 10);
             if (!confirm('确认把此订单标记为已完成？')) return;
-            fetch('@Url.Action("CompleteOrder","Staff")', {
+            fetch('@Url.Action("CompleteOrderDirect","Staff")', {
                 method:'POST',
                 headers:{ 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
                 body: JSON.stringify({ appointmentId: appointmentId })
@@ -412,109 +341,6 @@
                     alert('订单已完成');
                     location.reload();
                 } else alert('完成失败：' + (data.message||''));
-            });
-        }
-    });
-
-    function renderConversation(messages, conversationLastEndedBy, conversationBothEnded, conversationLatestEndedTime) {
-    var container = document.getElementById('conversationContainer');
-    container.innerHTML = '';
-
-    // 若存在最后结束者（不为空），显示居中提示
-    if (conversationLastEndedBy && conversationLastEndedBy.length > 0) {
-        var label = conversationLastEndedBy === 'ended_by_recycler' ? '回收员结束了当前对话' : '用户结束了当前对话';
-        var timeText = conversationLatestEndedTime ? (new Date(conversationLatestEndedTime)).toLocaleString() : '';
-        container.innerHTML += '<div class="text-center my-3"><strong>' + escapeHtml(label) + '</strong><div style="font-size:12px;color:#888">结束时间：' + escapeHtml(timeText) + '</div></div>';
-    }
-
-    if (!messages || messages.length === 0) {
-        container.innerHTML += '<div class="text-muted text-center">暂无消息</div>';
-        return;
-    }
-
-    // 按时间排序并渲染（QQ 风格简化：右侧回收员，左侧用户）
-    messages.sort(function(a,b){ return new Date(a.sentTime) - new Date(b.sentTime); });
-    messages.forEach(function(msg) {
-        var st = (msg.senderType || '').toLowerCase();
-        var isRecycler = st === 'recycler';
-        var bubble = document.createElement('div');
-        bubble.className = isRecycler ? 'text-right mb-3' : 'text-left mb-3';
-        var time = msg.sentTime ? (new Date(msg.sentTime)).toLocaleString() : '';
-        bubble.innerHTML = '<small class="d-block text-muted">' + escapeHtml(time) + '</small>' +
-            '<span class="px-3 py-2 rounded ' + (isRecycler ? 'bg-primary text-white' : 'bg-light') + '">' + escapeHtml(msg.content || '') + '</span>';
-        container.appendChild(bubble);
-    });
-
-    container.scrollTop = container.scrollHeight;
-}
-
-    // 添加结束对话按钮绑定（回收员端）
-    document.addEventListener('DOMContentLoaded', function() {
-        var endBtn = document.getElementById('endConversationBtn'); // 请确保视图里有此元素
-        if (endBtn) {
-            endBtn.addEventListener('click', function() {
-                if (!currentOrderId) { alert('订单无效'); return; }
-                if (!confirm('确认结束本次对话？')) return;
-                // 回收员端调用 Staff/EndConversation
-                fetch('@Url.Action("EndConversation","Staff")', {
-                    method: 'POST',
-                    headers: { 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
-                    body: JSON.stringify({ orderId: currentOrderId })
-                })
-                .then(r=>r.json())
-                .then(data=>{
-                    if (data.success) {
-                        // 重新载入消息（会自动检查双方是否都已结束）
-                        loadConversationMessages(currentOrderId);
-                    } else {
-                        alert('结束失败：' + (data.message || ''));
-                    }
-                }).catch(err=> { console.error(err); alert('结束出错'); });
-            });
-        }
-    });
-
-    // Complete Order Button Handler
-    document.addEventListener('DOMContentLoaded', function() {
-        var completeBtn = document.getElementById('completeOrderBtn');
-        if (completeBtn) {
-            completeBtn.addEventListener('click', function() {
-                if (!currentOrderId) {
-                    alert('请先选择订单');
-                    return;
-                }
-
-                if (!confirm('确认完成此订单？完成后将写入库存记录。')) {
-                    return;
-                }
-
-                var btn = this;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
-
-                fetch('@Url.Action("CompleteOrder","Staff")', {
-                    method: 'POST',
-                    headers: { 'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest' },
-                    body: JSON.stringify({ appointmentId: currentOrderId })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-check-circle"></i> 完成订单';
-
-                    if (data.success) {
-                        alert('订单已完成，库存已更新');
-                        location.reload();
-                    } else {
-                        alert('完成失败：' + (data.message || ''));
-                    }
-                })
-                .catch(err => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-check-circle"></i> 完成订单';
-                    console.error('完成订单出错：', err);
-                    alert('完成订单出错');
-                });
             });
         }
     });

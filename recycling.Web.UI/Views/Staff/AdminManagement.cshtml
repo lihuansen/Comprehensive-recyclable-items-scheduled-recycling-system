@@ -87,6 +87,7 @@
                     <th>ID</th>
                     <th>用户名</th>
                     <th>姓名</th>
+                    <th>权限</th>
                     <th>创建日期</th>
                     <th>最后登录</th>
                     <th>状态</th>
@@ -133,6 +134,20 @@
                     <div class="form-group">
                         <label>姓名 *</label>
                         <input type="text" class="form-control" id="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>权限 *</label>
+                        <select class="form-control" id="character" required>
+                            <option value="">请选择权限</option>
+                            <option value="user_management">用户管理</option>
+                            <option value="recycler_management">回收员管理</option>
+                            <option value="feedback_management">反馈管理</option>
+                            <option value="homepage_management">首页页面管理</option>
+                            <option value="warehouse_management">仓库管理</option>
+                            <option value="log_management">日志管理</option>
+                            <option value="full_access">全部权限</option>
+                        </select>
+                        <small class="form-text text-muted">选择管理员可访问的功能模块</small>
                     </div>
                     <div class="form-group">
                         <label><input type="checkbox" id="isActive" checked> 激活状态</label>
@@ -186,14 +201,16 @@ function renderAdmins(data) {
     var tbody = $('#adminTableBody');
     tbody.empty();
     if (data.Items.length === 0) {
-        tbody.append('<tr><td colspan="7" class="text-center">没有找到管理员</td></tr>');
+        tbody.append('<tr><td colspan="8" class="text-center">没有找到管理员</td></tr>');
         return;
     }
     data.Items.forEach(function (a) {
+        var permissionText = getPermissionText(a.Character);
         var row = `<tr>
             <td>${a.AdminID}</td>
             <td>${a.Username}</td>
             <td>${a.FullName}</td>
+            <td><span class="label label-primary">${permissionText}</span></td>
             <td>${a.CreatedDate ? formatDate(a.CreatedDate) : '-'}</td>
             <td>${a.LastLoginDate ? formatDate(a.LastLoginDate) : '从未登录'}</td>
             <td>
@@ -207,6 +224,19 @@ function renderAdmins(data) {
         tbody.append(row);
     });
     renderPagination(data);
+}
+
+function getPermissionText(character) {
+    switch(character) {
+        case 'user_management': return '用户管理';
+        case 'recycler_management': return '回收员管理';
+        case 'feedback_management': return '反馈管理';
+        case 'homepage_management': return '首页页面管理';
+        case 'warehouse_management': return '仓库管理';
+        case 'log_management': return '日志管理';
+        case 'full_access': return '全部权限';
+        default: return '未设置';
+    }
 }
 
 function renderPagination(data) {
@@ -238,6 +268,7 @@ function editAdmin(admin) {
     $('#adminId').val(admin.AdminID);
     $('#username').val(admin.Username);
     $('#fullName').val(admin.FullName);
+    $('#character').val(admin.Character || '');
     $('#isActive').prop('checked', admin.IsActive);
     $('#passwordGroup').hide();
     $('#adminModal').modal('show');
@@ -245,10 +276,19 @@ function editAdmin(admin) {
 
 function saveAdmin() {
     var id = $('#adminId').val();
+    var character = $('#character').val();
+    
+    // 验证权限是否选择
+    if (!character) {
+        alert('请选择管理员权限');
+        return;
+    }
+    
     var data = {
         AdminID: id || 0,
         Username: $('#username').val(),
         FullName: $('#fullName').val(),
+        Character: character,
         IsActive: $('#isActive').is(':checked')
     };
     if (!id) data.password = $('#password').val();

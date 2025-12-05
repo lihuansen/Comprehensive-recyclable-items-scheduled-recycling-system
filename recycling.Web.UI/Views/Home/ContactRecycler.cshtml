@@ -10,11 +10,6 @@
         color: white;
     }
 
-    #endConversationBtn {
-        background-color: #e74c3c;
-        color: white;
-    }
-
     .message-bubble {
         display: inline-block;
         max-width: 70%;
@@ -45,9 +40,14 @@
         margin-bottom: 4px;
         color: #7f8c8d;
     }
+
+    .chat-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
 </style>
 
-<div class="container mt-4">
+<div class="container mt-4 chat-container">
     <div class="card">
         <!-- 聊天头部（含订单信息） -->
         <div class="card-header bg-primary text-white">
@@ -62,17 +62,21 @@
         </div>
 
         <!-- 消息输入区域 -->
-        <div class="card-footer">
+        <div class="card-footer" id="inputSection">
             <div class="input-group">
                 <input type="text" id="messageContent" class="form-control" placeholder="请输入消息内容...">
                 <span class="input-group-btn">
                     <button id="sendMessage" class="btn btn-primary">发送</button>
                 </span>
-                <span class="input-group-btn">
-                    <button id="endConversationBtn" class="btn btn-danger">结束对话</button>
-                </span>
             </div>
         </div>
+    </div>
+
+    <!-- 返回按钮 -->
+    <div class="mt-3">
+        <a href="@Url.Action("Order", "Home")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> 返回我的订单
+        </a>
     </div>
 </div>
 
@@ -80,19 +84,21 @@
     <script src="~/Scripts/jquery-3.4.1.min.js"></script>
     <script>
         // 页面初始化参数（从ViewBag获取）
-        var orderId = @ViewBag.OrderId;
-        var userId = @ViewBag.UserId;
-        var recyclerId = @ViewBag.RecyclerId;
+        var orderId = @Html.Raw(Json.Encode(ViewBag.OrderId));
+        var userId = @Html.Raw(Json.Encode(ViewBag.UserId));
+        var recyclerId = @Html.Raw(Json.Encode(ViewBag.RecyclerId));
 
-        // 加载历史消息
+        // 加载消息
         function loadMessages() {
             $.ajax({
-                url: "/Home/GetUserOrderConversation",
+                url: "/Home/GetOrderMessages",
                 type: "POST",
                 data: { orderId: orderId },
                 success: function (res) {
                     if (res.success) {
-                        renderMessages(res.data);
+                        // 直接渲染所有消息，不再检查对话结束状态
+                        renderMessages(res.messages);
+                        enableInput();
                         $("#loadingMsg").hide();
                     } else {
                         $("#chatMessages").html(`<div class="text-danger text-center">加载失败：${res.message}</div>`);
@@ -139,6 +145,18 @@
             $("#chatMessages").html(messagesHtml);
             // 滚动到底部
             $("#chatMessages").scrollTop($("#chatMessages")[0].scrollHeight);
+        }
+
+        // 禁用输入
+        function disableInput(message) {
+            $("#messageContent").prop('disabled', true).attr('placeholder', message || '对话已结束');
+            $("#sendMessage").prop('disabled', true);
+        }
+
+        // 启用输入
+        function enableInput() {
+            $("#messageContent").prop('disabled', false).attr('placeholder', '请输入消息内容...');
+            $("#sendMessage").prop('disabled', false);
         }
 
         // HTML转义函数
@@ -199,30 +217,6 @@
                 complete: function () {
                     $btn.prop('disabled', false);
                     $btn.html(originalText);
-                }
-            });
-        });
-
-        // 结束对话功能
-        $("#endConversationBtn").click(function () {
-            if (!confirm("确认结束本次对话？")) {
-                return;
-            }
-
-            $.ajax({
-                url: "/Home/EndConversation",
-                type: "POST",
-                data: { orderId: orderId },
-                success: function (res) {
-                    if (res.success) {
-                        alert("对话已结束");
-                        loadMessages(); // 重新加载消息以显示对话结束状态
-                    } else {
-                        alert("结束对话失败：" + res.message);
-                    }
-                },
-                error: function () {
-                    alert("网络错误，无法结束对话");
                 }
             });
         });
