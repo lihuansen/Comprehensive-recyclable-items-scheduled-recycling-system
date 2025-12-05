@@ -512,7 +512,14 @@ namespace recycling.Web.UI.Controllers
                     model.ContactName = selectedAddress.ContactName;
                     model.ContactPhone = selectedAddress.ContactPhone;
                     model.Street = selectedAddress.Street;
-                    model.Address = selectedAddress.FullAddress;
+                    
+                    // 构建完整地址，将街道键转换为显示名称
+                    string streetDisplayName = selectedAddress.Street;
+                    if (!string.IsNullOrEmpty(selectedAddress.Street) && Streets.LuohuStreets.ContainsKey(selectedAddress.Street))
+                    {
+                        streetDisplayName = Streets.LuohuStreets[selectedAddress.Street];
+                    }
+                    model.Address = $"{selectedAddress.Province}{selectedAddress.City}{selectedAddress.District}{streetDisplayName}{selectedAddress.DetailAddress}";
                 }
                 else
                 {
@@ -884,18 +891,26 @@ namespace recycling.Web.UI.Controllers
             {
                 var user = (Users)Session["LoginUser"];
                 var addresses = _addressBLL.GetUserAddresses(user.UserID);
-                var result = addresses.Select(a => new
-                {
-                    addressId = a.AddressID,
-                    contactName = a.ContactName,
-                    contactPhone = a.ContactPhone,
-                    province = a.Province,
-                    city = a.City,
-                    district = a.District,
-                    street = a.Street,
-                    detailAddress = a.DetailAddress,
-                    fullAddress = a.FullAddress,
-                    isDefault = a.IsDefault
+                var result = addresses.Select(a => {
+                    // 将街道键转换为显示名称以构建完整地址
+                    string streetDisplayName = a.Street;
+                    if (!string.IsNullOrEmpty(a.Street) && Streets.LuohuStreets.ContainsKey(a.Street))
+                    {
+                        streetDisplayName = Streets.LuohuStreets[a.Street];
+                    }
+                    return new
+                    {
+                        addressId = a.AddressID,
+                        contactName = a.ContactName,
+                        contactPhone = a.ContactPhone,
+                        province = a.Province,
+                        city = a.City,
+                        district = a.District,
+                        street = a.Street,
+                        detailAddress = a.DetailAddress,
+                        fullAddress = $"{a.Province}{a.City}{a.District}{streetDisplayName}{a.DetailAddress}",
+                        isDefault = a.IsDefault
+                    };
                 }).ToList();
 
                 return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
@@ -926,6 +941,14 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "地址不存在" }, JsonRequestBehavior.AllowGet);
                 }
 
+                // 将街道键转换为显示名称以构建完整地址
+                string streetDisplayName = address.Street;
+                if (!string.IsNullOrEmpty(address.Street) && Streets.LuohuStreets.ContainsKey(address.Street))
+                {
+                    streetDisplayName = Streets.LuohuStreets[address.Street];
+                }
+                string fullAddress = $"{address.Province}{address.City}{address.District}{streetDisplayName}{address.DetailAddress}";
+
                 return Json(new
                 {
                     success = true,
@@ -939,7 +962,7 @@ namespace recycling.Web.UI.Controllers
                         district = address.District,
                         street = address.Street,
                         detailAddress = address.DetailAddress,
-                        fullAddress = address.FullAddress,
+                        fullAddress = fullAddress,
                         isDefault = address.IsDefault
                     }
                 }, JsonRequestBehavior.AllowGet);
@@ -981,6 +1004,15 @@ namespace recycling.Web.UI.Controllers
                 {
                     // 获取新添加的地址完整信息
                     var address = _addressBLL.GetAddressById(addressId, user.UserID);
+                    
+                    // 将街道键转换为显示名称以构建完整地址
+                    string streetDisplayName = address.Street;
+                    if (!string.IsNullOrEmpty(address.Street) && Streets.LuohuStreets.ContainsKey(address.Street))
+                    {
+                        streetDisplayName = Streets.LuohuStreets[address.Street];
+                    }
+                    string fullAddress = $"{address.Province}{address.City}{address.District}{streetDisplayName}{address.DetailAddress}";
+
                     return Json(new
                     {
                         success = true,
@@ -995,7 +1027,7 @@ namespace recycling.Web.UI.Controllers
                             district = address.District,
                             street = address.Street,
                             detailAddress = address.DetailAddress,
-                            fullAddress = address.FullAddress,
+                            fullAddress = fullAddress,
                             isDefault = address.IsDefault
                         }
                     });

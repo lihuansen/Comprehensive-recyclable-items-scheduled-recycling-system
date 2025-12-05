@@ -527,16 +527,25 @@
                     <div class="address-selection-wrapper">
                         @{
                             var userAddresses = ViewBag.UserAddresses as List<recycling.Model.UserAddresses> ?? new List<recycling.Model.UserAddresses>();
+                            var streets = ViewBag.Streets as Dictionary<string, string> ?? new Dictionary<string, string>();
                             var addressOptions = new List<SelectListItem>
                             {
                                 new SelectListItem { Value = "0", Text = "-- 新增地址 --" }
                             };
                             foreach (var addr in userAddresses)
                             {
+                                // 将街道键转换为显示名称以构建完整地址
+                                string streetDisplayName = addr.Street;
+                                if (!string.IsNullOrEmpty(addr.Street) && streets.ContainsKey(addr.Street))
+                                {
+                                    streetDisplayName = streets[addr.Street];
+                                }
+                                string formattedAddress = $"{addr.Province}{addr.City}{addr.District}{streetDisplayName}{addr.DetailAddress}";
+                                
                                 addressOptions.Add(new SelectListItem
                                 {
                                     Value = addr.AddressID.ToString(),
-                                    Text = $"{addr.ContactName} {addr.ContactPhone} - {addr.FullAddress}" + (addr.IsDefault ? " [默认]" : ""),
+                                    Text = $"{addr.ContactName} {addr.ContactPhone} - {formattedAddress}" + (addr.IsDefault ? " [默认]" : ""),
                                     Selected = Model.SelectedAddressID.HasValue && Model.SelectedAddressID.Value == addr.AddressID
                                 });
                             }
@@ -835,11 +844,19 @@
             var addressCache = {};
             @foreach (var addr in userAddresses)
             {
+                // 将街道键转换为显示名称以构建完整地址
+                string streetDisplayNameJs = addr.Street;
+                if (!string.IsNullOrEmpty(addr.Street) && streets.ContainsKey(addr.Street))
+                {
+                    streetDisplayNameJs = streets[addr.Street];
+                }
+                string formattedAddressJs = $"{addr.Province}{addr.City}{addr.District}{streetDisplayNameJs}{addr.DetailAddress}";
+                
                 <text>
                 addressCache[@addr.AddressID] = {
-                    contactName: '@Html.Raw(addr.ContactName)',
-                    contactPhone: '@Html.Raw(addr.ContactPhone)',
-                    fullAddress: '@Html.Raw(addr.FullAddress)'
+                    contactName: '@HttpUtility.JavaScriptStringEncode(addr.ContactName)',
+                    contactPhone: '@HttpUtility.JavaScriptStringEncode(addr.ContactPhone)',
+                    fullAddress: '@HttpUtility.JavaScriptStringEncode(formattedAddressJs)'
                 };
                 </text>
             }
