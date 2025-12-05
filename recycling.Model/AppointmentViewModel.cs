@@ -35,22 +35,21 @@ namespace recycling.Model
         [Required(ErrorMessage = "请选择时间段")]
         public string TimeSlot { get; set; }
 
+        [Display(Name = "选择地址")]
+        public int? SelectedAddressID { get; set; }
+
         [Display(Name = "街道")]
-        [Required(ErrorMessage = "请选择街道")]
         public string Street { get; set; }
 
         [Display(Name = "详细地址")]
-        [Required(ErrorMessage = "请输入详细地址")]
         [StringLength(200, ErrorMessage = "地址长度不能超过200个字符")]
         public string Address { get; set; }
 
         [Display(Name = "联系人姓名")]
-        [Required(ErrorMessage = "请输入联系人姓名")]
         [StringLength(50, ErrorMessage = "姓名长度不能超过50个字符")]
         public string ContactName { get; set; }
 
         [Display(Name = "联系电话")]
-        [Required(ErrorMessage = "请输入联系电话")]
         [RegularExpression(@"^1[3-9]\d{9}$", ErrorMessage = "请输入有效的手机号码")]
         public string ContactPhone { get; set; }
 
