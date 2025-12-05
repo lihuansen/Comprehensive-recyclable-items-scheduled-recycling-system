@@ -91,6 +91,7 @@
     <Compile Include="SuperAdmins.cs" />
     <Compile Include="Transporters.cs" />
     <Compile Include="UpdateProfileViewModel.cs" />
+    <Compile Include="UserAddresses.cs" />
     <Compile Include="UserFeedback.cs" />
     <Compile Include="Users.cs" />
   </ItemGroup>
