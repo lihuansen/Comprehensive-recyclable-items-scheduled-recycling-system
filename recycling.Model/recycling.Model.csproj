@@ -86,6 +86,7 @@
     <Compile Include="Recyclers.cs" />
     <Compile Include="RegisterViewModel.cs" />
     <Compile Include="SendMessageRequest.cs" />
+    <Compile Include="SortingCenterWorkers.cs" />
     <Compile Include="StaffLoginViewModel.cs" />
     <Compile Include="SuperAdmins.cs" />
     <Compile Include="Transporters.cs" />
