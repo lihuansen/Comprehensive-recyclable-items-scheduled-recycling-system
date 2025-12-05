@@ -8,6 +8,8 @@ namespace recycling.Model
         // 权限常量
         public const string UserManagement = "user_management";
         public const string RecyclerManagement = "recycler_management";
+        public const string TransporterManagement = "transporter_management";
+        public const string SortingCenterWorkerManagement = "sortingcenterworker_management";
         public const string FeedbackManagement = "feedback_management";
         public const string HomepageManagement = "homepage_management";
         public const string WarehouseManagement = "warehouse_management";
@@ -23,6 +25,10 @@ namespace recycling.Model
                     return "用户管理";
                 case RecyclerManagement:
                     return "回收员管理";
+                case TransporterManagement:
+                    return "运输人员管理";
+                case SortingCenterWorkerManagement:
+                    return "分拣中心人员管理";
                 case FeedbackManagement:
                     return "反馈管理";
                 case HomepageManagement:
@@ -45,6 +51,8 @@ namespace recycling.Model
             {
                 UserManagement,
                 RecyclerManagement,
+                TransporterManagement,
+                SortingCenterWorkerManagement,
                 FeedbackManagement,
                 HomepageManagement,
                 WarehouseManagement,
@@ -58,6 +66,8 @@ namespace recycling.Model
         {
             return permission == UserManagement ||
                    permission == RecyclerManagement ||
+                   permission == TransporterManagement ||
+                   permission == SortingCenterWorkerManagement ||
                    permission == FeedbackManagement ||
                    permission == HomepageManagement ||
                    permission == WarehouseManagement ||

@@ -2476,5 +2476,383 @@ namespace recycling.Web.UI.Controllers
         }
 
         #endregion
+
+        #region 运输人员管理功能
+
+        /// <summary>
+        /// 管理员 - 运输人员管理页面
+        /// </summary>
+        [AdminPermission(AdminPermissions.TransporterManagement)]
+        public ActionResult TransporterManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取运输人员列表（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            try
+            {
+                var result = _adminBLL.GetAllTransporters(page, pageSize, searchTerm, isActive);
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取运输人员详情（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetTransporterDetails(int transporterId)
+        {
+            try
+            {
+                var transporter = _adminBLL.GetTransporterById(transporterId);
+                return JsonContent(new {
+                    success = true,
+                    data = transporter
+                });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 添加运输人员（API）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult AddTransporter(Transporters transporter, string password)
+        {
+            try
+            {
+                var result = _adminBLL.AddTransporter(transporter, password);
+                
+                if (result.Success)
+                {
+                    LogAdminOperation("TransporterManagement", OperationLogBLL.OperationTypes.Create, $"添加运输人员：{transporter.Username}", null, transporter.Username, "Success");
+                }
+                else
+                {
+                    LogAdminOperation("TransporterManagement", OperationLogBLL.OperationTypes.Create, $"添加运输人员失败：{transporter.Username}", null, transporter.Username, "Failed");
+                }
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 更新运输人员信息（API）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult UpdateTransporter(Transporters transporter)
+        {
+            try
+            {
+                var result = _adminBLL.UpdateTransporter(transporter);
+                
+                LogAdminOperation("TransporterManagement", OperationLogBLL.OperationTypes.Update, 
+                    result.Success ? $"更新运输人员信息：{transporter.Username}" : $"更新运输人员信息失败：{transporter.Username}", 
+                    transporter.TransporterID, transporter.Username, result.Success ? "Success" : "Failed");
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 删除运输人员（API）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult DeleteTransporter(int transporterId)
+        {
+            try
+            {
+                var transporter = _adminBLL.GetTransporterById(transporterId);
+                string transporterName = transporter?.Username ?? $"ID:{transporterId}";
+                
+                var result = _adminBLL.DeleteTransporter(transporterId);
+                
+                LogAdminOperation("TransporterManagement", OperationLogBLL.OperationTypes.Delete, $"删除运输人员：{transporterName}", transporterId, transporterName, result.Success ? "Success" : "Failed");
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取运输人员统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetTransporterStatistics()
+        {
+            try
+            {
+                var stats = _adminBLL.GetTransporterStatistics();
+                return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 导出运输人员数据到CSV
+        /// </summary>
+        [HttpGet]
+        public ActionResult ExportTransporters(string searchTerm = null, bool? isActive = null)
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            try
+            {
+                var transporters = _adminBLL.GetAllTransportersForExport(searchTerm, isActive);
+
+                var csv = new System.Text.StringBuilder();
+                csv.Append("\uFEFF");
+                csv.AppendLine("运输人员ID,用户名,姓名,手机号,车辆类型,车牌号,区域,评分,是否可接单,账号状态,注册日期");
+
+                foreach (var t in transporters)
+                {
+                    var availableStatus = t.Available ? "可接单" : "不可接单";
+                    var activeStatus = t.IsActive ? "激活" : "禁用";
+                    var createdDate = t.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    csv.AppendLine($"{t.TransporterID},{EscapeCsvField(t.Username)},{EscapeCsvField(t.FullName ?? "-")},{EscapeCsvField(t.PhoneNumber)},{EscapeCsvField(t.VehicleType)},{EscapeCsvField(t.VehiclePlateNumber)},{EscapeCsvField(t.Region)},{EscapeCsvField(t.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
+                }
+
+                var fileName = $"运输人员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                LogAdminOperation("TransporterManagement", OperationLogBLL.OperationTypes.Export, $"导出运输人员数据，共{transporters.Count}条记录");
+
+                return File(fileBytes, "text/csv", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
+                return RedirectToAction("TransporterManagement");
+            }
+        }
+
+        #endregion
+
+        #region 分拣中心人员管理功能
+
+        /// <summary>
+        /// 管理员 - 分拣中心人员管理页面
+        /// </summary>
+        [AdminPermission(AdminPermissions.SortingCenterWorkerManagement)]
+        public ActionResult SortingCenterWorkerManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取分拣中心人员列表（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            try
+            {
+                var result = _adminBLL.GetAllSortingCenterWorkers(page, pageSize, searchTerm, isActive);
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取分拣中心人员详情（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetSortingCenterWorkerDetails(int workerId)
+        {
+            try
+            {
+                var worker = _adminBLL.GetSortingCenterWorkerById(workerId);
+                return JsonContent(new {
+                    success = true,
+                    data = worker
+                });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 添加分拣中心人员（API）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult AddSortingCenterWorker(SortingCenterWorkers worker, string password)
+        {
+            try
+            {
+                var result = _adminBLL.AddSortingCenterWorker(worker, password);
+                
+                if (result.Success)
+                {
+                    LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Create, $"添加分拣中心人员：{worker.Username}", null, worker.Username, "Success");
+                }
+                else
+                {
+                    LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Create, $"添加分拣中心人员失败：{worker.Username}", null, worker.Username, "Failed");
+                }
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 更新分拣中心人员信息（API）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult UpdateSortingCenterWorker(SortingCenterWorkers worker)
+        {
+            try
+            {
+                var result = _adminBLL.UpdateSortingCenterWorker(worker);
+                
+                LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Update, 
+                    result.Success ? $"更新分拣中心人员信息：{worker.Username}" : $"更新分拣中心人员信息失败：{worker.Username}", 
+                    worker.WorkerID, worker.Username, result.Success ? "Success" : "Failed");
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 删除分拣中心人员（API）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult DeleteSortingCenterWorker(int workerId)
+        {
+            try
+            {
+                var worker = _adminBLL.GetSortingCenterWorkerById(workerId);
+                string workerName = worker?.Username ?? $"ID:{workerId}";
+                
+                var result = _adminBLL.DeleteSortingCenterWorker(workerId);
+                
+                LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Delete, $"删除分拣中心人员：{workerName}", workerId, workerName, result.Success ? "Success" : "Failed");
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 获取分拣中心人员统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetSortingCenterWorkerStatistics()
+        {
+            try
+            {
+                var stats = _adminBLL.GetSortingCenterWorkerStatistics();
+                return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 导出分拣中心人员数据到CSV
+        /// </summary>
+        [HttpGet]
+        public ActionResult ExportSortingCenterWorkers(string searchTerm = null, bool? isActive = null)
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            try
+            {
+                var workers = _adminBLL.GetAllSortingCenterWorkersForExport(searchTerm, isActive);
+
+                var csv = new System.Text.StringBuilder();
+                csv.Append("\uFEFF");
+                csv.AppendLine("人员ID,用户名,姓名,手机号,分拣中心,职位,班次,评分,是否可用,账号状态,注册日期");
+
+                foreach (var w in workers)
+                {
+                    var availableStatus = w.Available ? "可用" : "不可用";
+                    var activeStatus = w.IsActive ? "激活" : "禁用";
+                    var createdDate = w.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    csv.AppendLine($"{w.WorkerID},{EscapeCsvField(w.Username)},{EscapeCsvField(w.FullName ?? "-")},{EscapeCsvField(w.PhoneNumber)},{EscapeCsvField(w.SortingCenterName)},{EscapeCsvField(w.Position)},{EscapeCsvField(w.ShiftType)},{EscapeCsvField(w.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
+                }
+
+                var fileName = $"分拣中心人员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Export, $"导出分拣中心人员数据，共{workers.Count}条记录");
+
+                return File(fileBytes, "text/csv", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
+                return RedirectToAction("SortingCenterWorkerManagement");
+            }
+        }
+
+        #endregion
     }
 }
