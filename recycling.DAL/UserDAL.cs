@@ -98,7 +98,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate 
+                    string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate, url 
                                   FROM Users 
                                   WHERE Username = @Username";
 
@@ -117,7 +117,8 @@ namespace recycling.DAL
                                 PasswordHash = reader["PasswordHash"].ToString(),
                                 PhoneNumber = reader["PhoneNumber"].ToString(),
                                 Email = reader["Email"].ToString(),
-                                RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"])
+                                RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
+                                url = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
                             };
                         }
                     }
@@ -210,7 +211,7 @@ namespace recycling.DAL
             Users user = null;
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate 
+                string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate, url 
                               FROM Users 
                               WHERE PhoneNumber = @PhoneNumber";
 
@@ -229,7 +230,8 @@ namespace recycling.DAL
                             PasswordHash = reader["PasswordHash"].ToString(),
                             PhoneNumber = reader["PhoneNumber"].ToString(),
                             Email = reader["Email"].ToString(),
-                            RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"])
+                            RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
+                            url = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
                         };
                     }
                 }
@@ -247,7 +249,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate, LastLoginDate 
+                    string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, RegistrationDate, LastLoginDate, url 
                                   FROM Users 
                                   WHERE Email = @Email";
 
@@ -267,7 +269,8 @@ namespace recycling.DAL
                                 PhoneNumber = reader["PhoneNumber"].ToString(),
                                 Email = reader["Email"].ToString(),
                                 RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
-                                LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null
+                                LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
+                                url = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
                             };
                         }
                     }
@@ -351,7 +354,7 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"SELECT UserID, Username, PasswordHash, PhoneNumber, Email, 
-                              RegistrationDate, LastLoginDate 
+                              RegistrationDate, LastLoginDate, url 
                        FROM Users 
                        WHERE UserID = @UserID";
 
@@ -372,12 +375,31 @@ namespace recycling.DAL
                             Email = reader["Email"].ToString(),
                             RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
                             LastLoginDate = reader["LastLoginDate"] != DBNull.Value ?
-                                          Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null
+                                          Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
+                            url = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
                         };
                     }
                 }
             }
             return user;
+        }
+
+        /// <summary>
+        /// 更新用户头像URL
+        /// </summary>
+        public bool UpdateUserAvatar(int userId, string avatarUrl)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "UPDATE Users SET url = @url WHERE UserID = @UserID";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@url", (object)avatarUrl ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
         }
     }
 }

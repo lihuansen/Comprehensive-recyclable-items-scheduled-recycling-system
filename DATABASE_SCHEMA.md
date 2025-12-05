@@ -22,6 +22,8 @@
 |------|--------|------|----------|
 | Users | 用户表 | 存储普通用户信息 | UserID, Username, PhoneNumber, Email |
 | Recyclers | 回收员表 | 存储回收员信息 | RecyclerID, Username, Region, Rating |
+| Transporters | 运输人员表 | 存储运输人员信息 | TransporterID, Username, VehiclePlateNumber, Region |
+| SortingCenterWorkers | 分拣中心工作人员表 | 存储分拣中心工作人员信息 | WorkerID, Username, SortingCenterID, Position |
 | Admins | 管理员表 | 存储管理员信息 | AdminID, Username |
 | SuperAdmins | 超级管理员表 | 存储超级管理员信息 | SuperAdminID, Username |
 | Appointments | 预约订单表 | 存储回收预约信息 | AppointmentID, UserID, RecyclerID, Status |
@@ -129,7 +131,160 @@ CREATE INDEX IX_Recyclers_Available ON Recyclers(Available);
 
 ---
 
-### 3. Admins（管理员表）
+### 3. Transporters（运输人员表）
+
+**用途**：存储运输人员信息，负责将回收物品从回收员处运输到分拣中心
+
+```sql
+CREATE TABLE Transporters (
+    TransporterID INT PRIMARY KEY IDENTITY(1,1),   -- 运输人员ID（自增主键）
+    Username NVARCHAR(50) NOT NULL UNIQUE,         -- 用户名（唯一）
+    PasswordHash NVARCHAR(255) NOT NULL,           -- 密码哈希（SHA256）
+    FullName NVARCHAR(100) NULL,                   -- 真实姓名
+    PhoneNumber NVARCHAR(20) NOT NULL,             -- 手机号
+    IDNumber NVARCHAR(18) NULL,                    -- 身份证号
+    VehicleType NVARCHAR(50) NOT NULL,             -- 车辆类型
+    VehiclePlateNumber NVARCHAR(20) NOT NULL,      -- 车牌号
+    VehicleCapacity DECIMAL(10, 2) NULL,           -- 车辆载重能力（kg）
+    LicenseNumber NVARCHAR(50) NULL,               -- 驾驶证号
+    Region NVARCHAR(100) NOT NULL,                 -- 负责区域
+    Available BIT NOT NULL DEFAULT 1,              -- 是否可接任务
+    CurrentStatus NVARCHAR(20) NOT NULL DEFAULT N'空闲', -- 当前状态
+    TotalTrips INT NOT NULL DEFAULT 0,             -- 总运输次数
+    TotalWeight DECIMAL(12, 2) NOT NULL DEFAULT 0, -- 总运输重量（kg）
+    Rating DECIMAL(3, 2) NULL,                     -- 评分（0-5）
+    CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE(), -- 创建时间
+    LastLoginDate DATETIME2 NULL,                  -- 最后登录时间
+    IsActive BIT NOT NULL DEFAULT 1,               -- 是否激活
+    AvatarURL NVARCHAR(255) NULL,                  -- 头像URL
+    Notes NVARCHAR(500) NULL                       -- 备注信息
+);
+```
+
+**字段说明：**
+
+| 字段名 | 数据类型 | 约束 | 说明 |
+|--------|----------|------|------|
+| TransporterID | INT | PK, IDENTITY | 运输人员唯一标识 |
+| Username | NVARCHAR(50) | NOT NULL, UNIQUE | 用户名 |
+| PasswordHash | NVARCHAR(255) | NOT NULL | SHA256 密码哈希值 |
+| FullName | NVARCHAR(100) | NULL | 真实姓名 |
+| PhoneNumber | NVARCHAR(20) | NOT NULL | 手机号 |
+| IDNumber | NVARCHAR(18) | NULL | 身份证号 |
+| VehicleType | NVARCHAR(50) | NOT NULL | 车辆类型（小型货车、中型货车等）|
+| VehiclePlateNumber | NVARCHAR(20) | NOT NULL | 车牌号 |
+| VehicleCapacity | DECIMAL(10,2) | NULL | 车辆载重能力（公斤）|
+| LicenseNumber | NVARCHAR(50) | NULL | 驾驶证号 |
+| Region | NVARCHAR(100) | NOT NULL | 负责的运输区域 |
+| Available | BIT | NOT NULL, DEFAULT 1 | 是否可接任务 |
+| CurrentStatus | NVARCHAR(20) | NOT NULL | 当前状态（空闲、运输中、休息、离线）|
+| TotalTrips | INT | NOT NULL, DEFAULT 0 | 累计运输次数 |
+| TotalWeight | DECIMAL(12,2) | NOT NULL, DEFAULT 0 | 累计运输重量 |
+| Rating | DECIMAL(3,2) | NULL | 评分（0-5）|
+| CreatedDate | DATETIME2 | NOT NULL | 创建时间 |
+| LastLoginDate | DATETIME2 | NULL | 最后登录时间 |
+| IsActive | BIT | NOT NULL, DEFAULT 1 | 是否激活 |
+| AvatarURL | NVARCHAR(255) | NULL | 头像URL |
+| Notes | NVARCHAR(500) | NULL | 备注信息 |
+
+**索引建议：**
+```sql
+CREATE UNIQUE INDEX IX_Transporters_Username ON Transporters(Username);
+CREATE INDEX IX_Transporters_Region ON Transporters(Region);
+CREATE INDEX IX_Transporters_Available ON Transporters(Available);
+CREATE INDEX IX_Transporters_CurrentStatus ON Transporters(CurrentStatus);
+CREATE INDEX IX_Transporters_VehiclePlateNumber ON Transporters(VehiclePlateNumber);
+```
+
+**业务规则：**
+- 只有 `Available = 1` 且 `IsActive = 1` 的运输人员可以接任务
+- `CurrentStatus` 表示实时状态：空闲、运输中、休息、离线
+- `Rating` 为用户对运输服务的平均评分
+- `TotalTrips` 和 `TotalWeight` 用于统计绩效
+
+---
+
+### 4. SortingCenterWorkers（分拣中心工作人员表）
+
+**用途**：存储分拣中心工作人员信息，负责对运输到分拣中心的回收物品进行分类、质检和处理
+
+```sql
+CREATE TABLE SortingCenterWorkers (
+    WorkerID INT PRIMARY KEY IDENTITY(1,1),        -- 工作人员ID（自增主键）
+    Username NVARCHAR(50) NOT NULL UNIQUE,         -- 用户名（唯一）
+    PasswordHash NVARCHAR(255) NOT NULL,           -- 密码哈希（SHA256）
+    FullName NVARCHAR(100) NULL,                   -- 真实姓名
+    PhoneNumber NVARCHAR(20) NOT NULL,             -- 手机号
+    IDNumber NVARCHAR(18) NULL,                    -- 身份证号
+    SortingCenterID INT NOT NULL,                  -- 所属分拣中心ID
+    SortingCenterName NVARCHAR(100) NOT NULL,      -- 分拣中心名称
+    Position NVARCHAR(50) NOT NULL DEFAULT N'分拣员', -- 职位
+    WorkStation NVARCHAR(50) NULL,                 -- 工位编号
+    Specialization NVARCHAR(100) NULL,             -- 专长品类
+    ShiftType NVARCHAR(20) NOT NULL DEFAULT N'白班', -- 班次类型
+    Available BIT NOT NULL DEFAULT 1,              -- 是否可工作
+    CurrentStatus NVARCHAR(20) NOT NULL DEFAULT N'待命', -- 当前状态
+    TotalItemsProcessed INT NOT NULL DEFAULT 0,    -- 总处理物品数量
+    TotalWeightProcessed DECIMAL(12, 2) NOT NULL DEFAULT 0, -- 总处理重量（kg）
+    AccuracyRate DECIMAL(5, 2) NULL,               -- 分拣准确率（%）
+    Rating DECIMAL(3, 2) NULL,                     -- 评分（0-5）
+    HireDate DATE NULL,                            -- 入职日期
+    CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE(), -- 创建时间
+    LastLoginDate DATETIME2 NULL,                  -- 最后登录时间
+    IsActive BIT NOT NULL DEFAULT 1,               -- 是否激活
+    AvatarURL NVARCHAR(255) NULL,                  -- 头像URL
+    Notes NVARCHAR(500) NULL                       -- 备注信息
+);
+```
+
+**字段说明：**
+
+| 字段名 | 数据类型 | 约束 | 说明 |
+|--------|----------|------|------|
+| WorkerID | INT | PK, IDENTITY | 工作人员唯一标识 |
+| Username | NVARCHAR(50) | NOT NULL, UNIQUE | 用户名 |
+| PasswordHash | NVARCHAR(255) | NOT NULL | SHA256 密码哈希值 |
+| FullName | NVARCHAR(100) | NULL | 真实姓名 |
+| PhoneNumber | NVARCHAR(20) | NOT NULL | 手机号 |
+| IDNumber | NVARCHAR(18) | NULL | 身份证号 |
+| SortingCenterID | INT | NOT NULL | 所属分拣中心ID |
+| SortingCenterName | NVARCHAR(100) | NOT NULL | 分拣中心名称 |
+| Position | NVARCHAR(50) | NOT NULL | 职位（分拣员、质检员、组长、主管）|
+| WorkStation | NVARCHAR(50) | NULL | 工位编号 |
+| Specialization | NVARCHAR(100) | NULL | 专长品类 |
+| ShiftType | NVARCHAR(20) | NOT NULL | 班次类型（白班、夜班、轮班）|
+| Available | BIT | NOT NULL, DEFAULT 1 | 是否可工作 |
+| CurrentStatus | NVARCHAR(20) | NOT NULL | 当前状态（待命、分拣中、休息、离岗、离线）|
+| TotalItemsProcessed | INT | NOT NULL, DEFAULT 0 | 累计处理物品数量 |
+| TotalWeightProcessed | DECIMAL(12,2) | NOT NULL, DEFAULT 0 | 累计处理重量 |
+| AccuracyRate | DECIMAL(5,2) | NULL | 分拣准确率 |
+| Rating | DECIMAL(3,2) | NULL | 评分（0-5）|
+| HireDate | DATE | NULL | 入职日期 |
+| CreatedDate | DATETIME2 | NOT NULL | 创建时间 |
+| LastLoginDate | DATETIME2 | NULL | 最后登录时间 |
+| IsActive | BIT | NOT NULL, DEFAULT 1 | 是否激活 |
+| AvatarURL | NVARCHAR(255) | NULL | 头像URL |
+| Notes | NVARCHAR(500) | NULL | 备注信息 |
+
+**索引建议：**
+```sql
+CREATE UNIQUE INDEX IX_SortingCenterWorkers_Username ON SortingCenterWorkers(Username);
+CREATE INDEX IX_SortingCenterWorkers_SortingCenterID ON SortingCenterWorkers(SortingCenterID);
+CREATE INDEX IX_SortingCenterWorkers_Position ON SortingCenterWorkers(Position);
+CREATE INDEX IX_SortingCenterWorkers_Available ON SortingCenterWorkers(Available);
+CREATE INDEX IX_SortingCenterWorkers_ShiftType ON SortingCenterWorkers(ShiftType);
+```
+
+**业务规则：**
+- 只有 `Available = 1` 且 `IsActive = 1` 的工作人员可以接任务
+- `Position` 职位层级：分拣员 < 质检员 < 组长 < 主管
+- `CurrentStatus` 表示实时状态：待命、分拣中、休息、离岗、离线
+- `AccuracyRate` 用于评估分拣质量
+- `ShiftType` 用于排班管理
+
+---
+
+### 5. Admins（管理员表）
 
 **用途**：存储管理员信息
 
@@ -147,7 +302,7 @@ CREATE TABLE Admins (
 
 ---
 
-### 4. SuperAdmins（超级管理员表）
+### 6. SuperAdmins（超级管理员表）
 
 **用途**：存储超级管理员信息
 
@@ -165,7 +320,7 @@ CREATE TABLE SuperAdmins (
 
 ---
 
-### 5. Appointments（预约订单表）
+### 7. Appointments（预约订单表）
 
 **用途**：存储用户的回收预约信息
 
@@ -246,7 +401,7 @@ CREATE INDEX IX_Appointments_CreatedDate ON Appointments(CreatedDate);
 
 ---
 
-### 6. AppointmentCategories（预约品类表）
+### 8. AppointmentCategories（预约品类表）
 
 **用途**：存储每个预约订单的品类详细信息
 
@@ -297,7 +452,7 @@ CREATE INDEX IX_AppointmentCategories_AppointmentID
 
 ---
 
-### 7. RecyclableItems（可回收物品表）
+### 9. RecyclableItems（可回收物品表）
 
 **用途**：存储可回收物品类型和价格信息
 
@@ -347,7 +502,7 @@ CREATE INDEX IX_RecyclableItems_SortOrder ON RecyclableItems(SortOrder);
 
 ---
 
-### 8. Messages（消息表）
+### 10. Messages（消息表）
 
 **用途**：存储用户和回收员之间的消息
 
@@ -394,7 +549,7 @@ CREATE INDEX IX_Messages_IsRead ON Messages(IsRead);
 
 ---
 
-### 9. Conversations（会话表）
+### 11. Conversations（会话表）
 
 **用途**：存储订单的会话状态
 

@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Configuration;
 using System.Data.SqlClient;
 using recycling.Model;
-using System.Configuration;
 
 namespace recycling.DAL
 {
     public class FeedbackDAL
     {
-        private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
+        // 从配置文件获取数据库连接字符串
+        private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         /// <summary>
         /// 添加用户反馈
@@ -48,67 +48,63 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 获取所有反馈（支持分页、筛选和搜索）
+        /// 获取所有反馈（管理员用）
         /// </summary>
-        public (List<UserFeedback> Feedbacks, int TotalCount) GetAllFeedbacks(
-            string feedbackType = null, 
-            string status = null, 
-            string searchKeyword = null,
-            int page = 1, 
-            int pageSize = 20)
+        public List<UserFeedback> GetAllFeedbacks(string status = null, string feedbackType = null)
         {
             List<UserFeedback> feedbacks = new List<UserFeedback>();
-            int totalCount = 0;
-
+            
             try
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-
-                    // 构建WHERE子句
-                    List<string> whereConditions = new List<string>();
-                    if (!string.IsNullOrEmpty(feedbackType))
-                        whereConditions.Add("f.FeedbackType = @FeedbackType");
-                    if (!string.IsNullOrEmpty(status))
-                        whereConditions.Add("f.Status = @Status");
-                    if (!string.IsNullOrEmpty(searchKeyword))
-                        whereConditions.Add("(f.Subject LIKE @SearchKeyword OR u.UserName LIKE @SearchKeyword)");
-
-                    string whereClause = whereConditions.Count > 0 ? "WHERE " + string.Join(" AND ", whereConditions) : "";
-
-                    // 获取总数
-                    string countSql = $@"SELECT COUNT(*) 
-                                        FROM UserFeedback f
-                                        LEFT JOIN Users u ON f.UserID = u.UserID
-                                        {whereClause}";
-
-                    using (SqlCommand cmd = new SqlCommand(countSql, conn))
-                    {
-                        AddSearchParameters(cmd, feedbackType, status, searchKeyword);
-                        totalCount = (int)cmd.ExecuteScalar();
-                    }
-
-                    // 获取分页数据
-                    string sql = $@"SELECT f.*, u.UserName
+                    string sql = @"SELECT f.*, u.Username, u.Email 
                                    FROM UserFeedback f
-                                   LEFT JOIN Users u ON f.UserID = u.UserID
-                                   {whereClause}
-                                   ORDER BY f.CreatedDate DESC
-                                   OFFSET @Offset ROWS
-                                   FETCH NEXT @PageSize ROWS ONLY";
+                                   INNER JOIN Users u ON f.UserID = u.UserID
+                                   WHERE 1=1";
+                    
+                    if (!string.IsNullOrEmpty(status))
+                    {
+                        sql += " AND f.Status = @Status";
+                    }
+                    
+                    if (!string.IsNullOrEmpty(feedbackType))
+                    {
+                        sql += " AND f.FeedbackType = @FeedbackType";
+                    }
+                    
+                    sql += " ORDER BY f.CreatedDate DESC";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        AddSearchParameters(cmd, feedbackType, status, searchKeyword);
-                        cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
-                        cmd.Parameters.AddWithValue("@PageSize", pageSize);
+                        if (!string.IsNullOrEmpty(status))
+                        {
+                            cmd.Parameters.AddWithValue("@Status", status);
+                        }
+                        
+                        if (!string.IsNullOrEmpty(feedbackType))
+                        {
+                            cmd.Parameters.AddWithValue("@FeedbackType", feedbackType);
+                        }
 
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                feedbacks.Add(MapFeedbackFromReader(reader));
+                                feedbacks.Add(new UserFeedback
+                                {
+                                    FeedbackID = reader.GetInt32(reader.GetOrdinal("FeedbackID")),
+                                    UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                                    FeedbackType = reader.GetString(reader.GetOrdinal("FeedbackType")),
+                                    Subject = reader.GetString(reader.GetOrdinal("Subject")),
+                                    Description = reader.GetString(reader.GetOrdinal("Description")),
+                                    ContactEmail = reader.IsDBNull(reader.GetOrdinal("ContactEmail")) ? null : reader.GetString(reader.GetOrdinal("ContactEmail")),
+                                    Status = reader.GetString(reader.GetOrdinal("Status")),
+                                    AdminReply = reader.IsDBNull(reader.GetOrdinal("AdminReply")) ? null : reader.GetString(reader.GetOrdinal("AdminReply")),
+                                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                                    UpdatedDate = reader.IsDBNull(reader.GetOrdinal("UpdatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("UpdatedDate"))
+                                });
                             }
                         }
                     }
@@ -116,51 +112,15 @@ namespace recycling.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"获取反馈列表时发生错误: {ex.Message}");
+                // 日志记录异常
+                System.Diagnostics.Debug.WriteLine($"获取反馈列表时发生错误: {ex.Message}");
             }
-
-            return (feedbacks, totalCount);
+            
+            return feedbacks;
         }
 
         /// <summary>
-        /// 根据ID获取反馈详情
-        /// </summary>
-        public UserFeedback GetFeedbackById(int feedbackId)
-        {
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    string sql = @"SELECT f.*, u.UserName
-                                  FROM UserFeedback f
-                                  LEFT JOIN Users u ON f.UserID = u.UserID
-                                  WHERE f.FeedbackID = @FeedbackID";
-
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@FeedbackID", feedbackId);
-
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                return MapFeedbackFromReader(reader);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"获取反馈详情时发生错误: {ex.Message}");
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// 更新反馈状态和回复
+        /// 更新反馈状态和管理员回复
         /// </summary>
         public (bool Success, string Message) UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
         {
@@ -169,62 +129,87 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"UPDATE UserFeedback 
-                                  SET Status = @Status, 
-                                      AdminReply = @AdminReply, 
-                                      UpdatedDate = @UpdatedDate
-                                  WHERE FeedbackID = @FeedbackID";
+                    
+                    // Build SQL dynamically based on what needs to be updated
+                    string sql = "UPDATE UserFeedback SET UpdatedDate = @UpdatedDate";
+                    
+                    if (!string.IsNullOrEmpty(status))
+                    {
+                        sql += ", Status = @Status";
+                    }
+                    
+                    if (adminReply != null) // Check for null, not empty, to allow clearing replies
+                    {
+                        sql += ", AdminReply = @AdminReply";
+                    }
+                    
+                    sql += " WHERE FeedbackID = @FeedbackID";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        cmd.Parameters.AddWithValue("@FeedbackID", feedbackId);
-                        cmd.Parameters.AddWithValue("@Status", status);
-                        cmd.Parameters.AddWithValue("@AdminReply", string.IsNullOrEmpty(adminReply) ? (object)DBNull.Value : adminReply);
                         cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@FeedbackID", feedbackId);
+                        
+                        if (!string.IsNullOrEmpty(status))
+                        {
+                            cmd.Parameters.AddWithValue("@Status", status);
+                        }
+                        
+                        if (adminReply != null)
+                        {
+                            cmd.Parameters.AddWithValue("@AdminReply", string.IsNullOrEmpty(adminReply) ? (object)DBNull.Value : adminReply);
+                        }
 
                         int result = cmd.ExecuteNonQuery();
-                        return result > 0 ? (true, "状态更新成功") : (false, "状态更新失败");
+                        return result > 0 ? (true, "更新成功") : (false, "更新失败");
                     }
                 }
             }
             catch (Exception ex)
             {
-                return (false, $"更新状态时发生错误: {ex.Message}");
+                return (false, $"更新反馈状态时发生错误: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// 获取反馈统计数据
+        /// 获取指定用户的所有反馈（用户端查看自己的反馈）
         /// </summary>
-        public Dictionary<string, int> GetFeedbackStatistics()
+        public List<UserFeedback> GetUserFeedbacks(int userId)
         {
-            Dictionary<string, int> stats = new Dictionary<string, int>
-            {
-                { "Total", 0 },
-                { "InProgress", 0 },
-                { "Completed", 0 }
-            };
-
+            List<UserFeedback> feedbacks = new List<UserFeedback>();
+            
             try
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"SELECT 
-                                    COUNT(*) AS Total,
-                                    SUM(CASE WHEN Status = '反馈中' THEN 1 ELSE 0 END) AS InProgress,
-                                    SUM(CASE WHEN Status = '已完成' THEN 1 ELSE 0 END) AS Completed
-                                   FROM UserFeedback";
+                    string sql = @"SELECT FeedbackID, UserID, FeedbackType, Subject, Description, 
+                                          ContactEmail, Status, AdminReply, CreatedDate, UpdatedDate 
+                                   FROM UserFeedback
+                                   WHERE UserID = @UserID
+                                   ORDER BY CreatedDate DESC";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
+                        cmd.Parameters.AddWithValue("@UserID", userId);
+
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            if (reader.Read())
+                            while (reader.Read())
                             {
-                                stats["Total"] = reader.GetInt32(0);
-                                stats["InProgress"] = reader.GetInt32(1);
-                                stats["Completed"] = reader.GetInt32(2);
+                                feedbacks.Add(new UserFeedback
+                                {
+                                    FeedbackID = reader.GetInt32(reader.GetOrdinal("FeedbackID")),
+                                    UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                                    FeedbackType = reader.GetString(reader.GetOrdinal("FeedbackType")),
+                                    Subject = reader.GetString(reader.GetOrdinal("Subject")),
+                                    Description = reader.GetString(reader.GetOrdinal("Description")),
+                                    ContactEmail = reader.IsDBNull(reader.GetOrdinal("ContactEmail")) ? null : reader.GetString(reader.GetOrdinal("ContactEmail")),
+                                    Status = reader.GetString(reader.GetOrdinal("Status")),
+                                    AdminReply = reader.IsDBNull(reader.GetOrdinal("AdminReply")) ? null : reader.GetString(reader.GetOrdinal("AdminReply")),
+                                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                                    UpdatedDate = reader.IsDBNull(reader.GetOrdinal("UpdatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("UpdatedDate"))
+                                });
                             }
                         }
                     }
@@ -232,43 +217,60 @@ namespace recycling.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"获取反馈统计时发生错误: {ex.Message}");
+                // 日志记录异常
+                System.Diagnostics.Debug.WriteLine($"获取用户反馈列表时发生错误: {ex.Message}");
             }
-
-            return stats;
+            
+            return feedbacks;
         }
 
         /// <summary>
-        /// 添加搜索参数
+        /// 根据反馈ID获取反馈详情
         /// </summary>
-        private void AddSearchParameters(SqlCommand cmd, string feedbackType, string status, string searchKeyword)
+        public UserFeedback GetFeedbackById(int feedbackId)
         {
-            if (!string.IsNullOrEmpty(feedbackType))
-                cmd.Parameters.AddWithValue("@FeedbackType", feedbackType);
-            if (!string.IsNullOrEmpty(status))
-                cmd.Parameters.AddWithValue("@Status", status);
-            if (!string.IsNullOrEmpty(searchKeyword))
-                cmd.Parameters.AddWithValue("@SearchKeyword", "%" + searchKeyword + "%");
-        }
-
-        /// <summary>
-        /// 从DataReader映射反馈对象
-        /// </summary>
-        private UserFeedback MapFeedbackFromReader(SqlDataReader reader)
-        {
-            return new UserFeedback
+            try
             {
-                FeedbackID = reader.GetInt32(reader.GetOrdinal("FeedbackID")),
-                UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
-                FeedbackType = reader.GetString(reader.GetOrdinal("FeedbackType")),
-                Subject = reader.GetString(reader.GetOrdinal("Subject")),
-                Description = reader.GetString(reader.GetOrdinal("Description")),
-                ContactEmail = reader.IsDBNull(reader.GetOrdinal("ContactEmail")) ? null : reader.GetString(reader.GetOrdinal("ContactEmail")),
-                Status = reader.GetString(reader.GetOrdinal("Status")),
-                AdminReply = reader.IsDBNull(reader.GetOrdinal("AdminReply")) ? null : reader.GetString(reader.GetOrdinal("AdminReply")),
-                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
-                UpdatedDate = reader.IsDBNull(reader.GetOrdinal("UpdatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("UpdatedDate"))
-            };
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT FeedbackID, UserID, FeedbackType, Subject, Description, 
+                                          ContactEmail, Status, AdminReply, CreatedDate, UpdatedDate 
+                                   FROM UserFeedback
+                                   WHERE FeedbackID = @FeedbackID";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@FeedbackID", feedbackId);
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new UserFeedback
+                                {
+                                    FeedbackID = reader.GetInt32(reader.GetOrdinal("FeedbackID")),
+                                    UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                                    FeedbackType = reader.GetString(reader.GetOrdinal("FeedbackType")),
+                                    Subject = reader.GetString(reader.GetOrdinal("Subject")),
+                                    Description = reader.GetString(reader.GetOrdinal("Description")),
+                                    ContactEmail = reader.IsDBNull(reader.GetOrdinal("ContactEmail")) ? null : reader.GetString(reader.GetOrdinal("ContactEmail")),
+                                    Status = reader.GetString(reader.GetOrdinal("Status")),
+                                    AdminReply = reader.IsDBNull(reader.GetOrdinal("AdminReply")) ? null : reader.GetString(reader.GetOrdinal("AdminReply")),
+                                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                                    UpdatedDate = reader.IsDBNull(reader.GetOrdinal("UpdatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("UpdatedDate"))
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取反馈详情时发生错误: {ex.Message}");
+            }
+            
+            return null;
         }
     }
 }

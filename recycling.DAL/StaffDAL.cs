@@ -98,7 +98,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT AdminID, Username, PasswordHash, LastLoginDate 
+                    string sql = @"SELECT AdminID, Username, PasswordHash, FullName, Character, IsActive, CreatedDate, LastLoginDate 
                                   FROM Admins 
                                   WHERE Username = @Username";
 
@@ -115,6 +115,16 @@ namespace recycling.DAL
                                 AdminID = Convert.ToInt32(reader["AdminID"]),
                                 Username = reader["Username"].ToString(),
                                 PasswordHash = reader["PasswordHash"].ToString(),
+                                FullName = reader["FullName"].ToString(),
+                                Character = reader["Character"] != DBNull.Value 
+                                    ? reader["Character"].ToString() 
+                                    : null,
+                                IsActive = reader["IsActive"] != DBNull.Value 
+                                    ? Convert.ToBoolean(reader["IsActive"]) 
+                                    : (bool?)null,
+                                CreatedDate = reader["CreatedDate"] != DBNull.Value
+                                    ? Convert.ToDateTime(reader["CreatedDate"])
+                                    : (DateTime?)null,
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null

@@ -1,5 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using recycling.DAL;
 using recycling.Model;
 
@@ -32,6 +35,14 @@ namespace recycling.BLL
         public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetInventorySummary(int? recyclerId = null)
         {
             return _inventoryDAL.GetInventorySummary(recyclerId);
+        }
+
+        /// <summary>
+        /// 获取库存明细（包含回收员信息）- 管理员端使用
+        /// </summary>
+        public PagedResult<InventoryDetailViewModel> GetInventoryDetailWithRecycler(int pageIndex = 1, int pageSize = 20, string categoryKey = null)
+        {
+            return _inventoryDAL.GetInventoryDetailWithRecycler(pageIndex, pageSize, categoryKey);
         }
     }
 }

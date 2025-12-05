@@ -28,5 +28,8 @@ namespace recycling.Model
         public DateTime? LastLoginDate { get; set; }
 
         public bool? IsActive { get; set; }
+
+        [StringLength(50)]
+        public string Character { get; set; }
     }
 }

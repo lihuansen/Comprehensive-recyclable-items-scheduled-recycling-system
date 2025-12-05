@@ -10,6 +10,12 @@
 <!-- 引入Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+@if (TempData["FeedbackSuccess"] != null)
+{
+<div class="alert alert-success" role="alert" style="padding:10px; border:1px solid #b7e1a1; background:#eafecc; margin-bottom:16px;">
+    @TempData["FeedbackSuccess"]
+</div>}
+
 <style>
     /* 保留原有样式 */
     .home-container {
@@ -40,11 +46,11 @@
         z-index: 2;
     }
 
-    .carousel-placeholder i {
-        font-size: 48px;
-        margin-bottom: 15px;
-        display: block;
-    }
+        .carousel-placeholder i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
 
     .content-section {
         min-height: 700px;
@@ -85,10 +91,10 @@
         transition: all 0.3s ease;
     }
 
-    .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
 
     .price-range-group {
         display: flex;
@@ -127,9 +133,9 @@
         transition: transform 0.3s;
     }
 
-    .item-card:hover {
-        transform: translateY(-5px);
-    }
+        .item-card:hover {
+            transform: translateY(-5px);
+        }
 
     .item-name {
         font-size: 18px;
@@ -167,11 +173,11 @@
         color: #6c757d;
     }
 
-    .empty-message i {
-        font-size: 64px;
-        margin-bottom: 20px;
-        opacity: 0.5;
-    }
+        .empty-message i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
 
     .pagination-control {
         display: flex;
@@ -187,45 +193,45 @@
         gap: 5px;
     }
 
-    .pagination li {
-        display: inline-block;
-    }
+        .pagination li {
+            display: inline-block;
+        }
 
-    .pagination a, .pagination span {
-        display: block;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        text-align: center;
-        line-height: 40px;
-        text-decoration: none;
-        color: #667eea;
-        border: 1px solid #e9ecef;
-        transition: all 0.3s;
-    }
+        .pagination a, .pagination span {
+            display: block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            text-decoration: none;
+            color: #667eea;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s;
+        }
 
-    .pagination a:hover {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
-    }
+            .pagination a:hover {
+                background: #667eea;
+                color: white;
+                border-color: #667eea;
+            }
 
-    .pagination .active span {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
-    }
+        .pagination .active span {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
 
-    .pagination .disabled a {
-        color: #ccc;
-        border-color: #eee;
-        cursor: not-allowed;
-    }
+        .pagination .disabled a {
+            color: #ccc;
+            border-color: #eee;
+            cursor: not-allowed;
+        }
 
-    .pagination .disabled a:hover {
-        background: transparent;
-        color: #ccc;
-    }
+            .pagination .disabled a:hover {
+                background: transparent;
+                color: #ccc;
+            }
 
     .appointment-section {
         position: absolute;
@@ -255,17 +261,17 @@
         text-decoration: none;
     }
 
-    .appointment-btn:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
-        color: white;
-        text-decoration: none;
-    }
+        .appointment-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
+            color: white;
+            text-decoration: none;
+        }
 
-    .appointment-btn i {
-        font-size: 32px;
-        margin-bottom: 8px;
-    }
+        .appointment-btn i {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
 
     .error-alert {
         background: #fff5f5;
@@ -324,8 +330,13 @@
     }
 
     @@keyframes shimmer {
-        0% { left: -100%; }
-        100% { left: 100%; }
+        0% {
+            left: -100%;
+        }
+
+        100% {
+            left: 100%;
+        }
     }
 
     /* Carousel caption styles */
@@ -338,16 +349,16 @@
         right: 10%;
     }
 
-    .carousel-caption h3 {
-        margin: 0 0 10px 0;
-        font-size: 24px;
-        font-weight: bold;
-    }
+        .carousel-caption h3 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
 
-    .carousel-caption p {
-        margin: 0;
-        font-size: 16px;
-    }
+        .carousel-caption p {
+            margin: 0;
+            font-size: 16px;
+        }
 
     .carousel-control {
         background: none;
@@ -367,7 +378,7 @@
     @{
         var carouselItems = ViewBag.CarouselItems as List<recycling.Model.HomepageCarousel> ?? new List<recycling.Model.HomepageCarousel>();
     }
-    
+
     @if (carouselItems.Count > 0)
     {
         <div id="homepageCarousel" class="carousel slide carousel-section" data-ride="carousel" data-interval="8000">
@@ -453,76 +464,76 @@
         <!-- 搜索筛选表单（修复CS7036错误：正确使用Html辅助方法） -->
         @using (Html.BeginForm("Index", "Home", FormMethod.Get, new { @class = "search-form" }))
         {
-    <div class="search-filter-row">
-        <!-- 模糊搜索 -->
-        <div class="search-column">
-            <div class="form-group">
-                <label for="Keyword" class="form-label">
-                    <i class="fas fa-search"></i> 关键词搜索
-                </label>
-                <!-- 修正：使用正确的参数绑定方式 -->
-                @Html.TextBox("Keyword", queryModel.Keyword, new
-                {
-                    @class = "form-control",
-                    placeholder = "输入物品名称",
-                    id = "Keyword"
-                })
-            </div>
-        </div>
+            <div class="search-filter-row">
+                <!-- 模糊搜索 -->
+                <div class="search-column">
+                    <div class="form-group">
+                        <label for="Keyword" class="form-label">
+                            <i class="fas fa-search"></i> 关键词搜索
+                        </label>
+                        <!-- 修正：使用正确的参数绑定方式 -->
+                        @Html.TextBox("Keyword", queryModel.Keyword, new
+                        {
+                            @class = "form-control",
+                            placeholder = "输入物品名称",
+                            id = "Keyword"
+                        })
+                    </div>
+                </div>
 
-        <!-- 类别筛选 -->
-        <div class="filter-column">
-            <div class="form-group">
-                <label for="Category" class="form-label">
-                    <i class="fas fa-list"></i> 回收品类
-                </label>
-                @Html.DropDownList("Category",
-                    new SelectList(categoryList, "Value", "Value", queryModel.Category),
-                    "全部品类",
-                    new { @class = "form-control", id = "Category" })
-            </div>
-        </div>
+                <!-- 类别筛选 -->
+                <div class="filter-column">
+                    <div class="form-group">
+                        <label for="Category" class="form-label">
+                            <i class="fas fa-list"></i> 回收品类
+                        </label>
+                        @Html.DropDownList("Category",
+                            new SelectList(categoryList, "Value", "Value", queryModel.Category),
+                            "全部品类",
+                            new { @class = "form-control", id = "Category" })
+                    </div>
+                </div>
 
-        <!-- 价格区间 -->
-        <div class="price-column">
-            <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-tags"></i> 价格区间（元/公斤）
-                </label>
-                <div class="price-range-group">
-                    @Html.TextBox("MinPrice", queryModel.MinPrice, new
-                    {
-                        @class = "form-control price-input",
-                        placeholder = "最小值",
-                        type = "number",
-                        step = "0.1",
-                        min = "0",
-                        name = "MinPrice"  // 明确指定name
-                    })
-                    <span class="price-separator">-</span>
-                    @Html.TextBox("MaxPrice", queryModel.MaxPrice, new
-                    {
-                        @class = "form-control price-input",
-                        placeholder = "最大值",
-                        type = "number",
-                        step = "0.1",
-                        min = "0",
-                        name = "MaxPrice"  // 明确指定name
-                    })
+                <!-- 价格区间 -->
+                <div class="price-column">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-tags"></i> 价格区间（元/公斤）
+                        </label>
+                        <div class="price-range-group">
+                            @Html.TextBox("MinPrice", queryModel.MinPrice, new
+                            {
+                                @class = "form-control price-input",
+                                placeholder = "最小值",
+                                type = "number",
+                                step = "0.1",
+                                min = "0",
+                                name = "MinPrice"  // 明确指定name
+                            })
+                            <span class="price-separator">-</span>
+                            @Html.TextBox("MaxPrice", queryModel.MaxPrice, new
+                            {
+                                @class = "form-control price-input",
+                                placeholder = "最大值",
+                                type = "number",
+                                step = "0.1",
+                                min = "0",
+                                name = "MaxPrice"  // 明确指定name
+                            })
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 查询按钮 -->
+                <div class="button-column">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> 查询
+                    </button>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-default">
+                        <i class="fas fa-sync-alt"></i> 重置
+                    </a>
                 </div>
             </div>
-        </div>
-
-        <!-- 查询按钮 -->
-        <div class="button-column">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-search"></i> 查询
-            </button>
-            <a href="@Url.Action("Index", "Home")" class="btn btn-default">
-                <i class="fas fa-sync-alt"></i> 重置
-            </a>
-        </div>
-    </div>
         }
 
         <!-- 可回收物展示区域（修复CS1955错误：属性不加()） -->

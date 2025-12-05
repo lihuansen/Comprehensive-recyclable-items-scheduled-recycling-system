@@ -52,8 +52,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AcceptOrderRequest.cs" />
-    <Compile Include="AdminContactMessages.cs" />
-    <Compile Include="AdminContactConversations.cs" />
+    <Compile Include="AdminOperationLog.cs" />
+    <Compile Include="AdminOperationLogs.cs" />
+    <Compile Include="AdminPermissions.cs" />
     <Compile Include="Admins.cs" />
     <Compile Include="AppointmentCategories.cs" />
     <Compile Include="AppointmentOrder.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="ForgotPasswordViewModel.cs" />
     <Compile Include="HomepageCarousel.cs" />
     <Compile Include="Inventory.cs" />
+    <Compile Include="InventoryDetailViewModel.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="Messages.cs" />
     <Compile Include="Model1.cs" />
@@ -86,10 +88,8 @@
     <Compile Include="Recyclers.cs" />
     <Compile Include="RegisterViewModel.cs" />
     <Compile Include="SendMessageRequest.cs" />
-    <Compile Include="SortingCenterWorkers.cs" />
     <Compile Include="StaffLoginViewModel.cs" />
     <Compile Include="SuperAdmins.cs" />
-    <Compile Include="Transporters.cs" />
     <Compile Include="UpdateProfileViewModel.cs" />
     <Compile Include="UserAddresses.cs" />
     <Compile Include="UserFeedback.cs" />

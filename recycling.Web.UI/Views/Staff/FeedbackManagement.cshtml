@@ -3,262 +3,148 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<style>
-    .feedback-container {
-        max-width: 1400px;
-        margin: 20px auto;
-        padding: 20px;
-    }
+@Html.AntiForgeryToken()
 
-    .feedback-header {
+<style>
+    .admin-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 25px 30px;
-        border-radius: 15px 15px 0 0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .feedback-header h2 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 600;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 15px;
-    }
-
-    .btn-header-action {
-        padding: 10px 20px;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 2px solid white;
-        border-radius: 25px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-header-action:hover {
-        background: white;
-        color: #667eea;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
-    }
-
-    .feedback-body {
-        background: white;
-        border-radius: 0 0 15px 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
-    .filter-section {
-        margin-bottom: 25px;
+    .filter-box {
+        background: white;
         padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
     }
 
     .filter-group {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-        align-items: center;
+        display: inline-block;
+        margin-right: 20px;
     }
 
-    .filter-label {
+    .filter-group label {
         font-weight: 600;
-        color: #2c3e50;
         margin-right: 10px;
+        color: #495057;
     }
 
-    .filter-select, .filter-input {
+    .filter-group select {
         padding: 8px 15px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: border-color 0.3s;
-    }
-
-    .filter-select:focus, .filter-input:focus {
-        outline: none;
-        border-color: #667eea;
-    }
-
-    .btn-filter {
-        padding: 8px 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .btn-filter:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        background: white;
     }
 
     .feedback-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .feedback-table table {
+        margin-bottom: 0;
     }
 
     .feedback-table thead {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: #f8f9fa;
     }
 
     .feedback-table th {
-        padding: 15px;
-        text-align: left;
+        border-bottom: 2px solid #dee2e6;
         font-weight: 600;
+        color: #495057;
+        padding: 15px;
     }
 
-    .feedback-table tbody tr {
-        border-bottom: 1px solid #e0e0e0;
-        transition: background-color 0.3s;
+    .feedback-table td {
+        padding: 15px;
+        vertical-align: middle;
     }
 
     .feedback-table tbody tr:hover {
         background-color: #f8f9fa;
     }
 
-    .feedback-table td {
-        padding: 15px;
+    .badge-pending {
+        background-color: #ffc107;
+        color: #000;
     }
 
-    .badge-type {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .badge-type.问题反馈 {
-        background: #ffeaa7;
-        color: #d63031;
-    }
-
-    .badge-type.功能建议 {
-        background: #dfe6e9;
-        color: #2d3436;
-    }
-
-    .badge-type.投诉举报 {
-        background: #fab1a0;
-        color: #e17055;
-    }
-
-    .badge-type.其他 {
-        background: #74b9ff;
-        color: #0984e3;
-    }
-
-    .badge-status {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .badge-status.反馈中 {
-        background: #74b9ff;
-        color: #0984e3;
-    }
-
-    .badge-status.已完成 {
-        background: #55efc4;
-        color: #00b894;
-    }
-
-    .btn-action {
-        padding: 6px 12px;
-        margin-right: 5px;
-        border: none;
-        border-radius: 5px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.3s;
+    .badge-completed {
+        background-color: #28a745;
     }
 
     .btn-view {
         background: #667eea;
         color: white;
+        border: none;
+        padding: 6px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-right: 5px;
     }
 
     .btn-view:hover {
         background: #5568d3;
+        transform: translateY(-2px);
     }
 
     .btn-reply {
-        background: #00b894;
+        background: #28a745;
         color: white;
-    }
-
-    .btn-reply:hover {
-        background: #00a085;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #999;
-    }
-
-    .empty-state i {
-        font-size: 64px;
-        margin-bottom: 20px;
-        color: #ddd;
-    }
-
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 30px;
-        gap: 10px;
-    }
-
-    .pagination button {
-        padding: 8px 15px;
-        border: 1px solid #ddd;
-        background: white;
+        border: none;
+        padding: 6px 15px;
         border-radius: 5px;
         cursor: pointer;
         transition: all 0.3s;
     }
 
-    .pagination button:hover:not(:disabled) {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
+    .btn-reply:hover {
+        background: #218838;
+        transform: translateY(-2px);
     }
 
-    .pagination button:disabled {
-        opacity: 0.5;
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        border-left: 3px solid #667eea;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+
+    .checkbox-group input[type="checkbox"]:disabled {
         cursor: not-allowed;
+        opacity: 0.6;
     }
 
-    .pagination span {
-        color: #666;
+    .checkbox-group label {
+        font-weight: 600;
+        color: #495057;
+        margin: 0;
+        cursor: pointer;
     }
 
-    /* Modal styles */
+    .checkbox-group label.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
     .modal {
         display: none;
         position: fixed;
@@ -267,48 +153,49 @@
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
     }
 
     .modal-content {
-        background-color: white;
+        background-color: #fefefe;
         margin: 5% auto;
         padding: 0;
-        border-radius: 15px;
+        border: none;
+        border-radius: 10px;
         width: 80%;
-        max-width: 800px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        max-width: 700px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
 
     .modal-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 20px 30px;
-        border-radius: 15px 15px 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .modal-header h3 {
-        margin: 0;
-    }
-
-    .modal-close {
-        color: white;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-        background: none;
-        border: none;
-    }
-
-    .modal-close:hover {
-        opacity: 0.7;
+        padding: 20px;
+        border-radius: 10px 10px 0 0;
     }
 
     .modal-body {
-        padding: 30px;
+        padding: 25px;
+    }
+
+    .modal-footer {
+        padding: 15px 25px;
+        border-top: 1px solid #e9ecef;
+        text-align: right;
+    }
+
+    .close {
+        color: white;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        opacity: 0.8;
+    }
+
+    .close:hover {
+        opacity: 1;
     }
 
     .detail-group {
@@ -317,104 +204,120 @@
 
     .detail-label {
         font-weight: 600;
-        color: #2c3e50;
+        color: #495057;
         margin-bottom: 8px;
     }
 
-    .detail-value {
+    .detail-content {
         padding: 12px;
         background: #f8f9fa;
-        border-radius: 8px;
-        color: #666;
-    }
-
-    .reply-form {
-        margin-top: 20px;
+        border-radius: 5px;
+        border-left: 3px solid #667eea;
     }
 
     .form-group {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
     }
 
-    .form-label {
-        display: block;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 8px;
-    }
-
-    .form-control {
+    .form-control, .form-textarea {
         width: 100%;
         padding: 10px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
         font-size: 14px;
     }
 
-    .form-control:focus {
-        outline: none;
-        border-color: #667eea;
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
     }
 
-    .btn-submit-reply {
-        padding: 12px 30px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .btn-update {
+        background: #667eea;
         color: white;
         border: none;
-        border-radius: 8px;
-        font-weight: 600;
+        padding: 10px 25px;
+        border-radius: 5px;
         cursor: pointer;
+        font-size: 16px;
         transition: all 0.3s;
     }
 
-    .btn-submit-reply:hover {
+    .btn-update:hover {
+        background: #5568d3;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-left: 10px;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.5;
     }
 </style>
 
-<div class="feedback-container">
-    <div class="feedback-header">
-        <h2><i class="fas fa-clipboard-list"></i> 反馈管理</h2>
-        <div class="header-actions">
-            <a href="@Url.Action("UserContactManagement", "Staff")" class="btn-header-action">
-                <i class="fas fa-comments"></i> 用户联系
-            </a>
-            <a href="@Url.Action("HistoryConversations", "Staff")" class="btn-header-action">
-                <i class="fas fa-history"></i> 历史对话
-            </a>
-        </div>
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="admin-header">
+        <h2><i class="fas fa-comment-dots"></i> 反馈管理</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">查看和管理用户提交的反馈</p>
     </div>
 
-    <div class="feedback-body">
-        <div class="filter-section">
-            <div class="filter-group">
-                <span class="filter-label">筛选：</span>
-                <select id="filterType" class="filter-select">
-                    <option value="">全部类型</option>
-                    <option value="问题反馈">问题反馈</option>
-                    <option value="功能建议">功能建议</option>
-                    <option value="投诉举报">投诉举报</option>
-                    <option value="其他">其他</option>
-                </select>
-                <select id="filterStatus" class="filter-select">
-                    <option value="">全部状态</option>
-                    <option value="反馈中">反馈中</option>
-                    <option value="已完成">已完成</option>
-                </select>
-                <input type="text" id="searchKeyword" class="filter-input" placeholder="搜索关键词...">
-                <button class="btn-filter" onclick="loadFeedbacks()">
-                    <i class="fas fa-search"></i> 搜索
-                </button>
-            </div>
+    <!-- Filter Box -->
+    <div class="filter-box">
+        <div class="filter-group">
+            <label><i class="fas fa-filter"></i> 状态筛选：</label>
+            <select id="statusFilter" onchange="loadFeedbacks()">
+                <option value="">全部状态</option>
+                <option value="反馈中">反馈中</option>
+                <option value="已完成">已完成</option>
+            </select>
         </div>
 
-        <table class="feedback-table">
+        <div class="filter-group">
+            <label><i class="fas fa-tags"></i> 类型筛选：</label>
+            <select id="typeFilter" onchange="loadFeedbacks()">
+                <option value="">全部类型</option>
+                <option value="问题反馈">问题反馈</option>
+                <option value="功能建议">功能建议</option>
+                <option value="投诉举报">投诉举报</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+
+        <button onclick="loadFeedbacks()" class="btn-view" style="float: right;">
+            <i class="fas fa-sync-alt"></i> 刷新
+        </button>
+    </div>
+
+    <!-- Feedback Table -->
+    <div class="feedback-table">
+        <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>反馈ID</th>
-                    <th>用户</th>
-                    <th>类型</th>
+                    <th>ID</th>
+                    <th>用户ID</th>
+                    <th>反馈类型</th>
                     <th>主题</th>
                     <th>状态</th>
                     <th>提交时间</th>
@@ -423,335 +326,347 @@
             </thead>
             <tbody id="feedbackTableBody">
                 <tr>
-                    <td colspan="7">
-                        <div class="empty-state">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <p>加载中...</p>
-                        </div>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>加载中...</p>
                     </td>
                 </tr>
             </tbody>
         </table>
-
-        <div class="pagination" id="pagination"></div>
     </div>
 </div>
 
-<!-- Detail Modal -->
+<!-- 详情模态框 -->
 <div id="detailModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>反馈详情</h3>
-            <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3><i class="fas fa-info-circle"></i> 反馈详情</h3>
         </div>
-        <div class="modal-body" id="detailModalBody">
-            <!-- Content loaded dynamically -->
+        <div class="modal-body">
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-user"></i> 用户ID</div>
+                <div class="detail-content" id="detailUserId"></div>
+            </div>
+
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-tags"></i> 反馈类型</div>
+                <div class="detail-content" id="detailType"></div>
+            </div>
+
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-heading"></i> 主题</div>
+                <div class="detail-content" id="detailSubject"></div>
+            </div>
+
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-align-left"></i> 详细描述</div>
+                <div class="detail-content" id="detailDescription"></div>
+            </div>
+
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-envelope"></i> 联系邮箱</div>
+                <div class="detail-content" id="detailEmail"></div>
+            </div>
+
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-clock"></i> 提交时间</div>
+                <div class="detail-content" id="detailCreatedDate"></div>
+            </div>
+
+            <div class="detail-group" id="adminReplyDisplay" style="display: none;">
+                <div class="detail-label"><i class="fas fa-reply"></i> 管理员回复</div>
+                <div class="detail-content" id="detailAdminReply"></div>
+            </div>
+
+            <hr style="margin: 25px 0;">
+
+            <div class="form-group">
+                <label class="detail-label"><i class="fas fa-info-circle"></i> 状态</label>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="resolvedCheckbox" onchange="handleResolvedChange()">
+                    <label for="resolvedCheckbox" id="resolvedLabel">标记为已解决</label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-update" onclick="updateFeedbackStatus()">
+                <i class="fas fa-save"></i> 保存状态
+            </button>
+            <button class="btn-cancel" onclick="closeModal()">
+                <i class="fas fa-times"></i> 取消
+            </button>
         </div>
     </div>
 </div>
 
-<!-- Reply Modal -->
+<!-- 回复模态框 -->
 <div id="replyModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>回复反馈</h3>
-            <button class="modal-close" onclick="closeReplyModal()">&times;</button>
+            <span class="close" onclick="closeReplyModal()">&times;</span>
+            <h3><i class="fas fa-reply"></i> 回复反馈</h3>
         </div>
         <div class="modal-body">
-            <div id="replyFeedbackInfo"></div>
-            <form class="reply-form" id="replyForm">
-                <input type="hidden" id="replyFeedbackId">
-                <div class="form-group">
-                    <label class="form-label">处理状态</label>
-                    <select id="replyStatus" class="form-control">
-                        <option value="反馈中">反馈中</option>
-                        <option value="已完成">已完成</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">管理员回复</label>
-                    <textarea id="replyContent" class="form-control" rows="6" placeholder="请输入回复内容..."></textarea>
-                </div>
-                <button type="submit" class="btn-submit-reply">
-                    <i class="fas fa-paper-plane"></i> 提交回复
-                </button>
-            </form>
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-heading"></i> 反馈主题</div>
+                <div class="detail-content" id="replySubject"></div>
+            </div>
+
+            <div class="detail-group">
+                <div class="detail-label"><i class="fas fa-align-left"></i> 反馈描述</div>
+                <div class="detail-content" id="replyDescription"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="detail-label"><i class="fas fa-reply"></i> 管理员回复</label>
+                <textarea id="replyContent" class="form-textarea" placeholder="输入您的回复..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-update" onclick="submitReply()">
+                <i class="fas fa-paper-plane"></i> 发送回复
+            </button>
+            <button class="btn-cancel" onclick="closeReplyModal()">
+                <i class="fas fa-times"></i> 取消
+            </button>
         </div>
     </div>
 </div>
 
-@section scripts {
-    <script>
-        let currentPage = 1;
-        let pageSize = 10;
-        let totalPages = 1;
+<script>
+    var currentFeedbackId = null;
+    var replyFeedbackId = null;
 
-        function escapeHtml(str) {
-            if (str === null || str === undefined) return '';
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-        }
+    $(document).ready(function() {
+        loadFeedbacks();
+    });
 
-        function formatTime(iso) {
-            if (!iso) return '';
-            try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
-        }
+    function loadFeedbacks() {
+        var status = $('#statusFilter').val();
+        var feedbackType = $('#typeFilter').val();
 
-        function loadFeedbacks() {
-            const filterType = document.getElementById('filterType').value;
-            const filterStatus = document.getElementById('filterStatus').value;
-            const searchKeyword = document.getElementById('searchKeyword').value;
-
-            fetch('@Url.Action("GetAllFeedbacks", "Staff")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    feedbackType: filterType,
-                    status: filterStatus,
-                    searchKeyword: searchKeyword,
-                    page: currentPage,
-                    pageSize: pageSize
-                })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    displayFeedbacks(data.feedbacks);
-                    totalPages = data.totalPages;
-                    updatePagination();
+        $.ajax({
+            url: '@Url.Action("GetAllFeedbacks", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                status: status,
+                feedbackType: feedbackType
+            },
+            success: function(response) {
+                if (response.success) {
+                    displayFeedbacks(response.feedbacks);
                 } else {
-                    document.getElementById('feedbackTableBody').innerHTML = 
-                        '<tr><td colspan="7"><div class="empty-state"><p>加载失败</p></div></td></tr>';
+                    $('#feedbackTableBody').html('<tr><td colspan="7" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>' + (response.message || '加载失败') + '</p></td></tr>');
                 }
-            })
-            .catch(err => {
-                console.error('加载反馈出错', err);
-                document.getElementById('feedbackTableBody').innerHTML = 
-                    '<tr><td colspan="7"><div class="empty-state"><p>加载失败</p></div></td></tr>';
-            });
-        }
-
-        function displayFeedbacks(feedbacks) {
-            const tbody = document.getElementById('feedbackTableBody');
-            
-            if (!feedbacks || feedbacks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>暂无反馈记录</p></div></td></tr>';
-                return;
+            },
+            error: function() {
+                $('#feedbackTableBody').html('<tr><td colspan="7" class="empty-state"><i class="fas fa-exclamation-circle"></i><p>网络错误，请稍后重试</p></td></tr>');
             }
+        });
+    }
 
-            let html = '';
-            feedbacks.forEach(function(feedback) {
-                html += '<tr>' +
-                    '<td>' + feedback.FeedbackID + '</td>' +
-                    '<td>用户 #' + feedback.UserID + '</td>' +
-                    '<td><span class="badge-type ' + escapeHtml(feedback.FeedbackType) + '">' + escapeHtml(feedback.FeedbackType) + '</span></td>' +
-                    '<td>' + escapeHtml(feedback.Subject) + '</td>' +
-                    '<td><span class="badge-status ' + escapeHtml(feedback.Status) + '">' + escapeHtml(feedback.Status) + '</span></td>' +
-                    '<td>' + formatTime(feedback.CreatedDate) + '</td>' +
-                    '<td>' +
-                    '<button class="btn-action btn-view" onclick="viewDetail(' + feedback.FeedbackID + ')"><i class="fas fa-eye"></i> 查看</button>' +
-                    '<button class="btn-action btn-reply" onclick="showReplyModal(' + feedback.FeedbackID + ')"><i class="fas fa-reply"></i> 回复</button>' +
-                    '</td>' +
-                    '</tr>';
-            });
-
-            tbody.innerHTML = html;
+    function displayFeedbacks(feedbacks) {
+        if (!feedbacks || feedbacks.length === 0) {
+            $('#feedbackTableBody').html('<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>暂无反馈记录</p></td></tr>');
+            return;
         }
 
-        function updatePagination() {
-            const pagination = document.getElementById('pagination');
-            let html = '';
+        var html = '';
+        feedbacks.forEach(function(feedback) {
+            var statusBadge = feedback.Status === '已完成' ? 'badge-completed' : 'badge-pending';
+            var createdDate = new Date(feedback.CreatedDate).toLocaleString('zh-CN');
 
-            html += '<button onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage <= 1 ? 'disabled' : '') + '>' +
-                '<i class="fas fa-chevron-left"></i> 上一页</button>';
-            
-            html += '<span>第 ' + currentPage + ' / ' + totalPages + ' 页</span>';
-            
-            html += '<button onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage >= totalPages ? 'disabled' : '') + '>' +
-                '下一页 <i class="fas fa-chevron-right"></i></button>';
+            html += '<tr>';
+            html += '<td>' + feedback.FeedbackID + '</td>';
+            html += '<td>' + feedback.UserID + '</td>';
+            html += '<td>' + feedback.FeedbackType + '</td>';
+            html += '<td>' + (feedback.Subject.length > 30 ? feedback.Subject.substring(0, 30) + '...' : feedback.Subject) + '</td>';
+            html += '<td><span class="badge ' + statusBadge + '">' + feedback.Status + '</span></td>';
+            html += '<td>' + createdDate + '</td>';
+            html += '<td>';
+            html += '<button class="btn-view" onclick="viewFeedback(' + feedback.FeedbackID + ')"><i class="fas fa-eye"></i> 查看</button>';
+            html += '<button class="btn-reply" onclick="replyFeedback(' + feedback.FeedbackID + ')"><i class="fas fa-reply"></i> 回复</button>';
+            html += '</td>';
+            html += '</tr>';
+        });
 
-            pagination.innerHTML = html;
+        $('#feedbackTableBody').html(html);
+    }
+
+    function viewFeedback(feedbackId) {
+        var status = $('#statusFilter').val();
+        var feedbackType = $('#typeFilter').val();
+
+        $.ajax({
+            url: '@Url.Action("GetAllFeedbacks", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                status: status,
+                feedbackType: feedbackType
+            },
+            success: function(response) {
+                if (response.success) {
+                    var feedback = response.feedbacks.find(f => f.FeedbackID === feedbackId);
+                    if (feedback) {
+                        currentFeedbackId = feedbackId;
+                        $('#detailUserId').text(feedback.UserID);
+                        $('#detailType').text(feedback.FeedbackType);
+                        $('#detailSubject').text(feedback.Subject);
+                        $('#detailDescription').text(feedback.Description);
+                        $('#detailEmail').text(feedback.ContactEmail || '未提供');
+                        $('#detailCreatedDate').text(new Date(feedback.CreatedDate).toLocaleString('zh-CN'));
+                        
+                        // Display admin reply if exists
+                        if (feedback.AdminReply) {
+                            $('#detailAdminReply').text(feedback.AdminReply);
+                            $('#adminReplyDisplay').show();
+                        } else {
+                            $('#adminReplyDisplay').hide();
+                        }
+                        
+                        // Set checkbox based on status
+                        var isResolved = feedback.Status === '已完成';
+                        $('#resolvedCheckbox').prop('checked', isResolved);
+                        
+                        // Disable checkbox if already resolved
+                        if (isResolved) {
+                            $('#resolvedCheckbox').prop('disabled', true);
+                            $('#resolvedLabel').addClass('disabled').text('已解决（不可更改）');
+                        } else {
+                            $('#resolvedCheckbox').prop('disabled', false);
+                            $('#resolvedLabel').removeClass('disabled').text('标记为已解决');
+                        }
+                        
+                        $('#detailModal').fadeIn();
+                    }
+                }
+            }
+        });
+    }
+
+    function closeModal() {
+        $('#detailModal').fadeOut();
+        currentFeedbackId = null;
+    }
+
+    function handleResolvedChange() {
+        // This function is called when checkbox changes
+        // No action needed as we handle it in updateFeedbackStatus
+    }
+
+    function updateFeedbackStatus() {
+        if (!currentFeedbackId) {
+            alert('无效的反馈ID');
+            return;
         }
 
-        function goToPage(page) {
-            if (page < 1 || page > totalPages) return;
-            currentPage = page;
-            loadFeedbacks();
-        }
+        var isResolved = $('#resolvedCheckbox').prop('checked');
+        var status = isResolved ? '已完成' : '反馈中';
 
-        function viewDetail(feedbackId) {
-            fetch('@Url.Action("GetFeedbackDetail", "Staff")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ feedbackId: feedbackId })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success && data.feedback) {
-                    const feedback = data.feedback;
-                    let html = '';
-                    
-                    html += '<div class="detail-group">' +
-                        '<div class="detail-label">反馈ID</div>' +
-                        '<div class="detail-value">' + feedback.FeedbackID + '</div>' +
-                        '</div>';
-                    
-                    html += '<div class="detail-group">' +
-                        '<div class="detail-label">用户ID</div>' +
-                        '<div class="detail-value">用户 #' + feedback.UserID + '</div>' +
-                        '</div>';
-                    
-                    html += '<div class="detail-group">' +
-                        '<div class="detail-label">反馈类型</div>' +
-                        '<div class="detail-value"><span class="badge-type ' + escapeHtml(feedback.FeedbackType) + '">' + escapeHtml(feedback.FeedbackType) + '</span></div>' +
-                        '</div>';
-                    
-                    html += '<div class="detail-group">' +
-                        '<div class="detail-label">反馈主题</div>' +
-                        '<div class="detail-value">' + escapeHtml(feedback.Subject) + '</div>' +
-                        '</div>';
-                    
-                    html += '<div class="detail-group">' +
-                        '<div class="detail-label">详细描述</div>' +
-                        '<div class="detail-value">' + escapeHtml(feedback.Description) + '</div>' +
-                        '</div>';
-                    
-                    if (feedback.ContactEmail) {
-                        html += '<div class="detail-group">' +
-                            '<div class="detail-label">联系邮箱</div>' +
-                            '<div class="detail-value">' + escapeHtml(feedback.ContactEmail) + '</div>' +
-                            '</div>';
-                    }
-                    
-                    html += '<div class="detail-group">' +
-                        '<div class="detail-label">当前状态</div>' +
-                        '<div class="detail-value"><span class="badge-status ' + escapeHtml(feedback.Status) + '">' + escapeHtml(feedback.Status) + '</span></div>' +
-                        '</div>';
-                    
-                    if (feedback.AdminReply) {
-                        html += '<div class="detail-group">' +
-                            '<div class="detail-label">管理员回复</div>' +
-                            '<div class="detail-value">' + escapeHtml(feedback.AdminReply) + '</div>' +
-                            '</div>';
-                    }
-                    
-                    html += '<div class="detail-group">' +
-                        '<div class="detail-label">提交时间</div>' +
-                        '<div class="detail-value">' + formatTime(feedback.CreatedDate) + '</div>' +
-                        '</div>';
-                    
-                    if (feedback.UpdatedDate) {
-                        html += '<div class="detail-group">' +
-                            '<div class="detail-label">更新时间</div>' +
-                            '<div class="detail-value">' + formatTime(feedback.UpdatedDate) + '</div>' +
-                            '</div>';
-                    }
-
-                    document.getElementById('detailModalBody').innerHTML = html;
-                    document.getElementById('detailModal').style.display = 'block';
+        $.ajax({
+            url: '@Url.Action("UpdateFeedbackStatus", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                feedbackId: currentFeedbackId,
+                status: status,
+                adminReply: '' // No reply in this modal
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('状态更新成功');
+                    closeModal();
+                    loadFeedbacks();
                 } else {
-                    alert('加载详情失败');
+                    alert(response.message || '更新失败');
                 }
-            })
-            .catch(err => {
-                console.error('加载详情出错', err);
-                alert('加载详情失败');
-            });
-        }
+            },
+            error: function() {
+                alert('网络错误，请稍后重试');
+            }
+        });
+    }
 
-        function showReplyModal(feedbackId) {
-            fetch('@Url.Action("GetFeedbackDetail", "Staff")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ feedbackId: feedbackId })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success && data.feedback) {
-                    const feedback = data.feedback;
-                    document.getElementById('replyFeedbackId').value = feedback.FeedbackID;
-                    document.getElementById('replyStatus').value = feedback.Status;
-                    document.getElementById('replyContent').value = feedback.AdminReply || '';
-                    
-                    let infoHtml = '<div class="detail-group">' +
-                        '<div class="detail-label">反馈主题</div>' +
-                        '<div class="detail-value">' + escapeHtml(feedback.Subject) + '</div>' +
-                        '</div>' +
-                        '<div class="detail-group">' +
-                        '<div class="detail-label">详细描述</div>' +
-                        '<div class="detail-value">' + escapeHtml(feedback.Description) + '</div>' +
-                        '</div>';
-                    
-                    document.getElementById('replyFeedbackInfo').innerHTML = infoHtml;
-                    document.getElementById('replyModal').style.display = 'block';
-                } else {
-                    alert('加载反馈信息失败');
+    function replyFeedback(feedbackId) {
+        var status = $('#statusFilter').val();
+        var feedbackType = $('#typeFilter').val();
+
+        $.ajax({
+            url: '@Url.Action("GetAllFeedbacks", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                status: status,
+                feedbackType: feedbackType
+            },
+            success: function(response) {
+                if (response.success) {
+                    var feedback = response.feedbacks.find(f => f.FeedbackID === feedbackId);
+                    if (feedback) {
+                        replyFeedbackId = feedbackId;
+                        $('#replySubject').text(feedback.Subject);
+                        $('#replyDescription').text(feedback.Description);
+                        $('#replyContent').val(feedback.AdminReply || '');
+                        $('#replyModal').fadeIn();
+                    }
                 }
-            })
-            .catch(err => {
-                console.error('加载反馈信息出错', err);
-                alert('加载反馈信息失败');
-            });
-        }
-
-        function closeDetailModal() {
-            document.getElementById('detailModal').style.display = 'none';
-        }
-
-        function closeReplyModal() {
-            document.getElementById('replyModal').style.display = 'none';
-        }
-
-        // Close modals when clicking outside
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('detailModal')) {
-                closeDetailModal();
             }
-            if (event.target == document.getElementById('replyModal')) {
-                closeReplyModal();
-            }
+        });
+    }
+
+    function closeReplyModal() {
+        $('#replyModal').fadeOut();
+        replyFeedbackId = null;
+        $('#replyContent').val('');
+    }
+
+    function submitReply() {
+        if (!replyFeedbackId) {
+            alert('无效的反馈ID');
+            return;
         }
 
-        // Reply form submission
-        document.getElementById('replyForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const feedbackId = document.getElementById('replyFeedbackId').value;
-            const status = document.getElementById('replyStatus').value;
-            const reply = document.getElementById('replyContent').value.trim();
+        var replyContent = $('#replyContent').val();
+        
+        if (!replyContent || replyContent.trim() === '') {
+            alert('请输入回复内容');
+            return;
+        }
 
-            if (!reply) {
-                alert('请输入回复内容');
-                return;
-            }
-
-            fetch('@Url.Action("UpdateFeedbackStatus", "Staff")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    feedbackId: parseInt(feedbackId),
-                    status: status,
-                    adminReply: reply
-                })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
+        $.ajax({
+            url: '@Url.Action("UpdateFeedbackStatus", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                feedbackId: replyFeedbackId,
+                status: '', // Empty means don't change status
+                adminReply: replyContent
+            },
+            success: function(response) {
+                if (response.success) {
                     alert('回复成功');
                     closeReplyModal();
                     loadFeedbacks();
                 } else {
-                    alert(data.message || '回复失败');
+                    alert(response.message || '回复失败');
                 }
-            })
-            .catch(err => {
-                console.error('回复出错', err);
-                alert('回复失败');
-            });
+            },
+            error: function() {
+                alert('网络错误，请稍后重试');
+            }
         });
+    }
 
-        // Load feedbacks on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadFeedbacks();
-        });
-    </script>
-}
+    // 点击模态框外部关闭
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('detailModal')) {
+            closeModal();
+        }
+        if (event.target == document.getElementById('replyModal')) {
+            closeReplyModal();
+        }
+    }
+</script>

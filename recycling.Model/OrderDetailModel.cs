@@ -26,5 +26,21 @@ namespace recycling.Model
         public string RecyclerName { get; set; }
         public int? RecyclerID { get; set; }
         public bool CanContactRecycler { get; set; }
+        public int UserID { get; set; }
+        
+        /// <summary>
+        /// 品类详细信息列表（包含用户填写的问题答案）
+        /// </summary>
+        public List<CategoryDetailInfo> Categories { get; set; } = new List<CategoryDetailInfo>();
+    }
+
+    /// <summary>
+    /// 品类详细信息
+    /// </summary>
+    public class CategoryDetailInfo
+    {
+        public string CategoryName { get; set; }
+        public string CategoryKey { get; set; }
+        public string QuestionsAnswers { get; set; }
     }
 }

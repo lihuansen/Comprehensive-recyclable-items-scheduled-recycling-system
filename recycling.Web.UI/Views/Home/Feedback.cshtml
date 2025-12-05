@@ -7,375 +7,321 @@
     .feedback-container {
         max-width: 800px;
         margin: 40px auto;
-        padding: 20px;
-    }
-
-    .feedback-header {
-        background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
-        color: white;
         padding: 30px;
-        border-radius: 15px 15px 0 0;
-        text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .feedback-header h2 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 600;
-    }
-
-    .feedback-header p {
-        margin: 10px 0 0 0;
-        opacity: 0.9;
-        font-size: 14px;
-    }
-
-    .feedback-card {
         background: white;
-        padding: 40px;
-        border-radius: 0 0 15px 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     }
 
-    .form-group-custom {
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+        font-weight: bold;
+        font-size: 28px;
+    }
+
+    .feedback-icon {
+        font-size: 48px;
+        color: #667eea;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
         margin-bottom: 25px;
     }
 
-    .form-group-custom label {
-        display: block;
+    .form-label {
+        font-weight: bold;
+        color: #333;
         margin-bottom: 8px;
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 14px;
+        display: block;
     }
 
-    .form-group-custom label .required {
-        color: #e74c3c;
-        margin-left: 2px;
+    .form-label .required {
+        color: #ff6b6b;
+        margin-left: 4px;
     }
 
-    .feedback-type-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    .form-control, .form-textarea {
+        width: 100%;
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        padding: 12px 15px;
+    }
+
+    .form-control {
+        height: 50px;
+    }
+
+    .form-textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .form-control:focus, .form-textarea:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .feedback-types {
+        display: flex;
         gap: 15px;
-        margin-bottom: 25px;
+        flex-wrap: wrap;
     }
 
     .feedback-type-option {
-        position: relative;
+        flex: 1;
+        min-width: 140px;
     }
 
     .feedback-type-option input[type="radio"] {
-        position: absolute;
-        opacity: 0;
+        display: none;
     }
 
     .feedback-type-option label {
         display: block;
-        padding: 15px;
-        background: #f8f9fa;
-        border: 2px solid #e0e0e0;
+        padding: 12px 20px;
+        border: 2px solid #e9ecef;
         border-radius: 10px;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s ease;
-        font-weight: 500;
+        background: white;
     }
 
     .feedback-type-option input[type="radio"]:checked + label {
-        background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        border-color: #ff6b6b;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        border-color: #667eea;
     }
 
     .feedback-type-option label:hover {
-        border-color: #ff6b6b;
-        transform: translateY(-1px);
-    }
-
-    .form-control-custom {
-        width: 100%;
-        padding: 12px 15px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-    }
-
-    .form-control-custom:focus {
-        outline: none;
-        border-color: #ff6b6b;
-        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
-    }
-
-    textarea.form-control-custom {
-        resize: vertical;
-        min-height: 150px;
-        font-family: inherit;
+        border-color: #667eea;
+        transform: translateY(-2px);
     }
 
     .char-counter {
         text-align: right;
-        font-size: 12px;
-        color: #7f8c8d;
+        font-size: 14px;
+        color: #6c757d;
         margin-top: 5px;
     }
 
-    .char-counter.warning {
-        color: #e74c3c;
-    }
-
-    .btn-submit-feedback {
+    .btn-submit {
         width: 100%;
-        padding: 15px;
-        background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
-        color: white;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
         border-radius: 10px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        cursor: pointer;
     }
 
-    .btn-submit-feedback:hover {
+    .btn-submit:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
 
-    .btn-submit-feedback:disabled {
+    .btn-submit:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        transform: none;
     }
 
-    .alert-custom {
-        padding: 15px 20px;
+    .alert {
+        padding: 15px;
         border-radius: 10px;
         margin-bottom: 20px;
-        display: none;
     }
 
-    .alert-custom.alert-success {
+    .alert-success {
         background: #d4edda;
+        border: 1px solid #c3e6cb;
         color: #155724;
-        border-left: 4px solid #28a745;
     }
 
-    .alert-custom.alert-error {
+    .alert-error {
         background: #f8d7da;
+        border: 1px solid #f5c6cb;
         color: #721c24;
-        border-left: 4px solid #dc3545;
     }
 
-    .contact-footer {
-        text-align: center;
-        margin-top: 30px;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
-    }
-
-    .contact-footer p {
-        margin: 5px 0;
-        color: #7f8c8d;
+    .help-text {
         font-size: 14px;
-    }
-
-    .contact-footer a {
-        color: #ff6b6b;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .contact-footer a:hover {
-        text-decoration: underline;
+        color: #6c757d;
+        margin-top: 5px;
     }
 </style>
 
 <div class="feedback-container">
-    <div class="feedback-header">
-        <h2><i class="fas fa-comments"></i> 问题反馈</h2>
-        <p>您的反馈对我们非常重要，帮助我们提供更好的服务</p>
+    <div class="feedback-icon">
+        <i class="fas fa-comment-dots"></i>
     </div>
 
-    <div class="feedback-card">
-        <div id="alertMessage" class="alert-custom"></div>
+    <h2 class="page-title">问题反馈</h2>
 
-        <form id="feedbackForm">
-            <div class="form-group-custom">
-                <label>反馈类型<span class="required">*</span></label>
-                <div class="feedback-type-grid">
-                    <div class="feedback-type-option">
-                        <input type="radio" id="type1" name="feedbackType" value="问题反馈" required>
-                        <label for="type1"><i class="fas fa-bug"></i> 问题反馈</label>
-                    </div>
-                    <div class="feedback-type-option">
-                        <input type="radio" id="type2" name="feedbackType" value="功能建议" required>
-                        <label for="type2"><i class="fas fa-lightbulb"></i> 功能建议</label>
-                    </div>
-                    <div class="feedback-type-option">
-                        <input type="radio" id="type3" name="feedbackType" value="投诉举报" required>
-                        <label for="type3"><i class="fas fa-exclamation-triangle"></i> 投诉举报</label>
-                    </div>
-                    <div class="feedback-type-option">
-                        <input type="radio" id="type4" name="feedbackType" value="其他" required>
-                        <label for="type4"><i class="fas fa-ellipsis-h"></i> 其他</label>
-                    </div>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <form id="feedbackForm" method="post" action="@Url.Action("SubmitFeedback", "Home")">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-tags"></i> 反馈类型 <span class="required">*</span>
+            </label>
+            <div class="feedback-types">
+                <div class="feedback-type-option">
+                    <input type="radio" id="type1" name="FeedbackType" value="问题反馈" required>
+                    <label for="type1">
+                        <i class="fas fa-bug"></i><br>问题反馈
+                    </label>
+                </div>
+                <div class="feedback-type-option">
+                    <input type="radio" id="type2" name="FeedbackType" value="功能建议" required>
+                    <label for="type2">
+                        <i class="fas fa-lightbulb"></i><br>功能建议
+                    </label>
+                </div>
+                <div class="feedback-type-option">
+                    <input type="radio" id="type3" name="FeedbackType" value="投诉举报" required>
+                    <label for="type3">
+                        <i class="fas fa-exclamation-triangle"></i><br>投诉举报
+                    </label>
+                </div>
+                <div class="feedback-type-option">
+                    <input type="radio" id="type4" name="FeedbackType" value="其他" required>
+                    <label for="type4">
+                        <i class="fas fa-ellipsis-h"></i><br>其他
+                    </label>
                 </div>
             </div>
+        </div>
 
-            <div class="form-group-custom">
-                <label for="subject">反馈主题<span class="required">*</span></label>
-                <input type="text" id="subject" name="subject" class="form-control-custom" 
-                       placeholder="请简要描述您的问题或建议" maxlength="100" required>
-                <div class="char-counter">
-                    <span id="subjectCounter">0</span> / 100
-                </div>
+        <div class="form-group">
+            <label class="form-label" for="subject">
+                <i class="fas fa-heading"></i> 反馈主题 <span class="required">*</span>
+            </label>
+            <input type="text" 
+                   id="subject" 
+                   name="Subject" 
+                   class="form-control" 
+                   placeholder="请简要描述问题（最多100字）" 
+                   maxlength="100" 
+                   required>
+            <div class="char-counter">
+                <span id="subjectCounter">0</span> / 100 字
             </div>
+        </div>
 
-            <div class="form-group-custom">
-                <label for="description">详细描述<span class="required">*</span></label>
-                <textarea id="description" name="description" class="form-control-custom" 
-                          placeholder="请详细描述您遇到的问题或建议的详细内容" 
-                          maxlength="1000" required></textarea>
-                <div class="char-counter">
-                    <span id="descCounter">0</span> / 1000
-                </div>
+        <div class="form-group">
+            <label class="form-label" for="description">
+                <i class="fas fa-align-left"></i> 详细描述 <span class="required">*</span>
+            </label>
+            <textarea id="description" 
+                      name="Description" 
+                      class="form-textarea" 
+                      placeholder="请详细描述您的问题或建议（10-1000字）" 
+                      minlength="10" 
+                      maxlength="1000" 
+                      required></textarea>
+            <div class="char-counter">
+                <span id="descCounter">0</span> / 1000 字
             </div>
-
-            <div class="form-group-custom">
-                <label for="contactEmail">联系邮箱（选填）</label>
-                <input type="email" id="contactEmail" name="contactEmail" class="form-control-custom" 
-                       placeholder="如果需要回复，请留下您的邮箱">
+            <div class="help-text">
+                <i class="fas fa-info-circle"></i> 请提供尽可能详细的信息，以便我们更好地处理您的反馈
             </div>
+        </div>
 
-            <button type="submit" id="submitBtn" class="btn-submit-feedback">
-                <i class="fas fa-paper-plane"></i> 提交反馈
-            </button>
-        </form>
-    </div>
+        <div class="form-group">
+            <label class="form-label" for="contactEmail">
+                <i class="fas fa-envelope"></i> 联系邮箱（可选）
+            </label>
+            <input type="email" 
+                   id="contactEmail" 
+                   name="ContactEmail" 
+                   class="form-control" 
+                   placeholder="如需回复，请填写您的邮箱">
+            <div class="help-text">
+                <i class="fas fa-info-circle"></i> 填写邮箱后，我们会在处理完成后通知您
+            </div>
+        </div>
 
-    <div class="contact-footer">
-        <p><i class="fas fa-info-circle"></i> 我们会认真对待每一条反馈</p>
-        <p>如有紧急问题，请<a href="@Url.Action("ContactAdmin", "Home")" class="btn-contact-us">联系我们</a>与管理员在线沟通</p>
-    </div>
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <i class="fas fa-paper-plane"></i> 提交反馈
+        </button>
+    </form>
 </div>
 
 <script>
     $(document).ready(function() {
         // 字符计数器
         $('#subject').on('input', function() {
-            var length = $(this).val().length;
-            $('#subjectCounter').text(length);
-            if (length >= 90) {
-                $('#subjectCounter').parent().addClass('warning');
-            } else {
-                $('#subjectCounter').parent().removeClass('warning');
-            }
+            $('#subjectCounter').text($(this).val().length);
         });
 
         $('#description').on('input', function() {
-            var length = $(this).val().length;
-            $('#descCounter').text(length);
-            if (length >= 900) {
-                $('#descCounter').parent().addClass('warning');
-            } else {
-                $('#descCounter').parent().removeClass('warning');
-            }
+            $('#descCounter').text($(this).val().length);
         });
 
-        // 表单提交
-        $('#feedbackForm').on('submit', function(e) {
-            e.preventDefault();
-
-            var feedbackType = $('input[name="feedbackType"]:checked').val();
+        // 表单提交时禁用提交按钮，防止重复提交
+        $('#feedbackForm').on('submit', function() {
+            var feedbackType = $('input[name="FeedbackType"]:checked').val();
             var subject = $('#subject').val().trim();
             var description = $('#description').val().trim();
-            var contactEmail = $('#contactEmail').val().trim();
 
             // 客户端验证
             if (!feedbackType) {
-                showAlert('请选择反馈类型', 'error');
-                return;
+                alert('请选择反馈类型');
+                return false;
             }
 
             if (!subject) {
-                showAlert('请输入反馈主题', 'error');
-                return;
+                alert('请输入反馈主题');
+                return false;
             }
 
             if (subject.length > 100) {
-                showAlert('反馈主题不能超过100字', 'error');
-                return;
+                alert('反馈主题不能超过100字');
+                return false;
             }
 
             if (!description) {
-                showAlert('请输入详细描述', 'error');
-                return;
+                alert('请输入详细描述');
+                return false;
             }
 
             if (description.length < 10) {
-                showAlert('详细描述至少需要10个字符', 'error');
-                return;
+                alert('详细描述至少需要10个字符');
+                return false;
             }
 
             if (description.length > 1000) {
-                showAlert('详细描述不能超过1000字', 'error');
-                return;
+                alert('详细描述不能超过1000字');
+                return false;
             }
 
-            // 禁用提交按钮
+            // 禁用提交按钮，防止重复提交
             $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 提交中...');
-
-            // 提交反馈
-            $.ajax({
-                url: '/Home/SubmitFeedback',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    FeedbackType: feedbackType,
-                    Subject: subject,
-                    Description: description,
-                    ContactEmail: contactEmail
-                }),
-                success: function(response) {
-                    if (response.success) {
-                        showAlert('反馈提交成功！感谢您的反馈', 'success');
-                        // 清空表单
-                        $('#feedbackForm')[0].reset();
-                        $('#subjectCounter').text('0');
-                        $('#descCounter').text('0');
-                        // 2秒后跳转
-                        setTimeout(function() {
-                            window.location.href = '/Home/Index';
-                        }, 2000);
-                    } else {
-                        showAlert(response.message || '提交失败，请重试', 'error');
-                        $('#submitBtn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> 提交反馈');
-                    }
-                },
-                error: function() {
-                    showAlert('提交失败，请检查网络连接后重试', 'error');
-                    $('#submitBtn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> 提交反馈');
-                }
-            });
+            return true;
         });
-
-        function showAlert(message, type) {
-            var alertDiv = $('#alertMessage');
-            alertDiv.removeClass('alert-success alert-error');
-            alertDiv.addClass('alert-' + type);
-            alertDiv.text(message);
-            alertDiv.fadeIn();
-
-            setTimeout(function() {
-                alertDiv.fadeOut();
-            }, 5000);
-        }
     });
 </script>

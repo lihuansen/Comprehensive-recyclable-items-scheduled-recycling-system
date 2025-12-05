@@ -1,128 +1,465 @@
 ﻿@{
-    ViewBag.Title = "我的消息（历史会话）";
+    ViewBag.Title = "我的消息";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h3>历史会话</h3>
+<style>
+    .notification-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .notification-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .notification-header .badge {
+        background-color: #dc3545;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 14px;
+        margin-left: 10px;
+    }
+    
+    .notification-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .notification-actions .btn {
+        padding: 6px 15px;
+        font-size: 14px;
+    }
+    
+    .notification-list {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .notification-item {
+        display: flex;
+        padding: 15px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s;
+        cursor: pointer;
+    }
+    
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+    
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .notification-item.unread {
+        background-color: #f0f7ff;
+    }
+    
+    .notification-item.unread:hover {
+        background-color: #e3f0ff;
+    }
+    
+    .notification-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    
+    .notification-icon i {
+        font-size: 18px;
+        color: white;
+    }
+    
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .notification-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .notification-title .type-badge {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 10px;
+        font-weight: normal;
+    }
+    
+    .notification-text {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 5px;
+    }
+    
+    .notification-time {
+        color: #999;
+        font-size: 12px;
+    }
+    
+    .notification-actions-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-left: 15px;
+    }
+    
+    .notification-actions-item .btn-action {
+        padding: 5px 10px;
+        font-size: 12px;
+        border: none;
+        background: none;
+        color: #007bff;
+        cursor: pointer;
+    }
+    
+    .notification-actions-item .btn-action:hover {
+        text-decoration: underline;
+    }
+    
+    .notification-actions-item .btn-delete {
+        color: #dc3545;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+    
+    .empty-state i {
+        font-size: 60px;
+        margin-bottom: 20px;
+        color: #ddd;
+    }
+    
+    .empty-state h4 {
+        margin-bottom: 10px;
+        color: #666;
+    }
+    
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        padding: 15px;
+    }
+    
+    .pagination-container .btn {
+        margin: 0 5px;
+    }
+    
+    .unread-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #007bff;
+        border-radius: 50%;
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
 
-<div class="row">
-    <div class="col-md-4">
-        <div id="historyList" class="list-group">
-            <!-- 通过 AJAX 填充用户的历史会话 -->
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .loading-spinner i {
+        font-size: 30px;
+        color: #007bff;
+    }
+</style>
+
+<div class="notification-container">
+    @Html.AntiForgeryToken()
+    <div class="notification-header">
+        <div>
+            <h3>
+                <i class="fas fa-bell"></i> 我的消息
+                <span id="unreadBadge" class="badge" style="display: none;">0</span>
+            </h3>
+            <p class="text-muted mb-0" style="font-size: 14px;">接收系统通知和订单状态更新</p>
+        </div>
+        <div class="notification-actions">
+            <button id="btnMarkAllRead" class="btn btn-outline-primary btn-sm" onclick="markAllAsRead()">
+                <i class="fas fa-check-double"></i> 全部已读
+            </button>
+            <button id="btnRefresh" class="btn btn-outline-secondary btn-sm" onclick="loadNotifications(1)">
+                <i class="fas fa-sync-alt"></i> 刷新
+            </button>
         </div>
     </div>
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 id="historyHeader">请选择左侧会话查看历史记录</h5>
-            </div>
-            <div class="card-body">
-                <div id="historyMessages" style="height:420px; overflow-y:auto; border:1px solid #eee; padding:10px; background:#fff;"></div>
-            </div>
+
+    <div class="notification-list" id="notificationList">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>加载中...</p>
         </div>
+    </div>
+
+    <div class="pagination-container" id="paginationContainer" style="display: none;">
+        <button id="btnPrevPage" class="btn btn-outline-secondary btn-sm" onclick="loadNotifications(currentPage - 1)" disabled>
+            <i class="fas fa-chevron-left"></i> 上一页
+        </button>
+        <span id="pageInfo" style="margin: 0 15px; line-height: 32px;"></span>
+        <button id="btnNextPage" class="btn btn-outline-secondary btn-sm" onclick="loadNotifications(currentPage + 1)" disabled>
+            下一页 <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 </div>
 
 @section scripts {
     <script>
-    var selectedHistoryOrderId = null;
-    var selectedHistoryEndedTime = null;
+        var currentPage = 1;
+        var totalPages = 1;
+        var pageSize = 15;
+        var antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    }
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
 
-    function formatTime(iso) {
-        if (!iso) return '';
-        try { return new Date(iso).toLocaleString(); } catch(e) { return iso; }
-    }
+        function loadNotifications(page) {
+            if (page < 1) page = 1;
+            currentPage = page;
 
-    function loadUserConversations() {
-        fetch('@Url.Action("GetUserConversations","Home")', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Requested-With':'XMLHttpRequest' },
-            body: JSON.stringify({})
-        })
-        .then(r => r.json())
-        .then(data => {
-            var container = document.getElementById('historyList');
-            container.innerHTML = '';
-            if (data.success && data.conversations && data.conversations.length) {
-                data.conversations.forEach(function(c) {
-                    var a = document.createElement('a');
-                    a.href = 'javascript:void(0);';
-                    a.className = 'list-group-item list-group-item-action history-item';
-                    a.dataset.orderId = c.orderId;
-                    a.dataset.endedTime = c.endedTime;
-                    a.innerHTML = '<div class="d-flex w-100 justify-content-between"><h5 class="mb-1">订单：' + escapeHtml(c.orderNumber) + '</h5><small>' + escapeHtml(formatTime(c.endedTime)) + '</small></div><p class="mb-1 text-truncate">回收员：' + escapeHtml(c.recyclerName || '') + '</p>';
-                    container.appendChild(a);
-                });
+            var container = document.getElementById('notificationList');
+            container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>加载中...</p></div>';
 
-                container.addEventListener('click', function (e) {
-                    var t = e.target;
-                    while (t && !t.classList.contains('history-item')) t = t.parentElement;
-                    if (!t) return;
-                    var oid = t.dataset.orderId;
-                    var et = t.dataset.endedTime;
-                    openHistoryConversation(parseInt(oid,10), et);
-                });
-            } else {
-                container.innerHTML = '<div class="empty-state text-muted">暂无历史会话</div>';
-            }
-        })
-        .catch(err => console.error('加载历史会话出错', err));
-    }
+            fetch('@Url.Action("GetUserNotifications", "Home")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: '__RequestVerificationToken=' + encodeURIComponent(antiForgeryToken) + '&pageIndex=' + page + '&pageSize=' + pageSize
+            })
+            .then(r => r.json())
+            .then(data => {
+                container.innerHTML = '';
 
-    function openHistoryConversation(orderId, endedTime) {
-        selectedHistoryOrderId = orderId;
-        selectedHistoryEndedTime = endedTime;
-        document.getElementById('historyHeader').innerText = '历史会话 - 订单：AP' + ('000000' + orderId).slice(-6);
-        // 请求历史消息（SentTime <= endedTime）
-        fetch('@Url.Action("GetConversationMessagesBeforeEnd","Home")', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Requested-With':'XMLHttpRequest' },
-            body: JSON.stringify({ orderId: orderId, endedTime: endedTime })
-        })
-        .then(r => r.json())
-        .then(data => {
-            var container = document.getElementById('historyMessages');
-            container.innerHTML = '';
-            if (data.success && data.messages && data.messages.length) {
-                data.messages.forEach(function(m) {
-                    var senderType = (m.senderType || '').toLowerCase();
-                    
-                    // 系统消息居中显示
-                    if (senderType === 'system') {
-                        var timeText = formatTime(m.sentTime);
-                        var html = '<div class="text-center mb-3">'
-                            + '<div style="display: inline-block; padding: 8px 16px; background-color: #f0f0f0; border-radius: 15px; color: #666; font-size: 14px;">'
-                            + '<i class="fas fa-info-circle"></i> ' + escapeHtml(m.content)
-                            + '</div>'
-                            + '<div style="font-size: 12px; color: #999; margin-top: 4px;">' + escapeHtml(timeText) + '</div>'
-                            + '</div>';
-                        container.innerHTML += html;
-                        return;
+                if (data.success) {
+                    // Update unread badge
+                    var badge = document.getElementById('unreadBadge');
+                    if (data.unreadCount > 0) {
+                        badge.textContent = data.unreadCount;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
                     }
-                    
-                    var isUser = (senderType === 'user');
-                    var align = isUser ? 'text-right' : 'text-left';
-                    var bg = isUser ? 'bg-primary text-white' : 'bg-light';
-                    var timeText = formatTime(m.sentTime);
-                    var html = '<div class="' + align + ' mb-3"><small class="d-block text-muted">' + (isUser ? '用户' : '回收员') + ' ' + escapeHtml(timeText) + '</small><span class="px-3 py-2 rounded ' + bg + '">' + escapeHtml(m.content) + '</span></div>';
-                    container.innerHTML += html;
-                });
-                container.scrollTop = container.scrollHeight;
-            } else {
-                container.innerHTML = '<div class="empty-state text-muted">无历史消息</div>';
-            }
-        })
-        .catch(err => console.error('加载历史消息出错', err));
-    }
 
-    // 加载时触发
-    document.addEventListener('DOMContentLoaded', function() {
-        loadUserConversations();
-    });
+                    // Update pagination
+                    totalPages = data.totalPages;
+                    updatePagination(data.totalCount, page, totalPages);
+
+                    if (data.notifications && data.notifications.length > 0) {
+                        data.notifications.forEach(function(n) {
+                            var itemHtml = createNotificationItem(n);
+                            container.innerHTML += itemHtml;
+                        });
+                    } else {
+                        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h4>暂无消息</h4><p>您还没有收到任何通知消息</p></div>';
+                    }
+                } else {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h4>加载失败</h4><p>' + escapeHtml(data.message || '请稍后重试') + '</p></div>';
+                }
+            })
+            .catch(err => {
+                console.error('加载通知失败', err);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h4>加载失败</h4><p>网络错误，请稍后重试</p></div>';
+            });
+        }
+
+        function createNotificationItem(n) {
+            var unreadClass = n.isRead ? '' : ' unread';
+            var unreadDot = n.isRead ? '' : '<span class="unread-dot"></span>';
+            
+            var actionButton = '';
+            if (n.relatedOrderId && n.notificationType !== 'OrderCancelled') {
+                if (n.notificationType === 'ReviewReminder') {
+                    actionButton = '<button class="btn-action" onclick="event.stopPropagation(); goToReview(' + n.relatedOrderId + ')">去评价</button>';
+                } else {
+                    actionButton = '<button class="btn-action" onclick="event.stopPropagation(); goToOrder(' + n.relatedOrderId + ')">查看订单</button>';
+                }
+            } else if (n.relatedFeedbackId) {
+                actionButton = '<button class="btn-action" onclick="event.stopPropagation(); goToFeedback()">查看反馈</button>';
+            }
+
+            var html = '<div class="notification-item' + unreadClass + '" data-id="' + n.notificationId + '" onclick="markAsRead(' + n.notificationId + ')">' +
+                '<div class="notification-icon" style="background-color: ' + escapeHtml(n.typeColor) + ';">' +
+                    '<i class="fas ' + escapeHtml(n.typeIcon) + '"></i>' +
+                '</div>' +
+                '<div class="notification-content">' +
+                    '<div class="notification-title">' +
+                        unreadDot +
+                        escapeHtml(n.title) +
+                        '<span class="type-badge" style="background-color: ' + escapeHtml(n.typeColor) + '22; color: ' + escapeHtml(n.typeColor) + ';">' + escapeHtml(n.typeDisplayName) + '</span>' +
+                    '</div>' +
+                    '<div class="notification-text">' + escapeHtml(n.content) + '</div>' +
+                    '<div class="notification-time"><i class="far fa-clock"></i> ' + escapeHtml(n.createdDate) + '</div>' +
+                '</div>' +
+                '<div class="notification-actions-item">' +
+                    actionButton +
+                    '<button class="btn-action btn-delete" onclick="event.stopPropagation(); deleteNotification(' + n.notificationId + ')"><i class="fas fa-trash"></i></button>' +
+                '</div>' +
+            '</div>';
+
+            return html;
+        }
+
+        function updatePagination(total, current, pages) {
+            var paginationContainer = document.getElementById('paginationContainer');
+            var pageInfo = document.getElementById('pageInfo');
+            var btnPrev = document.getElementById('btnPrevPage');
+            var btnNext = document.getElementById('btnNextPage');
+
+            if (total > pageSize) {
+                paginationContainer.style.display = 'flex';
+                pageInfo.textContent = '第 ' + current + ' 页 / 共 ' + pages + ' 页 (共 ' + total + ' 条)';
+                
+                btnPrev.disabled = current <= 1;
+                btnNext.disabled = current >= pages;
+            } else {
+                paginationContainer.style.display = 'none';
+            }
+        }
+
+        function markAsRead(notificationId) {
+            var item = document.querySelector('.notification-item[data-id="' + notificationId + '"]');
+            if (item && item.classList.contains('unread')) {
+                fetch('@Url.Action("MarkNotificationAsRead", "Home")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'RequestVerificationToken': antiForgeryToken
+                    },
+                    body: '__RequestVerificationToken=' + encodeURIComponent(antiForgeryToken) + '&notificationId=' + notificationId
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        item.classList.remove('unread');
+                        var dot = item.querySelector('.unread-dot');
+                        if (dot) dot.remove();
+                        
+                        // Update badge count
+                        var badge = document.getElementById('unreadBadge');
+                        var count = parseInt(badge.textContent) - 1;
+                        if (count > 0) {
+                            badge.textContent = count;
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                        
+                        // 同步更新导航栏未读徽章
+                        if (typeof window.updateNavUnreadBadge === 'function') {
+                            window.updateNavUnreadBadge();
+                        }
+                    }
+                })
+                .catch(err => console.error('标记已读失败', err));
+            }
+        }
+
+        function markAllAsRead() {
+            fetch('@Url.Action("MarkAllNotificationsAsRead", "Home")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: '__RequestVerificationToken=' + encodeURIComponent(antiForgeryToken)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload notifications
+                    loadNotifications(currentPage);
+                    
+                    // 同步更新导航栏未读徽章
+                    if (typeof window.updateNavUnreadBadge === 'function') {
+                        window.updateNavUnreadBadge();
+                    }
+                }
+            })
+            .catch(err => console.error('标记全部已读失败', err));
+        }
+
+        function deleteNotification(notificationId) {
+            if (!confirm('确定要删除这条通知吗？')) return;
+
+            fetch('@Url.Action("DeleteNotification", "Home")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: '__RequestVerificationToken=' + encodeURIComponent(antiForgeryToken) + '&notificationId=' + notificationId
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload notifications
+                    loadNotifications(currentPage);
+                } else {
+                    alert('删除失败：' + (data.message || '请稍后重试'));
+                }
+            })
+            .catch(err => {
+                console.error('删除通知失败', err);
+                alert('删除失败，请稍后重试');
+            });
+        }
+
+        function goToOrder(orderId) {
+            // 导航到订单页面，用户可在订单列表中查看相关订单
+            window.location.href = '@Url.Action("Order", "Home")' + '#order-' + orderId;
+        }
+
+        function goToReview(orderId) {
+            window.location.href = '@Url.Action("ReviewOrder", "Home")?orderId=' + orderId;
+        }
+
+        function goToFeedback() {
+            window.location.href = '@Url.Action("MyFeedback", "Home")';
+        }
+
+        // Load notifications on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications(1);
+        });
     </script>
 }
