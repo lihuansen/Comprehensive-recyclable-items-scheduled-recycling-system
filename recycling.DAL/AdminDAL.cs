@@ -1399,6 +1399,544 @@ namespace recycling.DAL
 
         #endregion
 
+        #region Transporter Management
+
+        /// <summary>
+        /// Get all transporters with pagination
+        /// </summary>
+        public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            var result = new PagedResult<Transporters>
+            {
+                PageIndex = page,
+                PageSize = pageSize,
+                Items = new List<Transporters>()
+            };
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // Build WHERE clause
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR Region LIKE @SearchTerm OR VehiclePlateNumber LIKE @SearchTerm)";
+                }
+                if (isActive.HasValue)
+                {
+                    whereClause += " AND IsActive = @IsActive";
+                }
+
+                // Get total count
+                string countSql = "SELECT COUNT(*) FROM Transporters " + whereClause;
+                SqlCommand countCmd = new SqlCommand(countSql, conn);
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    countCmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+                }
+                if (isActive.HasValue)
+                {
+                    countCmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+                result.TotalCount = (int)countCmd.ExecuteScalar();
+
+                // Get paged data
+                string sql = "SELECT * FROM Transporters " + whereClause + 
+                    " ORDER BY TransporterID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+                }
+                if (isActive.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+                cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Items.Add(MapTransporterFromReader(reader));
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get transporter by ID
+        /// </summary>
+        public Transporters GetTransporterById(int transporterId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT * FROM Transporters WHERE TransporterID = @TransporterID";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@TransporterID", transporterId);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return MapTransporterFromReader(reader);
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Add new transporter
+        /// </summary>
+        public bool AddTransporter(Transporters transporter)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = @"INSERT INTO Transporters (Username, PasswordHash, FullName, PhoneNumber, IDNumber, VehicleType, VehiclePlateNumber, VehicleCapacity, LicenseNumber, Region, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @VehicleType, @VehiclePlateNumber, @VehicleCapacity, @LicenseNumber, @Region, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", transporter.Username);
+                cmd.Parameters.AddWithValue("@PasswordHash", transporter.PasswordHash);
+                cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
+                cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@VehicleType", transporter.VehicleType);
+                cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
+                cmd.Parameters.AddWithValue("@VehicleCapacity", transporter.VehicleCapacity ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Region", transporter.Region);
+                cmd.Parameters.AddWithValue("@Available", transporter.Available);
+                cmd.Parameters.AddWithValue("@CurrentStatus", transporter.CurrentStatus ?? "空闲");
+                cmd.Parameters.AddWithValue("@IsActive", transporter.IsActive);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Update transporter information
+        /// </summary>
+        public bool UpdateTransporter(Transporters transporter)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = @"UPDATE Transporters SET 
+                    Username = @Username,
+                    FullName = @FullName,
+                    PhoneNumber = @PhoneNumber,
+                    IDNumber = @IDNumber,
+                    VehicleType = @VehicleType,
+                    VehiclePlateNumber = @VehiclePlateNumber,
+                    VehicleCapacity = @VehicleCapacity,
+                    LicenseNumber = @LicenseNumber,
+                    Region = @Region,
+                    Available = @Available,
+                    CurrentStatus = @CurrentStatus,
+                    IsActive = @IsActive
+                    WHERE TransporterID = @TransporterID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@TransporterID", transporter.TransporterID);
+                cmd.Parameters.AddWithValue("@Username", transporter.Username);
+                cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
+                cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@VehicleType", transporter.VehicleType);
+                cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
+                cmd.Parameters.AddWithValue("@VehicleCapacity", transporter.VehicleCapacity ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Region", transporter.Region);
+                cmd.Parameters.AddWithValue("@Available", transporter.Available);
+                cmd.Parameters.AddWithValue("@CurrentStatus", transporter.CurrentStatus ?? "空闲");
+                cmd.Parameters.AddWithValue("@IsActive", transporter.IsActive);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Delete transporter (hard delete from database)
+        /// </summary>
+        public bool DeleteTransporter(int transporterId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                
+                try
+                {
+                    string sql = "DELETE FROM Transporters WHERE TransporterID = @TransporterID";
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@TransporterID", transporterId);
+
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 547)
+                    {
+                        throw new InvalidOperationException(
+                            "无法删除该运输人员，因为存在关联的记录。请先处理相关数据或改用禁用功能。", ex);
+                    }
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get transporter statistics
+        /// </summary>
+        public Dictionary<string, object> GetTransporterStatistics()
+        {
+            var stats = new Dictionary<string, object>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters", conn);
+                stats["TotalTransporters"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters WHERE IsActive = 1", conn);
+                stats["ActiveTransporters"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters WHERE Available = 1 AND IsActive = 1", conn);
+                stats["AvailableTransporters"] = (int)cmd.ExecuteScalar();
+            }
+
+            return stats;
+        }
+
+        /// <summary>
+        /// Get all transporters for export (without pagination)
+        /// </summary>
+        public List<Transporters> GetAllTransportersForExport(string searchTerm = null, bool? isActive = null)
+        {
+            var transporters = new List<Transporters>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR Region LIKE @SearchTerm OR VehiclePlateNumber LIKE @SearchTerm)";
+                }
+                if (isActive.HasValue)
+                {
+                    whereClause += " AND IsActive = @IsActive";
+                }
+
+                string query = $@"
+                    SELECT * FROM Transporters 
+                    {whereClause}
+                    ORDER BY CreatedDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", $"%{searchTerm}%");
+                }
+                if (isActive.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        transporters.Add(MapTransporterFromReader(reader));
+                    }
+                }
+            }
+
+            return transporters;
+        }
+
+        #endregion
+
+        #region SortingCenterWorker Management
+
+        /// <summary>
+        /// Get all sorting center workers with pagination
+        /// </summary>
+        public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            var result = new PagedResult<SortingCenterWorkers>
+            {
+                PageIndex = page,
+                PageSize = pageSize,
+                Items = new List<SortingCenterWorkers>()
+            };
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR SortingCenterName LIKE @SearchTerm OR Position LIKE @SearchTerm)";
+                }
+                if (isActive.HasValue)
+                {
+                    whereClause += " AND IsActive = @IsActive";
+                }
+
+                string countSql = "SELECT COUNT(*) FROM SortingCenterWorkers " + whereClause;
+                SqlCommand countCmd = new SqlCommand(countSql, conn);
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    countCmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+                }
+                if (isActive.HasValue)
+                {
+                    countCmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+                result.TotalCount = (int)countCmd.ExecuteScalar();
+
+                string sql = "SELECT * FROM SortingCenterWorkers " + whereClause + 
+                    " ORDER BY WorkerID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+                }
+                if (isActive.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+                cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Items.Add(MapSortingCenterWorkerFromReader(reader));
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get sorting center worker by ID
+        /// </summary>
+        public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT * FROM SortingCenterWorkers WHERE WorkerID = @WorkerID";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@WorkerID", workerId);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return MapSortingCenterWorkerFromReader(reader);
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Add new sorting center worker
+        /// </summary>
+        public bool AddSortingCenterWorker(SortingCenterWorkers worker)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, Position, WorkStation, Specialization, ShiftType, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @Position, @WorkStation, @Specialization, @ShiftType, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", worker.Username);
+                cmd.Parameters.AddWithValue("@PasswordHash", worker.PasswordHash);
+                cmd.Parameters.AddWithValue("@FullName", worker.FullName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
+                cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
+                cmd.Parameters.AddWithValue("@SortingCenterName", worker.SortingCenterName);
+                cmd.Parameters.AddWithValue("@Position", worker.Position);
+                cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Specialization", worker.Specialization ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
+                cmd.Parameters.AddWithValue("@Available", worker.Available);
+                cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
+                cmd.Parameters.AddWithValue("@IsActive", worker.IsActive);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Update sorting center worker information
+        /// </summary>
+        public bool UpdateSortingCenterWorker(SortingCenterWorkers worker)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = @"UPDATE SortingCenterWorkers SET 
+                    Username = @Username,
+                    FullName = @FullName,
+                    PhoneNumber = @PhoneNumber,
+                    IDNumber = @IDNumber,
+                    SortingCenterID = @SortingCenterID,
+                    SortingCenterName = @SortingCenterName,
+                    Position = @Position,
+                    WorkStation = @WorkStation,
+                    Specialization = @Specialization,
+                    ShiftType = @ShiftType,
+                    Available = @Available,
+                    CurrentStatus = @CurrentStatus,
+                    IsActive = @IsActive
+                    WHERE WorkerID = @WorkerID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@WorkerID", worker.WorkerID);
+                cmd.Parameters.AddWithValue("@Username", worker.Username);
+                cmd.Parameters.AddWithValue("@FullName", worker.FullName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
+                cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
+                cmd.Parameters.AddWithValue("@SortingCenterName", worker.SortingCenterName);
+                cmd.Parameters.AddWithValue("@Position", worker.Position);
+                cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Specialization", worker.Specialization ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
+                cmd.Parameters.AddWithValue("@Available", worker.Available);
+                cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
+                cmd.Parameters.AddWithValue("@IsActive", worker.IsActive);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Delete sorting center worker (hard delete from database)
+        /// </summary>
+        public bool DeleteSortingCenterWorker(int workerId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                
+                try
+                {
+                    string sql = "DELETE FROM SortingCenterWorkers WHERE WorkerID = @WorkerID";
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@WorkerID", workerId);
+
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 547)
+                    {
+                        throw new InvalidOperationException(
+                            "无法删除该分拣中心人员，因为存在关联的记录。请先处理相关数据或改用禁用功能。", ex);
+                    }
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get sorting center worker statistics
+        /// </summary>
+        public Dictionary<string, object> GetSortingCenterWorkerStatistics()
+        {
+            var stats = new Dictionary<string, object>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers", conn);
+                stats["TotalWorkers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers WHERE IsActive = 1", conn);
+                stats["ActiveWorkers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers WHERE Available = 1 AND IsActive = 1", conn);
+                stats["AvailableWorkers"] = (int)cmd.ExecuteScalar();
+            }
+
+            return stats;
+        }
+
+        /// <summary>
+        /// Get all sorting center workers for export (without pagination)
+        /// </summary>
+        public List<SortingCenterWorkers> GetAllSortingCenterWorkersForExport(string searchTerm = null, bool? isActive = null)
+        {
+            var workers = new List<SortingCenterWorkers>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR SortingCenterName LIKE @SearchTerm OR Position LIKE @SearchTerm)";
+                }
+                if (isActive.HasValue)
+                {
+                    whereClause += " AND IsActive = @IsActive";
+                }
+
+                string query = $@"
+                    SELECT * FROM SortingCenterWorkers 
+                    {whereClause}
+                    ORDER BY CreatedDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", $"%{searchTerm}%");
+                }
+                if (isActive.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        workers.Add(MapSortingCenterWorkerFromReader(reader));
+                    }
+                }
+            }
+
+            return workers;
+        }
+
+        #endregion
+
         #region Helper Methods
 
         private Recyclers MapRecyclerFromReader(SqlDataReader reader)
@@ -1432,6 +1970,65 @@ namespace recycling.DAL
                 CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
                 IsActive = reader.IsDBNull(reader.GetOrdinal("IsActive")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("IsActive"))
+            };
+        }
+
+        private Transporters MapTransporterFromReader(SqlDataReader reader)
+        {
+            return new Transporters
+            {
+                TransporterID = reader.GetInt32(reader.GetOrdinal("TransporterID")),
+                Username = reader.GetString(reader.GetOrdinal("Username")),
+                PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
+                FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
+                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
+                VehicleType = reader.GetString(reader.GetOrdinal("VehicleType")),
+                VehiclePlateNumber = reader.GetString(reader.GetOrdinal("VehiclePlateNumber")),
+                VehicleCapacity = reader.IsDBNull(reader.GetOrdinal("VehicleCapacity")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("VehicleCapacity")),
+                LicenseNumber = reader.IsDBNull(reader.GetOrdinal("LicenseNumber")) ? null : reader.GetString(reader.GetOrdinal("LicenseNumber")),
+                Region = reader.GetString(reader.GetOrdinal("Region")),
+                Available = reader.GetBoolean(reader.GetOrdinal("Available")),
+                CurrentStatus = reader.GetString(reader.GetOrdinal("CurrentStatus")),
+                TotalTrips = reader.GetInt32(reader.GetOrdinal("TotalTrips")),
+                TotalWeight = reader.GetDecimal(reader.GetOrdinal("TotalWeight")),
+                Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("Rating")),
+                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL")),
+                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? null : reader.GetString(reader.GetOrdinal("Notes"))
+            };
+        }
+
+        private SortingCenterWorkers MapSortingCenterWorkerFromReader(SqlDataReader reader)
+        {
+            return new SortingCenterWorkers
+            {
+                WorkerID = reader.GetInt32(reader.GetOrdinal("WorkerID")),
+                Username = reader.GetString(reader.GetOrdinal("Username")),
+                PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
+                FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
+                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
+                SortingCenterID = reader.GetInt32(reader.GetOrdinal("SortingCenterID")),
+                SortingCenterName = reader.GetString(reader.GetOrdinal("SortingCenterName")),
+                Position = reader.GetString(reader.GetOrdinal("Position")),
+                WorkStation = reader.IsDBNull(reader.GetOrdinal("WorkStation")) ? null : reader.GetString(reader.GetOrdinal("WorkStation")),
+                Specialization = reader.IsDBNull(reader.GetOrdinal("Specialization")) ? null : reader.GetString(reader.GetOrdinal("Specialization")),
+                ShiftType = reader.GetString(reader.GetOrdinal("ShiftType")),
+                Available = reader.GetBoolean(reader.GetOrdinal("Available")),
+                CurrentStatus = reader.GetString(reader.GetOrdinal("CurrentStatus")),
+                TotalItemsProcessed = reader.GetInt32(reader.GetOrdinal("TotalItemsProcessed")),
+                TotalWeightProcessed = reader.GetDecimal(reader.GetOrdinal("TotalWeightProcessed")),
+                AccuracyRate = reader.IsDBNull(reader.GetOrdinal("AccuracyRate")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("AccuracyRate")),
+                Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("Rating")),
+                HireDate = reader.IsDBNull(reader.GetOrdinal("HireDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("HireDate")),
+                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL")),
+                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? null : reader.GetString(reader.GetOrdinal("Notes"))
             };
         }
 

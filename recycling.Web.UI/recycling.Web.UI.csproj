@@ -237,6 +237,8 @@
     <Content Include="Views\Staff\DataDashboard.cshtml" />
     <Content Include="Views\Staff\ContactUser.cshtml" />
     <Content Include="Views\Staff\LogManagement.cshtml" />
+    <Content Include="Views\Staff\TransporterManagement.cshtml" />
+    <Content Include="Views\Staff\SortingCenterWorkerManagement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

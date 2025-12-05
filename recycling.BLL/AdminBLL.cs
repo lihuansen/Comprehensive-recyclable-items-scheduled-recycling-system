@@ -363,6 +363,308 @@ namespace recycling.BLL
 
         #endregion
 
+        #region Transporter Management
+
+        /// <summary>
+        /// Get all transporters with pagination
+        /// </summary>
+        public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+            return _adminDAL.GetAllTransporters(page, pageSize, searchTerm, isActive);
+        }
+
+        /// <summary>
+        /// Get transporter by ID
+        /// </summary>
+        public Transporters GetTransporterById(int transporterId)
+        {
+            if (transporterId <= 0)
+            {
+                throw new ArgumentException("Invalid transporter ID");
+            }
+
+            return _adminDAL.GetTransporterById(transporterId);
+        }
+
+        /// <summary>
+        /// Add new transporter
+        /// </summary>
+        public (bool Success, string Message) AddTransporter(Transporters transporter, string password)
+        {
+            if (string.IsNullOrEmpty(transporter.Username))
+            {
+                return (false, "用户名不能为空");
+            }
+
+            if (string.IsNullOrEmpty(password))
+            {
+                return (false, "密码不能为空");
+            }
+
+            if (string.IsNullOrEmpty(transporter.PhoneNumber))
+            {
+                return (false, "手机号不能为空");
+            }
+
+            if (string.IsNullOrEmpty(transporter.VehicleType))
+            {
+                return (false, "车辆类型不能为空");
+            }
+
+            if (string.IsNullOrEmpty(transporter.VehiclePlateNumber))
+            {
+                return (false, "车牌号不能为空");
+            }
+
+            if (string.IsNullOrEmpty(transporter.Region))
+            {
+                return (false, "区域不能为空");
+            }
+
+            transporter.PasswordHash = HashPassword(password);
+            transporter.IsActive = true;
+            transporter.Available = true;
+
+            bool result = _adminDAL.AddTransporter(transporter);
+            return result ? (true, "添加运输人员成功") : (false, "添加运输人员失败");
+        }
+
+        /// <summary>
+        /// Update transporter
+        /// </summary>
+        public (bool Success, string Message) UpdateTransporter(Transporters transporter)
+        {
+            if (transporter.TransporterID <= 0)
+            {
+                return (false, "Invalid transporter ID");
+            }
+
+            if (string.IsNullOrEmpty(transporter.Username))
+            {
+                return (false, "用户名不能为空");
+            }
+
+            if (string.IsNullOrEmpty(transporter.PhoneNumber))
+            {
+                return (false, "手机号不能为空");
+            }
+
+            if (string.IsNullOrEmpty(transporter.VehicleType))
+            {
+                return (false, "车辆类型不能为空");
+            }
+
+            if (string.IsNullOrEmpty(transporter.VehiclePlateNumber))
+            {
+                return (false, "车牌号不能为空");
+            }
+
+            if (string.IsNullOrEmpty(transporter.Region))
+            {
+                return (false, "区域不能为空");
+            }
+
+            bool result = _adminDAL.UpdateTransporter(transporter);
+            return result ? (true, "更新运输人员信息成功") : (false, "更新运输人员信息失败");
+        }
+
+        /// <summary>
+        /// Delete transporter
+        /// </summary>
+        public (bool Success, string Message) DeleteTransporter(int transporterId)
+        {
+            if (transporterId <= 0)
+            {
+                return (false, "Invalid transporter ID");
+            }
+
+            try
+            {
+                bool result = _adminDAL.DeleteTransporter(transporterId);
+                return result ? (true, "删除运输人员成功") : (false, "删除运输人员失败");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return (false, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"删除运输人员失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get transporter statistics
+        /// </summary>
+        public Dictionary<string, object> GetTransporterStatistics()
+        {
+            return _adminDAL.GetTransporterStatistics();
+        }
+
+        /// <summary>
+        /// Get all transporters for export
+        /// </summary>
+        public List<Transporters> GetAllTransportersForExport(string searchTerm = null, bool? isActive = null)
+        {
+            return _adminDAL.GetAllTransportersForExport(searchTerm, isActive);
+        }
+
+        #endregion
+
+        #region SortingCenterWorker Management
+
+        /// <summary>
+        /// Get all sorting center workers with pagination
+        /// </summary>
+        public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+            return _adminDAL.GetAllSortingCenterWorkers(page, pageSize, searchTerm, isActive);
+        }
+
+        /// <summary>
+        /// Get sorting center worker by ID
+        /// </summary>
+        public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
+        {
+            if (workerId <= 0)
+            {
+                throw new ArgumentException("Invalid worker ID");
+            }
+
+            return _adminDAL.GetSortingCenterWorkerById(workerId);
+        }
+
+        /// <summary>
+        /// Add new sorting center worker
+        /// </summary>
+        public (bool Success, string Message) AddSortingCenterWorker(SortingCenterWorkers worker, string password)
+        {
+            if (string.IsNullOrEmpty(worker.Username))
+            {
+                return (false, "用户名不能为空");
+            }
+
+            if (string.IsNullOrEmpty(password))
+            {
+                return (false, "密码不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.PhoneNumber))
+            {
+                return (false, "手机号不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.SortingCenterName))
+            {
+                return (false, "分拣中心名称不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.Position))
+            {
+                return (false, "职位不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.ShiftType))
+            {
+                return (false, "班次类型不能为空");
+            }
+
+            worker.PasswordHash = HashPassword(password);
+            worker.IsActive = true;
+            worker.Available = true;
+
+            bool result = _adminDAL.AddSortingCenterWorker(worker);
+            return result ? (true, "添加分拣中心人员成功") : (false, "添加分拣中心人员失败");
+        }
+
+        /// <summary>
+        /// Update sorting center worker
+        /// </summary>
+        public (bool Success, string Message) UpdateSortingCenterWorker(SortingCenterWorkers worker)
+        {
+            if (worker.WorkerID <= 0)
+            {
+                return (false, "Invalid worker ID");
+            }
+
+            if (string.IsNullOrEmpty(worker.Username))
+            {
+                return (false, "用户名不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.PhoneNumber))
+            {
+                return (false, "手机号不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.SortingCenterName))
+            {
+                return (false, "分拣中心名称不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.Position))
+            {
+                return (false, "职位不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.ShiftType))
+            {
+                return (false, "班次类型不能为空");
+            }
+
+            bool result = _adminDAL.UpdateSortingCenterWorker(worker);
+            return result ? (true, "更新分拣中心人员信息成功") : (false, "更新分拣中心人员信息失败");
+        }
+
+        /// <summary>
+        /// Delete sorting center worker
+        /// </summary>
+        public (bool Success, string Message) DeleteSortingCenterWorker(int workerId)
+        {
+            if (workerId <= 0)
+            {
+                return (false, "Invalid worker ID");
+            }
+
+            try
+            {
+                bool result = _adminDAL.DeleteSortingCenterWorker(workerId);
+                return result ? (true, "删除分拣中心人员成功") : (false, "删除分拣中心人员失败");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return (false, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"删除分拣中心人员失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get sorting center worker statistics
+        /// </summary>
+        public Dictionary<string, object> GetSortingCenterWorkerStatistics()
+        {
+            return _adminDAL.GetSortingCenterWorkerStatistics();
+        }
+
+        /// <summary>
+        /// Get all sorting center workers for export
+        /// </summary>
+        public List<SortingCenterWorkers> GetAllSortingCenterWorkersForExport(string searchTerm = null, bool? isActive = null)
+        {
+            return _adminDAL.GetAllSortingCenterWorkersForExport(searchTerm, isActive);
+        }
+
+        #endregion
+
         #region Helper Methods
 
         /// <summary>
