@@ -32,6 +32,12 @@
                 <label class="staff-role-option">
                     @Html.RadioButtonFor(model => model.StaffRole, "superadmin") 超级管理员
                 </label>
+                <label class="staff-role-option">
+                    @Html.RadioButtonFor(model => model.StaffRole, "transporter") 运输人员
+                </label>
+                <label class="staff-role-option">
+                    @Html.RadioButtonFor(model => model.StaffRole, "sortingcenterworker") 分拣中心工作人员
+                </label>
             </div>
             @Html.ValidationMessageFor(model => model.StaffRole, "", new { @class = "text-danger" })
         </div>

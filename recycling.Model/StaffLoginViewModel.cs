@@ -33,10 +33,10 @@ namespace recycling.Model
         public string GeneratedCaptcha { get; set; }
 
         /// <summary>
-        /// 工作人员角色（回收员/管理员/超级管理员）- 仅此处与用户登录不同
+        /// 工作人员角色（回收员/管理员/超级管理员/运输人员/分拣中心工作人员）- 仅此处与用户登录不同
         /// </summary>
         [Required(ErrorMessage = "请选择角色")]
         [Display(Name = "工作人员角色")]
-        public string StaffRole { get; set; } // 值对应：recycler/admin/superadmin
+        public string StaffRole { get; set; } // 值对应：recycler/admin/superadmin/transporter/sortingcenterworker
     }
 }

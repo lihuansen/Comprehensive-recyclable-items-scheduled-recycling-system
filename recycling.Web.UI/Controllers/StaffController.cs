@@ -255,6 +255,38 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 运输人员工作台
+        /// </summary>
+        public ActionResult TransporterDashboard()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                return RedirectToAction("Login", "Staff");
+
+            var transporter = (Transporters)Session["LoginStaff"];
+            ViewBag.StaffName = transporter.Username;
+            ViewBag.DisplayName = "运输人员";
+            ViewBag.StaffRole = "transporter";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 分拣中心工作人员工作台
+        /// </summary>
+        public ActionResult SortingCenterWorkerDashboard()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                return RedirectToAction("Login", "Staff");
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            ViewBag.StaffName = worker.Username;
+            ViewBag.DisplayName = "分拣中心工作人员";
+            ViewBag.StaffRole = "sortingcenterworker";
+
+            return View();
+        }
+
+        /// <summary>
         /// 回收员订单管理页面
         /// </summary>
         public ActionResult Recycler_OrderManagement()

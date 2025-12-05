@@ -1,0 +1,143 @@
+@{
+    ViewBag.Title = "运输人员工作台";
+    Layout = "~/Views/Shared/_TransporterLayout.cshtml";
+}
+
+<style>
+    .home-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .carousel-section {
+        height: 300px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        border-radius: 15px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .carousel-placeholder {
+        text-align: center;
+        z-index: 2;
+    }
+
+        .carousel-placeholder i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+    .content-section {
+        min-height: 400px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        position: relative;
+        text-align: center;
+    }
+
+    .welcome-card {
+        background: white;
+        border-radius: 10px;
+        padding: 40px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+
+    .welcome-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    .welcome-subtitle {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .role-badge {
+        display: inline-block;
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        padding: 8px 25px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .system-info {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        border-left: 4px solid #3498db;
+    }
+
+        .system-info i {
+            color: #3498db;
+            margin-right: 10px;
+        }
+
+    @@media (max-width: 768px) {
+        .carousel-section {
+            height: 200px;
+            font-size: 18px;
+        }
+
+        .content-section {
+            padding: 20px;
+            min-height: 300px;
+        }
+
+        .welcome-card {
+            padding: 25px;
+        }
+
+        .welcome-title {
+            font-size: 22px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+        }
+    }
+</style>
+
+<div class="home-container">
+    <div class="carousel-section">
+        <div class="carousel-placeholder">
+            <i class="fas fa-truck"></i>
+            <div>运输人员工作平台</div>
+            <small style="font-size: 14px; font-weight: normal; margin-top: 10px; display: block;">
+                安全、高效的运输服务管理
+            </small>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="welcome-card">
+            <div class="welcome-title">欢迎回来，运输人员 @ViewBag.StaffName</div>
+            <div class="welcome-subtitle">感谢您为回收物资运输事业做出的贡献！</div>
+            <div class="role-badge">运输人员工作台</div>
+        </div>
+
+        <div class="system-info">
+            <i class="fas fa-info-circle"></i>
+            <span>请使用上方导航菜单进行运输管理操作</span>
+        </div>
+    </div>
+</div>

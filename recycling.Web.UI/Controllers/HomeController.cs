@@ -38,6 +38,10 @@ namespace recycling.Web.UI.Controllers
                         return RedirectToAction("AdminDashboard", "Staff");
                     case "superadmin":
                         return RedirectToAction("SuperAdminDashboard", "Staff");
+                    case "transporter":
+                        return RedirectToAction("TransporterDashboard", "Staff");
+                    case "sortingcenterworker":
+                        return RedirectToAction("SortingCenterWorkerDashboard", "Staff");
                     default:
                         break;
                 }
