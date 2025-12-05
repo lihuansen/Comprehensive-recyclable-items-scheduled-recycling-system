@@ -12,6 +12,7 @@ namespace recycling.Web.UI.Controllers
     {
         private readonly UserBLL _userBLL = new UserBLL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
+        private readonly UserAddressBLL _addressBLL = new UserAddressBLL();
         // GET: User
         public ActionResult Index()
         {
@@ -442,11 +443,24 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("LoginSelect", "Home");
             }
 
+            var user = (Users)Session["LoginUser"];
+
             var model = new AppointmentViewModel
             {
                 AppointmentDate = DateTime.Today.AddDays(1), // 默认明天
                 SelectedCategories = new List<string>()
             };
+
+            // 获取用户的地址列表
+            var userAddresses = _addressBLL.GetUserAddresses(user.UserID);
+            ViewBag.UserAddresses = userAddresses;
+
+            // 获取默认地址ID
+            var defaultAddress = userAddresses.FirstOrDefault(a => a.IsDefault);
+            if (defaultAddress != null)
+            {
+                model.SelectedAddressID = defaultAddress.AddressID;
+            }
 
             // 设置视图数据
             ViewBag.AppointmentTypes = AppointmentTypes.AllTypes;
@@ -470,6 +484,12 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("LoginSelect", "Home");
             }
 
+            var user = (Users)Session["LoginUser"];
+
+            // 获取用户的地址列表并设置到ViewBag
+            var userAddresses = _addressBLL.GetUserAddresses(user.UserID);
+            ViewBag.UserAddresses = userAddresses;
+
             // 设置视图数据
             ViewBag.AppointmentTypes = AppointmentTypes.AllTypes;
             ViewBag.RecyclingCategories = RecyclingCategories.AllCategories;
@@ -482,6 +502,51 @@ namespace recycling.Web.UI.Controllers
                 ModelState.AddModelError("SelectedCategories", "请至少选择一个回收品类");
             }
 
+            // 处理地址信息：从选择的地址或手动输入获取
+            if (model.SelectedAddressID.HasValue && model.SelectedAddressID.Value > 0)
+            {
+                // 从用户地址管理中获取地址信息
+                var selectedAddress = _addressBLL.GetAddressById(model.SelectedAddressID.Value, user.UserID);
+                if (selectedAddress != null)
+                {
+                    model.ContactName = selectedAddress.ContactName;
+                    model.ContactPhone = selectedAddress.ContactPhone;
+                    model.Street = selectedAddress.Street;
+                    
+                    // 构建完整地址，将街道键转换为显示名称
+                    string streetDisplayName = selectedAddress.Street;
+                    if (!string.IsNullOrEmpty(selectedAddress.Street) && Streets.LuohuStreets.ContainsKey(selectedAddress.Street))
+                    {
+                        streetDisplayName = Streets.LuohuStreets[selectedAddress.Street];
+                    }
+                    model.Address = $"{selectedAddress.Province}{selectedAddress.City}{selectedAddress.District}{streetDisplayName}{selectedAddress.DetailAddress}";
+                }
+                else
+                {
+                    ModelState.AddModelError("SelectedAddressID", "所选地址不存在，请重新选择");
+                }
+            }
+            else
+            {
+                // 手动输入地址时验证必填字段
+                if (string.IsNullOrWhiteSpace(model.ContactName))
+                {
+                    ModelState.AddModelError("ContactName", "请输入联系人姓名");
+                }
+                if (string.IsNullOrWhiteSpace(model.ContactPhone))
+                {
+                    ModelState.AddModelError("ContactPhone", "请输入联系电话");
+                }
+                if (string.IsNullOrWhiteSpace(model.Street))
+                {
+                    ModelState.AddModelError("Street", "请选择街道");
+                }
+                if (string.IsNullOrWhiteSpace(model.Address))
+                {
+                    ModelState.AddModelError("Address", "请输入详细地址");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -489,18 +554,21 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // 拼接完整地址：省 + 市 + 区 + 街道 + 详细地址
-                string streetName = "";
-                if (!string.IsNullOrEmpty(model.Street) && Streets.LuohuStreets.ContainsKey(model.Street))
+                // 如果是手动输入地址，拼接完整地址：省 + 市 + 区 + 街道 + 详细地址
+                if (!model.SelectedAddressID.HasValue || model.SelectedAddressID.Value == 0)
                 {
-                    streetName = Streets.LuohuStreets[model.Street];
+                    string streetName = "";
+                    if (!string.IsNullOrEmpty(model.Street) && Streets.LuohuStreets.ContainsKey(model.Street))
+                    {
+                        streetName = Streets.LuohuStreets[model.Street];
+                    }
+                    else if (!string.IsNullOrEmpty(model.Street))
+                    {
+                        streetName = model.Street;
+                    }
+                    string fullAddress = $"广东省深圳市罗湖区{streetName}{model.Address}";
+                    model.Address = fullAddress;
                 }
-                else if (!string.IsNullOrEmpty(model.Street))
-                {
-                    streetName = model.Street;
-                }
-                string fullAddress = $"广东省深圳市罗湖区{streetName}{model.Address}";
-                model.Address = fullAddress;
 
                 // 创建品类详情视图模型
                 var detailModel = new CategoryDetailViewModel
@@ -806,6 +874,172 @@ namespace recycling.Web.UI.Controllers
 
             ViewBag.SuccessMessage = TempData["SuccessMessage"] ?? "预约提交成功！";
             return View();
+        }
+
+        /// <summary>
+        /// 获取用户地址列表（JSON API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetUserAddresses()
+        {
+            if (Session["LoginUser"] == null)
+            {
+                return Json(new { success = false, message = "请先登录" }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var user = (Users)Session["LoginUser"];
+                var addresses = _addressBLL.GetUserAddresses(user.UserID);
+                var result = addresses.Select(a => {
+                    // 将街道键转换为显示名称以构建完整地址
+                    string streetDisplayName = a.Street;
+                    if (!string.IsNullOrEmpty(a.Street) && Streets.LuohuStreets.ContainsKey(a.Street))
+                    {
+                        streetDisplayName = Streets.LuohuStreets[a.Street];
+                    }
+                    return new
+                    {
+                        addressId = a.AddressID,
+                        contactName = a.ContactName,
+                        contactPhone = a.ContactPhone,
+                        province = a.Province,
+                        city = a.City,
+                        district = a.District,
+                        street = a.Street,
+                        detailAddress = a.DetailAddress,
+                        fullAddress = $"{a.Province}{a.City}{a.District}{streetDisplayName}{a.DetailAddress}",
+                        isDefault = a.IsDefault
+                    };
+                }).ToList();
+
+                return Json(new { success = true, data = result }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "获取地址列表失败：" + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 获取单个地址详情（JSON API）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetAddressById(int addressId)
+        {
+            if (Session["LoginUser"] == null)
+            {
+                return Json(new { success = false, message = "请先登录" }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var user = (Users)Session["LoginUser"];
+                var address = _addressBLL.GetAddressById(addressId, user.UserID);
+                if (address == null)
+                {
+                    return Json(new { success = false, message = "地址不存在" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // 将街道键转换为显示名称以构建完整地址
+                string streetDisplayName = address.Street;
+                if (!string.IsNullOrEmpty(address.Street) && Streets.LuohuStreets.ContainsKey(address.Street))
+                {
+                    streetDisplayName = Streets.LuohuStreets[address.Street];
+                }
+                string fullAddress = $"{address.Province}{address.City}{address.District}{streetDisplayName}{address.DetailAddress}";
+
+                return Json(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        addressId = address.AddressID,
+                        contactName = address.ContactName,
+                        contactPhone = address.ContactPhone,
+                        province = address.Province,
+                        city = address.City,
+                        district = address.District,
+                        street = address.Street,
+                        detailAddress = address.DetailAddress,
+                        fullAddress = fullAddress,
+                        isDefault = address.IsDefault
+                    }
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "获取地址详情失败：" + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 在预约过程中新增地址（JSON API）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult AddAddressForAppointment(string street, string detailAddress, string contactName, string contactPhone, bool isDefault = false)
+        {
+            if (Session["LoginUser"] == null)
+            {
+                return Json(new { success = false, message = "请先登录" });
+            }
+
+            try
+            {
+                var user = (Users)Session["LoginUser"];
+
+                var newAddress = new UserAddresses
+                {
+                    UserID = user.UserID,
+                    Street = street,
+                    DetailAddress = detailAddress,
+                    ContactName = contactName,
+                    ContactPhone = contactPhone,
+                    IsDefault = isDefault
+                };
+
+                var (success, message, addressId) = _addressBLL.AddAddress(newAddress);
+
+                if (success)
+                {
+                    // 获取新添加的地址完整信息
+                    var address = _addressBLL.GetAddressById(addressId, user.UserID);
+                    
+                    // 将街道键转换为显示名称以构建完整地址
+                    string streetDisplayName = address.Street;
+                    if (!string.IsNullOrEmpty(address.Street) && Streets.LuohuStreets.ContainsKey(address.Street))
+                    {
+                        streetDisplayName = Streets.LuohuStreets[address.Street];
+                    }
+                    string fullAddress = $"{address.Province}{address.City}{address.District}{streetDisplayName}{address.DetailAddress}";
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = message,
+                        data = new
+                        {
+                            addressId = address.AddressID,
+                            contactName = address.ContactName,
+                            contactPhone = address.ContactPhone,
+                            province = address.Province,
+                            city = address.City,
+                            district = address.District,
+                            street = address.Street,
+                            detailAddress = address.DetailAddress,
+                            fullAddress = fullAddress,
+                            isDefault = address.IsDefault
+                        }
+                    });
+                }
+
+                return Json(new { success = false, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "添加地址失败：" + ex.Message });
+            }
         }
     }
 }
