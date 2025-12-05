@@ -68,6 +68,7 @@ namespace recycling.Model
         /// <summary>
         /// 车辆载重能力（单位：kg）
         /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "车辆载重能力必须大于0")]
         public decimal? VehicleCapacity { get; set; }
 
         /// <summary>

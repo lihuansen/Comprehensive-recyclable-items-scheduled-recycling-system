@@ -114,6 +114,7 @@ namespace recycling.Model
         /// <summary>
         /// 分拣准确率（百分比）
         /// </summary>
+        [Range(0, 100, ErrorMessage = "分拣准确率必须在0-100之间")]
         public decimal? AccuracyRate { get; set; }
 
         /// <summary>

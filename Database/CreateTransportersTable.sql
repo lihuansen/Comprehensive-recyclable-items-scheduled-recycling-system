@@ -45,7 +45,7 @@ BEGIN
         
         -- 约束
         CONSTRAINT CK_Transporters_Rating CHECK ([Rating] IS NULL OR ([Rating] >= 0 AND [Rating] <= 5)),
-        CONSTRAINT CK_Transporters_CurrentStatus CHECK ([CurrentStatus] IN (N'空闲', N'运输中', N'休息', N'离线'))
+        CONSTRAINT CK_Transporters_CurrentStatus CHECK ([CurrentStatus] IN (N'空闲', N'运输中', N'休息', N'离岗', N'离线'))
     );
 
     -- 创建索引
@@ -99,6 +99,7 @@ GO
 --    - 空闲：可以接受新任务
 --    - 运输中：正在执行运输任务
 --    - 休息：暂时不接单
+--    - 离岗：暂时离开
 --    - 离线：不在线
 -- 3. Rating 为用户对运输服务的平均评分
 -- 4. TotalTrips 和 TotalWeight 用于统计绩效
