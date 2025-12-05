@@ -129,6 +129,7 @@
             </div>
             <div class="modal-body">
                 <form id="workerForm">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" id="workerId">
                     <div class="row">
                         <div class="col-md-6">
@@ -268,6 +269,15 @@
 @section Scripts {
 <script>
 var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
+var workerCache = {}; // Cache for worker data
+
+// Helper function to escape HTML and prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
 
 $(document).ready(function () {
     loadStatistics();
@@ -310,22 +320,24 @@ function renderWorkers(data) {
     data.Items.forEach(function (w) {
         var row = '<tr>' +
             '<td>' + w.WorkerID + '</td>' +
-            '<td>' + w.Username + '</td>' +
-            '<td>' + (w.FullName || '-') + '</td>' +
-            '<td>' + w.PhoneNumber + '</td>' +
-            '<td>' + w.SortingCenterName + '</td>' +
-            '<td>' + w.Position + '</td>' +
-            '<td>' + w.ShiftType + '</td>' +
+            '<td>' + escapeHtml(w.Username) + '</td>' +
+            '<td>' + escapeHtml(w.FullName || '-') + '</td>' +
+            '<td>' + escapeHtml(w.PhoneNumber) + '</td>' +
+            '<td>' + escapeHtml(w.SortingCenterName) + '</td>' +
+            '<td>' + escapeHtml(w.Position) + '</td>' +
+            '<td>' + escapeHtml(w.ShiftType) + '</td>' +
             '<td>' + (w.Rating ? w.Rating.toFixed(1) : '0.0') + ' ⭐</td>' +
             '<td>' +
                 '<span class="badge ' + (w.IsActive ? 'badge-active' : 'badge-inactive') + '">' + (w.IsActive ? '激活' : '禁用') + '</span> ' +
                 '<span class="badge ' + (w.Available ? 'badge-available' : 'badge-unavailable') + '">' + (w.Available ? '可用' : '不可用') + '</span>' +
             '</td>' +
             '<td>' +
-                '<button class="btn btn-xs btn-info btn-action" onclick=\'editWorker(' + JSON.stringify(w) + ')\'><i class="fas fa-edit"></i> 编辑</button> ' +
+                '<button class="btn btn-xs btn-info btn-action" data-worker-id="' + w.WorkerID + '" onclick="editWorkerById(this)"><i class="fas fa-edit"></i> 编辑</button> ' +
                 '<button class="btn btn-xs btn-danger btn-action" onclick="deleteWorker(' + w.WorkerID + ')"><i class="fas fa-trash"></i> 删除</button>' +
             '</td>' +
         '</tr>';
+        // Store full worker object for later retrieval
+        workerCache[w.WorkerID] = w;
         tbody.append(row);
     });
     renderPagination(data);
@@ -354,6 +366,14 @@ function showAddModal() {
     $('#sortingCenterId').val('1');
     $('#passwordGroup').show();
     $('#workerModal').modal('show');
+}
+
+function editWorkerById(btn) {
+    var id = $(btn).data('worker-id');
+    var worker = workerCache[id];
+    if (worker) {
+        editWorker(worker);
+    }
 }
 
 function editWorker(worker) {
@@ -395,6 +415,7 @@ function saveWorker() {
         IsActive: $('#isActive').is(':checked')
     };
     if (!id) data.password = $('#password').val();
+    data.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
     
     $.ajax({
         url: id ? '@Url.Action("UpdateSortingCenterWorker", "Staff")' : '@Url.Action("AddSortingCenterWorker", "Staff")',
@@ -416,7 +437,10 @@ function deleteWorker(id) {
     $.ajax({
         url: '@Url.Action("DeleteSortingCenterWorker", "Staff")',
         type: 'POST',
-        data: { workerId: id },
+        data: { 
+            workerId: id,
+            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        },
         success: function (response) {
             alert(response.message);
             if (response.success) {

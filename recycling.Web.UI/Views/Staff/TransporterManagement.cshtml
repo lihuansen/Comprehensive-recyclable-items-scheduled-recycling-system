@@ -129,6 +129,7 @@
             </div>
             <div class="modal-body">
                 <form id="transporterForm">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" id="transporterId">
                     <div class="row">
                         <div class="col-md-6">
@@ -251,6 +252,15 @@
 @section Scripts {
 <script>
 var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
+var transporterCache = {}; // Cache for transporter data
+
+// Helper function to escape HTML and prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
 
 $(document).ready(function () {
     loadStatistics();
@@ -293,22 +303,24 @@ function renderTransporters(data) {
     data.Items.forEach(function (t) {
         var row = '<tr>' +
             '<td>' + t.TransporterID + '</td>' +
-            '<td>' + t.Username + '</td>' +
-            '<td>' + (t.FullName || '-') + '</td>' +
-            '<td>' + t.PhoneNumber + '</td>' +
-            '<td>' + t.VehicleType + '</td>' +
-            '<td>' + t.VehiclePlateNumber + '</td>' +
-            '<td>' + t.Region + '</td>' +
+            '<td>' + escapeHtml(t.Username) + '</td>' +
+            '<td>' + escapeHtml(t.FullName || '-') + '</td>' +
+            '<td>' + escapeHtml(t.PhoneNumber) + '</td>' +
+            '<td>' + escapeHtml(t.VehicleType) + '</td>' +
+            '<td>' + escapeHtml(t.VehiclePlateNumber) + '</td>' +
+            '<td>' + escapeHtml(t.Region) + '</td>' +
             '<td>' + (t.Rating ? t.Rating.toFixed(1) : '0.0') + ' ⭐</td>' +
             '<td>' +
                 '<span class="badge ' + (t.IsActive ? 'badge-active' : 'badge-inactive') + '">' + (t.IsActive ? '激活' : '禁用') + '</span> ' +
                 '<span class="badge ' + (t.Available ? 'badge-available' : 'badge-unavailable') + '">' + (t.Available ? '可接单' : '不可接单') + '</span>' +
             '</td>' +
             '<td>' +
-                '<button class="btn btn-xs btn-info btn-action" onclick=\'editTransporter(' + JSON.stringify(t) + ')\'><i class="fas fa-edit"></i> 编辑</button> ' +
+                '<button class="btn btn-xs btn-info btn-action" data-transporter-id="' + t.TransporterID + '" onclick="editTransporterById(this)"><i class="fas fa-edit"></i> 编辑</button> ' +
                 '<button class="btn btn-xs btn-danger btn-action" onclick="deleteTransporter(' + t.TransporterID + ')"><i class="fas fa-trash"></i> 删除</button>' +
             '</td>' +
         '</tr>';
+        // Store full transporter object for later retrieval
+        transporterCache[t.TransporterID] = t;
         tbody.append(row);
     });
     renderPagination(data);
@@ -336,6 +348,14 @@ function showAddModal() {
     $('#transporterId').val('');
     $('#passwordGroup').show();
     $('#transporterModal').modal('show');
+}
+
+function editTransporterById(btn) {
+    var id = $(btn).data('transporter-id');
+    var transporter = transporterCache[id];
+    if (transporter) {
+        editTransporter(transporter);
+    }
 }
 
 function editTransporter(transporter) {
@@ -375,6 +395,7 @@ function saveTransporter() {
         IsActive: $('#isActive').is(':checked')
     };
     if (!id) data.password = $('#password').val();
+    data.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
     
     $.ajax({
         url: id ? '@Url.Action("UpdateTransporter", "Staff")' : '@Url.Action("AddTransporter", "Staff")',
@@ -396,7 +417,10 @@ function deleteTransporter(id) {
     $.ajax({
         url: '@Url.Action("DeleteTransporter", "Staff")',
         type: 'POST',
-        data: { transporterId: id },
+        data: { 
+            transporterId: id,
+            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        },
         success: function (response) {
             alert(response.message);
             if (response.success) {

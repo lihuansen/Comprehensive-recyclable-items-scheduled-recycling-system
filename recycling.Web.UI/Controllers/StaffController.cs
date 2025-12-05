@@ -2534,6 +2534,7 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 添加运输人员（API）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult AddTransporter(Transporters transporter, string password)
         {
             try
@@ -2561,6 +2562,7 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 更新运输人员信息（API）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult UpdateTransporter(Transporters transporter)
         {
             try
@@ -2583,6 +2585,7 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 删除运输人员（API）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult DeleteTransporter(int transporterId)
         {
             try
@@ -2720,6 +2723,7 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 添加分拣中心人员（API）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult AddSortingCenterWorker(SortingCenterWorkers worker, string password)
         {
             try
@@ -2747,6 +2751,7 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 更新分拣中心人员信息（API）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult UpdateSortingCenterWorker(SortingCenterWorkers worker)
         {
             try
@@ -2769,6 +2774,7 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 删除分拣中心人员（API）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult DeleteSortingCenterWorker(int workerId)
         {
             try
