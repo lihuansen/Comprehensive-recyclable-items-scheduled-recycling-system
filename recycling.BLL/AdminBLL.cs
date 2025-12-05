@@ -187,14 +187,6 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// Get comprehensive recycler dashboard statistics for admin
-        /// </summary>
-        public Dictionary<string, object> GetRecyclerDashboardStatistics()
-        {
-            return _adminDAL.GetRecyclerDashboardStatistics();
-        }
-
-        /// <summary>
         /// Get all recyclers for export (without pagination)
         /// </summary>
         public List<Recyclers> GetAllRecyclersForExport(string searchTerm = null, bool? isActive = null)
@@ -347,18 +339,6 @@ namespace recycling.BLL
         public List<Admins> GetAllAdminsForExport(string searchTerm = null, bool? isActive = null)
         {
             return _adminDAL.GetAllAdminsForExport(searchTerm, isActive);
-        }
-
-        #endregion
-
-        #region Dashboard Statistics
-
-        /// <summary>
-        /// Get comprehensive dashboard statistics for super admin
-        /// </summary>
-        public Dictionary<string, object> GetDashboardStatistics()
-        {
-            return _adminDAL.GetDashboardStatistics();
         }
 
         #endregion

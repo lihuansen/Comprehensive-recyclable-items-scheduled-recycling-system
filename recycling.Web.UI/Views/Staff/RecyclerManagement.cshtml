@@ -8,7 +8,6 @@
     .stats-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; transition: transform 0.3s; }
     .stats-card:hover { transform: translateY(-5px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
     .stats-number { font-size: 32px; font-weight: bold; color: #4facfe; }
-    .stats-number-small { font-size: 24px; font-weight: bold; color: #4facfe; }
     .stats-label { color: #666; font-size: 14px; margin-top: 5px; }
     .search-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .recycler-table { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -22,162 +21,39 @@
     .badge-unavailable { background-color: #ffc107; }
     .btn-action { margin: 0 2px; }
     .modal-header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
-    /* Dashboard styles */
-    .dashboard-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .dashboard-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; border-bottom: 2px solid #4facfe; padding-bottom: 8px; }
-    .chart-container { height: 250px; }
-    .ranking-list { max-height: 300px; overflow-y: auto; }
-    .ranking-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-    .ranking-item:last-child { border-bottom: none; }
-    .ranking-number { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; }
-    .ranking-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
-    .ranking-2 { background: linear-gradient(135deg, #C0C0C0, #A8A8A8); color: white; }
-    .ranking-3 { background: linear-gradient(135deg, #CD7F32, #B87333); color: white; }
-    .ranking-other { background: #f0f0f0; color: #666; }
-    .ranking-info { flex: 1; }
-    .ranking-name { font-weight: 600; color: #333; }
-    .ranking-detail { font-size: 12px; color: #888; }
-    .ranking-weight { font-weight: bold; color: #4facfe; text-align: right; }
-    .region-bar { background: #f5f5f5; border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
-    .region-bar-fill { height: 24px; background: linear-gradient(90deg, #4facfe, #00f2fe); display: flex; align-items: center; padding-left: 10px; color: white; font-size: 12px; min-width: 60px; }
-    .region-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 2px; }
-    .daily-category-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-    .daily-category-item:last-child { border-bottom: none; }
-    .category-name { color: #333; }
-    .category-weight { font-weight: bold; color: #4facfe; }
-    .stats-card-mini { padding: 15px; text-align: center; }
-    .stats-card-mini .stats-number-small { font-size: 20px; }
-    .toggle-dashboard-btn { margin-left: 15px; }
 </style>
 
 <div class="container-fluid">
     <div class="admin-header">
-        <h2>
-            <i class="fas fa-truck"></i> 回收员管理
-            <button class="btn btn-sm btn-default toggle-dashboard-btn" onclick="toggleDashboard()">
-                <i class="fas fa-chart-bar"></i> <span id="toggleBtnText">隐藏数据看板</span>
-            </button>
-        </h2>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理回收员账号、查看绩效统计、数据分析看板</p>
+        <h2><i class="fas fa-truck"></i> 回收员管理</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理回收员账号、查看绩效统计</p>
     </div>
 
-    <!-- 数据看板区域 -->
-    <div id="dashboardSection">
-        <!-- 第一行：基本统计卡片 -->
-        <div class="row" id="statsCards">
-            <div class="col-md-2">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="totalRecyclers">--</div>
-                    <div class="stats-label"><i class="fas fa-users"></i> 总回收员数</div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="activeRecyclers">--</div>
-                    <div class="stats-label"><i class="fas fa-user-check"></i> 激活回收员</div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="availableRecyclers">--</div>
-                    <div class="stats-label"><i class="fas fa-user-clock"></i> 可接单</div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="todayTotalWeight">--</div>
-                    <div class="stats-label"><i class="fas fa-weight"></i> 今日回收(kg)</div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="todayCompletedOrders">--</div>
-                    <div class="stats-label"><i class="fas fa-check-circle"></i> 今日完成</div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="avgRating">--</div>
-                    <div class="stats-label"><i class="fas fa-star"></i> 平均评分</div>
-                </div>
+    <div class="row" id="statsCards">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number" id="totalRecyclers">--</div>
+                <div class="stats-label"><i class="fas fa-users"></i> 总回收员数</div>
             </div>
         </div>
-
-        <!-- 第二行：更多统计指标 -->
-        <div class="row">
-            <div class="col-md-3">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="monthTotalWeight">--</div>
-                    <div class="stats-label"><i class="fas fa-calendar-alt"></i> 本月回收(kg)</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="allTimeTotalWeight">--</div>
-                    <div class="stats-label"><i class="fas fa-archive"></i> 累计回收(kg)</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="pendingOrders">--</div>
-                    <div class="stats-label"><i class="fas fa-clock"></i> 待接单</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stats-card stats-card-mini">
-                    <div class="stats-number-small" id="inProgressOrders">--</div>
-                    <div class="stats-label"><i class="fas fa-spinner"></i> 进行中</div>
-                </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number" id="activeRecyclers">--</div>
+                <div class="stats-label"><i class="fas fa-user-check"></i> 激活回收员</div>
             </div>
         </div>
-
-        <!-- 第三行：今日分类回收、区域分布 -->
-        <div class="row">
-            <div class="col-md-4">
-                <div class="dashboard-section">
-                    <div class="dashboard-title"><i class="fas fa-box"></i> 今日各分类回收重量</div>
-                    <div id="dailyCategoryList">
-                        <div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="dashboard-section">
-                    <div class="dashboard-title"><i class="fas fa-map-marker-alt"></i> 各街道区域回收总量</div>
-                    <div id="regionWeightList" style="max-height: 300px; overflow-y: auto;">
-                        <div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="dashboard-section">
-                    <div class="dashboard-title"><i class="fas fa-chart-pie"></i> 分类回收占比(累计)</div>
-                    <div class="chart-container">
-                        <canvas id="categoryPieChart"></canvas>
-                    </div>
-                </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number" id="availableRecyclers">--</div>
+                <div class="stats-label"><i class="fas fa-user-clock"></i> 可接单</div>
             </div>
         </div>
-
-        <!-- 第四行：回收员排名 -->
-        <div class="row">
-            <div class="col-md-12">
-                <div class="dashboard-section">
-                    <div class="dashboard-title"><i class="fas fa-trophy"></i> 回收员累计回收总量排名（从入职至今）</div>
-                    <div class="ranking-list" id="recyclerRankingList">
-                        <div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
-                    </div>
-                </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <button class="btn btn-success btn-block" onclick="showAddModal()">
+                    <i class="fas fa-plus"></i> 添加回收员
+                </button>
             </div>
-        </div>
-    </div>
-
-    <!-- 操作按钮行 -->
-    <div class="row" style="margin-bottom: 20px;">
-        <div class="col-md-12">
-            <button class="btn btn-success" onclick="showAddModal()">
-                <i class="fas fa-plus"></i> 添加回收员
-            </button>
         </div>
     </div>
 
@@ -268,19 +144,7 @@
                     </div>
                     <div class="form-group">
                         <label>区域 *</label>
-                        <select class="form-control" id="region" required>
-                            <option value="">请选择区域</option>
-                            <option value="广东省深圳市罗湖区清水河街道">广东省深圳市罗湖区清水河街道</option>
-                            <option value="广东省深圳市罗湖区东门街道">广东省深圳市罗湖区东门街道</option>
-                            <option value="广东省深圳市罗湖区南湖街道">广东省深圳市罗湖区南湖街道</option>
-                            <option value="广东省深圳市罗湖区桂园街道">广东省深圳市罗湖区桂园街道</option>
-                            <option value="广东省深圳市罗湖区黄贝街道">广东省深圳市罗湖区黄贝街道</option>
-                            <option value="广东省深圳市罗湖区东湖街道">广东省深圳市罗湖区东湖街道</option>
-                            <option value="广东省深圳市罗湖区翠竹街道">广东省深圳市罗湖区翠竹街道</option>
-                            <option value="广东省深圳市罗湖区莲塘街道">广东省深圳市罗湖区莲塘街道</option>
-                            <option value="广东省深圳市罗湖区东晓街道">广东省深圳市罗湖区东晓街道</option>
-                            <option value="广东省深圳市罗湖区笋岗街道">广东省深圳市罗湖区笋岗街道</option>
-                        </select>
+                        <input type="text" class="form-control" id="region" required>
                     </div>
                     <div class="form-group">
                         <label><input type="checkbox" id="available" checked> 可接单</label>
@@ -299,213 +163,25 @@
 </div>
 
 @section Scripts {
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-N8+bLYT8eLKTJXLJp/s0aM+pOHFjz0iqXR6xQSyJo+qNeDuAhTwD7WBmETcNpZ/p" crossorigin="anonymous"></script>
 <script>
 var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
-var categoryPieChart = null;
-var dashboardVisible = true;
-// Configurable region prefix for display
-var REGION_PREFIX = '广东省深圳市罗湖区';
 
 $(document).ready(function () {
-    loadDashboardStatistics();
+    loadStatistics();
     loadRecyclers();
 });
 
-// Toggle dashboard visibility
-function toggleDashboard() {
-    dashboardVisible = !dashboardVisible;
-    if (dashboardVisible) {
-        $('#dashboardSection').slideDown();
-        $('#toggleBtnText').text('隐藏数据看板');
-    } else {
-        $('#dashboardSection').slideUp();
-        $('#toggleBtnText').text('显示数据看板');
-    }
-}
-
-// Load comprehensive dashboard statistics
-function loadDashboardStatistics() {
+function loadStatistics() {
     $.ajax({
-        url: '@Url.Action("GetRecyclerDashboardStatistics", "Staff")',
+        url: '@Url.Action("GetRecyclerStatistics", "Staff")',
         type: 'GET',
         success: function (response) {
             if (response.success) {
-                var data = response.data;
-                
-                // Basic stats
-                $('#totalRecyclers').text(data.TotalRecyclers);
-                $('#activeRecyclers').text(data.ActiveRecyclers);
-                $('#availableRecyclers').text(data.AvailableRecyclers);
-                $('#todayTotalWeight').text(parseFloat(data.TodayTotalWeight).toFixed(1));
-                $('#todayCompletedOrders').text(data.TodayCompletedOrders);
-                $('#avgRating').text(parseFloat(data.AverageRecyclerRating).toFixed(2));
-                
-                // Extended stats
-                $('#monthTotalWeight').text(parseFloat(data.MonthTotalWeight).toFixed(1));
-                $('#allTimeTotalWeight').text(parseFloat(data.AllTimeTotalWeight).toFixed(1));
-                $('#pendingOrders').text(data.PendingOrders);
-                $('#inProgressOrders').text(data.InProgressOrders);
-                
-                // Daily category list
-                renderDailyCategoryList(data.DailyCategoryWeight);
-                
-                // Region weight distribution
-                renderRegionWeightList(data.RegionWeight);
-                
-                // Category pie chart
-                renderCategoryPieChart(data.CategoryDistribution);
-                
-                // Recycler ranking
-                renderRecyclerRanking(data.RecyclerRanking);
+                $('#totalRecyclers').text(response.data.TotalRecyclers);
+                $('#activeRecyclers').text(response.data.ActiveRecyclers);
+                $('#availableRecyclers').text(response.data.AvailableRecyclers);
             }
         }
-    });
-}
-
-// Render daily category weight list
-function renderDailyCategoryList(categories) {
-    var container = $('#dailyCategoryList');
-    container.empty();
-    
-    if (!categories || categories.length === 0) {
-        container.html('<div class="text-center text-muted">今日暂无回收数据</div>');
-        return;
-    }
-    
-    categories.forEach(function(item) {
-        container.append(`
-            <div class="daily-category-item">
-                <span class="category-name">${item.CategoryName}</span>
-                <span class="category-weight">${parseFloat(item.TotalWeight).toFixed(2)} kg</span>
-            </div>
-        `);
-    });
-}
-
-// Render region weight distribution list
-function renderRegionWeightList(regions) {
-    var container = $('#regionWeightList');
-    container.empty();
-    
-    if (!regions || regions.length === 0) {
-        container.html('<div class="text-center text-muted">暂无区域数据</div>');
-        return;
-    }
-    
-    // Find max weight for percentage calculation
-    var maxWeight = Math.max.apply(null, regions.map(function(r) { return parseFloat(r.TotalWeight); }));
-    if (maxWeight === 0) maxWeight = 1;
-    
-    regions.forEach(function(item) {
-        var weight = parseFloat(item.TotalWeight);
-        var percentage = (weight / maxWeight * 100).toFixed(0);
-        // Extract street name from full region name using configurable prefix
-        var streetName = item.Region.replace(REGION_PREFIX, '');
-        
-        container.append(`
-            <div style="margin-bottom: 10px;">
-                <div class="region-bar-label">
-                    <span>${streetName}</span>
-                    <span>${weight.toFixed(2)} kg</span>
-                </div>
-                <div class="region-bar">
-                    <div class="region-bar-fill" style="width: ${Math.max(percentage, 5)}%;">
-                        ${percentage}%
-                    </div>
-                </div>
-            </div>
-        `);
-    });
-}
-
-// Render category pie chart
-function renderCategoryPieChart(categories) {
-    if (!categories || categories.length === 0) {
-        return;
-    }
-    
-    var ctx = document.getElementById('categoryPieChart').getContext('2d');
-    
-    // Destroy existing chart if exists
-    if (categoryPieChart) {
-        categoryPieChart.destroy();
-    }
-    
-    var labels = categories.map(function(c) { return c.CategoryName; });
-    var data = categories.map(function(c) { return parseFloat(c.TotalWeight); });
-    var colors = ['#4facfe', '#00f2fe', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#6c757d'];
-    
-    categoryPieChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: colors.slice(0, labels.length),
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                            var value = context.raw;
-                            var percentage = ((value / total) * 100).toFixed(1);
-                            return context.label + ': ' + value.toFixed(2) + ' kg (' + percentage + '%)';
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Render recycler ranking list
-function renderRecyclerRanking(rankings) {
-    var container = $('#recyclerRankingList');
-    container.empty();
-    
-    if (!rankings || rankings.length === 0) {
-        container.html('<div class="text-center text-muted">暂无排名数据</div>');
-        return;
-    }
-    
-    rankings.forEach(function(item) {
-        var rankClass = 'ranking-other';
-        if (item.Rank === 1) rankClass = 'ranking-1';
-        else if (item.Rank === 2) rankClass = 'ranking-2';
-        else if (item.Rank === 3) rankClass = 'ranking-3';
-        
-        // Extract street name from region using configurable prefix
-        var streetName = item.Region ? item.Region.replace(REGION_PREFIX, '') : '-';
-        
-        container.append(`
-            <div class="ranking-item">
-                <div class="ranking-number ${rankClass}">${item.Rank}</div>
-                <div class="ranking-info">
-                    <div class="ranking-name">${item.Name}</div>
-                    <div class="ranking-detail">
-                        <i class="fas fa-map-marker-alt"></i> ${streetName} | 
-                        <i class="fas fa-star"></i> ${parseFloat(item.Rating).toFixed(1)} | 
-                        <i class="fas fa-clipboard-check"></i> ${item.CompletedOrders}单
-                    </div>
-                </div>
-                <div class="ranking-weight">${parseFloat(item.TotalWeight).toFixed(2)} kg</div>
-            </div>
-        `);
     });
 }
 
@@ -618,7 +294,7 @@ function saveRecycler() {
             if (response.success) {
                 $('#recyclerModal').modal('hide');
                 loadRecyclers();
-                loadDashboardStatistics();
+                loadStatistics();
             }
         }
     });
@@ -634,7 +310,7 @@ function deleteRecycler(id) {
             alert(response.message);
             if (response.success) {
                 loadRecyclers();
-                loadDashboardStatistics();
+                loadStatistics();
             }
         }
     });

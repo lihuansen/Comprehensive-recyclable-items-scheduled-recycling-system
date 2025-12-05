@@ -3,10 +3,6 @@
 @{
     ViewBag.Title = "预约上门回收 - 第一步";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    
-    // Declare variables at the top so they are accessible throughout the view including @section Scripts
-    var userAddresses = ViewBag.UserAddresses as List<recycling.Model.UserAddresses> ?? new List<recycling.Model.UserAddresses>();
-    var streets = ViewBag.Streets as Dictionary<string, string> ?? new Dictionary<string, string>();
 }
 
 <!-- 引入Font Awesome -->
@@ -317,79 +313,6 @@
         margin-right: 8px;
     }
 
-    /* 地址选择样式 */
-    .address-selection-wrapper {
-        margin-bottom: 15px;
-    }
-
-    .selected-address-info {
-        margin-top: 15px;
-    }
-
-    .address-detail-card {
-        background: #e8f5e8;
-        border: 2px solid #27ae60;
-        border-radius: 10px;
-        padding: 20px;
-    }
-
-    .address-detail-row {
-        display: flex;
-        margin-bottom: 10px;
-    }
-
-    .address-detail-row:last-child {
-        margin-bottom: 0;
-    }
-
-    .address-detail-row .label {
-        font-weight: 600;
-        color: #2c3e50;
-        min-width: 100px;
-    }
-
-    .address-detail-row .label i {
-        margin-right: 8px;
-        color: #27ae60;
-    }
-
-    .address-detail-row .value {
-        color: #34495e;
-        flex: 1;
-    }
-
-    .new-address-card {
-        background: #f8f9fa;
-        border: 2px solid #3498db;
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 15px;
-    }
-
-    .new-address-title {
-        color: #3498db;
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #e9ecef;
-    }
-
-    .new-address-title i {
-        margin-right: 8px;
-    }
-
-    #saveNewAddressBtn {
-        height: 50px;
-        font-size: 16px;
-        font-weight: bold;
-    }
-
-    #saveNewAddressBtn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
-    }
-
     @@media (max-width: 768px) {
         .form-row {
             flex-direction: column;
@@ -410,15 +333,6 @@
 
         .form-buttons {
             flex-direction: column;
-        }
-
-        .address-detail-row {
-            flex-direction: column;
-        }
-
-        .address-detail-row .label {
-            min-width: auto;
-            margin-bottom: 5px;
         }
     }
 </style>
@@ -525,119 +439,24 @@
                     <i class="fas fa-user"></i>联系信息
                 </div>
 
-                <!-- 地址选择区域 -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required-field">联系人姓名</label>
+                        @Html.TextBoxFor(m => m.ContactName, new { @class = "form-control", placeholder = "请输入联系人姓名" })
+                        @Html.ValidationMessageFor(m => m.ContactName, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required-field">联系电话</label>
+                        @Html.TextBoxFor(m => m.ContactPhone, new { @class = "form-control", placeholder = "请输入手机号码" })
+                        @Html.ValidationMessageFor(m => m.ContactPhone, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label required-field">选择收货地址</label>
-                    <div class="address-selection-wrapper">
-                        @{
-                            var addressOptions = new List<SelectListItem>
-                            {
-                                new SelectListItem { Value = "0", Text = "-- 新增地址 --" }
-                            };
-                            foreach (var addr in userAddresses)
-                            {
-                                // 将街道键转换为显示名称以构建完整地址
-                                string streetDisplayName = addr.Street;
-                                if (!string.IsNullOrEmpty(addr.Street) && streets.ContainsKey(addr.Street))
-                                {
-                                    streetDisplayName = streets[addr.Street];
-                                }
-                                string formattedAddress = $"{addr.Province}{addr.City}{addr.District}{streetDisplayName}{addr.DetailAddress}";
-                                
-                                addressOptions.Add(new SelectListItem
-                                {
-                                    Value = addr.AddressID.ToString(),
-                                    Text = $"{addr.ContactName} {addr.ContactPhone} - {formattedAddress}" + (addr.IsDefault ? " [默认]" : ""),
-                                    Selected = Model.SelectedAddressID.HasValue && Model.SelectedAddressID.Value == addr.AddressID
-                                });
-                            }
-                        }
-                        @Html.DropDownListFor(m => m.SelectedAddressID, addressOptions, new { @class = "form-control", id = "addressSelect" })
-                        @Html.ValidationMessageFor(m => m.SelectedAddressID, "", new { @class = "text-danger" })
-                    </div>
-                </div>
-
-                <!-- 选中地址的详情显示 -->
-                <div id="selectedAddressInfo" class="selected-address-info" style="display: none;">
-                    <div class="address-detail-card">
-                        <div class="address-detail-row">
-                            <span class="label"><i class="fas fa-user"></i> 联系人：</span>
-                            <span id="displayContactName" class="value"></span>
-                        </div>
-                        <div class="address-detail-row">
-                            <span class="label"><i class="fas fa-phone"></i> 电话：</span>
-                            <span id="displayContactPhone" class="value"></span>
-                        </div>
-                        <div class="address-detail-row">
-                            <span class="label"><i class="fas fa-map-marker-alt"></i> 地址：</span>
-                            <span id="displayFullAddress" class="value"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 新增地址表单（默认隐藏） -->
-                <div id="newAddressForm" style="display: none;">
-                    <div class="new-address-card">
-                        <h5 class="new-address-title"><i class="fas fa-plus-circle"></i> 新增地址</h5>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label required-field">联系人姓名</label>
-                                @Html.TextBoxFor(m => m.ContactName, new { @class = "form-control", placeholder = "请输入联系人姓名", id = "newContactName" })
-                                @Html.ValidationMessageFor(m => m.ContactName, "", new { @class = "text-danger" })
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label required-field">联系电话</label>
-                                @Html.TextBoxFor(m => m.ContactPhone, new { @class = "form-control", placeholder = "请输入手机号码", id = "newContactPhone" })
-                                @Html.ValidationMessageFor(m => m.ContactPhone, "", new { @class = "text-danger" })
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">省份</label>
-                                <input type="text" class="form-control" value="广东省" readonly style="background-color: #f8f9fa; cursor: not-allowed;" />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">城市</label>
-                                <input type="text" class="form-control" value="深圳市" readonly style="background-color: #f8f9fa; cursor: not-allowed;" />
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">区域</label>
-                                <input type="text" class="form-control" value="罗湖区" readonly style="background-color: #f8f9fa; cursor: not-allowed;" />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label required-field">街道</label>
-                                @Html.DropDownListFor(m => m.Street, new SelectList(ViewBag.Streets ?? new Dictionary<string, string>(), "Key", "Value"), "请选择街道", new { @class = "form-control", id = "newStreet" })
-                                @Html.ValidationMessageFor(m => m.Street, "", new { @class = "text-danger" })
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label required-field">详细地址</label>
-                            @Html.TextBoxFor(m => m.Address, new { @class = "form-control", placeholder = "请输入详细地址，包括门牌号等信息", id = "newDetailAddress" })
-                            @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger" })
-                        </div>
-
-                        <div class="form-group">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="saveAsDefault" />
-                                <label for="saveAsDefault" class="form-label" style="margin-bottom:0;">设为默认地址</label>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <button type="button" id="saveNewAddressBtn" class="btn btn-success" style="width: 100%;">
-                                <i class="fas fa-save"></i> 保存并使用此地址
-                            </button>
-                        </div>
-                    </div>
+                    <label class="form-label required-field">详细地址</label>
+                    @Html.TextAreaFor(m => m.Address, new { @class = "form-control", placeholder = "请输入详细地址，包括街道、门牌号等信息", rows = "3" })
+                    @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger" })
                 </div>
             </div>
 
@@ -834,192 +653,6 @@
                     // 验证通过后才禁用按钮
                     nextBtn.disabled = true;
                     nextBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
-                });
-            }
-
-            // 地址选择功能
-            const addressSelect = document.getElementById('addressSelect');
-            const selectedAddressInfo = document.getElementById('selectedAddressInfo');
-            const newAddressForm = document.getElementById('newAddressForm');
-
-            // 存储地址数据
-            var addressCache = {};
-            @foreach (var addr in userAddresses)
-            {
-                // 将街道键转换为显示名称以构建完整地址
-                string streetDisplayNameJs = addr.Street;
-                if (!string.IsNullOrEmpty(addr.Street) && streets.ContainsKey(addr.Street))
-                {
-                    streetDisplayNameJs = streets[addr.Street];
-                }
-                string formattedAddressJs = $"{addr.Province}{addr.City}{addr.District}{streetDisplayNameJs}{addr.DetailAddress}";
-                
-                <text>
-                addressCache[@addr.AddressID] = {
-                    contactName: '@HttpUtility.JavaScriptStringEncode(addr.ContactName)',
-                    contactPhone: '@HttpUtility.JavaScriptStringEncode(addr.ContactPhone)',
-                    fullAddress: '@HttpUtility.JavaScriptStringEncode(formattedAddressJs)'
-                };
-                </text>
-            }
-
-            // 地址选择变化事件
-            if (addressSelect) {
-                addressSelect.addEventListener('change', function() {
-                    const selectedValue = parseInt(this.value);
-                    handleAddressSelection(selectedValue);
-                });
-
-                // 初始化时触发一次
-                handleAddressSelection(parseInt(addressSelect.value));
-            }
-
-            function handleAddressSelection(selectedValue) {
-                if (selectedValue === 0 || isNaN(selectedValue)) {
-                    // 选择新增地址
-                    selectedAddressInfo.style.display = 'none';
-                    newAddressForm.style.display = 'block';
-                } else {
-                    // 选择已有地址
-                    newAddressForm.style.display = 'none';
-                    
-                    // 从缓存获取地址信息
-                    if (addressCache[selectedValue]) {
-                        const address = addressCache[selectedValue];
-                        document.getElementById('displayContactName').textContent = address.contactName;
-                        document.getElementById('displayContactPhone').textContent = address.contactPhone;
-                        document.getElementById('displayFullAddress').textContent = address.fullAddress;
-                        selectedAddressInfo.style.display = 'block';
-                    } else {
-                        // 如果缓存没有，通过API获取
-                        fetchAddressById(selectedValue);
-                    }
-                }
-            }
-
-            function fetchAddressById(addressId) {
-                $.ajax({
-                    url: '@Url.Action("GetAddressById", "User")',
-                    type: 'GET',
-                    data: { addressId: addressId },
-                    success: function(response) {
-                        if (response.success) {
-                            const address = response.data;
-                            document.getElementById('displayContactName').textContent = address.contactName;
-                            document.getElementById('displayContactPhone').textContent = address.contactPhone;
-                            document.getElementById('displayFullAddress').textContent = address.fullAddress;
-                            selectedAddressInfo.style.display = 'block';
-                            
-                            // 更新缓存
-                            addressCache[addressId] = {
-                                contactName: address.contactName,
-                                contactPhone: address.contactPhone,
-                                fullAddress: address.fullAddress
-                            };
-                        } else {
-                            alert('获取地址信息失败：' + response.message);
-                        }
-                    },
-                    error: function() {
-                        alert('获取地址信息失败，请重试');
-                    }
-                });
-            }
-
-            // 保存新地址按钮事件
-            const saveNewAddressBtn = document.getElementById('saveNewAddressBtn');
-            if (saveNewAddressBtn) {
-                saveNewAddressBtn.addEventListener('click', function() {
-                    const street = document.getElementById('newStreet').value;
-                    const detailAddress = document.getElementById('newDetailAddress').value;
-                    const contactName = document.getElementById('newContactName').value;
-                    const contactPhone = document.getElementById('newContactPhone').value;
-                    const isDefault = document.getElementById('saveAsDefault').checked;
-
-                    // 验证必填字段
-                    if (!street) {
-                        alert('请选择街道');
-                        return;
-                    }
-                    if (!detailAddress) {
-                        alert('请输入详细地址');
-                        return;
-                    }
-                    if (!contactName) {
-                        alert('请输入联系人姓名');
-                        return;
-                    }
-                    if (!contactPhone) {
-                        alert('请输入联系电话');
-                        return;
-                    }
-                    // 验证手机号格式
-                    if (!/^1[3-9]\d{9}$/.test(contactPhone)) {
-                        alert('请输入有效的11位手机号码');
-                        return;
-                    }
-
-                    // 禁用按钮
-                    saveNewAddressBtn.disabled = true;
-                    saveNewAddressBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
-
-                    // 获取CSRF令牌
-                    var token = $('input[name="__RequestVerificationToken"]').val();
-
-                    // 发送请求保存地址
-                    $.ajax({
-                        url: '@Url.Action("AddAddressForAppointment", "User")',
-                        type: 'POST',
-                        data: {
-                            __RequestVerificationToken: token,
-                            street: street,
-                            detailAddress: detailAddress,
-                            contactName: contactName,
-                            contactPhone: contactPhone,
-                            isDefault: isDefault
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                const newAddress = response.data;
-                                
-                                // 添加新选项到下拉框
-                                const option = document.createElement('option');
-                                option.value = newAddress.addressId;
-                                option.text = newAddress.contactName + ' ' + newAddress.contactPhone + ' - ' + newAddress.fullAddress + (newAddress.isDefault ? ' [默认]' : '');
-                                addressSelect.add(option);
-                                
-                                // 更新缓存
-                                addressCache[newAddress.addressId] = {
-                                    contactName: newAddress.contactName,
-                                    contactPhone: newAddress.contactPhone,
-                                    fullAddress: newAddress.fullAddress
-                                };
-                                
-                                // 选中新添加的地址
-                                addressSelect.value = newAddress.addressId;
-                                handleAddressSelection(newAddress.addressId);
-                                
-                                // 清空新增表单
-                                document.getElementById('newStreet').value = '';
-                                document.getElementById('newDetailAddress').value = '';
-                                document.getElementById('newContactName').value = '';
-                                document.getElementById('newContactPhone').value = '';
-                                document.getElementById('saveAsDefault').checked = false;
-                                
-                                alert('地址添加成功！');
-                            } else {
-                                alert('添加地址失败：' + response.message);
-                            }
-                        },
-                        error: function() {
-                            alert('添加地址失败，请重试');
-                        },
-                        complete: function() {
-                            // 恢复按钮
-                            saveNewAddressBtn.disabled = false;
-                            saveNewAddressBtn.innerHTML = '<i class="fas fa-save"></i> 保存并使用此地址';
-                        }
-                    });
                 });
             }
         });

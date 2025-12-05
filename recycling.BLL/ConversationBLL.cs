@@ -46,48 +46,5 @@ namespace recycling.BLL
         {
             return _conversationDAL.GetRecyclerConversations(recyclerId, pageIndex, pageSize);
         }
-
-        /// <summary>
-        /// 获取用户的历史消息（超过1个月的消息）
-        /// </summary>
-        public List<Messages> GetUserHistoricalMessages(int orderId, int userId)
-        {
-            if (orderId <= 0 || userId <= 0) return new List<Messages>();
-            return _conversationDAL.GetUserHistoricalMessages(orderId, userId);
-        }
-
-        /// <summary>
-        /// 确保有一个活跃的对话会话
-        /// 如果双方都已结束之前的对话，则创建新的对话
-        /// </summary>
-        public bool EnsureActiveConversation(int orderId)
-        {
-            if (orderId <= 0) return false;
-            return _conversationDAL.EnsureActiveConversation(orderId);
-        }
-
-        /// <summary>
-        /// 获取对话结束状态信息
-        /// 返回：谁已结束对话的字符串("user", "recycler", "both", 或空字符串)
-        /// </summary>
-        public string GetConversationEndedByStatus(int orderId)
-        {
-            var latestConv = GetLatestConversation(orderId);
-            if (latestConv == null) return "";
-
-            if (latestConv.UserEnded && latestConv.RecyclerEnded)
-            {
-                return "both";
-            }
-            else if (latestConv.UserEnded)
-            {
-                return "user";
-            }
-            else if (latestConv.RecyclerEnded)
-            {
-                return "recycler";
-            }
-            return "";
-        }
     }
 }

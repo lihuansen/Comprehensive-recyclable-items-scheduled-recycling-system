@@ -161,24 +161,12 @@
 
     <!-- 个人资料头部 -->
     <div class="profile-header">
-        <div class="profile-avatar" id="profileAvatar" style="background: none; cursor: pointer;" onclick="showAvatarModal()">
-            @if (!string.IsNullOrEmpty(Model.url))
-            {
-                <img src="@Model.url" alt="用户头像" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
-            }
-            else
-            {
-                <i class="fas fa-user"></i>
-            }
-        </div>
-        <div style="margin-top: 10px;">
-            <button onclick="showAvatarModal()" class="btn btn-sm" style="background: rgba(255,255,255,0.3); color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;">
-                <i class="fas fa-camera"></i> 修改头像
-            </button>
+        <div class="profile-avatar">
+            <i class="fas fa-user"></i>
         </div>
         <div class="welcome-text">欢迎回来，@Model.Username！</div>
         <div class="member-info">
-            <i class="fas fa-calendar-alt"></i> 注册时间：@Model.RegistrationDate.Value.ToString("yyyy-MM-dd")
+            <i class="fas fa-calendar-alt"></i> 注册时间：@Model.RegistrationDate.ToString("yyyy-MM-dd")
             @if (Model.LastLoginDate.HasValue)
             {
                 <span style="margin-left: 20px;">
@@ -215,32 +203,6 @@
                 <i class="fas fa-key"></i> 修改密码
             </a>
         </div>
-
-        <div class="action-card">
-            <div class="card-icon">
-                <i class="fas fa-map-marker-alt"></i>
-            </div>
-            <div class="card-title">地址管理</div>
-            <div class="card-description">
-                管理您的收货地址，添加、修改或删除地址
-            </div>
-            <a href="@Url.Action("AddressManagement", "Home")" class="btn-action">
-                <i class="fas fa-address-book"></i> 管理地址
-            </a>
-        </div>
-
-        <div class="action-card">
-            <div class="card-icon">
-                <i class="fas fa-comments"></i>
-            </div>
-            <div class="card-title">我的反馈</div>
-            <div class="card-description">
-                查看您提交的反馈以及管理员的回复
-            </div>
-            <a href="@Url.Action("MyFeedback", "Home")" class="btn-action">
-                <i class="fas fa-comment-dots"></i> 查看反馈
-            </a>
-        </div>
     </div>
 
     <!-- 用户信息详情 -->
@@ -266,7 +228,7 @@
         </div>
         <div class="info-item">
             <span class="info-label">注册时间</span>
-            <span class="info-value">@Model.RegistrationDate.Value.ToString("yyyy-MM-dd HH:mm")</span>
+            <span class="info-value">@Model.RegistrationDate.ToString("yyyy-MM-dd HH:mm")</span>
         </div>
         @if (Model.LastLoginDate.HasValue)
         {
@@ -278,43 +240,6 @@
     </div>
 </div>
 
-<!-- Anti-Forgery Token for AJAX -->
-@Html.AntiForgeryToken()
-
-<!-- 头像管理模态框 -->
-<div id="avatarModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0;"><i class="fas fa-image"></i> 头像管理</h3>
-            <button onclick="closeAvatarModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
-        </div>
-
-        <!-- 上传头像区域 -->
-        <div style="margin-bottom: 30px; padding: 20px; border: 2px dashed #667eea; border-radius: 10px; text-align: center;">
-            <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #667eea; margin-bottom: 10px;"></i>
-            <h4>上传自定义头像</h4>
-            <p style="color: #666; font-size: 14px;">支持 JPG、PNG、GIF、BMP 格式，文件大小不超过 5MB</p>
-            <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="uploadAvatar()" />
-            <button onclick="document.getElementById('avatarFileInput').click()" class="btn-action" style="margin-top: 10px;">
-                <i class="fas fa-folder-open"></i> 选择图片
-            </button>
-        </div>
-
-        <!-- 默认头像选择 -->
-        <div>
-            <h4 style="margin-bottom: 15px;"><i class="fas fa-user-circle"></i> 选择默认头像</h4>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
-                @for (int i = 1; i <= 5; i++)
-                {
-                    <div onclick="selectDefaultAvatar('avatar@(i).svg')" style="cursor: pointer; text-align: center; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                        <img src="/Uploads/Avatars/Default/avatar@(i).svg" alt="默认头像@(i)" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid transparent; transition: border-color 0.3s;" onmouseover="this.style.borderColor='#667eea'" onmouseout="this.style.borderColor='transparent'" />
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script>
         // 自动隐藏成功消息
@@ -322,122 +247,6 @@
             setTimeout(function () {
                 $('.success-alert').fadeOut('slow');
             }, 5000);
-        });
-
-        // 显示头像模态框
-        function showAvatarModal() {
-            document.getElementById('avatarModal').style.display = 'flex';
-        }
-
-        // 关闭头像模态框
-        function closeAvatarModal() {
-            document.getElementById('avatarModal').style.display = 'none';
-        }
-
-        // 上传头像
-        function uploadAvatar() {
-            var fileInput = document.getElementById('avatarFileInput');
-            var file = fileInput.files[0];
-
-            if (!file) {
-                return;
-            }
-
-            // 验证文件类型
-            var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('只支持 JPG、PNG、GIF、BMP 格式的图片');
-                fileInput.value = '';
-                return;
-            }
-
-            // 验证文件大小
-            if (file.size > 5 * 1024 * 1024) {
-                alert('图片大小不能超过 5MB');
-                fileInput.value = '';
-                return;
-            }
-
-            // 创建FormData对象
-            var formData = new FormData();
-            formData.append('avatarFile', file);
-            // 添加防伪令牌
-            formData.append('__RequestVerificationToken', $('input[name="__RequestVerificationToken"]').val());
-
-            // 显示上传中提示
-            var originalHtml = document.querySelector('#avatarModal button.btn-action').innerHTML;
-            document.querySelector('#avatarModal button.btn-action').innerHTML = '<i class="fas fa-spinner fa-spin"></i> 上传中...';
-            document.querySelector('#avatarModal button.btn-action').disabled = true;
-
-            // 发送AJAX请求
-            $.ajax({
-                url: '@Url.Action("UploadAvatar", "Home")',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.success) {
-                        // 更新头像显示
-                        updateAvatarDisplay(response.avatarUrl);
-                        closeAvatarModal();
-                        alert('头像上传成功！');
-                    } else {
-                        alert(response.message || '上传失败，请重试');
-                    }
-                },
-                error: function () {
-                    alert('上传失败，请检查网络连接');
-                },
-                complete: function () {
-                    // 恢复按钮状态
-                    document.querySelector('#avatarModal button.btn-action').innerHTML = originalHtml;
-                    document.querySelector('#avatarModal button.btn-action').disabled = false;
-                    fileInput.value = '';
-                }
-            });
-        }
-
-        // 选择默认头像
-        function selectDefaultAvatar(avatarName) {
-            if (!confirm('确定要使用这个默认头像吗？')) {
-                return;
-            }
-
-            $.ajax({
-                url: '@Url.Action("SetDefaultAvatar", "Home")',
-                type: 'POST',
-                data: { 
-                    avatarName: avatarName,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                },
-                success: function (response) {
-                    if (response.success) {
-                        // 更新头像显示
-                        updateAvatarDisplay(response.avatarUrl);
-                        closeAvatarModal();
-                        alert('默认头像设置成功！');
-                    } else {
-                        alert(response.message || '设置失败，请重试');
-                    }
-                },
-                error: function () {
-                    alert('设置失败，请检查网络连接');
-                }
-            });
-        }
-
-        // 更新页面上的头像显示
-        function updateAvatarDisplay(avatarUrl) {
-            var avatarDiv = document.getElementById('profileAvatar');
-            avatarDiv.innerHTML = '<img src="' + avatarUrl + '" alt="用户头像" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />';
-        }
-
-        // 点击模态框外部关闭
-        document.getElementById('avatarModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeAvatarModal();
-            }
         });
     </script>
 }

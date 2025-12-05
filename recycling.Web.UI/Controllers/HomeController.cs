@@ -17,9 +17,8 @@ namespace recycling.Web.UI.Controllers
         private readonly OrderBLL _orderBLL = new OrderBLL();
         private readonly StaffBLL _staffBLL = new StaffBLL();
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
+        private readonly AdminContactBLL _adminContactBLL = new AdminContactBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
-        private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
-        private readonly UserAddressBLL _addressBLL = new UserAddressBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -259,12 +258,6 @@ namespace recycling.Web.UI.Controllers
                 var orderBLL = new OrderBLL();
                 var result = orderBLL.CancelOrder(appointmentId, user.UserID);
 
-                // 发送订单取消通知
-                if (result.Success)
-                {
-                    _notificationBLL.SendOrderCancelledNotification(user.UserID, appointmentId);
-                }
-
                 return Json(new
                 {
                     success = result.Success,
@@ -290,9 +283,6 @@ namespace recycling.Web.UI.Controllers
             // 已登录，传递一些必要信息到视图（可在视图显示用户名等）
             var user = (recycling.Model.Users)Session["LoginUser"];
             ViewBag.UserName = user?.Username ?? "";
-            
-            // 获取未读通知数量
-            ViewBag.UnreadCount = _notificationBLL.GetUnreadCount(user.UserID);
 
             return View();
         }
@@ -300,7 +290,49 @@ namespace recycling.Web.UI.Controllers
         {
             return View();
         }
+        public ActionResult Feedback()
+        {
+            return View();
+        }
 
+        /// <summary>
+        /// 提交用户反馈
+        /// </summary>
+        [HttpPost]
+        public JsonResult SubmitFeedback(string FeedbackType, string Subject, string Description, string ContactEmail)
+        {
+            try
+            {
+                // 检查登录状态
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var user = (Users)Session["LoginUser"];
+
+                // 创建反馈对象
+                var feedback = new UserFeedback
+                {
+                    UserID = user.UserID,
+                    FeedbackType = FeedbackType,
+                    Subject = Subject,
+                    Description = Description,
+                    ContactEmail = ContactEmail,
+                    Status = "待处理",
+                    CreatedDate = DateTime.Now
+                };
+
+                // 调用BLL层添加反馈
+                var (success, message) = _feedbackBLL.AddFeedback(feedback);
+
+                return Json(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "提交失败：" + ex.Message });
+            }
+        }
 
         /// <summary>
         /// 个人中心主页
@@ -595,10 +627,7 @@ namespace recycling.Web.UI.Controllers
                 var convBll = new ConversationBLL();
                 var latestConv = convBll.GetLatestConversation(orderId);
                 bool conversationEnded = latestConv != null && latestConv.EndedTime.HasValue;
-                
-                // 使用公共方法确定谁已经结束了对话
-                string endedBy = convBll.GetConversationEndedByStatus(orderId);
-                
+                string endedBy = latestConv?.Status ?? "";
                 string endedTimeIso = conversationEnded ? latestConv.EndedTime.Value.ToString("o") : string.Empty;
 
                 return Json(new { success = true, messages = result, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
@@ -750,40 +779,6 @@ namespace recycling.Web.UI.Controllers
                     senderId = m.SenderID,
                     content = m.Content ?? string.Empty,
                     // 若 SentTime 是 Nullable<DateTime>（DateTime?），先判断后再取 Value.ToString("o")
-                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
-                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
-                                : string.Empty,
-                    isRead = m.IsRead
-                }).ToList();
-
-                return Json(new { success = true, messages = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // 获取用户的历史消息（超过1个月的消息）
-        [HttpPost]
-        public JsonResult GetUserHistoricalMessages(int orderId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                    return Json(new { success = false, message = "请先登录" });
-
-                var user = (Users)Session["LoginUser"];
-                var conversationBLL = new ConversationBLL();
-                var messages = conversationBLL.GetUserHistoricalMessages(orderId, user.UserID);
-
-                var result = messages.Select(m => new
-                {
-                    messageId = m.MessageID,
-                    orderId = m.OrderID,
-                    senderType = (m.SenderType ?? string.Empty).ToLower(),
-                    senderId = m.SenderID,
-                    content = m.Content ?? string.Empty,
                     sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
                                 ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
                                 : string.Empty,
@@ -994,18 +989,15 @@ namespace recycling.Web.UI.Controllers
 
         // ==================== 管理员联系功能 ====================
 
-        // ==================== 用户反馈功能 ====================
-
         /// <summary>
-        /// 用户反馈页面（GET）
+        /// 联系管理员页面
         /// </summary>
         [HttpGet]
-        public ActionResult Feedback()
+        public ActionResult ContactAdmin()
         {
-            // 检查登录状态 - 必须登录后才能访问反馈页面
+            // 检查登录状态
             if (Session["LoginUser"] == null)
             {
-                TempData["ReturnUrl"] = Url.Action("Feedback", "Home");
                 return RedirectToAction("LoginSelect", "Home");
             }
 
@@ -1013,264 +1005,75 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 提交用户反馈（POST）
+        /// 开始与管理员的会话
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult SubmitFeedback(string FeedbackType, string Subject, 
-                                          string Description, string ContactEmail)
+        public JsonResult StartAdminContact()
         {
             try
             {
-                // 检查登录状态
                 if (Session["LoginUser"] == null)
-                {
-                    TempData["ErrorMessage"] = "请先登录";
-                    return RedirectToAction("LoginSelect", "Home");
-                }
+                    return Json(new { success = false, message = "请先登录" });
 
                 var user = (Users)Session["LoginUser"];
+                var (conversationId, isNewConversation) = _adminContactBLL.GetOrCreateConversation(user.UserID);
 
-                // 创建反馈对象
-                var feedback = new UserFeedback
+                // 如果是新会话，发送系统欢迎消息
+                if (isNewConversation)
                 {
-                    UserID = user.UserID,
-                    FeedbackType = FeedbackType,
-                    Subject = Subject,
-                    Description = Description,
-                    ContactEmail = ContactEmail,
-                    Status = "反馈中",
-                    CreatedDate = DateTime.Now
-                };
-
-                // 调用BLL层添加反馈
-                var (success, message) = _feedbackBLL.AddFeedback(feedback);
-
-                if (success)
-                {
-                    TempData["SuccessMessage"] = "反馈提交成功！感谢您的反馈，我们会尽快处理。";
-                    return RedirectToAction("Index", "Home");
+                    _adminContactBLL.SendMessage(user.UserID, null, "system", "您好，这里是在线客服");
                 }
-                else
-                {
-                    TempData["ErrorMessage"] = message;
-                    return RedirectToAction("Feedback", "Home");
-                }
+
+                return Json(new { success = true, conversationId = conversationId, userId = user.UserID });
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "提交失败：" + ex.Message;
-                return RedirectToAction("Feedback", "Home");
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
         /// <summary>
-        /// 上传用户头像
+        /// 获取用户的管理员联系会话列表
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult UploadAvatar(HttpPostedFileBase avatarFile)
+        public JsonResult GetUserAdminConversations()
         {
             try
             {
-                // 检查登录状态
                 if (Session["LoginUser"] == null)
-                {
                     return Json(new { success = false, message = "请先登录" });
-                }
-
-                // 检查文件是否为空
-                if (avatarFile == null || avatarFile.ContentLength == 0)
-                {
-                    return Json(new { success = false, message = "请选择要上传的图片" });
-                }
-
-                // 检查文件大小（限制为5MB）
-                if (avatarFile.ContentLength > 5 * 1024 * 1024)
-                {
-                    return Json(new { success = false, message = "图片大小不能超过5MB" });
-                }
-
-                // 检查文件类型
-                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
-                string fileExtension = System.IO.Path.GetExtension(avatarFile.FileName).ToLower();
-                if (!allowedExtensions.Contains(fileExtension))
-                {
-                    return Json(new { success = false, message = "只支持 JPG、PNG、GIF、BMP 格式的图片" });
-                }
 
                 var user = (Users)Session["LoginUser"];
+                var conversations = _adminContactBLL.GetUserConversations(user.UserID);
 
-                // 生成唯一文件名
-                string fileName = $"user_{user.UserID}_{DateTime.Now.Ticks}{fileExtension}";
-                string uploadPath = Server.MapPath("~/Uploads/Avatars/");
+                return Json(new { success = true, conversations = conversations });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取管理员联系消息记录
+        /// </summary>
+        [HttpPost]
+        public JsonResult GetAdminContactMessages(int userId, DateTime? beforeTime = null)
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var user = (Users)Session["LoginUser"];
                 
-                // 确保目录存在
-                if (!System.IO.Directory.Exists(uploadPath))
-                {
-                    System.IO.Directory.CreateDirectory(uploadPath);
-                }
+                // 确保只能查看自己的消息
+                if (user.UserID != userId)
+                    return Json(new { success = false, message = "无权查看该对话" });
 
-                string filePath = System.IO.Path.Combine(uploadPath, fileName);
+                var messages = _adminContactBLL.GetConversationMessages(userId, beforeTime);
 
-                // 保存文件
-                avatarFile.SaveAs(filePath);
-
-                // 生成相对URL路径
-                string avatarUrl = $"/Uploads/Avatars/{fileName}";
-
-                // 更新数据库
-                bool success = _userBLL.UpdateUserAvatar(user.UserID, avatarUrl);
-                if (success)
-                {
-                    // 更新Session中的用户信息
-                    user.url = avatarUrl;
-                    Session["LoginUser"] = user;
-
-                    return Json(new { success = true, message = "头像上传成功", avatarUrl = avatarUrl });
-                }
-                else
-                {
-                    // 如果数据库更新失败，删除已上传的文件
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        System.IO.File.Delete(filePath);
-                    }
-                    return Json(new { success = false, message = "头像上传失败，请重试" });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "上传失败：" + ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 设置默认头像
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult SetDefaultAvatar(string avatarName)
-        {
-            try
-            {
-                // 检查登录状态
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                // 验证头像名称
-                string[] validAvatars = { "avatar1.svg", "avatar2.svg", "avatar3.svg", "avatar4.svg", "avatar5.svg" };
-                if (!validAvatars.Contains(avatarName))
-                {
-                    return Json(new { success = false, message = "无效的头像选择" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-                string avatarUrl = $"/Uploads/Avatars/Default/{avatarName}";
-
-                // 更新数据库
-                bool success = _userBLL.UpdateUserAvatar(user.UserID, avatarUrl);
-                if (success)
-                {
-                    // 更新Session中的用户信息
-                    user.url = avatarUrl;
-                    Session["LoginUser"] = user;
-
-                    return Json(new { success = true, message = "默认头像设置成功", avatarUrl = avatarUrl });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "设置失败，请重试" });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "设置失败：" + ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 用户查看自己的反馈记录（我的反馈）
-        /// </summary>
-        [HttpGet]
-        public ActionResult MyFeedback()
-        {
-            // 检查登录状态
-            if (Session["LoginUser"] == null)
-            {
-                TempData["ReturnUrl"] = Url.Action("MyFeedback", "Home");
-                return RedirectToAction("LoginSelect", "Home");
-            }
-
-            var user = (Users)Session["LoginUser"];
-            
-            try
-            {
-                // 获取用户的所有反馈记录
-                var feedbacks = _feedbackBLL.GetUserFeedbacks(user.UserID);
-                return View(feedbacks);
-            }
-            catch (Exception ex)
-            {
-                ViewBag.ErrorMessage = "加载反馈记录失败：" + ex.Message;
-                return View(new List<UserFeedback>());
-            }
-        }
-
-        // ==================== 用户通知功能 ====================
-
-        /// <summary>
-        /// 获取用户通知列表（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult GetUserNotifications(int pageIndex = 1, int pageSize = 20)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                // 验证分页参数，防止DoS攻击
-                if (pageIndex < 1) pageIndex = 1;
-                if (pageSize < 1) pageSize = 20;
-                if (pageSize > 100) pageSize = 100; // 限制最大页面大小
-
-                var user = (Users)Session["LoginUser"];
-                var notifications = _notificationBLL.GetUserNotifications(user.UserID, pageIndex, pageSize);
-                var totalCount = _notificationBLL.GetTotalCount(user.UserID);
-                var unreadCount = _notificationBLL.GetUnreadCount(user.UserID);
-
-                var result = notifications.Select(n => new
-                {
-                    notificationId = n.NotificationID,
-                    notificationType = n.NotificationType,
-                    typeDisplayName = NotificationTypes.GetDisplayName(n.NotificationType),
-                    typeIcon = NotificationTypes.GetIcon(n.NotificationType),
-                    typeColor = NotificationTypes.GetColor(n.NotificationType),
-                    title = n.Title,
-                    content = n.Content,
-                    relatedOrderId = n.RelatedOrderID,
-                    relatedFeedbackId = n.RelatedFeedbackID,
-                    createdDate = n.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
-                    isRead = n.IsRead,
-                    readDate = n.ReadDate?.ToString("yyyy-MM-dd HH:mm")
-                }).ToList();
-
-                return Json(new
-                {
-                    success = true,
-                    notifications = result,
-                    totalCount = totalCount,
-                    unreadCount = unreadCount,
-                    pageIndex = pageIndex,
-                    pageSize = pageSize,
-                    totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                });
+                return Json(new { success = true, messages = messages }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -1279,23 +1082,25 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 获取未读通知数量（AJAX）
+        /// 发送消息给管理员
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult GetUnreadNotificationCount()
+        public JsonResult SendAdminContactMessage(int userId, string content)
         {
             try
             {
                 if (Session["LoginUser"] == null)
-                {
                     return Json(new { success = false, message = "请先登录" });
-                }
 
                 var user = (Users)Session["LoginUser"];
-                var unreadCount = _notificationBLL.GetUnreadCount(user.UserID);
 
-                return Json(new { success = true, unreadCount = unreadCount });
+                // 确保只能发送自己的消息
+                if (user.UserID != userId)
+                    return Json(new { success = false, message = "无权操作" });
+
+                var result = _adminContactBLL.SendMessage(userId, null, "user", content);
+
+                return Json(result);
             }
             catch (Exception ex)
             {
@@ -1304,348 +1109,30 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 获取未读通知数量（用于导航栏，GET请求）
-        /// </summary>
-        [HttpGet]
-        public JsonResult GetUnreadCountForNav()
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, unreadCount = 0 }, JsonRequestBehavior.AllowGet);
-                }
-
-                var user = (Users)Session["LoginUser"];
-                var unreadCount = _notificationBLL.GetUnreadCount(user.UserID);
-
-                return Json(new { success = true, unreadCount = unreadCount }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"获取导航栏未读消息数失败: {ex.Message}");
-                return Json(new { success = false, unreadCount = 0 }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-        /// <summary>
-        /// 标记通知为已读（AJAX）
+        /// 结束与管理员的对话
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult MarkNotificationAsRead(int notificationId)
+        public JsonResult EndAdminContact(int userId)
         {
             try
             {
                 if (Session["LoginUser"] == null)
-                {
                     return Json(new { success = false, message = "请先登录" });
-                }
 
                 var user = (Users)Session["LoginUser"];
-                var result = _notificationBLL.MarkAsRead(notificationId, user.UserID);
 
-                return Json(new { success = result });
+                // 确保只能结束自己的对话
+                if (user.UserID != userId)
+                    return Json(new { success = false, message = "无权操作" });
+
+                var result = _adminContactBLL.EndConversationByUser(userId);
+
+                return Json(result);
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
-        /// <summary>
-        /// 标记所有通知为已读（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult MarkAllNotificationsAsRead()
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-                var result = _notificationBLL.MarkAllAsRead(user.UserID);
-
-                return Json(new { success = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 删除通知（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult DeleteNotification(int notificationId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-                var result = _notificationBLL.DeleteNotification(notificationId, user.UserID);
-
-                return Json(new { success = result, message = result ? "删除成功" : "删除失败" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // ==================== 地址管理功能 ====================
-
-        /// <summary>
-        /// 地址管理页面
-        /// </summary>
-        [HttpGet]
-        public ActionResult AddressManagement()
-        {
-            // 检查登录状态
-            if (Session["LoginUser"] == null)
-            {
-                TempData["ReturnUrl"] = Url.Action("AddressManagement", "Home");
-                return RedirectToAction("LoginSelect", "Home");
-            }
-
-            var user = (Users)Session["LoginUser"];
-            var addresses = _addressBLL.GetUserAddresses(user.UserID);
-            
-            // 传递街道数据到视图
-            ViewBag.Streets = Streets.LuohuStreets;
-            
-            return View(addresses);
-        }
-
-        /// <summary>
-        /// 获取用户地址列表（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult GetAddresses()
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-                var addresses = _addressBLL.GetUserAddresses(user.UserID);
-
-                var result = addresses.Select(a => new
-                {
-                    addressId = a.AddressID,
-                    province = a.Province,
-                    city = a.City,
-                    district = a.District,
-                    street = a.Street,
-                    detailAddress = a.DetailAddress,
-                    contactName = a.ContactName,
-                    contactPhone = a.ContactPhone,
-                    isDefault = a.IsDefault,
-                    createdDate = a.CreatedDate.ToString("yyyy-MM-dd HH:mm")
-                }).ToList();
-
-                return Json(new { success = true, addresses = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 添加新地址（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult AddAddress(string street, string detailAddress, string contactName, string contactPhone, bool isDefault = false)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-
-                // 获取街道名称
-                string streetName = street;
-                if (Streets.LuohuStreets.ContainsKey(street))
-                {
-                    streetName = Streets.LuohuStreets[street];
-                }
-
-                var address = new UserAddresses
-                {
-                    UserID = user.UserID,
-                    Street = streetName,
-                    DetailAddress = detailAddress,
-                    ContactName = contactName,
-                    ContactPhone = contactPhone,
-                    IsDefault = isDefault
-                };
-
-                var (success, message, addressId) = _addressBLL.AddAddress(address);
-
-                return Json(new { success = success, message = message, addressId = addressId });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "添加地址失败：" + ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 更新地址（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult UpdateAddress(int addressId, string street, string detailAddress, string contactName, string contactPhone)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-
-                // 获取街道名称
-                string streetName = street;
-                if (Streets.LuohuStreets.ContainsKey(street))
-                {
-                    streetName = Streets.LuohuStreets[street];
-                }
-
-                var address = new UserAddresses
-                {
-                    AddressID = addressId,
-                    UserID = user.UserID,
-                    Street = streetName,
-                    DetailAddress = detailAddress,
-                    ContactName = contactName,
-                    ContactPhone = contactPhone
-                };
-
-                var (success, message) = _addressBLL.UpdateAddress(address);
-
-                return Json(new { success = success, message = message });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "更新地址失败：" + ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 删除地址（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult DeleteAddress(int addressId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-                var (success, message) = _addressBLL.DeleteAddress(addressId, user.UserID);
-
-                return Json(new { success = success, message = message });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "删除地址失败：" + ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 设置默认地址（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult SetDefaultAddress(int addressId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-                var (success, message) = _addressBLL.SetDefaultAddress(addressId, user.UserID);
-
-                return Json(new { success = success, message = message });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "设置默认地址失败：" + ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 获取单个地址详情（AJAX）
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult GetAddressDetail(int addressId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                {
-                    return Json(new { success = false, message = "请先登录" });
-                }
-
-                var user = (Users)Session["LoginUser"];
-                var address = _addressBLL.GetAddressById(addressId, user.UserID);
-
-                if (address == null)
-                {
-                    return Json(new { success = false, message = "地址不存在" });
-                }
-
-                return Json(new
-                {
-                    success = true,
-                    address = new
-                    {
-                        addressId = address.AddressID,
-                        province = address.Province,
-                        city = address.City,
-                        district = address.District,
-                        street = address.Street,
-                        detailAddress = address.DetailAddress,
-                        contactName = address.ContactName,
-                        contactPhone = address.ContactPhone,
-                        isDefault = address.IsDefault
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
     }
 }

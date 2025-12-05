@@ -413,188 +413,6 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// Get comprehensive recycler dashboard statistics for admin
-        /// </summary>
-        public Dictionary<string, object> GetRecyclerDashboardStatistics()
-        {
-            var stats = new Dictionary<string, object>();
-
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                conn.Open();
-
-                // === Basic Statistics (keep original) ===
-                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers", conn);
-                stats["TotalRecyclers"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE IsActive = 1", conn);
-                stats["ActiveRecyclers"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE Available = 1 AND IsActive = 1", conn);
-                stats["AvailableRecyclers"] = (int)cmd.ExecuteScalar();
-
-                // === Daily Recycling by Category (今日各分类回收总量) ===
-                cmd = new SqlCommand(@"
-                    SELECT CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
-                    FROM Inventory
-                    WHERE CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))
-                    GROUP BY CategoryName
-                    ORDER BY TotalWeight DESC", conn);
-
-                var dailyCategoryWeight = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        dailyCategoryWeight.Add(new Dictionary<string, object>
-                        {
-                            ["CategoryName"] = reader.GetString(0),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(1))
-                        });
-                    }
-                }
-                stats["DailyCategoryWeight"] = dailyCategoryWeight;
-
-                // Total daily weight
-                cmd = new SqlCommand(@"
-                    SELECT ISNULL(SUM(Weight), 0) FROM Inventory 
-                    WHERE CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))", conn);
-                stats["TodayTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // === Regional Recycling Totals (十个街道区域回收总量) ===
-                cmd = new SqlCommand(@"
-                    SELECT r.Region, ISNULL(SUM(i.Weight), 0) AS TotalWeight
-                    FROM Recyclers r
-                    LEFT JOIN Inventory i ON r.RecyclerID = i.RecyclerID
-                    WHERE r.Region IS NOT NULL AND r.Region <> ''
-                    GROUP BY r.Region
-                    ORDER BY TotalWeight DESC", conn);
-
-                var regionWeight = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        regionWeight.Add(new Dictionary<string, object>
-                        {
-                            ["Region"] = reader.GetString(0),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(1))
-                        });
-                    }
-                }
-                stats["RegionWeight"] = regionWeight;
-
-                // === Recycler Total Weight Ranking (回收员累计回收总量排名 - 从入职到现在) ===
-                cmd = new SqlCommand(@"
-                    SELECT r.RecyclerID, ISNULL(r.FullName, r.Username) AS Name, r.Username, 
-                           r.Region, ISNULL(r.Rating, 0) AS Rating,
-                           ISNULL(SUM(i.Weight), 0) AS TotalWeight,
-                           COUNT(DISTINCT i.OrderID) AS CompletedOrders
-                    FROM Recyclers r
-                    LEFT JOIN Inventory i ON r.RecyclerID = i.RecyclerID
-                    WHERE r.IsActive = 1
-                    GROUP BY r.RecyclerID, r.FullName, r.Username, r.Region, r.Rating
-                    ORDER BY TotalWeight DESC", conn);
-
-                var recyclerRanking = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    int rank = 1;
-                    while (reader.Read())
-                    {
-                        recyclerRanking.Add(new Dictionary<string, object>
-                        {
-                            ["Rank"] = rank++,
-                            ["RecyclerID"] = reader.GetInt32(0),
-                            ["Name"] = reader.GetString(1),
-                            ["Username"] = reader.GetString(2),
-                            ["Region"] = reader.IsDBNull(3) ? "" : reader.GetString(3),
-                            ["Rating"] = Convert.ToDecimal(reader.GetValue(4)),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(5)),
-                            ["CompletedOrders"] = reader.GetInt32(6)
-                        });
-                    }
-                }
-                stats["RecyclerRanking"] = recyclerRanking;
-
-                // === Additional Statistics ===
-                // Today's completed orders
-                cmd = new SqlCommand(@"
-                    SELECT COUNT(*) FROM Appointments 
-                    WHERE Status = N'已完成' AND UpdatedDate >= CAST(GETDATE() AS DATE) AND UpdatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))", conn);
-                stats["TodayCompletedOrders"] = (int)cmd.ExecuteScalar();
-
-                // This month's total weight
-                cmd = new SqlCommand(@"
-                    SELECT ISNULL(SUM(Weight), 0) FROM Inventory 
-                    WHERE CreatedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
-                    AND CreatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
-                stats["MonthTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // All-time total weight
-                cmd = new SqlCommand("SELECT ISNULL(SUM(Weight), 0) FROM Inventory", conn);
-                stats["AllTimeTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // Average recycler rating
-                cmd = new SqlCommand("SELECT ISNULL(AVG(Rating), 0) FROM Recyclers WHERE Rating IS NOT NULL AND IsActive = 1", conn);
-                stats["AverageRecyclerRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // Pending orders (waiting for recyclers)
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'待接单'", conn);
-                stats["PendingOrders"] = (int)cmd.ExecuteScalar();
-
-                // In-progress orders
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'进行中'", conn);
-                stats["InProgressOrders"] = (int)cmd.ExecuteScalar();
-
-                // === Last 7 days weight trend ===
-                cmd = new SqlCommand(@"
-                    SELECT CAST(CreatedDate AS DATE) AS RecycleDate, ISNULL(SUM(Weight), 0) AS TotalWeight
-                    FROM Inventory
-                    WHERE CreatedDate >= DATEADD(day, -7, GETDATE())
-                    GROUP BY CAST(CreatedDate AS DATE)
-                    ORDER BY RecycleDate", conn);
-
-                var weeklyTrend = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        weeklyTrend.Add(new Dictionary<string, object>
-                        {
-                            ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(1))
-                        });
-                    }
-                }
-                stats["WeeklyTrend"] = weeklyTrend;
-
-                // === Category distribution (all time) ===
-                cmd = new SqlCommand(@"
-                    SELECT CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
-                    FROM Inventory
-                    GROUP BY CategoryName
-                    ORDER BY TotalWeight DESC", conn);
-
-                var categoryDistribution = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        categoryDistribution.Add(new Dictionary<string, object>
-                        {
-                            ["CategoryName"] = reader.GetString(0),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(1))
-                        });
-                    }
-                }
-                stats["CategoryDistribution"] = categoryDistribution;
-            }
-
-            return stats;
-        }
-
-        /// <summary>
         /// Get all recyclers for export (without pagination)
         /// </summary>
         public List<Recyclers> GetAllRecyclersForExport(string searchTerm = null, bool? isActive = null)
@@ -941,14 +759,13 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = @"INSERT INTO Admins (Username, PasswordHash, FullName, Character, IsActive, CreatedDate) 
-                    VALUES (@Username, @PasswordHash, @FullName, @Character, @IsActive, GETDATE())";
+                string sql = @"INSERT INTO Admins (Username, PasswordHash, FullName, IsActive, CreatedDate) 
+                    VALUES (@Username, @PasswordHash, @FullName, @IsActive, GETDATE())";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", admin.Username);
                 cmd.Parameters.AddWithValue("@PasswordHash", admin.PasswordHash);
                 cmd.Parameters.AddWithValue("@FullName", admin.FullName);
-                cmd.Parameters.AddWithValue("@Character", (object)admin.Character ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@IsActive", admin.IsActive ?? true);
 
                 return cmd.ExecuteNonQuery() > 0;
@@ -966,7 +783,6 @@ namespace recycling.DAL
                 string sql = @"UPDATE Admins SET 
                     Username = @Username,
                     FullName = @FullName,
-                    Character = @Character,
                     IsActive = @IsActive
                     WHERE AdminID = @AdminID";
 
@@ -974,7 +790,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@AdminID", admin.AdminID);
                 cmd.Parameters.AddWithValue("@Username", admin.Username);
                 cmd.Parameters.AddWithValue("@FullName", admin.FullName);
-                cmd.Parameters.AddWithValue("@Character", (object)admin.Character ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@IsActive", admin.IsActive ?? true);
 
                 return cmd.ExecuteNonQuery() > 0;
@@ -1063,7 +878,7 @@ namespace recycling.DAL
                 }
 
                 string query = $@"
-                    SELECT AdminID, Username, FullName, Character, CreatedDate, LastLoginDate, IsActive 
+                    SELECT AdminID, Username, FullName, CreatedDate, LastLoginDate, IsActive 
                     FROM Admins 
                     {whereClause}
                     ORDER BY CreatedDate DESC";
@@ -1088,313 +903,15 @@ namespace recycling.DAL
                             AdminID = reader.GetInt32(0),
                             Username = reader.GetString(1),
                             FullName = reader.GetString(2),
-                            Character = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            CreatedDate = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
-                            LastLoginDate = reader.IsDBNull(5) ? (DateTime?)null : reader.GetDateTime(5),
-                            IsActive = reader.IsDBNull(6) ? (bool?)null : reader.GetBoolean(6)
+                            CreatedDate = reader.IsDBNull(3) ? (DateTime?)null : reader.GetDateTime(3),
+                            LastLoginDate = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                            IsActive = reader.IsDBNull(5) ? (bool?)null : reader.GetBoolean(5)
                         });
                     }
                 }
             }
 
             return admins;
-        }
-
-        #endregion
-
-        #region Dashboard Statistics
-
-        /// <summary>
-        /// Get comprehensive dashboard statistics for super admin
-        /// </summary>
-        public Dictionary<string, object> GetDashboardStatistics()
-        {
-            var stats = new Dictionary<string, object>();
-
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                conn.Open();
-
-                // === User Statistics ===
-                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Users", conn);
-                stats["TotalUsers"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
-                    WHERE YEAR(RegistrationDate) = YEAR(GETDATE()) 
-                    AND MONTH(RegistrationDate) = MONTH(GETDATE())", conn);
-                stats["NewUsersThisMonth"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
-                    WHERE LastLoginDate >= DATEADD(day, -7, GETDATE())", conn);
-                stats["ActiveUsersThisWeek"] = (int)cmd.ExecuteScalar();
-
-                // === Recycler Statistics ===
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers", conn);
-                stats["TotalRecyclers"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE IsActive = 1", conn);
-                stats["ActiveRecyclers"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE Available = 1 AND IsActive = 1", conn);
-                stats["AvailableRecyclers"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT ISNULL(AVG(Rating), 0) FROM Recyclers WHERE Rating IS NOT NULL", conn);
-                stats["AverageRecyclerRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // === Admin Statistics ===
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Admins", conn);
-                stats["TotalAdmins"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Admins WHERE IsActive = 1", conn);
-                stats["ActiveAdmins"] = (int)cmd.ExecuteScalar();
-
-                // === Order Statistics ===
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments", conn);
-                stats["TotalOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已预约'", conn);
-                stats["PendingOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'进行中'", conn);
-                stats["InProgressOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已完成'", conn);
-                stats["CompletedOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已取消'", conn);
-                stats["CancelledOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
-                    WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
-                    AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
-                stats["OrdersThisMonth"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
-                    WHERE CreatedDate >= DATEADD(day, -7, GETDATE())", conn);
-                stats["OrdersThisWeek"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
-                    WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
-                stats["OrdersToday"] = (int)cmd.ExecuteScalar();
-
-                // === Weight and Revenue Statistics ===
-                cmd = new SqlCommand("SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments WHERE Status = N'已完成'", conn);
-                stats["TotalWeightCollected"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                cmd = new SqlCommand("SELECT ISNULL(SUM(EstimatedPrice), 0) FROM Appointments WHERE Status = N'已完成'", conn);
-                stats["TotalRevenue"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments 
-                    WHERE Status = N'已完成' 
-                    AND YEAR(UpdatedDate) = YEAR(GETDATE()) 
-                    AND MONTH(UpdatedDate) = MONTH(GETDATE())", conn);
-                stats["WeightThisMonth"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedPrice), 0) FROM Appointments 
-                    WHERE Status = N'已完成' 
-                    AND YEAR(UpdatedDate) = YEAR(GETDATE()) 
-                    AND MONTH(UpdatedDate) = MONTH(GETDATE())", conn);
-                stats["RevenueThisMonth"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // === Order Trend (Last 7 days) ===
-                cmd = new SqlCommand(@"
-                    SELECT CAST(CreatedDate AS DATE) AS OrderDate, COUNT(*) AS OrderCount
-                    FROM Appointments
-                    WHERE CreatedDate >= DATEADD(day, -7, GETDATE())
-                    GROUP BY CAST(CreatedDate AS DATE)
-                    ORDER BY OrderDate", conn);
-
-                var orderTrend = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        orderTrend.Add(new Dictionary<string, object>
-                        {
-                            ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
-                            ["Count"] = reader.GetInt32(1)
-                        });
-                    }
-                }
-                stats["OrderTrend"] = orderTrend;
-
-                // === User Registration Trend (Last 30 days) ===
-                cmd = new SqlCommand(@"
-                    SELECT CAST(RegistrationDate AS DATE) AS RegDate, COUNT(*) AS UserCount
-                    FROM Users
-                    WHERE RegistrationDate >= DATEADD(day, -30, GETDATE())
-                    GROUP BY CAST(RegistrationDate AS DATE)
-                    ORDER BY RegDate", conn);
-
-                var userTrend = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        userTrend.Add(new Dictionary<string, object>
-                        {
-                            ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
-                            ["Count"] = reader.GetInt32(1)
-                        });
-                    }
-                }
-                stats["UserRegistrationTrend"] = userTrend;
-
-                // === Category Distribution ===
-                cmd = new SqlCommand(@"
-                    SELECT CategoryName, COUNT(*) AS Count
-                    FROM AppointmentCategories
-                    GROUP BY CategoryName
-                    ORDER BY Count DESC", conn);
-
-                var categoryDistribution = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        categoryDistribution.Add(new Dictionary<string, object>
-                        {
-                            ["Category"] = reader.GetString(0),
-                            ["Count"] = reader.GetInt32(1)
-                        });
-                    }
-                }
-                stats["CategoryDistribution"] = categoryDistribution;
-
-                // === Order Status Distribution ===
-                cmd = new SqlCommand(@"
-                    SELECT Status, COUNT(*) AS Count 
-                    FROM Appointments 
-                    GROUP BY Status 
-                    ORDER BY Count DESC", conn);
-
-                var statusDistribution = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        statusDistribution.Add(new Dictionary<string, object>
-                        {
-                            ["Status"] = reader.GetString(0),
-                            ["Count"] = reader.GetInt32(1)
-                        });
-                    }
-                }
-                stats["OrderStatusDistribution"] = statusDistribution;
-
-                // === Region Distribution ===
-                cmd = new SqlCommand(@"
-                    SELECT Region, COUNT(*) AS RecyclerCount
-                    FROM Recyclers
-                    WHERE IsActive = 1
-                    GROUP BY Region
-                    ORDER BY RecyclerCount DESC", conn);
-
-                var regionDistribution = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        regionDistribution.Add(new Dictionary<string, object>
-                        {
-                            ["Region"] = reader.GetString(0),
-                            ["Count"] = reader.GetInt32(1)
-                        });
-                    }
-                }
-                stats["RegionDistribution"] = regionDistribution;
-
-                // === Top Recyclers by Completed Orders ===
-                cmd = new SqlCommand(@"
-                    SELECT TOP 5 r.RecyclerID, ISNULL(r.FullName, r.Username) AS Name, 
-                           r.Rating, COUNT(a.AppointmentID) AS CompletedOrders
-                    FROM Recyclers r
-                    LEFT JOIN Appointments a ON r.RecyclerID = a.RecyclerID AND a.Status = N'已完成'
-                    WHERE r.IsActive = 1
-                    GROUP BY r.RecyclerID, r.FullName, r.Username, r.Rating
-                    ORDER BY CompletedOrders DESC", conn);
-
-                var topRecyclers = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        topRecyclers.Add(new Dictionary<string, object>
-                        {
-                            ["RecyclerID"] = reader.GetInt32(0),
-                            ["Name"] = reader.GetString(1),
-                            ["Rating"] = reader.IsDBNull(2) ? 0m : reader.GetDecimal(2),
-                            ["CompletedOrders"] = reader.GetInt32(3)
-                        });
-                    }
-                }
-                stats["TopRecyclers"] = topRecyclers;
-
-                // === Feedback Statistics ===
-                cmd = new SqlCommand("SELECT COUNT(*) FROM UserFeedback", conn);
-                stats["TotalFeedbacks"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM UserFeedback WHERE Status = N'反馈中'", conn);
-                stats["PendingFeedbacks"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM UserFeedback WHERE Status = N'已回复'", conn);
-                stats["ProcessedFeedbacks"] = (int)cmd.ExecuteScalar();
-
-                // === Review Statistics ===
-                cmd = new SqlCommand("SELECT COUNT(*) FROM OrderReviews", conn);
-                stats["TotalReviews"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT ISNULL(AVG(CAST(StarRating AS DECIMAL(3,2))), 0) FROM OrderReviews", conn);
-                stats["AverageReviewRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // === Monthly Order Trend (Last 6 months) ===
-                cmd = new SqlCommand(@"
-                    SELECT YEAR(CreatedDate) AS OrderYear, MONTH(CreatedDate) AS OrderMonth, COUNT(*) AS OrderCount
-                    FROM Appointments
-                    WHERE CreatedDate >= DATEADD(month, -6, GETDATE())
-                    GROUP BY YEAR(CreatedDate), MONTH(CreatedDate)
-                    ORDER BY OrderYear, OrderMonth", conn);
-
-                var monthlyOrderTrend = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        int year = reader.GetInt32(0);
-                        int month = reader.GetInt32(1);
-                        monthlyOrderTrend.Add(new Dictionary<string, object>
-                        {
-                            ["Month"] = $"{year}-{month:D2}",
-                            ["Count"] = reader.GetInt32(2)
-                        });
-                    }
-                }
-                stats["MonthlyOrderTrend"] = monthlyOrderTrend;
-
-                // === Inventory Statistics ===
-                cmd = new SqlCommand(@"
-                    SELECT CategoryKey, CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
-                    FROM Inventory
-                    GROUP BY CategoryKey, CategoryName
-                    ORDER BY TotalWeight DESC", conn);
-
-                var inventoryStats = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        inventoryStats.Add(new Dictionary<string, object>
-                        {
-                            ["CategoryKey"] = reader.GetString(0),
-                            ["CategoryName"] = reader.GetString(1),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(2))
-                        });
-                    }
-                }
-                stats["InventoryStats"] = inventoryStats;
-            }
-
-            return stats;
         }
 
         #endregion
@@ -1428,7 +945,6 @@ namespace recycling.DAL
                 Username = reader.GetString(reader.GetOrdinal("Username")),
                 PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
                 FullName = reader.GetString(reader.GetOrdinal("FullName")),
-                Character = reader.IsDBNull(reader.GetOrdinal("Character")) ? null : reader.GetString(reader.GetOrdinal("Character")),
                 CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
                 IsActive = reader.IsDBNull(reader.GetOrdinal("IsActive")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("IsActive"))
