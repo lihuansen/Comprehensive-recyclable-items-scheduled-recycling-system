@@ -56,22 +56,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminDAL.cs" />
+    <Compile Include="AdminContactDAL.cs" />
     <Compile Include="AppointmentDAL.cs" />
     <Compile Include="ConversationDAL.cs" />
     <Compile Include="FeedbackDAL.cs" />
     <Compile Include="HomepageCarouselDAL.cs" />
     <Compile Include="InventoryDAL.cs" />
     <Compile Include="MessageDAL.cs" />
-    <Compile Include="OperationLogDAL.cs" />
     <Compile Include="OrderDAL.cs" />
     <Compile Include="OrderReviewDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecyclableItemDAL.cs" />
     <Compile Include="RecyclerOrderDAL.cs" />
     <Compile Include="StaffDAL.cs" />
-    <Compile Include="UserAddressDAL.cs" />
     <Compile Include="UserDAL.cs" />
-    <Compile Include="UserNotificationDAL.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\recycling.Model\recycling.Model.csproj">

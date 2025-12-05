@@ -201,10 +201,10 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT TOP 1 ConversationID, OrderID, UserID, RecyclerID, Status, CreatedTime, EndedTime, UserEnded, RecyclerEnded
+                    SELECT TOP 1 ConversationID, OrderID, UserID, RecyclerID, Status, CreatedTime, EndedTime
                     FROM Conversations
                     WHERE OrderID = @OrderID
-                    ORDER BY ConversationID DESC";
+                    ORDER BY EndedTime DESC, ConversationID DESC";
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@ORDERID", orderId);
@@ -219,9 +219,7 @@ namespace recycling.DAL
                                 OrderID = Convert.ToInt32(reader["OrderID"]),
                                 CreatedTime = reader["CreatedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["CreatedTime"]),
                                 EndedTime = reader["EndedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["EndedTime"]),
-                                Status = reader["Status"].ToString(),
-                                UserEnded = reader["UserEnded"] != DBNull.Value && Convert.ToBoolean(reader["UserEnded"]),
-                                RecyclerEnded = reader["RecyclerEnded"] != DBNull.Value && Convert.ToBoolean(reader["RecyclerEnded"])
+                                Status = reader["Status"].ToString()
                             };
                         }
                     }
@@ -231,29 +229,28 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 获取某用户的历史会话列表（超过1个月的会话自动归入历史对话）
+        /// 获取某用户的历史会话列表（按 EndedTime 降序）
         /// </summary>
         public List<ConversationViewModel> GetUserConversations(int userId, int pageIndex = 1, int pageSize = 50)
         {
             var list = new List<ConversationViewModel>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                // 获取超过1个月的会话记录
                 string sql = @"
-                    SELECT DISTINCT
-                        m.OrderID,
+                    SELECT 
+                        c.ConversationID,
+                        c.OrderID,
                         a.AppointmentID as OrderNumber,
-                        a.RecyclerID,
+                        c.RecyclerID,
                         ISNULL(r.Username, '') as RecyclerName,
-                        MIN(m.SentTime) as CreatedTime,
-                        MAX(m.SentTime) as LastMessageTime
-                    FROM Messages m
-                    INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
-                    LEFT JOIN Recyclers r ON a.RecyclerID = r.RecyclerID
-                    WHERE a.UserID = @UserID 
-                    AND m.SentTime < DATEADD(MONTH, -1, GETDATE())
-                    GROUP BY m.OrderID, a.AppointmentID, a.RecyclerID, r.Username
-                    ORDER BY LastMessageTime DESC
+                        c.CreatedTime,
+                        c.EndedTime,
+                        c.Status
+                    FROM Conversations c
+                    INNER JOIN Appointments a ON c.OrderID = a.AppointmentID
+                    LEFT JOIN Recyclers r ON c.RecyclerID = r.RecyclerID
+                    WHERE a.UserID = @UserID AND c.EndedTime IS NOT NULL
+                    ORDER BY c.EndedTime DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -269,63 +266,20 @@ namespace recycling.DAL
                         {
                             list.Add(new ConversationViewModel
                             {
-                                ConversationID = 0, // No specific conversation ID for time-based history
+                                ConversationID = Convert.ToInt32(reader["ConversationID"]),
                                 OrderID = Convert.ToInt32(reader["OrderID"]),
                                 OrderNumber = $"AP{Convert.ToInt32(reader["OrderNumber"]):D6}",
                                 RecyclerID = reader["RecyclerID"] != DBNull.Value ? Convert.ToInt32(reader["RecyclerID"]) : 0,
                                 RecyclerName = reader["RecyclerName"].ToString(),
                                 CreatedTime = reader["CreatedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["CreatedTime"]),
-                                EndedTime = reader["LastMessageTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["LastMessageTime"]),
-                                Status = "历史"
+                                EndedTime = reader["EndedTime"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["EndedTime"]),
+                                Status = reader["Status"].ToString()
                             });
                         }
                     }
                 }
             }
             return list;
-        }
-
-        /// <summary>
-        /// 获取用户的历史消息（超过1个月的消息）
-        /// </summary>
-        public List<Messages> GetUserHistoricalMessages(int orderId, int userId)
-        {
-            var messages = new List<Messages>();
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                string sql = @"
-                    SELECT m.MessageID, m.OrderID, m.SenderType, m.SenderID, m.Content, m.SentTime, m.IsRead
-                    FROM Messages m
-                    INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
-                    WHERE m.OrderID = @OrderID AND a.UserID = @UserID
-                    AND m.SentTime < DATEADD(MONTH, -1, GETDATE())
-                    ORDER BY m.SentTime ASC";
-
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@OrderID", orderId);
-                    cmd.Parameters.AddWithValue("@UserID", userId);
-
-                    conn.Open();
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            messages.Add(new Messages
-                            {
-                                MessageID = Convert.ToInt32(reader["MessageID"]),
-                                OrderID = Convert.ToInt32(reader["OrderID"]),
-                                SenderType = reader["SenderType"].ToString(),
-                                SenderID = reader["SenderID"] != DBNull.Value ? Convert.ToInt32(reader["SenderID"]) : (int?)null,
-                                Content = reader["Content"].ToString(),
-                                SentTime = Convert.ToDateTime(reader["SentTime"]),
-                                IsRead = Convert.ToBoolean(reader["IsRead"])
-                            });
-                        }
-                    }
-                }
-            }
-            return messages;
         }
 
         /// <summary>
@@ -423,93 +377,6 @@ namespace recycling.DAL
                 }
             }
             return messages;
-        }
-
-        /// <summary>
-        /// 检查当前对话状态并在双方都已结束后创建新对话
-        /// 返回：是否需要开始新对话
-        /// </summary>
-        public bool EnsureActiveConversation(int orderId)
-        {
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                conn.Open();
-                
-                // 检查是否存在会话且双方都已结束
-                string checkSql = @"
-                    SELECT TOP 1 ConversationID, UserEnded, RecyclerEnded, EndedTime
-                    FROM Conversations 
-                    WHERE OrderID = @OrderID 
-                    ORDER BY ConversationID DESC";
-                
-                bool bothEnded = false;
-                
-                using (SqlCommand cmd = new SqlCommand(checkSql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@OrderID", orderId);
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            bool userEnded = reader["UserEnded"] != DBNull.Value && Convert.ToBoolean(reader["UserEnded"]);
-                            bool recyclerEnded = reader["RecyclerEnded"] != DBNull.Value && Convert.ToBoolean(reader["RecyclerEnded"]);
-                            bothEnded = userEnded && recyclerEnded;
-                        }
-                    }
-                }
-                
-                // 如果双方都已结束，创建新的对话记录
-                if (bothEnded)
-                {
-                    int userId = 0, recyclerId = 0;
-                    
-                    // 获取订单参与者
-                    string getParticipants = "SELECT UserID, RecyclerID FROM Appointments WHERE AppointmentID = @AppointmentID";
-                    using (SqlCommand cmd = new SqlCommand(getParticipants, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@AppointmentID", orderId);
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                if (reader["UserID"] != DBNull.Value) int.TryParse(reader["UserID"].ToString(), out userId);
-                                if (reader["RecyclerID"] != DBNull.Value) int.TryParse(reader["RecyclerID"].ToString(), out recyclerId);
-                            }
-                        }
-                    }
-                    
-                    // 创建新会话
-                    string insertSql = @"
-                        INSERT INTO Conversations (OrderID, UserID, RecyclerID, Status, CreatedTime, UserEnded, RecyclerEnded)
-                        VALUES (@OrderID, @UserID, @RecyclerID, 'active', @CreatedTime, 0, 0)";
-                    
-                    using (SqlCommand cmd = new SqlCommand(insertSql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@OrderID", orderId);
-                        cmd.Parameters.AddWithValue("@UserID", userId);
-                        cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                        cmd.Parameters.AddWithValue("@CreatedTime", DateTime.Now);
-                        cmd.ExecuteNonQuery();
-                    }
-                    
-                    // 插入系统消息表示新对话开始
-                    string insertMsgSql = @"
-                        INSERT INTO Messages (OrderID, SenderType, SenderID, Content, SentTime, IsRead)
-                        VALUES (@OrderID, 'system', NULL, @Content, @SentTime, 1)";
-                    
-                    using (SqlCommand cmd = new SqlCommand(insertMsgSql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@OrderID", orderId);
-                        cmd.Parameters.AddWithValue("@Content", "新的对话已开始");
-                        cmd.Parameters.AddWithValue("@SentTime", DateTime.Now);
-                        cmd.ExecuteNonQuery();
-                    }
-                    
-                    return true;
-                }
-                
-                return false;
-            }
         }
     }
 }

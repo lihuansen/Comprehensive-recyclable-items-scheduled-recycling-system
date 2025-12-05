@@ -28,12 +28,9 @@ namespace recycling.Model
         public string Email { get; set; }
 
         [Column(TypeName = "datetime2")]
-        public DateTime? RegistrationDate { get; set; }
+        public DateTime RegistrationDate { get; set; }
 
         [Column(TypeName = "datetime2")]
         public DateTime? LastLoginDate { get; set; }
-
-        [StringLength(50)]
-        public string url { get; set; }
     }
 }

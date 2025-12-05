@@ -468,32 +468,5 @@ namespace recycling.BLL
         {
             return _userDAL.GetUserById(userId);
         }
-
-        /// <summary>
-        /// 更新用户头像
-        /// </summary>
-        /// <param name="userId">用户ID</param>
-        /// <param name="avatarUrl">头像URL路径</param>
-        /// <returns>更新是否成功</returns>
-        public bool UpdateUserAvatar(int userId, string avatarUrl)
-        {
-            return _userDAL.UpdateUserAvatar(userId, avatarUrl);
-        }
-
-        /// <summary>
-        /// 获取用户头像URL
-        /// </summary>
-        /// <param name="userId">用户ID</param>
-        /// <returns>头像URL，如果没有则返回默认头像</returns>
-        public string GetUserAvatarUrl(int userId)
-        {
-            var user = _userDAL.GetUserById(userId);
-            if (user != null && !string.IsNullOrEmpty(user.url))
-            {
-                return user.url;
-            }
-            // 返回默认头像
-            return "/Uploads/Avatars/Default/avatar1.svg";
-        }
     }
 }

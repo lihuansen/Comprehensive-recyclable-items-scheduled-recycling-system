@@ -7,7 +7,6 @@ using recycling.BLL;
 using recycling.Model;
 using Newtonsoft.Json;
 using System.IO;
-using recycling.Web.UI.Filters;
 
 namespace recycling.Web.UI.Controllers
 {
@@ -20,9 +19,8 @@ namespace recycling.Web.UI.Controllers
         private readonly AdminBLL _adminBLL = new AdminBLL();
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
+        private readonly AdminContactBLL _adminContactBLL = new AdminContactBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
-        private readonly OperationLogBLL _operationLogBLL = new OperationLogBLL();
-        private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -44,62 +42,14 @@ namespace recycling.Web.UI.Controllers
         {
             if (string.IsNullOrEmpty(field))
                 return string.Empty;
-
+            
             // If field contains comma, quote, or newline, wrap it in quotes and escape any quotes
             if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
             {
                 return "\"" + field.Replace("\"", "\"\"") + "\"";
             }
-
+            
             return field;
-        }
-
-        /// <summary>
-        /// 获取客户端IP地址
-        /// </summary>
-        private string GetClientIpAddress()
-        {
-            string ipAddress = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-            if (string.IsNullOrEmpty(ipAddress))
-            {
-                ipAddress = Request.ServerVariables["REMOTE_ADDR"];
-            }
-            return ipAddress ?? "Unknown";
-        }
-
-        /// <summary>
-        /// 获取当前管理员信息
-        /// </summary>
-        private (int AdminID, string Username) GetCurrentAdmin()
-        {
-            if (Session["LoginStaff"] == null)
-                return (0, null);
-
-            var staffRole = Session["StaffRole"] as string;
-            if (staffRole == "admin")
-            {
-                var admin = (Admins)Session["LoginStaff"];
-                return (admin.AdminID, admin.Username);
-            }
-            else if (staffRole == "superadmin")
-            {
-                var superAdmin = (SuperAdmins)Session["LoginStaff"];
-                return (superAdmin.SuperAdminID, superAdmin.Username);
-            }
-
-            return (0, null);
-        }
-
-        /// <summary>
-        /// 记录管理员操作日志
-        /// </summary>
-        private void LogAdminOperation(string module, string operationType, string description, int? targetId = null, string targetName = null, string result = "Success", string details = null)
-        {
-            var (adminId, adminUsername) = GetCurrentAdmin();
-            if (adminId > 0)
-            {
-                _operationLogBLL.LogOperation(adminId, adminUsername, module, operationType, description, targetId, targetName, GetClientIpAddress(), result, details);
-            }
         }
 
         /// <summary>
@@ -170,8 +120,10 @@ namespace recycling.Web.UI.Controllers
                 {
                     model.Password = "";
                 }
-                // 无论哪种错误，都需要清空验证码输入并生成新验证码
-                model.Captcha = "";
+                else if (errorMsg.Contains("验证码"))
+                {
+                    model.Captcha = "";
+                }
                 model.GeneratedCaptcha = GenerateCaptcha();
                 return View(model);
             }
@@ -321,7 +273,7 @@ namespace recycling.Web.UI.Controllers
 
                 if (result.Success)
                 {
-                    // 发送系统消息通知用户（聊天消息）
+                    // 发送系统消息通知用户
                     var systemMessage = new SendMessageRequest
                     {
                         OrderID = appointmentId,
@@ -330,9 +282,6 @@ namespace recycling.Web.UI.Controllers
                         Content = $"回收员 {recycler.Username} 已接收您的订单，请保持电话畅通。"
                     };
                     _messageBLL.SendMessage(systemMessage);
-
-                    // 发送用户通知消息
-                    _notificationBLL.SendOrderAcceptedNotification(appointmentId, recycler.Username);
 
                     return Json(new { success = true, message = result.Message });
                 }
@@ -362,55 +311,6 @@ namespace recycling.Web.UI.Controllers
             // 获取消息列表（后端按时间倒序返回所有消息条目）
             var messages = _recyclerOrderBLL.GetRecyclerMessages(recycler.RecyclerID);
             return View(messages);
-        }
-
-        /// <summary>
-        /// 联系用户视图（回收员端）
-        /// </summary>
-        [HttpGet]
-        public ActionResult ContactUser(int orderId)
-        {
-            // 验证回收员登录状态
-            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
-            {
-                return RedirectToAction("Login", "Staff");
-            }
-
-            try
-            {
-                var recycler = (Recyclers)Session["LoginStaff"];
-
-                // 通过BLL层获取订单详情
-                var orderResult = _recyclerOrderBLL.GetOrderDetail(orderId, recycler.RecyclerID);
-                if (orderResult.Detail == null)
-                {
-                    ViewBag.ErrorMsg = "无法联系用户：订单不存在或无权访问";
-                    return View();
-                }
-
-                // 获取用户信息
-                var userBLL = new UserBLL();
-                var user = userBLL.GetUserById(orderResult.Detail.UserID);
-                if (user == null)
-                {
-                    ViewBag.ErrorMsg = "用户信息不存在";
-                    return View();
-                }
-
-                // 设置ViewBag变量供视图使用
-                ViewBag.OrderId = orderId;
-                ViewBag.OrderNumber = orderResult.Detail.OrderNumber;
-                ViewBag.UserName = user.Username;
-                ViewBag.UserId = user.UserID;
-                ViewBag.RecyclerId = recycler.RecyclerID;
-
-                return View();
-            }
-            catch (Exception ex)
-            {
-                ViewBag.ErrorMsg = $"加载联系页面失败：{ex.Message}";
-                return View();
-            }
         }
 
         // 获取订单对话（回收员端），已包含 conversationEnded/endedBy/endedTime
@@ -443,12 +343,11 @@ namespace recycling.Web.UI.Controllers
 
                 // 获取最近结束信息（供前端显示“谁结束了/是否双方都结束”）
                 var convBll = new ConversationBLL();
+                var latestConv = convBll.GetLatestConversation(orderId);
                 var bothInfo = convBll.HasBothEnded(orderId); // (bool, DateTime?)
                 bool conversationBothEnded = bothInfo.BothEnded;
                 string latestEndedTimeIso = bothInfo.LatestEndedTime.HasValue ? bothInfo.LatestEndedTime.Value.ToString("o") : string.Empty;
-                
-                // 使用公共方法确定谁已经结束了对话
-                string lastEndedBy = convBll.GetConversationEndedByStatus(orderId);
+                string lastEndedBy = latestConv != null ? latestConv.Status ?? "" : "";
 
                 return JsonContent(new
                 {
@@ -666,7 +565,7 @@ namespace recycling.Web.UI.Controllers
                 var recycler = (Recyclers)Session["LoginStaff"];
                 var convBll = new ConversationBLL();
                 bool ok = convBll.EndConversationBy(orderId, "recycler", recycler.RecyclerID);
-
+                
                 if (!ok)
                 {
                     var errorJson = JsonConvert.SerializeObject(new { success = false, message = "用户需要先结束对话" });
@@ -729,40 +628,32 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var recycler = (Recyclers)Session["LoginStaff"];
-
+                
                 // 检查对话是否都已结束
                 var convBll = new ConversationBLL();
                 var (bothEnded, _) = convBll.HasBothEnded(appointmentId);
-
+                
                 if (!bothEnded)
                 {
                     var errorJson = JsonConvert.SerializeObject(new { success = false, message = "双方必须都结束对话后才能完成订单" });
                     return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
-                return ExecuteOrderCompletion(appointmentId, recycler.RecyclerID);
-            }
-            catch (Exception ex)
-            {
-                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
-                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
-            }
-        }
-
-        // 直接完成订单（从订单列表，不检查对话状态）
-        [HttpPost]
-        public ContentResult CompleteOrderDirect(int appointmentId)
-        {
-            try
-            {
-                if (Session["LoginStaff"] == null)
+                // 写入库存
+                var inventoryBll = new InventoryBLL();
+                bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recycler.RecyclerID);
+                
+                if (!inventoryAdded)
                 {
-                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
                     return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
-                var recycler = (Recyclers)Session["LoginStaff"];
-                return ExecuteOrderCompletion(appointmentId, recycler.RecyclerID);
+                // 完成订单
+                var orderBll = new OrderBLL();
+                var result = orderBll.CompleteOrder(appointmentId, recycler.RecyclerID);
+                var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
@@ -771,49 +662,16 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 共享方法：执行订单完成操作（写入库存和更新状态）
-        private ContentResult ExecuteOrderCompletion(int appointmentId, int recyclerId)
-        {
-            // 写入库存
-            var inventoryBll = new InventoryBLL();
-            bool inventoryAdded = inventoryBll.AddInventoryFromOrder(appointmentId, recyclerId);
-
-            if (!inventoryAdded)
-            {
-                var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
-                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
-            }
-
-            // 完成订单
-            var orderBll = new OrderBLL();
-            var result = orderBll.CompleteOrder(appointmentId, recyclerId);
-            
-            // 发送订单完成通知和评价提醒
-            if (result.Success)
-            {
-                _notificationBLL.SendOrderCompletedNotification(appointmentId);
-                _notificationBLL.SendReviewReminderNotification(appointmentId);
-            }
-            
-            var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
-            return Content(json, "application/json", System.Text.Encoding.UTF8);
-        }
-
-        // 仓库管理页面 - 管理员端
-        [AdminPermission(AdminPermissions.WarehouseManagement)]
+        // 仓库管理页面
         public ActionResult WarehouseManagement()
         {
             if (Session["LoginStaff"] == null)
                 return RedirectToAction("Login", "Staff");
 
-            var staffRole = Session["StaffRole"] as string;
-            if (staffRole != "admin" && staffRole != "superadmin")
-                return RedirectToAction("Login", "Staff");
-
             return View();
         }
 
-        // 获取库存汇总数据 - 管理员端
+        // 获取库存汇总数据
         [HttpPost]
         public JsonResult GetInventorySummary()
         {
@@ -822,15 +680,12 @@ namespace recycling.Web.UI.Controllers
                 if (Session["LoginStaff"] == null)
                     return Json(new { success = false, message = "请先登录" });
 
-                var staffRole = Session["StaffRole"] as string;
-                if (staffRole != "admin" && staffRole != "superadmin")
-                    return Json(new { success = false, message = "权限不足" });
-
+                var recycler = (Recyclers)Session["LoginStaff"];
                 var inventoryBll = new InventoryBLL();
-
+                
                 // 获取所有库存汇总（不过滤回收员）
                 var summary = inventoryBll.GetInventorySummary(null);
-
+                
                 var result = summary.Select(s => new
                 {
                     categoryKey = s.CategoryKey,
@@ -844,33 +699,6 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // 获取库存明细数据 - 管理员端
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ContentResult GetInventoryDetail(int page = 1, int pageSize = 20, string categoryKey = null)
-        {
-            try
-            {
-                if (Session["LoginStaff"] == null)
-                    return JsonContent(new { success = false, message = "请先登录" });
-
-                var staffRole = Session["StaffRole"] as string;
-                if (staffRole != "admin" && staffRole != "superadmin")
-                    return JsonContent(new { success = false, message = "权限不足" });
-
-                var inventoryBll = new InventoryBLL();
-
-                // 获取库存明细列表（包含回收员信息）
-                var result = inventoryBll.GetInventoryDetailWithRecycler(page, pageSize, categoryKey);
-
-                return JsonContent(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return JsonContent(new { success = false, message = ex.Message });
             }
         }
 
@@ -919,13 +747,13 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var reviewBLL = new OrderReviewBLL();
-
+                
                 // 获取评价列表
                 var reviews = reviewBLL.GetReviewsByRecyclerId(staff.RecyclerID);
-
+                
                 // 获取评分摘要
                 var summary = reviewBLL.GetRecyclerRatingSummary(staff.RecyclerID);
-
+                
                 // 获取星级分布
                 var distribution = reviewBLL.GetRecyclerRatingDistribution(staff.RecyclerID);
 
@@ -954,14 +782,34 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 历史会话页面 - 回收员查看历史对话
+        /// </summary>
+        [HttpGet]
+        public ActionResult HistoryConversations()
+        {
+            // 检查登录
+            if (Session["LoginStaff"] == null)
+            {
+                return RedirectToAction("LoginSelect", "Home");
+            }
 
+            var staff = Session["LoginStaff"] as Recyclers;
+            var role = Session["StaffRole"] as string;
+
+            if (role != "recycler")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
 
         #region Admin - User Management
 
         /// <summary>
         /// 管理员 - 用户管理页面
         /// </summary>
-        [AdminPermission(AdminPermissions.UserManagement)]
         public ActionResult UserManagement()
         {
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
@@ -1025,10 +873,10 @@ namespace recycling.Web.UI.Controllers
 
                 // Create CSV content
                 var csv = new System.Text.StringBuilder();
-
+                
                 // Add UTF-8 BOM for proper Excel display of Chinese characters
                 csv.Append("\uFEFF");
-
+                
                 // Add header
                 csv.AppendLine("用户ID,用户名,邮箱,手机号,注册日期,最后登录日期,状态");
 
@@ -1036,20 +884,17 @@ namespace recycling.Web.UI.Controllers
                 foreach (var user in users)
                 {
                     // Determine user status
-                    var isActive = user.LastLoginDate.HasValue &&
+                    var isActive = user.LastLoginDate.HasValue && 
                                   (DateTime.Now - user.LastLoginDate.Value).TotalDays <= 30;
                     var status = isActive ? "活跃" : "不活跃";
                     var lastLogin = user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
-
+                    
                     csv.AppendLine($"{user.UserID},{EscapeCsvField(user.Username)},{EscapeCsvField(user.Email)},{EscapeCsvField(user.PhoneNumber)},{user.RegistrationDate:yyyy-MM-dd HH:mm:ss},{EscapeCsvField(lastLogin)},{EscapeCsvField(status)}");
                 }
 
                 // Generate file
                 var fileName = $"用户数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
-
-                // 记录导出操作日志
-                LogAdminOperation(OperationLogBLL.Modules.UserManagement, OperationLogBLL.OperationTypes.Export, $"导出用户数据，共{users.Count}条记录");
 
                 return File(fileBytes, "text/csv", fileName);
             }
@@ -1067,7 +912,6 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// 管理员 - 回收员管理页面
         /// </summary>
-        [AdminPermission(AdminPermissions.RecyclerManagement)]
         public ActionResult RecyclerManagement()
         {
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
@@ -1106,13 +950,13 @@ namespace recycling.Web.UI.Controllers
                 var recycler = _adminBLL.GetRecyclerById(recyclerId);
                 var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recyclerId);
 
-                return JsonContent(new {
-                    success = true,
-                    data = new
-                    {
-                        recycler = recycler,
-                        completedOrders = completedOrders
-                    }
+                return JsonContent(new { 
+                    success = true, 
+                    data = new 
+                    { 
+                        recycler = recycler, 
+                        completedOrders = completedOrders 
+                    } 
                 });
             }
             catch (Exception ex)
@@ -1130,17 +974,6 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var result = _adminBLL.AddRecycler(recycler, password);
-                
-                // 记录操作日志
-                if (result.Success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Create, $"添加回收员：{recycler.Username}", null, recycler.Username, "Success");
-                }
-                else
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Create, $"添加回收员失败：{recycler.Username}", null, recycler.Username, "Failed");
-                }
-                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1158,12 +991,6 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var result = _adminBLL.UpdateRecycler(recycler);
-                
-                // 记录操作日志
-                LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Update, 
-                    result.Success ? $"更新回收员信息：{recycler.Username}" : $"更新回收员信息失败：{recycler.Username}", 
-                    recycler.RecyclerID, recycler.Username, result.Success ? "Success" : "Failed");
-                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1180,15 +1007,7 @@ namespace recycling.Web.UI.Controllers
         {
             try
             {
-                // 获取回收员信息用于日志记录
-                var recycler = _adminBLL.GetRecyclerById(recyclerId);
-                string recyclerName = recycler?.Username ?? $"ID:{recyclerId}";
-                
                 var result = _adminBLL.DeleteRecycler(recyclerId);
-                
-                // 记录操作日志
-                LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Delete, $"删除回收员：{recyclerName}", recyclerId, recyclerName, result.Success ? "Success" : "Failed");
-                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1206,29 +1025,6 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var stats = _adminBLL.GetRecyclerStatistics();
-                return JsonContent(new { success = true, data = stats });
-            }
-            catch (Exception ex)
-            {
-                return JsonContent(new { success = false, message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// 管理员 - 获取回收员数据看板统计信息（API）
-        /// </summary>
-        [HttpGet]
-        public ContentResult GetRecyclerDashboardStatistics()
-        {
-            try
-            {
-                // Permission check
-                if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
-                {
-                    return JsonContent(new { success = false, message = "权限不足" });
-                }
-
-                var stats = _adminBLL.GetRecyclerDashboardStatistics();
                 return JsonContent(new { success = true, data = stats });
             }
             catch (Exception ex)
@@ -1256,10 +1052,10 @@ namespace recycling.Web.UI.Controllers
 
                 // Create CSV content
                 var csv = new System.Text.StringBuilder();
-
+                
                 // Add UTF-8 BOM for proper Excel display of Chinese characters
                 csv.Append("\uFEFF");
-
+                
                 // Add header
                 csv.AppendLine("回收员ID,用户名,姓名,手机号,区域,评分,完成订单数,是否可接单,账号状态,注册日期");
 
@@ -1271,16 +1067,13 @@ namespace recycling.Web.UI.Controllers
                     var availableStatus = recycler.Available ? "可接单" : "不可接单";
                     var activeStatus = recycler.IsActive ? "激活" : "禁用";
                     var createdDate = recycler.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
-
+                    
                     csv.AppendLine($"{recycler.RecyclerID},{EscapeCsvField(recycler.Username)},{EscapeCsvField(recycler.FullName ?? "-")},{EscapeCsvField(recycler.PhoneNumber)},{EscapeCsvField(recycler.Region)},{EscapeCsvField(recycler.Rating?.ToString("F1") ?? "0.0")},{completedOrders},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
 
                 // Generate file
                 var fileName = $"回收员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
-
-                // 记录导出操作日志
-                LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Export, $"导出回收员数据，共{recyclers.Count}条记录");
 
                 return File(fileBytes, "text/csv", fileName);
             }
@@ -1344,49 +1137,6 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region SuperAdmin - Data Dashboard
-
-        /// <summary>
-        /// 超级管理员 - 数据看板页面
-        /// </summary>
-        public ActionResult DataDashboard()
-        {
-            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
-            {
-                return RedirectToAction("Login", "Staff");
-            }
-
-            var superAdmin = (SuperAdmins)Session["LoginStaff"];
-            ViewBag.StaffName = superAdmin.Username;
-
-            return View();
-        }
-
-        /// <summary>
-        /// 超级管理员 - 获取数据看板统计数据（API）
-        /// </summary>
-        [HttpGet]
-        public ContentResult GetDashboardStatistics()
-        {
-            // Permission check
-            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
-            {
-                return JsonContent(new { success = false, message = "权限不足" });
-            }
-
-            try
-            {
-                var stats = _adminBLL.GetDashboardStatistics();
-                return JsonContent(new { success = true, data = stats });
-            }
-            catch (Exception ex)
-            {
-                return JsonContent(new { success = false, message = ex.Message });
-            }
-        }
-
-        #endregion
-
         #region SuperAdmin - Admin Management
 
         /// <summary>
@@ -1440,8 +1190,8 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var admin = _adminBLL.GetAdminById(adminId);
-                return JsonContent(new {
-                    success = true,
+                return JsonContent(new { 
+                    success = true, 
                     data = admin
                 });
             }
@@ -1466,17 +1216,6 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var result = _adminBLL.AddAdmin(admin, password);
-                
-                // 记录操作日志
-                if (result.Success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Create, $"添加管理员：{admin.Username}", null, admin.Username, "Success");
-                }
-                else
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Create, $"添加管理员失败：{admin.Username}", null, admin.Username, "Failed");
-                }
-                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1500,12 +1239,6 @@ namespace recycling.Web.UI.Controllers
             try
             {
                 var result = _adminBLL.UpdateAdmin(admin);
-                
-                // 记录操作日志
-                LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Update, 
-                    result.Success ? $"更新管理员信息：{admin.Username}" : $"更新管理员信息失败：{admin.Username}", 
-                    admin.AdminID, admin.Username, result.Success ? "Success" : "Failed");
-                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1528,15 +1261,7 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // 获取管理员信息用于日志记录
-                var admin = _adminBLL.GetAdminById(adminId);
-                string adminName = admin?.Username ?? $"ID:{adminId}";
-                
                 var result = _adminBLL.DeleteAdmin(adminId);
-                
-                // 记录操作日志
-                LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Delete, $"删除管理员：{adminName}", adminId, adminName, result.Success ? "Success" : "Failed");
-                
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
@@ -1587,10 +1312,10 @@ namespace recycling.Web.UI.Controllers
 
                 // Create CSV content
                 var csv = new System.Text.StringBuilder();
-
+                
                 // Add UTF-8 BOM for proper Excel display of Chinese characters
                 csv.Append("\uFEFF");
-
+                
                 // Add header
                 csv.AppendLine("管理员ID,用户名,姓名,创建日期,最后登录日期,账号状态");
 
@@ -1600,16 +1325,13 @@ namespace recycling.Web.UI.Controllers
                     var createdDate = admin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
                     var lastLoginDate = admin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
                     var activeStatus = (admin.IsActive ?? true) ? "激活" : "禁用";
-
+                    
                     csv.AppendLine($"{admin.AdminID},{EscapeCsvField(admin.Username)},{EscapeCsvField(admin.FullName)},{EscapeCsvField(createdDate)},{EscapeCsvField(lastLoginDate)},{EscapeCsvField(activeStatus)}");
                 }
 
                 // Generate file
                 var fileName = $"管理员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
-
-                // 记录导出操作日志
-                LogAdminOperation(OperationLogBLL.Modules.AdminManagement, OperationLogBLL.OperationTypes.Export, $"导出管理员数据，共{admins.Count}条记录");
 
                 return File(fileBytes, "text/csv", fileName);
             }
@@ -1627,7 +1349,6 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// Admin homepage management index page
         /// </summary>
-        [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult HomepageManagement()
         {
             if (Session["LoginStaff"] == null)
@@ -1649,7 +1370,6 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// Admin homepage carousel management page
         /// </summary>
-        [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult HomepageCarouselManagement()
         {
             if (Session["LoginStaff"] == null)
@@ -1734,7 +1454,7 @@ namespace recycling.Web.UI.Controllers
                 {
                     // Validate file type
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
-
+                    
                     if (carousel.MediaType == "Image")
                     {
                         if (!AllowedImageExtensions.Contains(fileExtension))
@@ -1757,16 +1477,16 @@ namespace recycling.Web.UI.Controllers
                     // Generate unique filename
                     string fileName = Guid.NewGuid().ToString() + fileExtension;
                     string uploadPath = Server.MapPath("~/Uploads/Carousel/");
-
+                    
                     // Create directory if it doesn't exist
                     if (!System.IO.Directory.Exists(uploadPath))
                     {
                         System.IO.Directory.CreateDirectory(uploadPath);
                     }
-
+                    
                     string filePath = System.IO.Path.Combine(uploadPath, fileName);
                     MediaFile.SaveAs(filePath);
-
+                    
                     // Set MediaUrl to relative path
                     carousel.MediaUrl = "/Uploads/Carousel/" + fileName;
                 }
@@ -1783,15 +1503,6 @@ namespace recycling.Web.UI.Controllers
                     adminId = ((SuperAdmins)Session["LoginStaff"]).SuperAdminID;
 
                 var (success, message) = _carouselBLL.Add(carousel, adminId);
-                
-                // 记录操作日志
-                if (success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Create, $"添加轮播内容：{carousel.Title}", null, carousel.Title, "Success");
-                    // 发送轮播图更新通知给所有用户
-                    _notificationBLL.SendCarouselUpdatedNotification("add", carousel.Title ?? "新内容");
-                }
-                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -1821,7 +1532,7 @@ namespace recycling.Web.UI.Controllers
                 {
                     // Validate file type
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
-
+                    
                     if (carousel.MediaType == "Image")
                     {
                         if (!AllowedImageExtensions.Contains(fileExtension))
@@ -1849,7 +1560,7 @@ namespace recycling.Web.UI.Controllers
                         // Map the relative path and validate it's within our upload directory
                         string mappedPath = Server.MapPath("~" + oldCarousel.MediaUrl);
                         string uploadDir = Server.MapPath("~/Uploads/Carousel/");
-
+                        
                         // Ensure the resolved path is actually within the upload directory
                         if (mappedPath.StartsWith(uploadDir, StringComparison.OrdinalIgnoreCase))
                         {
@@ -1860,16 +1571,16 @@ namespace recycling.Web.UI.Controllers
                     // Generate unique filename
                     string fileName = Guid.NewGuid().ToString() + fileExtension;
                     string uploadPath = Server.MapPath("~/Uploads/Carousel/");
-
+                    
                     // Create directory if it doesn't exist
                     if (!System.IO.Directory.Exists(uploadPath))
                     {
                         System.IO.Directory.CreateDirectory(uploadPath);
                     }
-
+                    
                     string filePath = System.IO.Path.Combine(uploadPath, fileName);
                     MediaFile.SaveAs(filePath);
-
+                    
                     // Set MediaUrl to relative path
                     carousel.MediaUrl = "/Uploads/Carousel/" + fileName;
 
@@ -1903,15 +1614,6 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var (success, message) = _carouselBLL.Update(carousel);
-                
-                // 记录操作日志
-                if (success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Update, $"更新轮播内容：{carousel.Title}", carousel.CarouselID, carousel.Title, "Success");
-                    // 发送轮播图更新通知给所有用户
-                    _notificationBLL.SendCarouselUpdatedNotification("update", carousel.Title ?? "已有内容");
-                }
-                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -1936,22 +1638,8 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
-                // 获取轮播内容信息用于日志记录
-                var carousel = _carouselBLL.GetById(id);
-                string carouselTitle = carousel?.Title ?? $"ID:{id}";
-
                 // Use HardDelete to permanently remove from database
                 var (success, message) = _carouselBLL.HardDelete(id);
-                
-                // 记录操作日志
-                LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除轮播内容：{carouselTitle}", id, carouselTitle, success ? "Success" : "Failed");
-                
-                // 发送轮播图更新通知给所有用户
-                if (success)
-                {
-                    _notificationBLL.SendCarouselUpdatedNotification("delete", carouselTitle);
-                }
-                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -1984,7 +1672,6 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// Admin recyclable items management page
         /// </summary>
-        [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult RecyclableItemsManagement()
         {
             if (Session["LoginStaff"] == null)
@@ -2070,13 +1757,6 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足" });
 
                 var (success, message) = _recyclableItemBLL.Add(item);
-                
-                // 记录操作日志
-                if (success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Create, $"添加可回收物品：{item.Name}", null, item.Name, "Success");
-                }
-                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -2102,13 +1782,6 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足" });
 
                 var (success, message) = _recyclableItemBLL.Update(item);
-                
-                // 记录操作日志
-                if (success)
-                {
-                    LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Update, $"更新可回收物品：{item.Name}", item.ItemId, item.Name, "Success");
-                }
-                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -2133,16 +1806,8 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
-                // 获取物品信息用于日志记录
-                var item = _recyclableItemBLL.GetById(id);
-                string itemName = item?.Name ?? $"ID:{id}";
-
                 // Use HardDelete instead of soft delete
                 var (success, message) = _recyclableItemBLL.HardDelete(id);
-                
-                // 记录操作日志
-                LogAdminOperation(OperationLogBLL.Modules.HomepageManagement, OperationLogBLL.OperationTypes.Delete, $"删除可回收物品：{itemName}", id, itemName, success ? "Success" : "Failed");
-                
                 return JsonContent(new { success = success, message = message });
             }
             catch (Exception ex)
@@ -2174,16 +1839,15 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region 反馈管理功能
+        #region 管理员联系功能
 
         /// <summary>
         /// 反馈管理页面
         /// </summary>
         [HttpGet]
-        [AdminPermission(AdminPermissions.FeedbackManagement)]
         public ActionResult FeedbackManagement()
         {
-            // 检查登录状态
+            // 检查是否是管理员登录
             if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
             {
                 return RedirectToAction("Login", "Staff");
@@ -2192,257 +1856,247 @@ namespace recycling.Web.UI.Controllers
             var staffRole = Session["StaffRole"] as string;
             if (staffRole != "admin" && staffRole != "superadmin")
             {
-                TempData["ErrorMessage"] = "您没有权限访问该页面";
-                return RedirectToAction("Login", "Staff");
+                return RedirectToAction("RecyclerDashboard", "Staff");
             }
 
             return View();
         }
 
         /// <summary>
-        /// 获取所有反馈列表（AJAX）
+        /// 用户联系管理页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult UserContactManagement()
+        {
+            // 检查是否是管理员登录
+            if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            var staffRole = Session["StaffRole"] as string;
+            if (staffRole != "admin" && staffRole != "superadmin")
+            {
+                return RedirectToAction("RecyclerDashboard", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取所有反馈
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ContentResult GetAllFeedbacks(string status, string feedbackType)
+        public JsonResult GetAllFeedbacks(string feedbackType, string status, string searchKeyword, int page = 1, int pageSize = 10)
         {
             try
             {
-                // 检查登录状态和权限
-                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
-                {
-                    return JsonContent(new { success = false, message = "请先登录" });
-                }
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
 
-                var staffRole = Session["StaffRole"] as string;
-                if (staffRole != "admin" && staffRole != "superadmin")
-                {
-                    return JsonContent(new { success = false, message = "无权限" });
-                }
+                var (feedbacks, totalCount, totalPages) = _feedbackBLL.GetAllFeedbacks(
+                    feedbackType, 
+                    status, 
+                    searchKeyword, 
+                    page, 
+                    pageSize
+                );
 
-                // 获取反馈列表
-                var feedbacks = _feedbackBLL.GetAllFeedbacks(status, feedbackType);
-
-                return JsonContent(new { success = true, feedbacks = feedbacks });
+                return Json(new { 
+                    success = true, 
+                    feedbacks = feedbacks,
+                    totalCount = totalCount,
+                    totalPages = totalPages
+                });
             }
             catch (Exception ex)
             {
-                return JsonContent(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
         /// <summary>
-        /// 更新反馈状态（AJAX）
+        /// 获取反馈详情
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ContentResult UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
+        public JsonResult GetFeedbackDetail(int feedbackId)
         {
             try
             {
-                // 检查登录状态和权限
-                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
-                {
-                    return JsonContent(new { success = false, message = "请先登录" });
-                }
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
 
-                var staffRole = Session["StaffRole"] as string;
-                if (staffRole != "admin" && staffRole != "superadmin")
-                {
-                    return JsonContent(new { success = false, message = "无权限" });
-                }
-
-                // 获取反馈信息用于通知
                 var feedback = _feedbackBLL.GetFeedbackById(feedbackId);
-                string feedbackSubject = feedback?.Subject ?? $"反馈#{feedbackId}";
+                
+                if (feedback == null)
+                    return Json(new { success = false, message = "反馈不存在" });
 
-                // 更新反馈状态
+                return Json(new { success = true, feedback = feedback });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 更新反馈状态和回复
+        /// </summary>
+        [HttpPost]
+        public JsonResult UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
                 var (success, message) = _feedbackBLL.UpdateFeedbackStatus(feedbackId, status, adminReply);
 
-                // 记录操作日志
-                if (success)
-                {
-                    string operationType = !string.IsNullOrEmpty(adminReply) ? OperationLogBLL.OperationTypes.Reply : OperationLogBLL.OperationTypes.Update;
-                    string description = !string.IsNullOrEmpty(adminReply) ? $"回复反馈 #{feedbackId}" : $"更新反馈状态为：{status}";
-                    LogAdminOperation(OperationLogBLL.Modules.FeedbackManagement, operationType, description, feedbackId, null, "Success");
-
-                    // 发送反馈回复通知（当有管理员回复或状态更新为已完成时）
-                    if (!string.IsNullOrEmpty(adminReply) || status == "已完成")
-                    {
-                        _notificationBLL.SendFeedbackRepliedNotification(feedbackId, feedbackSubject);
-                    }
-                }
-
-                return JsonContent(new { success = success, message = message });
+                return Json(new { success = success, message = message });
             }
             catch (Exception ex)
             {
-                return JsonContent(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
-        #endregion
-
-        #region 日志管理功能
-
         /// <summary>
-        /// 日志管理页面
-        /// </summary>
-        [HttpGet]
-        [AdminPermission(AdminPermissions.LogManagement)]
-        public ActionResult LogManagement()
-        {
-            // 检查登录状态
-            if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
-            {
-                return RedirectToAction("Login", "Staff");
-            }
-
-            var staffRole = Session["StaffRole"] as string;
-            if (staffRole != "admin" && staffRole != "superadmin")
-            {
-                TempData["ErrorMessage"] = "您没有权限访问该页面";
-                return RedirectToAction("Login", "Staff");
-            }
-
-            return View();
-        }
-
-        /// <summary>
-        /// 获取操作日志列表（AJAX）
+        /// 获取所有管理员联系会话（管理员使用）
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ContentResult GetOperationLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, string startDate = null, string endDate = null, string searchTerm = null)
+        public JsonResult GetAllAdminContacts()
         {
             try
             {
-                // 检查登录状态和权限
-                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var conversations = _adminContactBLL.GetAllConversations();
+
+                // 获取每个会话的用户名
+                var conversationsWithUserInfo = conversations.Select(c => new
                 {
-                    return JsonContent(new { success = false, message = "请先登录" });
-                }
+                    conversationID = c.ConversationID,
+                    userID = c.UserID,
+                    adminID = c.AdminID,
+                    startTime = c.StartTime,
+                    userEndedTime = c.UserEndedTime,
+                    adminEndedTime = c.AdminEndedTime,
+                    userEnded = c.UserEnded,
+                    adminEnded = c.AdminEnded,
+                    lastMessageTime = c.LastMessageTime,
+                    userName = _adminContactBLL.GetUserById(c.UserID)?.Username ?? "未知用户"
+                }).ToList();
 
-                var staffRole = Session["StaffRole"] as string;
-                if (staffRole != "admin" && staffRole != "superadmin")
-                {
-                    return JsonContent(new { success = false, message = "无权限" });
-                }
-
-                DateTime? start = null;
-                DateTime? end = null;
-
-                if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime startParsed))
-                {
-                    start = startParsed;
-                }
-                if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out DateTime endParsed))
-                {
-                    end = endParsed.AddDays(1).AddSeconds(-1); // Include the entire end day
-                }
-
-                var logs = _operationLogBLL.GetLogs(page, pageSize, module, operationType, start, end, searchTerm);
-
-                return JsonContent(new { success = true, data = logs });
+                return Json(new { success = true, conversations = conversationsWithUserInfo });
             }
             catch (Exception ex)
             {
-                return JsonContent(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
         /// <summary>
-        /// 获取日志统计信息（AJAX）
+        /// 获取用户信息（管理员使用）
         /// </summary>
-        [HttpGet]
-        public ContentResult GetLogStatistics()
+        [HttpPost]
+        public JsonResult GetUserInfo(int userId)
         {
             try
             {
-                // 检查登录状态和权限
-                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
-                {
-                    return JsonContent(new { success = false, message = "请先登录" });
-                }
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
 
-                var staffRole = Session["StaffRole"] as string;
-                if (staffRole != "admin" && staffRole != "superadmin")
-                {
-                    return JsonContent(new { success = false, message = "无权限" });
-                }
+                var user = _adminContactBLL.GetUserById(userId);
+                
+                if (user == null)
+                    return Json(new { success = false, message = "用户不存在" });
 
-                var stats = _operationLogBLL.GetLogStatistics();
-                return JsonContent(new { success = true, data = stats });
+                return Json(new
+                {
+                    success = true,
+                    user = new
+                    {
+                        userID = user.UserID,
+                        username = user.Username,
+                        phoneNumber = user.PhoneNumber,
+                        email = user.Email
+                    }
+                });
             }
             catch (Exception ex)
             {
-                return JsonContent(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
         /// <summary>
-        /// 导出操作日志
+        /// 获取管理员联系消息记录（管理员使用）
         /// </summary>
-        [HttpGet]
-        public ActionResult ExportOperationLogs(string module = null, string operationType = null, string startDate = null, string endDate = null, string searchTerm = null)
+        [HttpPost]
+        public JsonResult GetAdminContactMessagesForAdmin(int userId, DateTime? beforeTime = null)
         {
-            // Permission check
-            if (Session["StaffRole"] == null || (Session["StaffRole"].ToString() != "admin" && Session["StaffRole"].ToString() != "superadmin"))
-            {
-                return RedirectToAction("Login", "Staff");
-            }
-
             try
             {
-                DateTime? start = null;
-                DateTime? end = null;
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
 
-                if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime startParsed))
-                {
-                    start = startParsed;
-                }
-                if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out DateTime endParsed))
-                {
-                    end = endParsed.AddDays(1).AddSeconds(-1);
-                }
+                var messages = _adminContactBLL.GetConversationMessages(userId, beforeTime);
 
-                var logs = _operationLogBLL.GetLogsForExport(module, operationType, start, end, searchTerm);
-
-                // Create CSV content
-                var csv = new System.Text.StringBuilder();
-
-                // Add UTF-8 BOM for proper Excel display of Chinese characters
-                csv.Append("\uFEFF");
-
-                // Add header
-                csv.AppendLine("日志ID,操作时间,管理员ID,管理员用户名,模块,操作类型,操作描述,目标ID,目标名称,IP地址,结果");
-
-                // Add data rows
-                foreach (var log in logs)
-                {
-                    var moduleDisplay = OperationLogBLL.GetModuleDisplayName(log.Module);
-                    var operationDisplay = OperationLogBLL.GetOperationTypeDisplayName(log.OperationType);
-                    var resultDisplay = log.Result == "Success" ? "成功" : "失败";
-
-                    csv.AppendLine($"{log.LogID},{EscapeCsvField(log.OperationTime.ToString("yyyy-MM-dd HH:mm:ss"))},{log.AdminID},{EscapeCsvField(log.AdminUsername)},{EscapeCsvField(moduleDisplay)},{EscapeCsvField(operationDisplay)},{EscapeCsvField(log.Description)},{log.TargetID},{EscapeCsvField(log.TargetName)},{EscapeCsvField(log.IPAddress)},{EscapeCsvField(resultDisplay)}");
-                }
-
-                // Generate file
-                var fileName = $"操作日志_{DateTime.Now:yyyyMMddHHmmss}.csv";
-                var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
-
-                // 记录导出操作
-                LogAdminOperation(OperationLogBLL.Modules.LogManagement, OperationLogBLL.OperationTypes.Export, $"导出操作日志，共{logs.Count}条记录");
-
-                return File(fileBytes, "text/csv", fileName);
+                return Json(new { success = true, messages = messages });
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
-                return RedirectToAction("LogManagement");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员发送消息
+        /// </summary>
+        [HttpPost]
+        public JsonResult SendAdminContactMessageAsAdmin(int userId, string content)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var admin = (Admins)Session["LoginStaff"];
+                var result = _adminContactBLL.SendMessage(userId, admin.AdminID, "admin", content);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员结束对话
+        /// </summary>
+        [HttpPost]
+        public JsonResult EndAdminContactAsAdmin(int userId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                    return Json(new { success = false, message = "请先登录" });
+
+                var admin = (Admins)Session["LoginStaff"];
+                var result = _adminContactBLL.EndConversationByAdmin(userId, admin.AdminID);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
         #endregion
+
+
     }
 }
