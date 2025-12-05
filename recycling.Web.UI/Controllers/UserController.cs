@@ -977,6 +977,7 @@ namespace recycling.Web.UI.Controllers
         /// 在预约过程中新增地址（JSON API）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult AddAddressForAppointment(string street, string detailAddress, string contactName, string contactPhone, bool isDefault = false)
         {
             if (Session["LoginUser"] == null)

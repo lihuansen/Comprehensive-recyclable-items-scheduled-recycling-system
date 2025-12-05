@@ -961,11 +961,15 @@
                     saveNewAddressBtn.disabled = true;
                     saveNewAddressBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
 
+                    // 获取CSRF令牌
+                    var token = $('input[name="__RequestVerificationToken"]').val();
+
                     // 发送请求保存地址
                     $.ajax({
                         url: '@Url.Action("AddAddressForAppointment", "User")',
                         type: 'POST',
                         data: {
+                            __RequestVerificationToken: token,
                             street: street,
                             detailAddress: detailAddress,
                             contactName: contactName,
