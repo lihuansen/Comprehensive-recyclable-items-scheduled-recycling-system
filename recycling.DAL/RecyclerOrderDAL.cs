@@ -687,14 +687,16 @@ namespace recycling.DAL
             }
 
             // 如果回收员有指定区域，则显示：
-            // 1. 已分配给该回收员的订单（不管地址是否匹配）
-            // 2. 未分配但地址以回收员负责区域开头的订单（前缀匹配）
+            // 1. 已分配给该回收员的订单（不管地址是否匹配，任何状态）
+            // 2. 未分配且状态为"已预约"的订单，地址以回收员负责区域开头（前缀匹配）
             // 例如：回收员负责"广东省深圳市罗湖区某某街道"，
-            //       只能看到地址以"广东省深圳市罗湖区某某街道"开头的订单
+            //       只能看到地址以"广东省深圳市罗湖区某某街道"开头且状态为"已预约"的未分配订单
+            // 说明：一旦订单被接收，RecyclerID会被设置且状态变为"进行中"，
+            //       此时其他回收员无法再看到该订单（因为RecyclerID不为NULL）
             // 注意：@RecyclerID 和 @RecyclerRegion 是参数化查询占位符，由调用方添加实际参数
             if (!string.IsNullOrEmpty(recyclerRegion))
             {
-                return $"({tableAlias}RecyclerID = @RecyclerID OR ({tableAlias}RecyclerID IS NULL AND {tableAlias}Address LIKE @RecyclerRegion))";
+                return $"({tableAlias}RecyclerID = @RecyclerID OR ({tableAlias}RecyclerID IS NULL AND {tableAlias}Status = N'已预约' AND {tableAlias}Address LIKE @RecyclerRegion))";
             }
             else
             {
