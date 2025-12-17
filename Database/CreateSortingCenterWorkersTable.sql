@@ -1,10 +1,10 @@
 -- ==============================================================================
--- 分拣中心工作人员表（SortingCenterWorkers）建表脚本
+-- 基地工作人员表（SortingCenterWorkers）建表脚本
 -- SortingCenterWorkers Table Creation Script
 -- 
--- 用途: 存储分拣中心工作人员信息，负责对运输到分拣中心的回收物品进行分类、
+-- 用途: 存储基地工作人员信息，负责对运输到基地的回收物品进行分类、
 --       质检和处理
--- Purpose: Store sorting center worker information for classifying, 
+-- Purpose: Store base worker information for classifying, 
 --          quality checking and processing recyclable items
 --
 -- 作者: System
@@ -15,9 +15,9 @@ USE RecyclingDB;
 GO
 
 -- ==============================================================================
--- SortingCenterWorkers 表（分拣中心工作人员表）
+-- SortingCenterWorkers 表（基地工作人员表）
 -- 实体类: recycling.Model.SortingCenterWorkers
--- 用途: 存储分拣中心工作人员的基本信息和工作状态
+-- 用途: 存储基地工作人员的基本信息和工作状态
 -- ==============================================================================
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[SortingCenterWorkers]') AND type in (N'U'))
 BEGIN
@@ -28,8 +28,8 @@ BEGIN
         [FullName] NVARCHAR(100) NULL,                   -- 真实姓名
         [PhoneNumber] NVARCHAR(20) NOT NULL,             -- 手机号
         [IDNumber] NVARCHAR(18) NULL,                    -- 身份证号
-        [SortingCenterID] INT NOT NULL,                  -- 所属分拣中心ID
-        [SortingCenterName] NVARCHAR(100) NOT NULL,      -- 分拣中心名称
+        [SortingCenterID] INT NOT NULL,                  -- 所属基地ID
+        [SortingCenterName] NVARCHAR(100) NOT NULL,      -- 基地名称
         [Position] NVARCHAR(50) NOT NULL DEFAULT N'分拣员', -- 职位（分拣员、质检员、组长、主管）
         [WorkStation] NVARCHAR(50) NULL,                 -- 工位编号
         [Specialization] NVARCHAR(100) NULL,             -- 专长品类（如：塑料、金属、纸类等）
@@ -82,8 +82,8 @@ GO
 -- FullName              : 工作人员真实姓名
 -- PhoneNumber           : 联系电话
 -- IDNumber              : 身份证号码（用于实名认证）
--- SortingCenterID       : 所属分拣中心的ID
--- SortingCenterName     : 所属分拣中心的名称
+-- SortingCenterID       : 所属基地的ID
+-- SortingCenterName     : 所属基地的名称
 -- Position              : 工作职位
 -- WorkStation           : 工作站/工位编号
 -- Specialization        : 专长的分拣品类
@@ -130,6 +130,6 @@ GO
 -- VALUES 
 --     (N'worker001', 
 --      '5e884898da28047d9166910d1887e12ce02eb84a8fc77f9a66d8b5e33917d8d6', -- password
---      N'李四', N'13800138002', 1, N'罗湖分拣中心',
+--      N'李四', N'13800138002', 1, N'罗湖基地',
 --      N'分拣员', N'A-01', N'塑料,金属', N'白班', 1, N'待命', 1);
 -- ==============================================================================
