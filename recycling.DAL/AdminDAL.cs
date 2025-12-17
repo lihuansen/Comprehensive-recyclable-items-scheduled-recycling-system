@@ -1855,7 +1855,7 @@ namespace recycling.DAL
                     if (ex.Number == 547)
                     {
                         throw new InvalidOperationException(
-                            "无法删除该分拣中心人员，因为存在关联的记录。请先处理相关数据或改用禁用功能。", ex);
+                            "无法删除该基地人员，因为存在关联的记录。请先处理相关数据或改用禁用功能。", ex);
                     }
                     throw;
                 }

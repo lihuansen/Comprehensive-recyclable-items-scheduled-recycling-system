@@ -271,7 +271,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 分拣中心工作人员工作台
+        /// 基地工作人员工作台
         /// </summary>
         public ActionResult SortingCenterWorkerDashboard()
         {
@@ -280,7 +280,7 @@ namespace recycling.Web.UI.Controllers
 
             var worker = (SortingCenterWorkers)Session["LoginStaff"];
             ViewBag.StaffName = worker.Username;
-            ViewBag.DisplayName = "分拣中心工作人员";
+            ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
 
             return View();
@@ -2666,10 +2666,10 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region 分拣中心人员管理功能
+        #region 基地人员管理功能
 
         /// <summary>
-        /// 管理员 - 分拣中心人员管理页面
+        /// 管理员 - 基地人员管理页面
         /// </summary>
         [AdminPermission(AdminPermissions.SortingCenterWorkerManagement)]
         public ActionResult SortingCenterWorkerManagement()
@@ -2683,7 +2683,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 获取分拣中心人员列表（API）
+        /// 管理员 - 获取基地人员列表（API）
         /// </summary>
         [HttpGet]
         public ContentResult GetSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
@@ -2700,7 +2700,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 获取分拣中心人员详情（API）
+        /// 管理员 - 获取基地人员详情（API）
         /// </summary>
         [HttpGet]
         public ContentResult GetSortingCenterWorkerDetails(int workerId)
@@ -2720,7 +2720,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 添加分拣中心人员（API）
+        /// 管理员 - 添加基地人员（API）
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -2732,11 +2732,11 @@ namespace recycling.Web.UI.Controllers
                 
                 if (result.Success)
                 {
-                    LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Create, $"添加分拣中心人员：{worker.Username}", null, worker.Username, "Success");
+                    LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Create, $"添加基地人员：{worker.Username}", null, worker.Username, "Success");
                 }
                 else
                 {
-                    LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Create, $"添加分拣中心人员失败：{worker.Username}", null, worker.Username, "Failed");
+                    LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Create, $"添加基地人员失败：{worker.Username}", null, worker.Username, "Failed");
                 }
                 
                 return Json(new { success = result.Success, message = result.Message });
@@ -2748,7 +2748,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 更新分拣中心人员信息（API）
+        /// 管理员 - 更新基地人员信息（API）
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -2759,7 +2759,7 @@ namespace recycling.Web.UI.Controllers
                 var result = _adminBLL.UpdateSortingCenterWorker(worker);
                 
                 LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Update, 
-                    result.Success ? $"更新分拣中心人员信息：{worker.Username}" : $"更新分拣中心人员信息失败：{worker.Username}", 
+                    result.Success ? $"更新基地人员信息：{worker.Username}" : $"更新基地人员信息失败：{worker.Username}", 
                     worker.WorkerID, worker.Username, result.Success ? "Success" : "Failed");
                 
                 return Json(new { success = result.Success, message = result.Message });
@@ -2771,7 +2771,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 删除分拣中心人员（API）
+        /// 管理员 - 删除基地人员（API）
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -2784,7 +2784,7 @@ namespace recycling.Web.UI.Controllers
                 
                 var result = _adminBLL.DeleteSortingCenterWorker(workerId);
                 
-                LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Delete, $"删除分拣中心人员：{workerName}", workerId, workerName, result.Success ? "Success" : "Failed");
+                LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Delete, $"删除基地人员：{workerName}", workerId, workerName, result.Success ? "Success" : "Failed");
                 
                 return Json(new { success = result.Success, message = result.Message });
             }
@@ -2795,7 +2795,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 获取分拣中心人员统计信息（API）
+        /// 管理员 - 获取基地人员统计信息（API）
         /// </summary>
         [HttpGet]
         public ContentResult GetSortingCenterWorkerStatistics()
@@ -2812,7 +2812,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 导出分拣中心人员数据到CSV
+        /// 管理员 - 导出基地人员数据到CSV
         /// </summary>
         [HttpGet]
         public ActionResult ExportSortingCenterWorkers(string searchTerm = null, bool? isActive = null)
@@ -2828,7 +2828,7 @@ namespace recycling.Web.UI.Controllers
 
                 var csv = new System.Text.StringBuilder();
                 csv.Append("\uFEFF");
-                csv.AppendLine("人员ID,用户名,姓名,手机号,分拣中心,职位,班次,评分,是否可用,账号状态,注册日期");
+                csv.AppendLine("人员ID,用户名,姓名,手机号,基地,职位,班次,评分,是否可用,账号状态,注册日期");
 
                 foreach (var w in workers)
                 {
@@ -2839,10 +2839,10 @@ namespace recycling.Web.UI.Controllers
                     csv.AppendLine($"{w.WorkerID},{EscapeCsvField(w.Username)},{EscapeCsvField(w.FullName ?? "-")},{EscapeCsvField(w.PhoneNumber)},{EscapeCsvField(w.SortingCenterName)},{EscapeCsvField(w.Position)},{EscapeCsvField(w.ShiftType)},{EscapeCsvField(w.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
 
-                var fileName = $"分拣中心人员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                var fileName = $"基地人员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
 
-                LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Export, $"导出分拣中心人员数据，共{workers.Count}条记录");
+                LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Export, $"导出基地人员数据，共{workers.Count}条记录");
 
                 return File(fileBytes, "text/csv", fileName);
             }

@@ -159,7 +159,7 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 验证分拣中心工作人员登录
+        /// 验证基地工作人员登录
         /// </summary>
         private (string ErrorMsg, SortingCenterWorkers Staff) ValidateSortingCenterWorker(string username, string passwordHash)
         {
@@ -167,7 +167,7 @@ namespace recycling.BLL
             {
                 var worker = _staffDAL.GetSortingCenterWorkerByUsername(username);
                 if (worker == null)
-                    return ("分拣中心工作人员账号不存在", null);
+                    return ("基地工作人员账号不存在", null);
 
                 // 不区分大小写比较哈希值
                 if (!string.Equals(worker.PasswordHash, passwordHash, StringComparison.OrdinalIgnoreCase))

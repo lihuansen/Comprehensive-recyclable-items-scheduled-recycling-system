@@ -28,7 +28,7 @@ namespace recycling.Model
                 case TransporterManagement:
                     return "运输人员管理";
                 case SortingCenterWorkerManagement:
-                    return "分拣中心人员管理";
+                    return "基地人员管理";
                 case FeedbackManagement:
                     return "反馈管理";
                 case HomepageManagement:

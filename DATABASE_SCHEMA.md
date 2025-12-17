@@ -23,7 +23,7 @@
 | Users | 用户表 | 存储普通用户信息 | UserID, Username, PhoneNumber, Email |
 | Recyclers | 回收员表 | 存储回收员信息 | RecyclerID, Username, Region, Rating |
 | Transporters | 运输人员表 | 存储运输人员信息 | TransporterID, Username, VehiclePlateNumber, Region |
-| SortingCenterWorkers | 分拣中心工作人员表 | 存储分拣中心工作人员信息 | WorkerID, Username, SortingCenterID, Position |
+| SortingCenterWorkers | 基地工作人员表 | 存储基地工作人员信息 | WorkerID, Username, SortingCenterID, Position |
 | Admins | 管理员表 | 存储管理员信息 | AdminID, Username |
 | SuperAdmins | 超级管理员表 | 存储超级管理员信息 | SuperAdminID, Username |
 | Appointments | 预约订单表 | 存储回收预约信息 | AppointmentID, UserID, RecyclerID, Status |
@@ -133,7 +133,7 @@ CREATE INDEX IX_Recyclers_Available ON Recyclers(Available);
 
 ### 3. Transporters（运输人员表）
 
-**用途**：存储运输人员信息，负责将回收物品从回收员处运输到分拣中心
+**用途**：存储运输人员信息，负责将回收物品从回收员处运输到基地
 
 ```sql
 CREATE TABLE Transporters (
@@ -204,9 +204,9 @@ CREATE INDEX IX_Transporters_VehiclePlateNumber ON Transporters(VehiclePlateNumb
 
 ---
 
-### 4. SortingCenterWorkers（分拣中心工作人员表）
+### 4. SortingCenterWorkers（基地工作人员表）
 
-**用途**：存储分拣中心工作人员信息，负责对运输到分拣中心的回收物品进行分类、质检和处理
+**用途**：存储基地工作人员信息，负责对运输到基地的回收物品进行分类、质检和处理
 
 ```sql
 CREATE TABLE SortingCenterWorkers (
@@ -216,8 +216,8 @@ CREATE TABLE SortingCenterWorkers (
     FullName NVARCHAR(100) NULL,                   -- 真实姓名
     PhoneNumber NVARCHAR(20) NOT NULL,             -- 手机号
     IDNumber NVARCHAR(18) NULL,                    -- 身份证号
-    SortingCenterID INT NOT NULL,                  -- 所属分拣中心ID
-    SortingCenterName NVARCHAR(100) NOT NULL,      -- 分拣中心名称
+    SortingCenterID INT NOT NULL,                  -- 所属基地ID
+    SortingCenterName NVARCHAR(100) NOT NULL,      -- 基地名称
     Position NVARCHAR(50) NOT NULL DEFAULT N'分拣员', -- 职位
     WorkStation NVARCHAR(50) NULL,                 -- 工位编号
     Specialization NVARCHAR(100) NULL,             -- 专长品类
@@ -247,8 +247,8 @@ CREATE TABLE SortingCenterWorkers (
 | FullName | NVARCHAR(100) | NULL | 真实姓名 |
 | PhoneNumber | NVARCHAR(20) | NOT NULL | 手机号 |
 | IDNumber | NVARCHAR(18) | NULL | 身份证号 |
-| SortingCenterID | INT | NOT NULL | 所属分拣中心ID |
-| SortingCenterName | NVARCHAR(100) | NOT NULL | 分拣中心名称 |
+| SortingCenterID | INT | NOT NULL | 所属基地ID |
+| SortingCenterName | NVARCHAR(100) | NOT NULL | 基地名称 |
 | Position | NVARCHAR(50) | NOT NULL | 职位（分拣员、质检员、组长、主管）|
 | WorkStation | NVARCHAR(50) | NULL | 工位编号 |
 | Specialization | NVARCHAR(100) | NULL | 专长品类 |

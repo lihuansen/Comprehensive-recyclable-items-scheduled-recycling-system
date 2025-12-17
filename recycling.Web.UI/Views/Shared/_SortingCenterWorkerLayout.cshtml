@@ -211,7 +211,7 @@
                 @if (Session["LoginStaff"] != null)
                 {
                     var worker = (recycling.Model.SortingCenterWorkers)Session["LoginStaff"];
-                    <span>您好，分拣工作人员：@worker.Username</span>
+                    <span>您好，基地工作人员：@worker.Username</span>
                     @Html.ActionLink("退出登录", "Logout", "Staff")
                 }
             </div>
@@ -219,12 +219,12 @@
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav">@Html.ActionLink("分拣管理", "SortingCenterWorkerDashboard", "Staff")</li>
+                        <li class="normal-nav">@Html.ActionLink("基地管理", "SortingCenterWorkerDashboard", "Staff")</li>
                     </ul>
 
                     <div class="diamond-nav">
                         <a href="@Url.Action("SortingCenterWorkerDashboard", "Staff")" class="diamond-text">
-                            <span>分拣</span>
+                            <span>基地</span>
                             <span>工作台</span>
                         </a>
                     </div>
@@ -239,7 +239,7 @@
     <div class="container body-content">
         @RenderBody()
         <footer>
-            <p>&copy; @DateTime.Now.Year - 圾时达约 - 分拣中心系统</p>
+            <p>&copy; @DateTime.Now.Year - 圾时达约 - 基地系统</p>
         </footer>
     </div>
 

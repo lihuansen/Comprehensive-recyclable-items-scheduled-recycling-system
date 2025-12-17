@@ -562,7 +562,7 @@ namespace recycling.BLL
 
             if (string.IsNullOrEmpty(worker.SortingCenterName))
             {
-                return (false, "分拣中心名称不能为空");
+                return (false, "基地名称不能为空");
             }
 
             if (string.IsNullOrEmpty(worker.Position))
@@ -580,7 +580,7 @@ namespace recycling.BLL
             worker.Available = true;
 
             bool result = _adminDAL.AddSortingCenterWorker(worker);
-            return result ? (true, "添加分拣中心人员成功") : (false, "添加分拣中心人员失败");
+            return result ? (true, "添加基地人员成功") : (false, "添加基地人员失败");
         }
 
         /// <summary>
@@ -605,7 +605,7 @@ namespace recycling.BLL
 
             if (string.IsNullOrEmpty(worker.SortingCenterName))
             {
-                return (false, "分拣中心名称不能为空");
+                return (false, "基地名称不能为空");
             }
 
             if (string.IsNullOrEmpty(worker.Position))
@@ -619,7 +619,7 @@ namespace recycling.BLL
             }
 
             bool result = _adminDAL.UpdateSortingCenterWorker(worker);
-            return result ? (true, "更新分拣中心人员信息成功") : (false, "更新分拣中心人员信息失败");
+            return result ? (true, "更新基地人员信息成功") : (false, "更新基地人员信息失败");
         }
 
         /// <summary>
@@ -635,7 +635,7 @@ namespace recycling.BLL
             try
             {
                 bool result = _adminDAL.DeleteSortingCenterWorker(workerId);
-                return result ? (true, "删除分拣中心人员成功") : (false, "删除分拣中心人员失败");
+                return result ? (true, "删除基地人员成功") : (false, "删除基地人员失败");
             }
             catch (InvalidOperationException ex)
             {
@@ -643,7 +643,7 @@ namespace recycling.BLL
             }
             catch (Exception ex)
             {
-                return (false, $"删除分拣中心人员失败：{ex.Message}");
+                return (false, $"删除基地人员失败：{ex.Message}");
             }
         }
 

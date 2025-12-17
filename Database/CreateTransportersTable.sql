@@ -2,9 +2,9 @@
 -- 运输人员表（Transporters）建表脚本
 -- Transporters Table Creation Script
 -- 
--- 用途: 存储运输人员信息，负责将回收物品从回收员处运输到分拣中心
+-- 用途: 存储运输人员信息，负责将回收物品从回收员处运输到基地
 -- Purpose: Store transporter information for transporting recyclable items 
---          from recyclers to sorting centers
+--          from recyclers to base
 --
 -- 作者: System
 -- 创建日期: 2025-12-05
