@@ -320,9 +320,9 @@ namespace recycling.DAL
         }
         #endregion
 
-        #region 分拣中心工作人员登录验证（对应SortingCenterWorkers表）
+        #region 基地工作人员登录验证（对应SortingCenterWorkers表）
         /// <summary>
-        /// 根据用户名查询分拣中心工作人员信息
+        /// 根据用户名查询基地工作人员信息
         /// </summary>
         public SortingCenterWorkers GetSortingCenterWorkerByUsername(string username)
         {
@@ -369,14 +369,14 @@ namespace recycling.DAL
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("查询分拣中心工作人员失败：" + ex.Message);
+                    throw new Exception("查询基地工作人员失败：" + ex.Message);
                 }
             }
             return worker;
         }
 
         /// <summary>
-        /// 更新分拣中心工作人员最后登录时间
+        /// 更新基地工作人员最后登录时间
         /// </summary>
         public void UpdateSortingCenterWorkerLastLogin(int workerId)
         {
@@ -397,7 +397,7 @@ namespace recycling.DAL
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("更新分拣中心工作人员登录时间失败：" + ex.Message);
+                    throw new Exception("更新基地工作人员登录时间失败：" + ex.Message);
                 }
             }
         }
