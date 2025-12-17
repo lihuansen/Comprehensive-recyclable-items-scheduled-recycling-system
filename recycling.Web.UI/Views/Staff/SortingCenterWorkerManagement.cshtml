@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "分拣中心人员管理";
+    ViewBag.Title = "基地人员管理";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
@@ -25,8 +25,8 @@
 
 <div class="container-fluid">
     <div class="admin-header">
-        <h2><i class="fas fa-industry"></i> 分拣中心人员管理</h2>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理分拣中心工作人员账号、查看人员信息</p>
+        <h2><i class="fas fa-industry"></i> 基地人员管理</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理基地工作人员账号、查看人员信息</p>
     </div>
 
     <!-- 统计卡片 -->
@@ -55,7 +55,7 @@
     <div class="row" style="margin-bottom: 20px;">
         <div class="col-md-12">
             <button class="btn btn-success" onclick="showAddModal()">
-                <i class="fas fa-plus"></i> 添加分拣中心人员
+                <i class="fas fa-plus"></i> 添加基地人员
             </button>
         </div>
     </div>
@@ -63,7 +63,7 @@
     <div class="search-box">
         <div class="row">
             <div class="col-md-4">
-                <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、姓名、手机号、分拣中心或职位...">
+                <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、姓名、手机号、基地或职位...">
             </div>
             <div class="col-md-3">
                 <select class="form-control" id="statusFilter">
@@ -93,7 +93,7 @@
                     <th>用户名</th>
                     <th>姓名</th>
                     <th>手机号</th>
-                    <th>分拣中心</th>
+                    <th>基地</th>
                     <th>职位</th>
                     <th>班次</th>
                     <th>评分</th>
@@ -125,7 +125,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="modalTitle">添加分拣中心人员</h4>
+                <h4 class="modal-title" id="modalTitle">添加基地人员</h4>
             </div>
             <div class="modal-body">
                 <form id="workerForm">
@@ -168,7 +168,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>分拣中心ID *</label>
+                                <label>基地ID *</label>
                                 <input type="number" class="form-control" id="sortingCenterId" required value="1">
                             </div>
                         </div>
@@ -176,14 +176,14 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>分拣中心名称 *</label>
+                                <label>基地名称 *</label>
                                 <select class="form-control" id="sortingCenterName" required>
-                                    <option value="">请选择分拣中心</option>
-                                    <option value="罗湖区回收分拣中心">罗湖区回收分拣中心</option>
-                                    <option value="清水河分拣站">清水河分拣站</option>
-                                    <option value="东门分拣站">东门分拣站</option>
-                                    <option value="南湖分拣站">南湖分拣站</option>
-                                    <option value="黄贝分拣站">黄贝分拣站</option>
+                                    <option value="">请选择基地</option>
+                                    <option value="罗湖区回收基地">罗湖区回收基地</option>
+                                    <option value="清水河基地">清水河基地</option>
+                                    <option value="东门基地">东门基地</option>
+                                    <option value="南湖基地">南湖基地</option>
+                                    <option value="黄贝基地">黄贝基地</option>
                                 </select>
                             </div>
                         </div>
@@ -314,7 +314,7 @@ function renderWorkers(data) {
     var tbody = $('#tableBody');
     tbody.empty();
     if (data.Items.length === 0) {
-        tbody.append('<tr><td colspan="10" class="text-center">没有找到分拣中心人员</td></tr>');
+        tbody.append('<tr><td colspan="10" class="text-center">没有找到基地人员</td></tr>');
         return;
     }
     data.Items.forEach(function (w) {
@@ -360,7 +360,7 @@ function goToPage(page) { currentPage = page; loadWorkers(); }
 function searchWorkers() { searchTerm = $('#searchInput').val(); statusFilter = $('#statusFilter').val() || null; currentPage = 1; loadWorkers(); }
 
 function showAddModal() {
-    $('#modalTitle').text('添加分拣中心人员');
+    $('#modalTitle').text('添加基地人员');
     $('#workerForm')[0].reset();
     $('#workerId').val('');
     $('#sortingCenterId').val('1');
@@ -377,7 +377,7 @@ function editWorkerById(btn) {
 }
 
 function editWorker(worker) {
-    $('#modalTitle').text('编辑分拣中心人员');
+    $('#modalTitle').text('编辑基地人员');
     $('#workerId').val(worker.WorkerID);
     $('#username').val(worker.Username);
     $('#fullName').val(worker.FullName);
@@ -433,7 +433,7 @@ function saveWorker() {
 }
 
 function deleteWorker(id) {
-    if (!confirm('确定要删除此分拣中心人员吗？')) return;
+    if (!confirm('确定要删除此基地人员吗？')) return;
     $.ajax({
         url: '@Url.Action("DeleteSortingCenterWorker", "Staff")',
         type: 'POST',
