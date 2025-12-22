@@ -93,7 +93,6 @@
                     <th>用户名</th>
                     <th>姓名</th>
                     <th>手机号</th>
-                    <th>车辆类型</th>
                     <th>车牌号</th>
                     <th>区域</th>
                     <th>评分</th>
@@ -103,7 +102,7 @@
             </thead>
             <tbody id="tableBody">
                 <tr>
-                    <td colspan="10" class="text-center">
+                    <td colspan="9" class="text-center">
                         <i class="fas fa-spinner fa-spin"></i> 加载中...
                     </td>
                 </tr>
@@ -175,30 +174,9 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="form-group" id="vehicleTypeGroup">
-                                <label>车辆类型 *</label>
-                                <select class="form-control" id="vehicleType" required>
-                                    <option value="">请选择车辆类型</option>
-                                    <option value="小型货车">小型货车</option>
-                                    <option value="中型货车">中型货车</option>
-                                    <option value="大型货车">大型货车</option>
-                                    <option value="电动三轮车">电动三轮车</option>
-                                    <option value="面包车">面包车</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
                             <div class="form-group">
                                 <label>车牌号 *</label>
                                 <input type="text" class="form-control" id="vehiclePlateNumber" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group" id="vehicleCapacityGroup">
-                                <label>车辆载重(kg)</label>
-                                <input type="number" class="form-control" id="vehicleCapacity" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -297,7 +275,7 @@ function renderTransporters(data) {
     var tbody = $('#tableBody');
     tbody.empty();
     if (data.Items.length === 0) {
-        tbody.append('<tr><td colspan="10" class="text-center">没有找到运输人员</td></tr>');
+        tbody.append('<tr><td colspan="9" class="text-center">没有找到运输人员</td></tr>');
         return;
     }
     data.Items.forEach(function (t) {
@@ -306,7 +284,6 @@ function renderTransporters(data) {
             '<td>' + escapeHtml(t.Username) + '</td>' +
             '<td>' + escapeHtml(t.FullName || '-') + '</td>' +
             '<td>' + escapeHtml(t.PhoneNumber) + '</td>' +
-            '<td>' + escapeHtml(t.VehicleType || '-') + '</td>' +
             '<td>' + escapeHtml(t.VehiclePlateNumber) + '</td>' +
             '<td>' + escapeHtml(t.Region) + '</td>' +
             '<td>' + (t.Rating ? t.Rating.toFixed(1) : '0.0') + ' ⭐</td>' +
@@ -347,9 +324,6 @@ function showAddModal() {
     $('#transporterForm')[0].reset();
     $('#transporterId').val('');
     $('#passwordGroup').show();
-    $('#vehicleTypeGroup').show();
-    $('#vehicleCapacityGroup').show();
-    $('#vehicleType').prop('required', true);
     $('#transporterModal').modal('show');
 }
 
@@ -375,9 +349,6 @@ function editTransporter(transporter) {
     $('#available').prop('checked', transporter.Available);
     $('#isActive').prop('checked', transporter.IsActive);
     $('#passwordGroup').hide();
-    $('#vehicleTypeGroup').hide();
-    $('#vehicleCapacityGroup').hide();
-    $('#vehicleType').prop('required', false);
     $('#transporterModal').modal('show');
 }
 
@@ -397,10 +368,8 @@ function saveTransporter() {
         IsActive: $('#isActive').is(':checked')
     };
     
-    // Only include VehicleType, VehicleCapacity and password when adding (not editing)
+    // Only include password when adding (not editing)
     if (!id) {
-        data.VehicleType = $('#vehicleType').val();
-        data.VehicleCapacity = $('#vehicleCapacity').val() || null;
         data.password = $('#password').val();
     }
     

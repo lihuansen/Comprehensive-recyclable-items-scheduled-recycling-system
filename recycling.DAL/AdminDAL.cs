@@ -1501,7 +1501,7 @@ namespace recycling.DAL
             {
                 conn.Open();
                 string sql = @"INSERT INTO Transporters (Username, PasswordHash, FullName, PhoneNumber, IDNumber, VehicleType, VehiclePlateNumber, VehicleCapacity, LicenseNumber, Region, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
-                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @VehicleType, @VehiclePlateNumber, @VehicleCapacity, @LicenseNumber, @Region, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, NULL, @VehiclePlateNumber, NULL, @LicenseNumber, @Region, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", transporter.Username);
@@ -1509,9 +1509,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@VehicleType", transporter.VehicleType);
                 cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
-                cmd.Parameters.AddWithValue("@VehicleCapacity", transporter.VehicleCapacity ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@Available", transporter.Available);

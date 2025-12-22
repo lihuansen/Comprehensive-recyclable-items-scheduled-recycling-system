@@ -271,7 +271,7 @@ namespace recycling.DAL
                                 PasswordHash = reader["PasswordHash"].ToString(),
                                 FullName = reader["FullName"]?.ToString(),
                                 PhoneNumber = reader["PhoneNumber"].ToString(),
-                                VehicleType = reader["VehicleType"].ToString(),
+                                VehicleType = reader["VehicleType"] != DBNull.Value ? reader["VehicleType"].ToString() : null,
                                 VehiclePlateNumber = reader["VehiclePlateNumber"].ToString(),
                                 Region = reader["Region"].ToString(),
                                 Available = Convert.ToBoolean(reader["Available"]),
@@ -352,7 +352,7 @@ namespace recycling.DAL
                                 FullName = reader["FullName"] != DBNull.Value ? reader["FullName"].ToString() : null,
                                 PhoneNumber = reader["PhoneNumber"].ToString(),
                                 IDNumber = reader["IDNumber"] != DBNull.Value ? reader["IDNumber"].ToString() : null,
-                                VehicleType = reader["VehicleType"].ToString(),
+                                VehicleType = reader["VehicleType"] != DBNull.Value ? reader["VehicleType"].ToString() : null,
                                 VehiclePlateNumber = reader["VehiclePlateNumber"].ToString(),
                                 VehicleCapacity = reader["VehicleCapacity"] != DBNull.Value 
                                     ? Convert.ToDecimal(reader["VehicleCapacity"]) 
@@ -394,9 +394,9 @@ namespace recycling.DAL
                                SET FullName = @FullName,
                                    PhoneNumber = @PhoneNumber,
                                    IDNumber = @IDNumber,
-                                   VehicleType = @VehicleType,
+                                   VehicleType = NULL,
                                    VehiclePlateNumber = @VehiclePlateNumber,
-                                   VehicleCapacity = @VehicleCapacity,
+                                   VehicleCapacity = NULL,
                                    LicenseNumber = @LicenseNumber,
                                    Region = @Region,
                                    PasswordHash = @PasswordHash
@@ -406,9 +406,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", (object)transporter.FullName ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", (object)transporter.IDNumber ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@VehicleType", transporter.VehicleType);
                 cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
-                cmd.Parameters.AddWithValue("@VehicleCapacity", (object)transporter.VehicleCapacity ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@LicenseNumber", (object)transporter.LicenseNumber ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@PasswordHash", transporter.PasswordHash);
