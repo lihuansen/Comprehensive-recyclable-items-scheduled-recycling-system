@@ -907,6 +907,127 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 暂存点管理页面 - 回收员端
+        /// </summary>
+        [HttpGet]
+        public ActionResult StoragePointManagement()
+        {
+            // 检查登录
+            if (Session["LoginStaff"] == null)
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            var staff = Session["LoginStaff"] as Recyclers;
+            var role = Session["StaffRole"] as string;
+
+            if (role != "recycler")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.RecyclerName = staff.Username;
+            ViewBag.Region = staff.Region;
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取回收员暂存点库存汇总（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetStoragePointSummary()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return JsonContent(new { success = false, message = "未登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Recyclers;
+                var role = Session["StaffRole"] as string;
+
+                if (role != "recycler")
+                {
+                    return JsonContent(new { success = false, message = "权限不足" });
+                }
+
+                var inventoryBll = new InventoryBLL();
+
+                // 获取该回收员的库存汇总（按类别分组）
+                var summary = inventoryBll.GetInventorySummary(staff.RecyclerID);
+
+                var result = summary.Select(s => new
+                {
+                    categoryKey = s.CategoryKey,
+                    categoryName = s.CategoryName,
+                    totalWeight = s.TotalWeight,
+                    totalPrice = s.TotalPrice
+                }).ToList();
+
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取回收员暂存点库存明细（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetStoragePointDetail(string categoryKey = null)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return JsonContent(new { success = false, message = "未登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Recyclers;
+                var role = Session["StaffRole"] as string;
+
+                if (role != "recycler")
+                {
+                    return JsonContent(new { success = false, message = "权限不足" });
+                }
+
+                var inventoryBll = new InventoryBLL();
+
+                // 获取该回收员的库存明细列表（1000条记录对于单个回收员来说足够）
+                var inventoryList = inventoryBll.GetInventoryList(staff.RecyclerID, 1, 1000);
+
+                // 如果指定了类别，则过滤
+                if (!string.IsNullOrEmpty(categoryKey))
+                {
+                    inventoryList = inventoryList.Where(i => i.CategoryKey == categoryKey).ToList();
+                }
+
+                var result = inventoryList.Select(i => new
+                {
+                    inventoryId = i.InventoryID,
+                    orderId = i.OrderID,
+                    categoryKey = i.CategoryKey,
+                    categoryName = i.CategoryName,
+                    weight = i.Weight,
+                    price = i.Price,
+                    createdDate = i.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 用户评价页面 - 回收员查看收到的评价
         /// </summary>
         [HttpGet]
