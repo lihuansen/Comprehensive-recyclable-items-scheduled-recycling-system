@@ -550,16 +550,6 @@ namespace recycling.BLL
                 return (false, "手机号不能为空");
             }
 
-            if (string.IsNullOrEmpty(worker.SortingCenterName))
-            {
-                return (false, "基地名称不能为空");
-            }
-
-            if (string.IsNullOrEmpty(worker.Position))
-            {
-                return (false, "职位不能为空");
-            }
-
             if (string.IsNullOrEmpty(worker.ShiftType))
             {
                 return (false, "班次类型不能为空");
@@ -591,16 +581,6 @@ namespace recycling.BLL
             if (string.IsNullOrEmpty(worker.PhoneNumber))
             {
                 return (false, "手机号不能为空");
-            }
-
-            if (string.IsNullOrEmpty(worker.SortingCenterName))
-            {
-                return (false, "基地名称不能为空");
-            }
-
-            if (string.IsNullOrEmpty(worker.Position))
-            {
-                return (false, "职位不能为空");
             }
 
             if (string.IsNullOrEmpty(worker.ShiftType))

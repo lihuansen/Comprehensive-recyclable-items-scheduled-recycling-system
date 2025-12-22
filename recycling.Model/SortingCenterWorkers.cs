@@ -31,11 +31,9 @@ namespace recycling.Model
 
         public int SortingCenterID { get; set; }
 
-        [Required]
         [StringLength(100)]
         public string SortingCenterName { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string Position { get; set; }
 
