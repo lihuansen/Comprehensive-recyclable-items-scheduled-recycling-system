@@ -167,6 +167,30 @@
         font-size: 14px;
         color: #666;
     }
+
+    .alert-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background-color: #f44336;
+        color: white;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
 </style>
 
 <div class="storage-container">
@@ -341,9 +365,16 @@
         $('#summarySection').show();
     }
 
-    // 显示错误信息
+    // 显示错误信息（使用更友好的通知方式）
     function showError(message) {
-        alert(message);
+        var $notification = $('<div class="alert-notification"></div>').text(message);
+        $('body').append($notification);
+        
+        setTimeout(function () {
+            $notification.fadeOut(300, function () {
+                $(this).remove();
+            });
+        }, 3000);
     }
 </script>
 }

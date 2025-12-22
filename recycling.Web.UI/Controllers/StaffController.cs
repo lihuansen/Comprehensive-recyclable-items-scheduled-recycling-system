@@ -997,7 +997,7 @@ namespace recycling.Web.UI.Controllers
 
                 var inventoryBll = new InventoryBLL();
 
-                // 获取该回收员的库存明细列表
+                // 获取该回收员的库存明细列表（1000条记录对于单个回收员来说足够）
                 var inventoryList = inventoryBll.GetInventoryList(staff.RecyclerID, 1, 1000);
 
                 // 如果指定了类别，则过滤
