@@ -318,6 +318,114 @@ namespace recycling.DAL
                 }
             }
         }
+
+        /// <summary>
+        /// 通过ID获取运输人员信息
+        /// </summary>
+        public Transporters GetTransporterById(int transporterId)
+        {
+            Transporters transporter = null;
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    string sql = @"SELECT TransporterID, Username, PasswordHash, FullName, PhoneNumber, 
+                                          IDNumber, VehicleType, VehiclePlateNumber, VehicleCapacity,
+                                          LicenseNumber, Region, Available, CurrentStatus, TotalTrips,
+                                          TotalWeight, Rating, CreatedDate, LastLoginDate, IsActive 
+                                  FROM Transporters 
+                                  WHERE TransporterID = @TransporterID";
+
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@TransporterID", transporterId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            transporter = new Transporters
+                            {
+                                TransporterID = Convert.ToInt32(reader["TransporterID"]),
+                                Username = reader["Username"].ToString(),
+                                PasswordHash = reader["PasswordHash"].ToString(),
+                                FullName = reader["FullName"] != DBNull.Value ? reader["FullName"].ToString() : null,
+                                PhoneNumber = reader["PhoneNumber"].ToString(),
+                                IDNumber = reader["IDNumber"] != DBNull.Value ? reader["IDNumber"].ToString() : null,
+                                VehicleType = reader["VehicleType"].ToString(),
+                                VehiclePlateNumber = reader["VehiclePlateNumber"].ToString(),
+                                VehicleCapacity = reader["VehicleCapacity"] != DBNull.Value 
+                                    ? Convert.ToDecimal(reader["VehicleCapacity"]) 
+                                    : (decimal?)null,
+                                LicenseNumber = reader["LicenseNumber"] != DBNull.Value ? reader["LicenseNumber"].ToString() : null,
+                                Region = reader["Region"].ToString(),
+                                Available = Convert.ToBoolean(reader["Available"]),
+                                CurrentStatus = reader["CurrentStatus"].ToString(),
+                                TotalTrips = Convert.ToInt32(reader["TotalTrips"]),
+                                TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
+                                Rating = reader["Rating"] != DBNull.Value 
+                                    ? Convert.ToDecimal(reader["Rating"]) 
+                                    : (decimal?)null,
+                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                                LastLoginDate = reader["LastLoginDate"] != DBNull.Value
+                                    ? Convert.ToDateTime(reader["LastLoginDate"])
+                                    : (DateTime?)null,
+                                IsActive = Convert.ToBoolean(reader["IsActive"])
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("查询运输人员失败：" + ex.Message);
+                }
+            }
+            return transporter;
+        }
+
+        /// <summary>
+        /// 更新运输人员信息
+        /// </summary>
+        public bool UpdateTransporter(Transporters transporter)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Transporters 
+                               SET FullName = @FullName,
+                                   PhoneNumber = @PhoneNumber,
+                                   IDNumber = @IDNumber,
+                                   VehicleType = @VehicleType,
+                                   VehiclePlateNumber = @VehiclePlateNumber,
+                                   VehicleCapacity = @VehicleCapacity,
+                                   LicenseNumber = @LicenseNumber,
+                                   Region = @Region,
+                                   PasswordHash = @PasswordHash
+                               WHERE TransporterID = @TransporterID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@FullName", (object)transporter.FullName ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
+                cmd.Parameters.AddWithValue("@IDNumber", (object)transporter.IDNumber ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@VehicleType", transporter.VehicleType);
+                cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
+                cmd.Parameters.AddWithValue("@VehicleCapacity", (object)transporter.VehicleCapacity ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@LicenseNumber", (object)transporter.LicenseNumber ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Region", transporter.Region);
+                cmd.Parameters.AddWithValue("@PasswordHash", transporter.PasswordHash);
+                cmd.Parameters.AddWithValue("@TransporterID", transporter.TransporterID);
+
+                try
+                {
+                    conn.Open();
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("更新运输人员信息失败：" + ex.Message);
+                }
+            }
+        }
         #endregion
 
         #region 基地工作人员登录验证（对应SortingCenterWorkers表）
