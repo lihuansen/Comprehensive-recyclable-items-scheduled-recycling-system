@@ -1979,7 +1979,7 @@ namespace recycling.DAL
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
                 PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
-                VehicleType = reader.GetString(reader.GetOrdinal("VehicleType")),
+                VehicleType = reader.IsDBNull(reader.GetOrdinal("VehicleType")) ? null : reader.GetString(reader.GetOrdinal("VehicleType")),
                 VehiclePlateNumber = reader.GetString(reader.GetOrdinal("VehiclePlateNumber")),
                 VehicleCapacity = reader.IsDBNull(reader.GetOrdinal("VehicleCapacity")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("VehicleCapacity")),
                 LicenseNumber = reader.IsDBNull(reader.GetOrdinal("LicenseNumber")) ? null : reader.GetString(reader.GetOrdinal("LicenseNumber")),

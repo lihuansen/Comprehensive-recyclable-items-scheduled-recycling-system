@@ -397,7 +397,7 @@ function saveTransporter() {
         IsActive: $('#isActive').is(':checked')
     };
     
-    // Only include VehicleType and VehicleCapacity when adding (not editing)
+    // Only include VehicleType, VehicleCapacity and password when adding (not editing)
     if (!id) {
         data.VehicleType = $('#vehicleType').val();
         data.VehicleCapacity = $('#vehicleCapacity').val() || null;
