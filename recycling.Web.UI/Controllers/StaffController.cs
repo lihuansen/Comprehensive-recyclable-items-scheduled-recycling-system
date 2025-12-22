@@ -2639,7 +2639,7 @@ namespace recycling.Web.UI.Controllers
 
                 var csv = new System.Text.StringBuilder();
                 csv.Append("\uFEFF");
-                csv.AppendLine("运输人员ID,用户名,姓名,手机号,车辆类型,车牌号,区域,评分,是否可接单,账号状态,注册日期");
+                csv.AppendLine("运输人员ID,用户名,姓名,手机号,车牌号,区域,评分,是否可接单,账号状态,注册日期");
 
                 foreach (var t in transporters)
                 {
@@ -2647,7 +2647,7 @@ namespace recycling.Web.UI.Controllers
                     var activeStatus = t.IsActive ? "激活" : "禁用";
                     var createdDate = t.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss");
 
-                    csv.AppendLine($"{t.TransporterID},{EscapeCsvField(t.Username)},{EscapeCsvField(t.FullName ?? "-")},{EscapeCsvField(t.PhoneNumber)},{EscapeCsvField(t.VehicleType)},{EscapeCsvField(t.VehiclePlateNumber)},{EscapeCsvField(t.Region)},{EscapeCsvField(t.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
+                    csv.AppendLine($"{t.TransporterID},{EscapeCsvField(t.Username)},{EscapeCsvField(t.FullName ?? "-")},{EscapeCsvField(t.PhoneNumber)},{EscapeCsvField(t.VehiclePlateNumber)},{EscapeCsvField(t.Region)},{EscapeCsvField(t.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
 
                 var fileName = $"运输人员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
