@@ -1535,9 +1535,7 @@ namespace recycling.DAL
                     FullName = @FullName,
                     PhoneNumber = @PhoneNumber,
                     IDNumber = @IDNumber,
-                    VehicleType = @VehicleType,
                     VehiclePlateNumber = @VehiclePlateNumber,
-                    VehicleCapacity = @VehicleCapacity,
                     LicenseNumber = @LicenseNumber,
                     Region = @Region,
                     Available = @Available,
@@ -1551,9 +1549,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@VehicleType", transporter.VehicleType);
                 cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
-                cmd.Parameters.AddWithValue("@VehicleCapacity", transporter.VehicleCapacity ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@Available", transporter.Available);
@@ -1983,7 +1979,7 @@ namespace recycling.DAL
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
                 PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
-                VehicleType = reader.GetString(reader.GetOrdinal("VehicleType")),
+                VehicleType = reader.IsDBNull(reader.GetOrdinal("VehicleType")) ? null : reader.GetString(reader.GetOrdinal("VehicleType")),
                 VehiclePlateNumber = reader.GetString(reader.GetOrdinal("VehiclePlateNumber")),
                 VehicleCapacity = reader.IsDBNull(reader.GetOrdinal("VehicleCapacity")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("VehicleCapacity")),
                 LicenseNumber = reader.IsDBNull(reader.GetOrdinal("LicenseNumber")) ? null : reader.GetString(reader.GetOrdinal("LicenseNumber")),
