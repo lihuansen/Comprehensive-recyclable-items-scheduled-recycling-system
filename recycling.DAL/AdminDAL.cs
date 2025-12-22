@@ -1535,9 +1535,7 @@ namespace recycling.DAL
                     FullName = @FullName,
                     PhoneNumber = @PhoneNumber,
                     IDNumber = @IDNumber,
-                    VehicleType = @VehicleType,
                     VehiclePlateNumber = @VehiclePlateNumber,
-                    VehicleCapacity = @VehicleCapacity,
                     LicenseNumber = @LicenseNumber,
                     Region = @Region,
                     Available = @Available,
@@ -1551,9 +1549,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@VehicleType", transporter.VehicleType);
                 cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
-                cmd.Parameters.AddWithValue("@VehicleCapacity", transporter.VehicleCapacity ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@Available", transporter.Available);

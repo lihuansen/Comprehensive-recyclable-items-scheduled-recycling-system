@@ -175,7 +175,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="form-group">
+                            <div class="form-group" id="vehicleTypeGroup">
                                 <label>车辆类型 *</label>
                                 <select class="form-control" id="vehicleType" required>
                                     <option value="">请选择车辆类型</option>
@@ -196,7 +196,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="form-group">
+                            <div class="form-group" id="vehicleCapacityGroup">
                                 <label>车辆载重(kg)</label>
                                 <input type="number" class="form-control" id="vehicleCapacity" step="0.01">
                             </div>
@@ -306,7 +306,7 @@ function renderTransporters(data) {
             '<td>' + escapeHtml(t.Username) + '</td>' +
             '<td>' + escapeHtml(t.FullName || '-') + '</td>' +
             '<td>' + escapeHtml(t.PhoneNumber) + '</td>' +
-            '<td>' + escapeHtml(t.VehicleType) + '</td>' +
+            '<td>' + escapeHtml(t.VehicleType || '-') + '</td>' +
             '<td>' + escapeHtml(t.VehiclePlateNumber) + '</td>' +
             '<td>' + escapeHtml(t.Region) + '</td>' +
             '<td>' + (t.Rating ? t.Rating.toFixed(1) : '0.0') + ' ⭐</td>' +
@@ -347,6 +347,9 @@ function showAddModal() {
     $('#transporterForm')[0].reset();
     $('#transporterId').val('');
     $('#passwordGroup').show();
+    $('#vehicleTypeGroup').show();
+    $('#vehicleCapacityGroup').show();
+    $('#vehicleType').prop('required', true);
     $('#transporterModal').modal('show');
 }
 
@@ -366,14 +369,15 @@ function editTransporter(transporter) {
     $('#phoneNumber').val(transporter.PhoneNumber);
     $('#idNumber').val(transporter.IDNumber);
     $('#licenseNumber').val(transporter.LicenseNumber);
-    $('#vehicleType').val(transporter.VehicleType);
     $('#vehiclePlateNumber').val(transporter.VehiclePlateNumber);
-    $('#vehicleCapacity').val(transporter.VehicleCapacity);
     $('#region').val(transporter.Region);
     $('#currentStatus').val(transporter.CurrentStatus);
     $('#available').prop('checked', transporter.Available);
     $('#isActive').prop('checked', transporter.IsActive);
     $('#passwordGroup').hide();
+    $('#vehicleTypeGroup').hide();
+    $('#vehicleCapacityGroup').hide();
+    $('#vehicleType').prop('required', false);
     $('#transporterModal').modal('show');
 }
 
@@ -386,15 +390,20 @@ function saveTransporter() {
         FullName: $('#fullName').val(),
         IDNumber: $('#idNumber').val(),
         LicenseNumber: $('#licenseNumber').val(),
-        VehicleType: $('#vehicleType').val(),
         VehiclePlateNumber: $('#vehiclePlateNumber').val(),
-        VehicleCapacity: $('#vehicleCapacity').val() || null,
         Region: $('#region').val(),
         CurrentStatus: $('#currentStatus').val(),
         Available: $('#available').is(':checked'),
         IsActive: $('#isActive').is(':checked')
     };
-    if (!id) data.password = $('#password').val();
+    
+    // Only include VehicleType and VehicleCapacity when adding (not editing)
+    if (!id) {
+        data.VehicleType = $('#vehicleType').val();
+        data.VehicleCapacity = $('#vehicleCapacity').val() || null;
+        data.password = $('#password').val();
+    }
+    
     data.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
     
     $.ajax({

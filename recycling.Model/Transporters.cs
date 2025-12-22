@@ -29,7 +29,6 @@ namespace recycling.Model
         [StringLength(18)]
         public string IDNumber { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string VehicleType { get; set; }
 
