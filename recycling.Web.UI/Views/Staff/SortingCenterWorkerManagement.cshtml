@@ -63,7 +63,7 @@
     <div class="search-box">
         <div class="row">
             <div class="col-md-4">
-                <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、姓名、手机号、基地或职位...">
+                <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、姓名、手机号...">
             </div>
             <div class="col-md-3">
                 <select class="form-control" id="statusFilter">
@@ -93,8 +93,6 @@
                     <th>用户名</th>
                     <th>姓名</th>
                     <th>手机号</th>
-                    <th>基地</th>
-                    <th>职位</th>
                     <th>班次</th>
                     <th>评分</th>
                     <th>状态</th>
@@ -103,7 +101,7 @@
             </thead>
             <tbody id="tableBody">
                 <tr>
-                    <td colspan="10" class="text-center">
+                    <td colspan="8" class="text-center">
                         <i class="fas fa-spinner fa-spin"></i> 加载中...
                     </td>
                 </tr>
@@ -168,61 +166,12 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>基地ID *</label>
-                                <input type="number" class="form-control" id="sortingCenterId" required value="1">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>基地名称 *</label>
-                                <select class="form-control" id="sortingCenterName" required>
-                                    <option value="">请选择基地</option>
-                                    <option value="罗湖区回收基地">罗湖区回收基地</option>
-                                    <option value="清水河基地站">清水河基地站</option>
-                                    <option value="东门基地站">东门基地站</option>
-                                    <option value="南湖基地站">南湖基地站</option>
-                                    <option value="黄贝基地站">黄贝基地站</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>职位 *</label>
-                                <select class="form-control" id="position" required>
-                                    <option value="">请选择职位</option>
-                                    <option value="分拣员">分拣员</option>
-                                    <option value="组长">组长</option>
-                                    <option value="质检员">质检员</option>
-                                    <option value="仓管员">仓管员</option>
-                                    <option value="主管">主管</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
                                 <label>工位</label>
                                 <input type="text" class="form-control" id="workStation" placeholder="如：A区1号">
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>专业方向</label>
-                                <select class="form-control" id="specialization">
-                                    <option value="">请选择专业方向</option>
-                                    <option value="塑料分拣">塑料分拣</option>
-                                    <option value="金属分拣">金属分拣</option>
-                                    <option value="纸类分拣">纸类分拣</option>
-                                    <option value="玻璃分拣">玻璃分拣</option>
-                                    <option value="电子产品">电子产品</option>
-                                    <option value="综合分拣">综合分拣</option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
+                    <input type="hidden" id="sortingCenterId" value="1">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -314,7 +263,7 @@ function renderWorkers(data) {
     var tbody = $('#tableBody');
     tbody.empty();
     if (data.Items.length === 0) {
-        tbody.append('<tr><td colspan="10" class="text-center">没有找到基地人员</td></tr>');
+        tbody.append('<tr><td colspan="8" class="text-center">没有找到基地人员</td></tr>');
         return;
     }
     data.Items.forEach(function (w) {
@@ -323,8 +272,6 @@ function renderWorkers(data) {
             '<td>' + escapeHtml(w.Username) + '</td>' +
             '<td>' + escapeHtml(w.FullName || '-') + '</td>' +
             '<td>' + escapeHtml(w.PhoneNumber) + '</td>' +
-            '<td>' + escapeHtml(w.SortingCenterName) + '</td>' +
-            '<td>' + escapeHtml(w.Position) + '</td>' +
             '<td>' + escapeHtml(w.ShiftType) + '</td>' +
             '<td>' + (w.Rating ? w.Rating.toFixed(1) : '0.0') + ' ⭐</td>' +
             '<td>' +
@@ -383,11 +330,8 @@ function editWorker(worker) {
     $('#fullName').val(worker.FullName);
     $('#phoneNumber').val(worker.PhoneNumber);
     $('#idNumber').val(worker.IDNumber);
-    $('#sortingCenterId').val(worker.SortingCenterID);
-    $('#sortingCenterName').val(worker.SortingCenterName);
-    $('#position').val(worker.Position);
+    $('#sortingCenterId').val(1);
     $('#workStation').val(worker.WorkStation);
-    $('#specialization').val(worker.Specialization);
     $('#shiftType').val(worker.ShiftType);
     $('#currentStatus').val(worker.CurrentStatus);
     $('#available').prop('checked', worker.Available);
@@ -404,11 +348,11 @@ function saveWorker() {
         PhoneNumber: $('#phoneNumber').val(),
         FullName: $('#fullName').val(),
         IDNumber: $('#idNumber').val(),
-        SortingCenterID: parseInt($('#sortingCenterId').val()) || 1,
-        SortingCenterName: $('#sortingCenterName').val(),
-        Position: $('#position').val(),
+        SortingCenterID: 1,
+        SortingCenterName: null,
+        Position: null,
         WorkStation: $('#workStation').val(),
-        Specialization: $('#specialization').val(),
+        Specialization: null,
         ShiftType: $('#shiftType').val(),
         CurrentStatus: $('#currentStatus').val(),
         Available: $('#available').is(':checked'),

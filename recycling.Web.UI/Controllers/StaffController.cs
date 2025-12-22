@@ -2828,7 +2828,7 @@ namespace recycling.Web.UI.Controllers
 
                 var csv = new System.Text.StringBuilder();
                 csv.Append("\uFEFF");
-                csv.AppendLine("人员ID,用户名,姓名,手机号,基地,职位,班次,评分,是否可用,账号状态,注册日期");
+                csv.AppendLine("人员ID,用户名,姓名,手机号,班次,评分,是否可用,账号状态,注册日期");
 
                 foreach (var w in workers)
                 {
@@ -2836,7 +2836,7 @@ namespace recycling.Web.UI.Controllers
                     var activeStatus = w.IsActive ? "激活" : "禁用";
                     var createdDate = w.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss");
 
-                    csv.AppendLine($"{w.WorkerID},{EscapeCsvField(w.Username)},{EscapeCsvField(w.FullName ?? "-")},{EscapeCsvField(w.PhoneNumber)},{EscapeCsvField(w.SortingCenterName)},{EscapeCsvField(w.Position)},{EscapeCsvField(w.ShiftType)},{EscapeCsvField(w.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
+                    csv.AppendLine($"{w.WorkerID},{EscapeCsvField(w.Username)},{EscapeCsvField(w.FullName ?? "-")},{EscapeCsvField(w.PhoneNumber)},{EscapeCsvField(w.ShiftType)},{EscapeCsvField(w.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
 
                 var fileName = $"基地人员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";

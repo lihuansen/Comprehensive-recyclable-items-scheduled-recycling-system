@@ -1770,10 +1770,10 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
-                cmd.Parameters.AddWithValue("@SortingCenterName", worker.SortingCenterName);
-                cmd.Parameters.AddWithValue("@Position", worker.Position);
+                cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Position", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Specialization", worker.Specialization ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Specialization", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
@@ -1814,10 +1814,10 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
-                cmd.Parameters.AddWithValue("@SortingCenterName", worker.SortingCenterName);
-                cmd.Parameters.AddWithValue("@Position", worker.Position);
+                cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Position", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Specialization", worker.Specialization ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Specialization", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
@@ -2006,8 +2006,8 @@ namespace recycling.DAL
                 PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
                 SortingCenterID = reader.GetInt32(reader.GetOrdinal("SortingCenterID")),
-                SortingCenterName = reader.GetString(reader.GetOrdinal("SortingCenterName")),
-                Position = reader.GetString(reader.GetOrdinal("Position")),
+                SortingCenterName = reader.IsDBNull(reader.GetOrdinal("SortingCenterName")) ? null : reader.GetString(reader.GetOrdinal("SortingCenterName")),
+                Position = reader.IsDBNull(reader.GetOrdinal("Position")) ? null : reader.GetString(reader.GetOrdinal("Position")),
                 WorkStation = reader.IsDBNull(reader.GetOrdinal("WorkStation")) ? null : reader.GetString(reader.GetOrdinal("WorkStation")),
                 Specialization = reader.IsDBNull(reader.GetOrdinal("Specialization")) ? null : reader.GetString(reader.GetOrdinal("Specialization")),
                 ShiftType = reader.GetString(reader.GetOrdinal("ShiftType")),
