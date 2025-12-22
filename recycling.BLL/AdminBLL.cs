@@ -409,11 +409,6 @@ namespace recycling.BLL
                 return (false, "手机号不能为空");
             }
 
-            if (string.IsNullOrEmpty(transporter.VehicleType))
-            {
-                return (false, "车辆类型不能为空");
-            }
-
             if (string.IsNullOrEmpty(transporter.VehiclePlateNumber))
             {
                 return (false, "车牌号不能为空");
