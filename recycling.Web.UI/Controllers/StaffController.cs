@@ -2854,5 +2854,137 @@ namespace recycling.Web.UI.Controllers
         }
 
         #endregion
+
+        #region 运输人员账号管理功能
+
+        /// <summary>
+        /// 运输人员 - 个人中心页面
+        /// </summary>
+        public ActionResult TransporterProfile()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                return RedirectToAction("Login", "Staff");
+
+            var transporter = (Transporters)Session["LoginStaff"];
+            
+            // 重新从数据库获取最新信息
+            var latestTransporter = _staffBLL.GetTransporterById(transporter.TransporterID);
+            if (latestTransporter != null)
+            {
+                Session["LoginStaff"] = latestTransporter;
+                return View(latestTransporter);
+            }
+            
+            return View(transporter);
+        }
+
+        /// <summary>
+        /// 运输人员 - 显示编辑个人信息页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult TransporterEditProfile()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                return RedirectToAction("Login", "Staff");
+
+            var transporter = (Transporters)Session["LoginStaff"];
+            
+            var model = new TransporterProfileViewModel
+            {
+                FullName = transporter.FullName,
+                PhoneNumber = transporter.PhoneNumber,
+                IDNumber = transporter.IDNumber,
+                VehiclePlateNumber = transporter.VehiclePlateNumber,
+                LicenseNumber = transporter.LicenseNumber,
+                Region = transporter.Region
+            };
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// 运输人员 - 处理编辑个人信息提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TransporterEditProfile(TransporterProfileViewModel model)
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                return RedirectToAction("Login", "Staff");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var transporter = (Transporters)Session["LoginStaff"];
+            var result = _staffBLL.UpdateTransporterProfile(transporter.TransporterID, model);
+
+            if (result.Success)
+            {
+                TempData["SuccessMessage"] = result.Message;
+                
+                // 更新Session中的数据
+                var updatedTransporter = _staffBLL.GetTransporterById(transporter.TransporterID);
+                if (updatedTransporter != null)
+                {
+                    Session["LoginStaff"] = updatedTransporter;
+                }
+                
+                return RedirectToAction("TransporterProfile");
+            }
+            else
+            {
+                ModelState.AddModelError("", result.Message);
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// 运输人员 - 显示修改密码页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult TransporterChangePassword()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                return RedirectToAction("Login", "Staff");
+
+            return View(new ChangePasswordViewModel());
+        }
+
+        /// <summary>
+        /// 运输人员 - 处理修改密码提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TransporterChangePassword(ChangePasswordViewModel model)
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                return RedirectToAction("Login", "Staff");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var transporter = (Transporters)Session["LoginStaff"];
+            var result = _staffBLL.ChangeTransporterPassword(transporter.TransporterID, model.CurrentPassword, model.NewPassword);
+
+            if (result.Success)
+            {
+                TempData["SuccessMessage"] = result.Message;
+                // 清除Session，要求重新登录
+                Session.Clear();
+                Session.Abandon();
+                return RedirectToAction("Login", "Staff");
+            }
+            else
+            {
+                ModelState.AddModelError("", result.Message);
+                return View(model);
+            }
+        }
+
+        #endregion
     }
 }

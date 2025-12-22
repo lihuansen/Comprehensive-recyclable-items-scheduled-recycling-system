@@ -1,0 +1,272 @@
+@model recycling.Model.Transporters
+@{
+    ViewBag.Title = "个人中心";
+    Layout = "~/Views/Shared/_TransporterLayout.cshtml";
+}
+
+<style>
+    .profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin-bottom: 15px;
+    }
+
+    .welcome-text {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .member-info {
+        opacity: 0.9;
+        font-size: 14px;
+    }
+
+    .action-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .action-card {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s;
+        border: 2px solid transparent;
+    }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            border-color: #3498db;
+        }
+
+    .card-icon {
+        font-size: 48px;
+        color: #3498db;
+        margin-bottom: 15px;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .card-description {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .btn-action {
+        background: #3498db;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background 0.3s;
+        display: inline-block;
+    }
+
+        .btn-action:hover {
+            background: #2980b9;
+            color: white;
+            text-decoration: none;
+        }
+
+    .user-info-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .info-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .info-value {
+        color: #666;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .success-alert {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="profile-container">
+    <!-- 成功消息提示 -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="success-alert">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <!-- 个人资料头部 -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <i class="fas fa-truck"></i>
+        </div>
+        <div class="welcome-text">欢迎回来，@Model.Username！</div>
+        <div class="member-info">
+            <i class="fas fa-calendar-alt"></i> 注册时间：@Model.CreatedDate.ToString("yyyy-MM-dd")
+            @if (Model.LastLoginDate.HasValue)
+            {
+                <span style="margin-left: 20px;">
+                    <i class="fas fa-sign-in-alt"></i> 最后登录：@Model.LastLoginDate.Value.ToString("yyyy-MM-dd HH:mm")
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- 功能卡片 -->
+    <div class="action-cards">
+        <div class="action-card">
+            <div class="card-icon">
+                <i class="fas fa-user-edit"></i>
+            </div>
+            <div class="card-title">编辑个人信息</div>
+            <div class="card-description">
+                修改您的姓名、手机号、车牌号等信息
+            </div>
+            <a href="@Url.Action("TransporterEditProfile", "Staff")" class="btn-action">
+                <i class="fas fa-edit"></i> 编辑信息
+            </a>
+        </div>
+
+        <div class="action-card">
+            <div class="card-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div class="card-title">修改密码</div>
+            <div class="card-description">
+                定期修改密码，保护您的账户安全
+            </div>
+            <a href="@Url.Action("TransporterChangePassword", "Staff")" class="btn-action">
+                <i class="fas fa-key"></i> 修改密码
+            </a>
+        </div>
+    </div>
+
+    <!-- 用户信息详情 -->
+    <div class="user-info-section">
+        <div class="info-title">
+            <i class="fas fa-info-circle"></i> 账户信息
+        </div>
+        <div class="info-item">
+            <span class="info-label">用户名</span>
+            <span class="info-value">@Model.Username</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">姓名</span>
+            <span class="info-value">@(Model.FullName ?? "-")</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">手机号码</span>
+            <span class="info-value">@Model.PhoneNumber</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">身份证号</span>
+            <span class="info-value">@(Model.IDNumber ?? "-")</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">车牌号</span>
+            <span class="info-value">@Model.VehiclePlateNumber</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">驾驶证号</span>
+            <span class="info-value">@(Model.LicenseNumber ?? "-")</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">服务区域</span>
+            <span class="info-value">@Model.Region</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">当前状态</span>
+            <span class="info-value">@Model.CurrentStatus</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">运输人员ID</span>
+            <span class="info-value">@Model.TransporterID</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">注册时间</span>
+            <span class="info-value">@Model.CreatedDate.ToString("yyyy-MM-dd HH:mm")</span>
+        </div>
+        @if (Model.LastLoginDate.HasValue)
+        {
+            <div class="info-item">
+                <span class="info-label">最后登录</span>
+                <span class="info-value">@Model.LastLoginDate.Value.ToString("yyyy-MM-dd HH:mm")</span>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 自动隐藏成功消息
+        $(document).ready(function () {
+            setTimeout(function () {
+                $('.success-alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
+}

@@ -222,5 +222,98 @@ namespace recycling.BLL
                 throw new Exception("获取回收员信息失败：" + ex.Message);
             }
         }
+
+        /// <summary>
+        /// 通过ID获取运输人员信息（供UI层调用）
+        /// </summary>
+        public Transporters GetTransporterById(int transporterId)
+        {
+            if (transporterId <= 0)
+                throw new ArgumentException("运输人员ID无效");
+
+            try
+            {
+                return _staffDAL.GetTransporterById(transporterId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("获取运输人员信息失败：" + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 更新运输人员个人信息（不包括车辆类型和载重）
+        /// </summary>
+        public (bool Success, string Message) UpdateTransporterProfile(int transporterId, TransporterProfileViewModel model)
+        {
+            if (transporterId <= 0)
+                return (false, "运输人员ID无效");
+
+            if (model == null)
+                return (false, "数据不能为空");
+
+            try
+            {
+                var transporter = _staffDAL.GetTransporterById(transporterId);
+                if (transporter == null)
+                    return (false, "运输人员不存在");
+
+                // 更新字段（不包括车辆类型和载重）
+                transporter.FullName = model.FullName;
+                transporter.PhoneNumber = model.PhoneNumber;
+                transporter.IDNumber = model.IDNumber;
+                transporter.VehiclePlateNumber = model.VehiclePlateNumber;
+                transporter.LicenseNumber = model.LicenseNumber;
+                transporter.Region = model.Region;
+
+                bool result = _staffDAL.UpdateTransporter(transporter);
+                return result ? (true, "个人信息更新成功") : (false, "更新失败，请重试");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"更新失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 修改运输人员密码
+        /// </summary>
+        public (bool Success, string Message) ChangeTransporterPassword(int transporterId, string currentPassword, string newPassword)
+        {
+            if (transporterId <= 0)
+                return (false, "运输人员ID无效");
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+                return (false, "请输入当前密码");
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+                return (false, "请输入新密码");
+
+            if (newPassword.Length < 6)
+                return (false, "新密码长度不能少于6个字符");
+
+            try
+            {
+                var transporter = _staffDAL.GetTransporterById(transporterId);
+                if (transporter == null)
+                    return (false, "运输人员不存在");
+
+                // 验证当前密码
+                string currentPasswordHash = HashPassword(currentPassword);
+                if (!string.Equals(transporter.PasswordHash, currentPasswordHash, StringComparison.OrdinalIgnoreCase))
+                    return (false, "当前密码错误");
+
+                // 更新密码
+                string newPasswordHash = HashPassword(newPassword);
+                transporter.PasswordHash = newPasswordHash;
+
+                bool result = _staffDAL.UpdateTransporter(transporter);
+                return result ? (true, "密码修改成功，请重新登录") : (false, "密码修改失败，请重试");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"修改密码失败：{ex.Message}");
+            }
+        }
     }
 }

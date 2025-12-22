@@ -1,0 +1,205 @@
+@model recycling.Model.TransporterProfileViewModel
+@{
+    ViewBag.Title = "编辑个人信息";
+    Layout = "~/Views/Shared/_TransporterLayout.cshtml";
+}
+
+<style>
+    .edit-profile-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 30px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        height: 50px;
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        padding: 0 15px;
+    }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+    select.form-control {
+        height: 50px;
+        padding: 0 15px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        height: 50px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        margin-bottom: 15px;
+    }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+    .btn-back {
+        width: 100%;
+        height: 50px;
+        background: #6c757d;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+        }
+
+    .validation-summary {
+        background: #fff5f5;
+        border-left: 4px solid #ff6b6b;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+
+    .field-icon {
+        color: #3498db;
+        margin-right: 10px;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+</style>
+
+<!-- 提示信息 -->
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    <strong>提示：</strong>
+    根据系统要求，车辆类型和车辆载重信息已移除，不再需要填写。如需修改这些信息，请联系管理员。
+</div>
+
+<div class="edit-profile-container">
+    <h2 class="page-title">
+        <i class="fas fa-user-edit"></i> 编辑个人信息
+    </h2>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="validation-summary">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+    }
+
+    @using (Html.BeginForm("TransporterEditProfile", "Staff", FormMethod.Post, new { @class = "edit-profile-form" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-user field-icon"></i> 姓名 *
+            </label>
+            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "请输入姓名" })
+            @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-phone field-icon"></i> 手机号码 *
+            </label>
+            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "请输入手机号码" })
+            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-id-card field-icon"></i> 身份证号
+            </label>
+            @Html.TextBoxFor(m => m.IDNumber, new { @class = "form-control", placeholder = "请输入身份证号" })
+            @Html.ValidationMessageFor(m => m.IDNumber, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-car field-icon"></i> 车牌号 *
+            </label>
+            @Html.TextBoxFor(m => m.VehiclePlateNumber, new { @class = "form-control", placeholder = "请输入车牌号" })
+            @Html.ValidationMessageFor(m => m.VehiclePlateNumber, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-address-card field-icon"></i> 驾驶证号
+            </label>
+            @Html.TextBoxFor(m => m.LicenseNumber, new { @class = "form-control", placeholder = "请输入驾驶证号" })
+            @Html.ValidationMessageFor(m => m.LicenseNumber, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-map-marker-alt field-icon"></i> 服务区域 *
+            </label>
+            @Html.DropDownListFor(m => m.Region, new SelectList(new[] {
+                "广东省深圳市罗湖区清水河街道",
+                "广东省深圳市罗湖区东门街道",
+                "广东省深圳市罗湖区南湖街道",
+                "广东省深圳市罗湖区桂园街道",
+                "广东省深圳市罗湖区黄贝街道",
+                "广东省深圳市罗湖区东湖街道",
+                "广东省深圳市罗湖区翠竹街道",
+                "广东省深圳市罗湖区莲塘街道",
+                "广东省深圳市罗湖区东晓街道",
+                "广东省深圳市罗湖区笋岗街道"
+            }), "请选择服务区域", new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.Region, "", new { @class = "text-danger" })
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-save"></i> 保存修改
+        </button>
+
+        <a href="@Url.Action("TransporterProfile", "Staff")" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> 返回个人中心
+        </a>
+    }
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
