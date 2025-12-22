@@ -936,6 +936,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取回收员暂存点库存汇总（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetStoragePointSummary()
         {
             try
@@ -978,6 +979,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取回收员暂存点库存明细（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetStoragePointDetail(string categoryKey = null)
         {
             try

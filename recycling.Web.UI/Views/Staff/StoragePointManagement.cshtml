@@ -250,6 +250,10 @@
 
 @section scripts {
 <script>
+    // 获取Anti-Forgery Token
+    var antiForgeryToken = '@Html.AntiForgeryToken()';
+    var tokenValue = $('input[name="__RequestVerificationToken"]', antiForgeryToken).val();
+
     $(document).ready(function () {
         loadSummary();
     });
@@ -259,6 +263,9 @@
         $.ajax({
             url: '@Url.Action("GetStoragePointSummary", "Staff")',
             type: 'POST',
+            data: {
+                __RequestVerificationToken: tokenValue
+            },
             success: function (response) {
                 if (response.success) {
                     displaySummary(response.data);
@@ -322,7 +329,10 @@
         $.ajax({
             url: '@Url.Action("GetStoragePointDetail", "Staff")',
             type: 'POST',
-            data: { categoryKey: categoryKey },
+            data: {
+                categoryKey: categoryKey,
+                __RequestVerificationToken: tokenValue
+            },
             success: function (response) {
                 if (response.success) {
                     displayDetail(response.data);
