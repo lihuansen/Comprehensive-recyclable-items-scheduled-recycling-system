@@ -7,6 +7,7 @@
 <!-- 引入Font Awesome保持图标一致性 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="~/Content/register.css" rel="stylesheet" type="text/css" />
+<script src="~/Scripts/keyboard-navigation.js"></script>
 
 <div class="register-container">
     <h2 class="register-title">用户注册</h2>
@@ -120,6 +121,9 @@
 
     // 页面加载时初始化
     document.addEventListener('DOMContentLoaded', function() {
+        // 初始化键盘导航
+        KeyboardNavigation.init('.register-container');
+
         // 初始化密码显示/隐藏功能（使用与登录页相同的方法）
         setupPasswordToggle('togglePassword', 'passwordInput');
         setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput');

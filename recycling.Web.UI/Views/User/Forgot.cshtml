@@ -7,6 +7,7 @@
 <!-- 引入Font Awesome用于眼睛图标 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="~/Content/forgot.css" rel="stylesheet" type="text/css" />
+<script src="~/Scripts/keyboard-navigation.js"></script>
 
 <div class="forgot-password-container">
     <h2 class="forgot-password-title">忘记密码</h2>
@@ -100,6 +101,9 @@
 <script>
     // 页面加载完成后执行
     document.addEventListener('DOMContentLoaded', function() {
+        // 初始化键盘导航
+        KeyboardNavigation.init('.forgot-password-container');
+
         // 密码显示/隐藏切换功能
         setupPasswordToggle('toggleNewPassword', 'newPassword');
         setupPasswordToggle('toggleConfirmPassword', 'confirmNewPassword');

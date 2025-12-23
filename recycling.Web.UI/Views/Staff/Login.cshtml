@@ -8,6 +8,7 @@
 <!-- 引入Font Awesome用于眼睛图标 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="~/Content/login.css" rel="stylesheet" type="text/css" />
+<script src="~/Scripts/keyboard-navigation.js"></script>
 
 <div class="login-container">
     <h2 class="login-title">工作人员登录</h2>
@@ -160,6 +161,9 @@
 
         // 页面加载时初始化（与用户登录完全一致）
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化键盘导航
+            KeyboardNavigation.init('.login-container');
+
             // 初始化密码显示/隐藏功能
             setupPasswordToggle('togglePassword', 'passwordInput');
 
