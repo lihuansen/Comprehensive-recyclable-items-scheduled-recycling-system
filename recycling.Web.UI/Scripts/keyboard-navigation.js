@@ -17,6 +17,9 @@
 (function(window) {
     'use strict';
 
+    // 常量定义 (Constants)
+    var FOCUS_DELAY_MS = 100; // 自动聚焦延迟，确保页面完全加载
+
     var KeyboardNavigation = {
         // 可导航的输入框选择器
         inputSelector: 'input[type="text"], input[type="password"], input[type="email"], input[type="tel"], input[type="number"], textarea, select',
@@ -30,7 +33,7 @@
             var container = containerSelector ? document.querySelector(containerSelector) : document;
             
             if (!container) {
-                console.warn('KeyboardNavigation: 容器未找到');
+                console.warn('KeyboardNavigation: Container not found / 容器未找到');
                 return;
             }
 
@@ -165,11 +168,12 @@
         focusFirstInput: function(inputs) {
             for (var i = 0; i < inputs.length; i++) {
                 if (this.isInputAccessible(inputs[i])) {
-                    // 使用IIFE确保正确捕获索引值
+                    // 使用IIFE捕获当前输入框元素，避免闭包问题
+                    // Use IIFE to capture the input element for setTimeout callback
                     (function(input) {
                         setTimeout(function() {
                             input.focus();
-                        }, 100);
+                        }, FOCUS_DELAY_MS);
                     })(inputs[i]);
                     return;
                 }
@@ -181,6 +185,8 @@
          * @param {HTMLElement} input - 当前输入框元素
          */
         submitForm: function(input) {
+            // input.form 适用于大多数表单关联的输入元素
+            // input.closest('form') 作为备用方案，用于某些特殊情况
             var form = input.form || input.closest('form');
             if (form) {
                 // 检查表单是否有提交按钮
