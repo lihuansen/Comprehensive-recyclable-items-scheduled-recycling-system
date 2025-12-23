@@ -165,10 +165,12 @@
         focusFirstInput: function(inputs) {
             for (var i = 0; i < inputs.length; i++) {
                 if (this.isInputAccessible(inputs[i])) {
-                    // 使用setTimeout确保在页面完全加载后聚焦
-                    setTimeout(function() {
-                        inputs[i].focus();
-                    }, 100);
+                    // 使用IIFE确保正确捕获索引值
+                    (function(input) {
+                        setTimeout(function() {
+                            input.focus();
+                        }, 100);
+                    })(inputs[i]);
                     return;
                 }
             }
