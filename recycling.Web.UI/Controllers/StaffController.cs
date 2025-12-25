@@ -944,22 +944,28 @@ namespace recycling.Web.UI.Controllers
             {
                 if (Session["LoginStaff"] == null)
                 {
-                    return JsonContent(new { success = false, message = "未登录" });
+                    System.Diagnostics.Debug.WriteLine("GetStoragePointSummary: 用户未登录");
+                    return JsonContent(new { success = false, message = "未登录，请重新登录" });
                 }
 
                 var staff = Session["LoginStaff"] as Recyclers;
                 var role = Session["StaffRole"] as string;
 
-                if (role != "recycler")
+                if (staff == null || role != "recycler")
                 {
-                    return JsonContent(new { success = false, message = "权限不足" });
+                    System.Diagnostics.Debug.WriteLine($"GetStoragePointSummary: 权限验证失败 - Role: {role}");
+                    return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
                 }
+
+                System.Diagnostics.Debug.WriteLine($"GetStoragePointSummary: 开始查询回收员 ID={staff.RecyclerID} 的库存数据");
 
                 // Use simplified implementation: query directly from order tables
                 var storagePointBll = new StoragePointBLL();
 
                 // Get inventory summary for this recycler (grouped by category)
                 var summary = storagePointBll.GetStoragePointSummary(staff.RecyclerID);
+
+                System.Diagnostics.Debug.WriteLine($"GetStoragePointSummary: 成功查询到 {summary.Count} 条汇总记录");
 
                 // Return success even if data is empty
                 var result = summary.Select(s => new
@@ -972,10 +978,39 @@ namespace recycling.Web.UI.Controllers
 
                 return JsonContent(new { success = true, data = result });
             }
+            catch (System.Data.SqlClient.SqlException sqlEx)
+            {
+                var errorMsg = $"数据库连接或查询错误 (错误代码: {sqlEx.Number})";
+                System.Diagnostics.Debug.WriteLine($"GetStoragePointSummary SQL错误: {errorMsg}");
+                System.Diagnostics.Debug.WriteLine($"详细信息: {sqlEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {sqlEx.StackTrace}");
+                
+                // Provide helpful error messages based on SQL error codes
+                switch (sqlEx.Number)
+                {
+                    case 208: // Invalid object name
+                        errorMsg = "数据库表不存在，请联系管理员检查数据库配置";
+                        break;
+                    case 4060: // Cannot open database
+                        errorMsg = "无法连接到数据库，请检查数据库服务";
+                        break;
+                    case 18456: // Login failed
+                        errorMsg = "数据库身份验证失败，请检查连接配置";
+                        break;
+                    default:
+                        errorMsg += $": {sqlEx.Message}";
+                        break;
+                }
+                
+                return JsonContent(new { success = false, message = errorMsg });
+            }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"获取库存汇总错误: {ex.Message}");
-                return JsonContent(new { success = false, message = "获取数据失败: " + ex.Message });
+                System.Diagnostics.Debug.WriteLine($"GetStoragePointSummary 错误: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+                
+                var innerMsg = ex.InnerException != null ? $" 详情: {ex.InnerException.Message}" : "";
+                return JsonContent(new { success = false, message = $"获取数据失败: {ex.Message}{innerMsg}" });
             }
         }
 
@@ -991,22 +1026,28 @@ namespace recycling.Web.UI.Controllers
             {
                 if (Session["LoginStaff"] == null)
                 {
-                    return JsonContent(new { success = false, message = "未登录" });
+                    System.Diagnostics.Debug.WriteLine("GetStoragePointDetail: 用户未登录");
+                    return JsonContent(new { success = false, message = "未登录，请重新登录" });
                 }
 
                 var staff = Session["LoginStaff"] as Recyclers;
                 var role = Session["StaffRole"] as string;
 
-                if (role != "recycler")
+                if (staff == null || role != "recycler")
                 {
-                    return JsonContent(new { success = false, message = "权限不足" });
+                    System.Diagnostics.Debug.WriteLine($"GetStoragePointDetail: 权限验证失败 - Role: {role}");
+                    return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
                 }
+
+                System.Diagnostics.Debug.WriteLine($"GetStoragePointDetail: 开始查询回收员 ID={staff.RecyclerID}, CategoryKey={categoryKey ?? "全部"} 的库存明细");
 
                 // Use simplified implementation: query directly from order tables
                 var storagePointBll = new StoragePointBLL();
 
                 // Get inventory detail list for this recycler
                 var detailList = storagePointBll.GetStoragePointDetail(staff.RecyclerID, categoryKey);
+
+                System.Diagnostics.Debug.WriteLine($"GetStoragePointDetail: 成功查询到 {detailList.Count} 条明细记录");
 
                 // Return success even if data is empty
                 var result = detailList.Select(d => new
@@ -1021,10 +1062,39 @@ namespace recycling.Web.UI.Controllers
 
                 return JsonContent(new { success = true, data = result });
             }
+            catch (System.Data.SqlClient.SqlException sqlEx)
+            {
+                var errorMsg = $"数据库连接或查询错误 (错误代码: {sqlEx.Number})";
+                System.Diagnostics.Debug.WriteLine($"GetStoragePointDetail SQL错误: {errorMsg}");
+                System.Diagnostics.Debug.WriteLine($"详细信息: {sqlEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {sqlEx.StackTrace}");
+                
+                // Provide helpful error messages based on SQL error codes
+                switch (sqlEx.Number)
+                {
+                    case 208: // Invalid object name
+                        errorMsg = "数据库表不存在，请联系管理员检查数据库配置";
+                        break;
+                    case 4060: // Cannot open database
+                        errorMsg = "无法连接到数据库，请检查数据库服务";
+                        break;
+                    case 18456: // Login failed
+                        errorMsg = "数据库身份验证失败，请检查连接配置";
+                        break;
+                    default:
+                        errorMsg += $": {sqlEx.Message}";
+                        break;
+                }
+                
+                return JsonContent(new { success = false, message = errorMsg });
+            }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"获取库存明细错误: {ex.Message}");
-                return JsonContent(new { success = false, message = "获取数据失败: " + ex.Message });
+                System.Diagnostics.Debug.WriteLine($"GetStoragePointDetail 错误: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+                
+                var innerMsg = ex.InnerException != null ? $" 详情: {ex.InnerException.Message}" : "";
+                return JsonContent(new { success = false, message = $"获取数据失败: {ex.Message}{innerMsg}" });
             }
         }
 
