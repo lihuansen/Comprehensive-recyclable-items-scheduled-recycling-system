@@ -61,7 +61,7 @@ SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Inventory'
 1. 检查 `Web.config` 中的连接字符串：
 ```xml
 <connectionStrings>
-    <add name="RecyclingDB" 
+    <add name="RecyclingSystemDB" 
          connectionString="Data Source=YOUR_SERVER;Initial Catalog=YOUR_DB;Integrated Security=True" 
          providerName="System.Data.SqlClient" />
 </connectionStrings>

@@ -35,7 +35,7 @@ chmod +x FixStoragePointManagement.sh
 
 1. 打开 SQL Server Management Studio (SSMS)
 2. 连接到您的数据库服务器
-3. 选择 `RecyclingDB` 数据库
+3. 选择 `RecyclingSystemDB` 数据库
 4. 打开文件 `Database/CreateInventoryTable.sql`
 5. 点击"执行"（F5）运行脚本
 
@@ -43,7 +43,7 @@ chmod +x FixStoragePointManagement.sh
 
 ```bash
 cd Database
-sqlcmd -S localhost -d RecyclingDB -i CreateInventoryTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateInventoryTable.sql
 ```
 
 ## 验证修复

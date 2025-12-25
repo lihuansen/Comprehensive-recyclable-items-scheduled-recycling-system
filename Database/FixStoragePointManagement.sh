@@ -12,7 +12,7 @@ echo ""
 
 # 配置变量（根据需要修改）
 SERVER="localhost"
-DATABASE="RecyclingDB"
+DATABASE="RecyclingSystemDB"
 SQL_FILE="CreateInventoryTable.sql"
 
 # 检查sqlcmd是否可用
