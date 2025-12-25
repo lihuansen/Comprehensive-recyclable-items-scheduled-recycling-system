@@ -959,6 +959,7 @@ namespace recycling.Web.UI.Controllers
                 // 获取该回收员的库存汇总（按类别分组）
                 var summary = inventoryBll.GetInventorySummary(staff.RecyclerID);
 
+                // 即使没有数据也返回成功，只是数据为空
                 var result = summary.Select(s => new
                 {
                     categoryKey = s.CategoryKey,
@@ -969,9 +970,16 @@ namespace recycling.Web.UI.Controllers
 
                 return JsonContent(new { success = true, data = result });
             }
+            catch (System.Data.SqlClient.SqlException sqlEx)
+            {
+                // SQL异常可能是因为表不存在
+                System.Diagnostics.Debug.WriteLine($"SQL错误: {sqlEx.Message}");
+                return JsonContent(new { success = false, message = "数据库错误，请确保Inventory表已创建: " + sqlEx.Message });
+            }
             catch (Exception ex)
             {
-                return JsonContent(new { success = false, message = ex.Message });
+                System.Diagnostics.Debug.WriteLine($"获取库存汇总错误: {ex.Message}");
+                return JsonContent(new { success = false, message = "获取数据失败: " + ex.Message });
             }
         }
 
@@ -1008,6 +1016,7 @@ namespace recycling.Web.UI.Controllers
                     inventoryList = inventoryList.Where(i => i.CategoryKey == categoryKey).ToList();
                 }
 
+                // 即使没有数据也返回成功，只是数据为空
                 var result = inventoryList.Select(i => new
                 {
                     inventoryId = i.InventoryID,
@@ -1021,9 +1030,16 @@ namespace recycling.Web.UI.Controllers
 
                 return JsonContent(new { success = true, data = result });
             }
+            catch (System.Data.SqlClient.SqlException sqlEx)
+            {
+                // SQL异常可能是因为表不存在
+                System.Diagnostics.Debug.WriteLine($"SQL错误: {sqlEx.Message}");
+                return JsonContent(new { success = false, message = "数据库错误，请确保Inventory表已创建: " + sqlEx.Message });
+            }
             catch (Exception ex)
             {
-                return JsonContent(new { success = false, message = ex.Message });
+                System.Diagnostics.Debug.WriteLine($"获取库存明细错误: {ex.Message}");
+                return JsonContent(new { success = false, message = "获取数据失败: " + ex.Message });
             }
         }
 

@@ -267,14 +267,30 @@
                 __RequestVerificationToken: tokenValue
             },
             success: function (response) {
+                console.log('GetStoragePointSummary 响应:', response);
                 if (response.success) {
                     displaySummary(response.data);
                 } else {
                     showError('加载失败：' + response.message);
+                    console.error('加载失败:', response.message);
                 }
             },
-            error: function () {
-                showError('网络错误，请重试');
+            error: function (xhr, status, error) {
+                var errorMsg = '网络错误，请重试';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    try {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        if (jsonResponse.message) {
+                            errorMsg = jsonResponse.message;
+                        }
+                    } catch (e) {
+                        errorMsg += '（状态: ' + xhr.status + '）';
+                    }
+                }
+                console.error('AJAX错误:', { status: xhr.status, statusText: xhr.statusText, error: error, response: xhr.responseText });
+                showError(errorMsg);
             }
         });
     }
@@ -285,7 +301,7 @@
         $cards.empty();
 
         if (data.length === 0) {
-            $cards.html('<div class="empty-state"><i class="glyphicon glyphicon-inbox"></i><p>暂无库存数据</p></div>');
+            $cards.html('<div class="empty-state"><i class="glyphicon glyphicon-inbox"></i><p>暂无库存数据</p><p style="color: #999; font-size: 14px; margin-top: 10px;">完成订单后，回收物品会自动记录到库存中</p></div>');
             updateStats(0, 0, 0);
             return;
         }
@@ -334,14 +350,30 @@
                 __RequestVerificationToken: tokenValue
             },
             success: function (response) {
+                console.log('GetStoragePointDetail 响应:', response);
                 if (response.success) {
                     displayDetail(response.data);
                 } else {
                     showError('加载失败：' + response.message);
+                    console.error('加载失败:', response.message);
                 }
             },
-            error: function () {
-                showError('网络错误，请重试');
+            error: function (xhr, status, error) {
+                var errorMsg = '网络错误，请重试';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    try {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        if (jsonResponse.message) {
+                            errorMsg = jsonResponse.message;
+                        }
+                    } catch (e) {
+                        errorMsg += '（状态: ' + xhr.status + '）';
+                    }
+                }
+                console.error('AJAX错误:', { status: xhr.status, statusText: xhr.statusText, error: error, response: xhr.responseText });
+                showError(errorMsg);
             }
         });
     }
