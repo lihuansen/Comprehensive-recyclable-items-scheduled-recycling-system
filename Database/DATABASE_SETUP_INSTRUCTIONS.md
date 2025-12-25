@@ -43,7 +43,36 @@ SELECT COUNT(*) AS RecordCount FROM AdminOperationLogs;
 sqlcmd -S localhost -d RecyclingDB -i CreateUserFeedbackTable.sql
 ```
 
-### 2. 管理员联系表 (Admin Contact Tables)
+### 3. 库存表 (Inventory Table) - **暂存点管理必需**
+
+**表名**: `Inventory`
+
+**用途**: 存储回收员的库存管理信息，用于暂存点管理功能
+
+**创建脚本**: `CreateInventoryTable.sql`
+
+**重要性**: ⚠️ **此表是暂存点管理功能的必需表**。如果不创建此表，回收员端的"暂存点管理"功能将无法使用，会显示"网络问题，请重试"错误。
+
+**执行方法**:
+```sql
+-- 在 SQL Server Management Studio 中运行以下脚本
+-- 或使用命令行工具执行
+sqlcmd -S localhost -d RecyclingDB -i CreateInventoryTable.sql
+```
+
+**验证表创建**:
+```sql
+-- 检查表是否存在
+SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Inventory';
+
+-- 查看表结构
+EXEC sp_help 'Inventory';
+
+-- 查看索引
+SELECT name, type_desc FROM sys.indexes WHERE object_id = OBJECT_ID('Inventory');
+```
+
+### 4. 管理员联系表 (Admin Contact Tables)
 
 **表名**: `AdminContactConversations` 和 `AdminContactMessages`
 
@@ -66,11 +95,11 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 3. 选择 `RecyclingDB` 数据库（或您的数据库名称）
 4. 依次打开并执行以下脚本：
    - `CreateAdminOperationLogsTable.sql`（管理员日志表 - **推荐首先执行**）
+   - `CreateInventoryTable.sql`（库存表 - **暂存点管理必需**）
    - `CreateUserFeedbackTable.sql`
    - `CreateAdminContactMessagesTable.sql`
    - `CreateHomepageCarouselTable.sql`（如果需要）
    - `CreateOrderReviewsTable.sql`（如果需要）
-   - `CreateInventoryTable.sql`（如果需要）
 
 ### 方法2: 使用命令行 (Command Line)
 
@@ -81,6 +110,9 @@ cd Database
 # 首先执行管理员操作日志表脚本
 sqlcmd -S localhost -d RecyclingDB -i CreateAdminOperationLogsTable.sql
 
+# 执行库存表脚本（暂存点管理必需）
+sqlcmd -S localhost -d RecyclingDB -i CreateInventoryTable.sql
+
 # 依次执行其他必需的脚本
 sqlcmd -S localhost -d RecyclingDB -i CreateUserFeedbackTable.sql
 sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
@@ -88,7 +120,6 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 # 执行其他可选脚本（如果需要）
 sqlcmd -S localhost -d RecyclingDB -i CreateHomepageCarouselTable.sql
 sqlcmd -S localhost -d RecyclingDB -i CreateOrderReviewsTable.sql
-sqlcmd -S localhost -d RecyclingDB -i CreateInventoryTable.sql
 ```
 
 ### 方法3: 使用批处理脚本 (Batch Script)
@@ -137,6 +168,8 @@ FROM
 WHERE 
     TABLE_TYPE = 'BASE TABLE' 
     AND TABLE_NAME IN (
+        'AdminOperationLogs',
+        'Inventory', 
         'UserFeedback', 
         'AdminContactConversations', 
         'AdminContactMessages'
@@ -145,6 +178,7 @@ ORDER BY
     TABLE_NAME;
 
 -- 查看表结构
+EXEC sp_help 'Inventory';
 EXEC sp_help 'UserFeedback';
 EXEC sp_help 'AdminContactConversations';
 EXEC sp_help 'AdminContactMessages';
@@ -175,6 +209,25 @@ EXEC sp_help 'AdminContactMessages';
          providerName="System.Data.SqlClient" />
 </connectionStrings>
 ```
+
+### 问题4: 暂存点管理显示"网络问题，请重试"
+
+**原因**: `Inventory` 表未创建
+
+**症状**: 
+- 回收员点击"暂存点管理"后显示错误
+- 浏览器控制台显示SQL相关错误
+- 错误信息提示"数据库错误，请确保Inventory表已创建"
+
+**解决方案**: 
+1. 执行 `CreateInventoryTable.sql` 脚本创建Inventory表
+2. 验证表创建成功：
+```sql
+SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Inventory';
+```
+3. 刷新暂存点管理页面
+
+**相关文档**: 参见 `STORAGE_POINT_TROUBLESHOOTING.md` 获取详细的故障排查步骤
 
 ## 功能测试 (Feature Testing)
 
@@ -230,6 +283,46 @@ SELECT TOP 10 * FROM UserFeedback ORDER BY CreatedDate DESC;
 ```sql
 SELECT TOP 10 * FROM AdminContactConversations ORDER BY StartTime DESC;
 SELECT TOP 10 * FROM AdminContactMessages ORDER BY SentTime DESC;
+```
+
+### 测试暂存点管理功能
+
+⚠️ **前提条件**: Inventory表必须已创建
+
+1. 以回收员身份登录系统
+2. 完成一个订单（确保订单包含类别和重量信息）
+3. 点击导航栏中的 "暂存点管理"
+4. 验证页面能正常加载，不显示错误
+5. 如果有数据，验证统计数据是否正确显示
+6. 点击类别卡片，验证详细信息是否正确
+7. 验证数据是否保存到数据库：
+
+```sql
+-- 查看最新的库存记录
+SELECT TOP 10 
+    i.InventoryID,
+    'AP' + RIGHT('000000' + CAST(i.OrderID AS VARCHAR(6)), 6) AS '订单编号',
+    i.CategoryName AS '类别',
+    i.Weight AS '重量(kg)',
+    i.Price AS '价值(元)',
+    r.Username AS '回收员',
+    i.CreatedDate AS '入库时间'
+FROM Inventory i
+LEFT JOIN Recyclers r ON i.RecyclerID = r.RecyclerID
+ORDER BY i.CreatedDate DESC;
+
+-- 查看库存汇总（按类别）
+SELECT 
+    CategoryName AS '类别',
+    SUM(Weight) AS '总重量(kg)',
+    SUM(ISNULL(Price, 0)) AS '总价值(元)',
+    COUNT(*) AS '记录数'
+FROM Inventory
+GROUP BY CategoryKey, CategoryName
+ORDER BY CategoryName;
+
+-- 查看特定回收员的库存
+SELECT * FROM Inventory WHERE RecyclerID = <YOUR_RECYCLER_ID>;
 ```
 
 ## 数据库维护 (Database Maintenance)
