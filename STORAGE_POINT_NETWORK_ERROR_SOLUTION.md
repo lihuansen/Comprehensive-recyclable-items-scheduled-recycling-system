@@ -33,7 +33,7 @@ chmod +x FixStoragePointManagement.sh
 
 这些脚本会自动：
 1. ✅ 检查SQL Server连接
-2. ✅ 验证RecyclingDB数据库存在
+2. ✅ 验证RecyclingSystemDB数据库存在
 3. ✅ 创建Inventory表
 4. ✅ 验证表创建成功
 
@@ -43,12 +43,12 @@ chmod +x FixStoragePointManagement.sh
 
 1. 打开 SQL Server Management Studio (SSMS)
 2. 连接到数据库服务器
-3. 选择 `RecyclingDB` 数据库
+3. 选择 `RecyclingSystemDB` 数据库
 4. 打开并执行 `Database/CreateInventoryTable.sql` 文件
 
 或使用命令行：
 ```bash
-sqlcmd -S localhost -d RecyclingDB -i Database/CreateInventoryTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i Database/CreateInventoryTable.sql
 ```
 
 ## 我所做的改进

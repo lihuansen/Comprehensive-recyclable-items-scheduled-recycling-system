@@ -18,7 +18,7 @@
 ```sql
 -- 在 SQL Server Management Studio 中运行以下脚本
 -- 或使用命令行工具执行
-sqlcmd -S localhost -d RecyclingDB -i CreateAdminOperationLogsTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateAdminOperationLogsTable.sql
 ```
 
 **验证表创建**:
@@ -40,7 +40,7 @@ SELECT COUNT(*) AS RecordCount FROM AdminOperationLogs;
 ```sql
 -- 在 SQL Server Management Studio 中运行以下脚本
 -- 或使用命令行工具执行
-sqlcmd -S localhost -d RecyclingDB -i CreateUserFeedbackTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateUserFeedbackTable.sql
 ```
 
 ### 3. 库存表 (Inventory Table) - **暂存点管理必需**
@@ -57,7 +57,7 @@ sqlcmd -S localhost -d RecyclingDB -i CreateUserFeedbackTable.sql
 ```sql
 -- 在 SQL Server Management Studio 中运行以下脚本
 -- 或使用命令行工具执行
-sqlcmd -S localhost -d RecyclingDB -i CreateInventoryTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateInventoryTable.sql
 ```
 
 **验证表创建**:
@@ -83,7 +83,7 @@ SELECT name, type_desc FROM sys.indexes WHERE object_id = OBJECT_ID('Inventory')
 **执行方法**:
 ```sql
 -- 在 SQL Server Management Studio 中运行以下脚本
-sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateAdminContactMessagesTable.sql
 ```
 
 ## 数据库设置步骤 (Setup Steps)
@@ -92,7 +92,7 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 
 1. 打开 SQL Server Management Studio
 2. 连接到您的数据库服务器
-3. 选择 `RecyclingDB` 数据库（或您的数据库名称）
+3. 选择 `RecyclingSystemDB` 数据库（或您的数据库名称）
 4. 依次打开并执行以下脚本：
    - `CreateAdminOperationLogsTable.sql`（管理员日志表 - **推荐首先执行**）
    - `CreateInventoryTable.sql`（库存表 - **暂存点管理必需**）
@@ -108,18 +108,18 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 cd Database
 
 # 首先执行管理员操作日志表脚本
-sqlcmd -S localhost -d RecyclingDB -i CreateAdminOperationLogsTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateAdminOperationLogsTable.sql
 
 # 执行库存表脚本（暂存点管理必需）
-sqlcmd -S localhost -d RecyclingDB -i CreateInventoryTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateInventoryTable.sql
 
 # 依次执行其他必需的脚本
-sqlcmd -S localhost -d RecyclingDB -i CreateUserFeedbackTable.sql
-sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateUserFeedbackTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateAdminContactMessagesTable.sql
 
 # 执行其他可选脚本（如果需要）
-sqlcmd -S localhost -d RecyclingDB -i CreateHomepageCarouselTable.sql
-sqlcmd -S localhost -d RecyclingDB -i CreateOrderReviewsTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateHomepageCarouselTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateOrderReviewsTable.sql
 ```
 
 ### 方法3: 使用批处理脚本 (Batch Script)
@@ -132,7 +132,7 @@ echo 开始设置数据库表...
 echo.
 
 echo 创建用户反馈表...
-sqlcmd -S localhost -d RecyclingDB -i CreateUserFeedbackTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateUserFeedbackTable.sql
 if %ERRORLEVEL% NEQ 0 (
     echo 错误: 用户反馈表创建失败
     pause
@@ -140,7 +140,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo 创建管理员联系表...
-sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateAdminContactMessagesTable.sql
 if %ERRORLEVEL% NEQ 0 (
     echo 错误: 管理员联系表创建失败
     pause
@@ -204,8 +204,8 @@ EXEC sp_help 'AdminContactMessages';
 
 ```xml
 <connectionStrings>
-    <add name="RecyclingDB" 
-         connectionString="Data Source=localhost;Initial Catalog=RecyclingDB;Integrated Security=True" 
+    <add name="RecyclingSystemDB" 
+         connectionString="Data Source=localhost;Initial Catalog=RecyclingSystemDB;Integrated Security=True" 
          providerName="System.Data.SqlClient" />
 </connectionStrings>
 ```

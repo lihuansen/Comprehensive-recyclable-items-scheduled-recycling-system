@@ -30,24 +30,24 @@ echo [成功] SQL Server连接正常
 echo.
 
 REM 检查数据库是否存在
-echo 正在检查RecyclingDB数据库...
-sqlcmd -S localhost -d RecyclingDB -Q "SELECT DB_NAME()" >nul 2>&1
+echo 正在检查RecyclingSystemDB数据库...
+sqlcmd -S localhost -d RecyclingSystemDB -Q "SELECT DB_NAME()" >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo [错误] RecyclingDB数据库不存在
+    echo [错误] RecyclingSystemDB数据库不存在
     echo 请先创建数据库或修改此脚本中的数据库名称
     echo.
     pause
     exit /b 1
 )
 
-echo [成功] RecyclingDB数据库存在
+echo [成功] RecyclingSystemDB数据库存在
 echo.
 
 REM 创建Inventory表
 echo 正在创建Inventory表...
 echo.
-sqlcmd -S localhost -d RecyclingDB -i CreateInventoryTable.sql
+sqlcmd -S localhost -d RecyclingSystemDB -i CreateInventoryTable.sql
 if %ERRORLEVEL% NEQ 0 (
     echo.
     echo [错误] Inventory表创建失败
