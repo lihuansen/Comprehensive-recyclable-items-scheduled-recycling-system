@@ -2,6 +2,39 @@
 
 本目录包含数据库相关的SQL脚本文件。
 
+## 🔴 解决"暂存点管理"网络错误（状态：500）
+
+如果您在回收员端点击**"暂存点管理"**时遇到**"网络问题，请重试（状态：500）"**错误：
+
+### 快速修复（推荐）
+
+#### Windows 用户：
+```batch
+cd Database
+VerifyStoragePointSetup.bat    # 先验证问题
+FixStoragePointManagement.bat  # 如果表不存在，运行此脚本修复
+```
+
+#### Linux/macOS 用户：
+```bash
+cd Database
+chmod +x VerifyStoragePointSetup.sh FixStoragePointManagement.sh
+./VerifyStoragePointSetup.sh    # 先验证问题
+./FixStoragePointManagement.sh  # 如果表不存在，运行此脚本修复
+```
+
+### 问题原因
+
+此错误是因为 **Inventory（库存）表未创建**导致的。暂存点管理功能依赖此表存储回收员的库存数据。
+
+### 相关文档
+
+- **[FIX_STORAGE_POINT_ERROR_CN.md](../FIX_STORAGE_POINT_ERROR_CN.md)** - 完整的中文修复指南
+- **[STORAGE_POINT_FIX_README.md](STORAGE_POINT_FIX_README.md)** - 快速修复说明
+- **[STORAGE_POINT_TROUBLESHOOTING.md](../STORAGE_POINT_TROUBLESHOOTING.md)** - 详细故障排查
+
+---
+
 ## ⭐ 完整建表脚本（推荐）
 
 如果您需要创建整个数据库的所有表，请使用：
