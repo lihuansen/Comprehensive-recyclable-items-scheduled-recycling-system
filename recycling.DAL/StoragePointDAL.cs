@@ -23,23 +23,27 @@ namespace recycling.DAL
         {
             var summary = new List<StoragePointSummary>();
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            try
             {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
                 // Query completed orders summary by category for this recycler
+                // Improved SQL with better NULL and division handling
                 string sql = @"
                     SELECT 
                         ac.CategoryKey, 
                         ac.CategoryName, 
-                        SUM(ac.Weight) AS TotalWeight,
+                        SUM(ISNULL(ac.Weight, 0)) AS TotalWeight,
                         SUM(CASE 
-                            WHEN a.EstimatedWeight > 0 THEN ISNULL(a.EstimatedPrice, 0) * ac.Weight / a.EstimatedWeight
+                            WHEN ISNULL(a.EstimatedWeight, 0) > 0 
+                            THEN ISNULL(a.EstimatedPrice, 0) * ISNULL(ac.Weight, 0) / a.EstimatedWeight
                             ELSE 0
                         END) AS TotalPrice
-                    FROM Appointments a
-                    INNER JOIN AppointmentCategories ac ON a.AppointmentID = ac.AppointmentID
+                    FROM Appointments a WITH (NOLOCK)
+                    INNER JOIN AppointmentCategories ac WITH (NOLOCK) ON a.AppointmentID = ac.AppointmentID
                     WHERE a.RecyclerID = @RecyclerID 
-                        AND a.Status = '已完成'
-                        AND ac.Weight > 0
+                        AND a.Status = N'已完成'
+                        AND ISNULL(ac.Weight, 0) > 0
                     GROUP BY ac.CategoryKey, ac.CategoryName
                     ORDER BY ac.CategoryName";
 
@@ -52,16 +56,36 @@ namespace recycling.DAL
                     {
                         while (reader.Read())
                         {
-                            summary.Add(new StoragePointSummary
+                            try
                             {
-                                CategoryKey = reader["CategoryKey"].ToString(),
-                                CategoryName = reader["CategoryName"].ToString(),
-                                TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
-                                TotalPrice = reader["TotalPrice"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["TotalPrice"])
-                            });
+                                summary.Add(new StoragePointSummary
+                                {
+                                    CategoryKey = reader["CategoryKey"]?.ToString() ?? "",
+                                    CategoryName = reader["CategoryName"]?.ToString() ?? "未知类别",
+                                    TotalWeight = reader["TotalWeight"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["TotalWeight"]),
+                                    TotalPrice = reader["TotalPrice"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["TotalPrice"])
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log row-level error but continue processing
+                                System.Diagnostics.Debug.WriteLine($"Error processing summary row: {ex.Message}");
+                            }
                         }
                     }
                 }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"SQL Error in GetStoragePointSummary: {sqlEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"SQL State: {sqlEx.State}, Number: {sqlEx.Number}");
+                throw new Exception($"数据库查询错误 (代码: {sqlEx.Number}): {sqlEx.Message}", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in GetStoragePointSummary: {ex.Message}");
+                throw new Exception($"获取库存汇总失败: {ex.Message}", ex);
             }
 
             return summary;
@@ -75,27 +99,31 @@ namespace recycling.DAL
         {
             var details = new List<StoragePointDetail>();
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            try
             {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
                 // Query detailed records of completed orders for this recycler
+                // Improved SQL with better NULL and division handling
                 string sql = @"
                     SELECT 
                         a.AppointmentID AS OrderID,
                         ac.CategoryKey, 
                         ac.CategoryName, 
-                        ac.Weight,
+                        ISNULL(ac.Weight, 0) AS Weight,
                         CASE 
-                            WHEN a.EstimatedWeight > 0 THEN ISNULL(a.EstimatedPrice, 0) * ac.Weight / a.EstimatedWeight
+                            WHEN ISNULL(a.EstimatedWeight, 0) > 0 
+                            THEN ISNULL(a.EstimatedPrice, 0) * ISNULL(ac.Weight, 0) / a.EstimatedWeight
                             ELSE 0
                         END AS Price,
-                        a.UpdatedDate AS CompletedDate
-                    FROM Appointments a
-                    INNER JOIN AppointmentCategories ac ON a.AppointmentID = ac.AppointmentID
+                        ISNULL(a.UpdatedDate, a.CreatedDate) AS CompletedDate
+                    FROM Appointments a WITH (NOLOCK)
+                    INNER JOIN AppointmentCategories ac WITH (NOLOCK) ON a.AppointmentID = ac.AppointmentID
                     WHERE a.RecyclerID = @RecyclerID 
-                        AND a.Status = '已完成'
-                        AND ac.Weight > 0
+                        AND a.Status = N'已完成'
+                        AND ISNULL(ac.Weight, 0) > 0
                         AND (@CategoryKey IS NULL OR @CategoryKey = '' OR ac.CategoryKey = @CategoryKey)
-                    ORDER BY a.UpdatedDate DESC";
+                    ORDER BY ISNULL(a.UpdatedDate, a.CreatedDate) DESC";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
@@ -107,18 +135,38 @@ namespace recycling.DAL
                     {
                         while (reader.Read())
                         {
-                            details.Add(new StoragePointDetail
+                            try
                             {
-                                OrderID = Convert.ToInt32(reader["OrderID"]),
-                                CategoryKey = reader["CategoryKey"].ToString(),
-                                CategoryName = reader["CategoryName"].ToString(),
-                                Weight = Convert.ToDecimal(reader["Weight"]),
-                                Price = reader["Price"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Price"]),
-                                CreatedDate = Convert.ToDateTime(reader["CompletedDate"])
-                            });
+                                details.Add(new StoragePointDetail
+                                {
+                                    OrderID = Convert.ToInt32(reader["OrderID"]),
+                                    CategoryKey = reader["CategoryKey"]?.ToString() ?? "",
+                                    CategoryName = reader["CategoryName"]?.ToString() ?? "未知类别",
+                                    Weight = reader["Weight"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Weight"]),
+                                    Price = reader["Price"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Price"]),
+                                    CreatedDate = reader["CompletedDate"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(reader["CompletedDate"])
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log row-level error but continue processing
+                                System.Diagnostics.Debug.WriteLine($"Error processing detail row: {ex.Message}");
+                            }
                         }
                     }
                 }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"SQL Error in GetStoragePointDetail: {sqlEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"SQL State: {sqlEx.State}, Number: {sqlEx.Number}");
+                throw new Exception($"数据库查询错误 (代码: {sqlEx.Number}): {sqlEx.Message}", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in GetStoragePointDetail: {ex.Message}");
+                throw new Exception($"获取库存详情失败: {ex.Message}", ex);
             }
 
             return details;
