@@ -69,6 +69,7 @@
     <Compile Include="RecyclableItemDAL.cs" />
     <Compile Include="RecyclerOrderDAL.cs" />
     <Compile Include="StaffDAL.cs" />
+    <Compile Include="StoragePointDAL.cs" />
     <Compile Include="UserAddressDAL.cs" />
     <Compile Include="UserDAL.cs" />
     <Compile Include="UserNotificationDAL.cs" />

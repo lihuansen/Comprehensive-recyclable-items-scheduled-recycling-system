@@ -934,6 +934,7 @@ namespace recycling.Web.UI.Controllers
 
         /// <summary>
         /// 获取回收员暂存点库存汇总（AJAX）
+        /// 简化实现：直接从已完成的订单中获取数据
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -954,10 +955,11 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足" });
                 }
 
-                var inventoryBll = new InventoryBLL();
+                // 使用简化的实现：直接从订单表查询
+                var storagePointBll = new StoragePointBLL();
 
                 // 获取该回收员的库存汇总（按类别分组）
-                var summary = inventoryBll.GetInventorySummary(staff.RecyclerID);
+                var summary = storagePointBll.GetStoragePointSummary(staff.RecyclerID);
 
                 // 即使没有数据也返回成功，只是数据为空
                 var result = summary.Select(s => new
@@ -970,12 +972,6 @@ namespace recycling.Web.UI.Controllers
 
                 return JsonContent(new { success = true, data = result });
             }
-            catch (System.Data.SqlClient.SqlException sqlEx)
-            {
-                // SQL异常可能是因为表不存在
-                System.Diagnostics.Debug.WriteLine($"SQL错误: {sqlEx.Message}");
-                return JsonContent(new { success = false, message = "数据库错误，请确保Inventory表已创建: " + sqlEx.Message });
-            }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"获取库存汇总错误: {ex.Message}");
@@ -985,6 +981,7 @@ namespace recycling.Web.UI.Controllers
 
         /// <summary>
         /// 获取回收员暂存点库存明细（AJAX）
+        /// 简化实现：直接从已完成的订单中获取数据
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -1005,36 +1002,24 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足" });
                 }
 
-                var inventoryBll = new InventoryBLL();
+                // 使用简化的实现：直接从订单表查询
+                var storagePointBll = new StoragePointBLL();
 
-                // 获取该回收员的库存明细列表（1000条记录对于单个回收员来说足够）
-                var inventoryList = inventoryBll.GetInventoryList(staff.RecyclerID, 1, 1000);
-
-                // 如果指定了类别，则过滤
-                if (!string.IsNullOrEmpty(categoryKey))
-                {
-                    inventoryList = inventoryList.Where(i => i.CategoryKey == categoryKey).ToList();
-                }
+                // 获取该回收员的库存明细列表
+                var detailList = storagePointBll.GetStoragePointDetail(staff.RecyclerID, categoryKey);
 
                 // 即使没有数据也返回成功，只是数据为空
-                var result = inventoryList.Select(i => new
+                var result = detailList.Select(d => new
                 {
-                    inventoryId = i.InventoryID,
-                    orderId = i.OrderID,
-                    categoryKey = i.CategoryKey,
-                    categoryName = i.CategoryName,
-                    weight = i.Weight,
-                    price = i.Price,
-                    createdDate = i.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                    orderId = d.OrderID,
+                    categoryKey = d.CategoryKey,
+                    categoryName = d.CategoryName,
+                    weight = d.Weight,
+                    price = d.Price,
+                    createdDate = d.CreatedDate.ToString("yyyy-MM-dd HH:mm")
                 }).ToList();
 
                 return JsonContent(new { success = true, data = result });
-            }
-            catch (System.Data.SqlClient.SqlException sqlEx)
-            {
-                // SQL异常可能是因为表不存在
-                System.Diagnostics.Debug.WriteLine($"SQL错误: {sqlEx.Message}");
-                return JsonContent(new { success = false, message = "数据库错误，请确保Inventory表已创建: " + sqlEx.Message });
             }
             catch (Exception ex)
             {

@@ -90,6 +90,8 @@
     <Compile Include="SendMessageRequest.cs" />
     <Compile Include="SortingCenterWorkers.cs" />
     <Compile Include="StaffLoginViewModel.cs" />
+    <Compile Include="StoragePointDetail.cs" />
+    <Compile Include="StoragePointSummary.cs" />
     <Compile Include="SuperAdmins.cs" />
     <Compile Include="Transporters.cs" />
     <Compile Include="TransporterProfileViewModel.cs" />
