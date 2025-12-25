@@ -25,13 +25,16 @@ namespace recycling.DAL
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                // 查询该回收员所有已完成订单的类别汇总
+                // Query completed orders summary by category for this recycler
                 string sql = @"
                     SELECT 
                         ac.CategoryKey, 
                         ac.CategoryName, 
                         SUM(ac.Weight) AS TotalWeight,
-                        SUM(ISNULL(a.EstimatedPrice, 0) * ac.Weight / NULLIF(a.EstimatedWeight, 0)) AS TotalPrice
+                        SUM(CASE 
+                            WHEN a.EstimatedWeight > 0 THEN ISNULL(a.EstimatedPrice, 0) * ac.Weight / a.EstimatedWeight
+                            ELSE 0
+                        END) AS TotalPrice
                     FROM Appointments a
                     INNER JOIN AppointmentCategories ac ON a.AppointmentID = ac.AppointmentID
                     WHERE a.RecyclerID = @RecyclerID 
@@ -65,8 +68,8 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 获取回收员的暂存点库存明细
-        /// 从已完成的订单中获取详细记录
+        /// Get storage point inventory details for a recycler
+        /// Query from completed orders
         /// </summary>
         public List<StoragePointDetail> GetStoragePointDetail(int recyclerId, string categoryKey = null)
         {
@@ -74,14 +77,17 @@ namespace recycling.DAL
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                // 查询该回收员所有已完成订单的类别明细
+                // Query detailed records of completed orders for this recycler
                 string sql = @"
                     SELECT 
                         a.AppointmentID AS OrderID,
                         ac.CategoryKey, 
                         ac.CategoryName, 
                         ac.Weight,
-                        ISNULL(a.EstimatedPrice, 0) * ac.Weight / NULLIF(a.EstimatedWeight, 0) AS Price,
+                        CASE 
+                            WHEN a.EstimatedWeight > 0 THEN ISNULL(a.EstimatedPrice, 0) * ac.Weight / a.EstimatedWeight
+                            ELSE 0
+                        END AS Price,
                         a.UpdatedDate AS CompletedDate
                     FROM Appointments a
                     INNER JOIN AppointmentCategories ac ON a.AppointmentID = ac.AppointmentID

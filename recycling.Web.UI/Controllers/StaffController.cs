@@ -933,8 +933,8 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 获取回收员暂存点库存汇总（AJAX）
-        /// 简化实现：直接从已完成的订单中获取数据
+        /// Get storage point inventory summary for recycler (AJAX)
+        /// Simplified implementation: query directly from completed orders
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -955,13 +955,13 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足" });
                 }
 
-                // 使用简化的实现：直接从订单表查询
+                // Use simplified implementation: query directly from order tables
                 var storagePointBll = new StoragePointBLL();
 
-                // 获取该回收员的库存汇总（按类别分组）
+                // Get inventory summary for this recycler (grouped by category)
                 var summary = storagePointBll.GetStoragePointSummary(staff.RecyclerID);
 
-                // 即使没有数据也返回成功，只是数据为空
+                // Return success even if data is empty
                 var result = summary.Select(s => new
                 {
                     categoryKey = s.CategoryKey,
@@ -980,8 +980,8 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 获取回收员暂存点库存明细（AJAX）
-        /// 简化实现：直接从已完成的订单中获取数据
+        /// Get storage point inventory details for recycler (AJAX)
+        /// Simplified implementation: query directly from completed orders
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -1002,13 +1002,13 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足" });
                 }
 
-                // 使用简化的实现：直接从订单表查询
+                // Use simplified implementation: query directly from order tables
                 var storagePointBll = new StoragePointBLL();
 
-                // 获取该回收员的库存明细列表
+                // Get inventory detail list for this recycler
                 var detailList = storagePointBll.GetStoragePointDetail(staff.RecyclerID, categoryKey);
 
-                // 即使没有数据也返回成功，只是数据为空
+                // Return success even if data is empty
                 var result = detailList.Select(d => new
                 {
                     orderId = d.OrderID,
