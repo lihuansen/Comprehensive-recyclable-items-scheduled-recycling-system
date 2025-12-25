@@ -194,6 +194,8 @@
 </style>
 
 <div class="storage-container">
+    @Html.AntiForgeryToken()
+    
     <div class="page-header">
         <h2>暂存点管理</h2>
         <p>管理您的回收物品库存 - 区域：<strong>@ViewBag.Region</strong></p>
@@ -251,8 +253,7 @@
 @section scripts {
 <script>
     // 获取Anti-Forgery Token
-    var antiForgeryToken = '@Html.AntiForgeryToken()';
-    var tokenValue = $('input[name="__RequestVerificationToken"]', antiForgeryToken).val();
+    var tokenValue = $('input[name="__RequestVerificationToken"]').val();
 
     $(document).ready(function () {
         loadSummary();
