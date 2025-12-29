@@ -398,7 +398,7 @@ namespace recycling.BLL
 
                 // 验证当前密码
                 string currentPasswordHash = HashPassword(currentPassword);
-                if (!string.Equals(worker.PasswordHash, currentPasswordHash, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(worker.PasswordHash, currentPasswordHash, StringComparison.Ordinal))
                     return (false, "当前密码错误");
 
                 // 更新密码
