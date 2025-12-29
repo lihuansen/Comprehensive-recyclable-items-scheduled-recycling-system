@@ -60,10 +60,10 @@
         cursor: pointer;
     }
 
-        .action-card:hover {
-            transform: translateY(-5px);
-            border-color: #667eea;
-        }
+    .action-card:hover {
+        transform: translateY(-5px);
+        border-color: #667eea;
+    }
 
     .card-icon {
         font-size: 48px;
@@ -251,8 +251,8 @@
                 <h4 class="modal-title"><i class="fas fa-user-edit"></i> 修改姓名</h4>
             </div>
             <div class="modal-body">
-                @Html.AntiForgeryToken()
                 <form id="editNameForm">
+                    @Html.AntiForgeryToken()
                     <div class="form-group">
                         <label for="newFullName">新姓名</label>
                         <input type="text" class="form-control" id="newFullName" placeholder="请输入新姓名" required>
@@ -331,7 +331,7 @@
                         // 更新所有显示区域
                         $('#username').text(data.username);
                         $('#headerUsername').text(data.username);
-                        $('#fullName').text(data.fullName || '-');
+                        $('#fullName').text(data.fullName || '未设置');
                         $('#currentFullName').text(data.fullName || '未设置');
                         $('#accountStatus').html(data.isActive 
                             ? '<span style="color: #28a745;">激活</span>' 
