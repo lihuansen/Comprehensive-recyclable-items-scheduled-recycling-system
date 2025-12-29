@@ -239,6 +239,116 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 管理员账号自我管理（无权限限制）
+        /// </summary>
+        public ActionResult AccountSelfManagement()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "admin")
+                return RedirectToAction("Login", "Staff");
+
+            var admin = (Admins)Session["LoginStaff"];
+            ViewBag.StaffName = admin.Username;
+            ViewBag.DisplayName = "管理员";
+            ViewBag.StaffRole = "admin";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 管理员 - 获取自己的账号信息（无权限限制）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetSelfAccountInfo()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "admin")
+            {
+                return JsonContent(new { success = false, message = "未登录" });
+            }
+
+            try
+            {
+                var currentAdmin = (Admins)Session["LoginStaff"];
+                var admin = _adminBLL.GetAdminById(currentAdmin.AdminID);
+                return JsonContent(new {
+                    success = true,
+                    data = new {
+                        adminId = admin.AdminID,
+                        username = admin.Username,
+                        fullName = admin.FullName,
+                        isActive = admin.IsActive,
+                        createdAt = admin.CreatedAt,
+                        lastLogin = admin.LastLogin
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 管理员 - 更新自己的账号信息（无权限限制）
+        /// </summary>
+        [HttpPost]
+        public JsonResult UpdateSelfAccount(string fullName, string oldPassword, string newPassword)
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "admin")
+            {
+                return Json(new { success = false, message = "未登录" });
+            }
+
+            try
+            {
+                var currentAdmin = (Admins)Session["LoginStaff"];
+                var admin = _adminBLL.GetAdminById(currentAdmin.AdminID);
+
+                // 验证旧密码（如果要修改密码）
+                if (!string.IsNullOrEmpty(newPassword))
+                {
+                    if (string.IsNullOrEmpty(oldPassword))
+                    {
+                        return Json(new { success = false, message = "请输入旧密码" });
+                    }
+
+                    // 验证旧密码
+                    string encryptedOldPassword = recycling.Common.EncryptHelper.GetSHA256(oldPassword);
+                    if (admin.Password != encryptedOldPassword)
+                    {
+                        return Json(new { success = false, message = "旧密码错误" });
+                    }
+
+                    // 更新密码
+                    admin.Password = recycling.Common.EncryptHelper.GetSHA256(newPassword);
+                }
+
+                // 更新姓名
+                if (!string.IsNullOrEmpty(fullName))
+                {
+                    admin.FullName = fullName;
+                }
+
+                var result = _adminBLL.UpdateAdmin(admin);
+
+                // 更新 Session 中的管理员信息
+                if (result.Success)
+                {
+                    Session["LoginStaff"] = admin;
+                }
+
+                // 记录操作日志
+                LogAdminOperation(OperationLogBLL.Modules.AccountManagement, OperationLogBLL.OperationTypes.Update, 
+                    $"更新自己的账号信息", admin.AdminID, admin.Username, result.Success ? "Success" : "Failed");
+
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 超级管理员工作台
         /// </summary>
         public ActionResult SuperAdminDashboard()

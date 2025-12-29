@@ -1,0 +1,264 @@
+@{
+    ViewBag.Title = "账号管理";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .account-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .account-card {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+    .form-control {
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+        padding: 10px 15px;
+    }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 10px 30px;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .info-text {
+        color: #6c757d;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .section-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+    .readonly-info {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .readonly-info .info-row {
+        display: flex;
+        margin-bottom: 10px;
+    }
+    .readonly-info .info-label {
+        font-weight: bold;
+        color: #495057;
+        width: 120px;
+    }
+    .readonly-info .info-value {
+        color: #333;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="account-header">
+        <h2><i class="fas fa-user-circle"></i> 账号管理</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理您自己的账号信息</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <!-- 账号基本信息 -->
+            <div class="account-card">
+                <div class="section-title">账号基本信息</div>
+                <div class="readonly-info" id="accountInfo">
+                    <div class="info-row">
+                        <div class="info-label">用户名：</div>
+                        <div class="info-value" id="username">--</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">姓名：</div>
+                        <div class="info-value" id="fullName">--</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">账号状态：</div>
+                        <div class="info-value" id="accountStatus">--</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">创建时间：</div>
+                        <div class="info-value" id="createdAt">--</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">最后登录：</div>
+                        <div class="info-value" id="lastLogin">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 修改信息表单 -->
+            <div class="account-card">
+                <div class="section-title">修改账号信息</div>
+                <form id="updateAccountForm">
+                    <div class="form-group">
+                        <label for="newFullName">姓名</label>
+                        <input type="text" class="form-control" id="newFullName" placeholder="输入新姓名">
+                        <small class="info-text">留空则不修改</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="oldPassword">旧密码</label>
+                        <input type="password" class="form-control" id="oldPassword" placeholder="如需修改密码，请输入旧密码">
+                        <small class="info-text">修改密码时必须输入</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">新密码</label>
+                        <input type="password" class="form-control" id="newPassword" placeholder="输入新密码">
+                        <small class="info-text">留空则不修改密码</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">确认新密码</label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="再次输入新密码">
+                        <small class="info-text">必须与新密码一致</small>
+                    </div>
+                    
+                    <div class="form-group text-center" style="margin-top: 30px;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 保存修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // 加载账号信息
+            loadAccountInfo();
+
+            // 表单提交
+            $('#updateAccountForm').on('submit', function (e) {
+                e.preventDefault();
+                updateAccount();
+            });
+        });
+
+        // 加载账号信息
+        function loadAccountInfo() {
+            $.ajax({
+                url: '@Url.Action("GetSelfAccountInfo", "Staff")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        var data = response.data;
+                        $('#username').text(data.username);
+                        $('#fullName').text(data.fullName || '--');
+                        $('#accountStatus').html(data.isActive 
+                            ? '<span style="color: #28a745;">激活</span>' 
+                            : '<span style="color: #6c757d;">禁用</span>');
+                        $('#createdAt').text(formatDate(data.createdAt));
+                        $('#lastLogin').text(data.lastLogin ? formatDate(data.lastLogin) : '从未登录');
+                        
+                        // 设置当前姓名到输入框
+                        $('#newFullName').attr('placeholder', '当前：' + (data.fullName || '未设置'));
+                    } else {
+                        alert('加载账号信息失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('加载账号信息失败，请刷新页面重试');
+                }
+            });
+        }
+
+        // 更新账号信息
+        function updateAccount() {
+            var newFullName = $('#newFullName').val().trim();
+            var oldPassword = $('#oldPassword').val();
+            var newPassword = $('#newPassword').val();
+            var confirmPassword = $('#confirmPassword').val();
+
+            // 验证
+            if (!newFullName && !newPassword) {
+                alert('请至少修改一项信息');
+                return;
+            }
+
+            if (newPassword) {
+                if (!oldPassword) {
+                    alert('修改密码时必须输入旧密码');
+                    return;
+                }
+                if (newPassword.length < 6) {
+                    alert('新密码长度至少为6个字符');
+                    return;
+                }
+                if (newPassword !== confirmPassword) {
+                    alert('两次输入的新密码不一致');
+                    return;
+                }
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateSelfAccount", "Staff")',
+                type: 'POST',
+                data: {
+                    fullName: newFullName,
+                    oldPassword: oldPassword,
+                    newPassword: newPassword
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        alert('账号信息更新成功！');
+                        // 清空表单
+                        $('#updateAccountForm')[0].reset();
+                        // 重新加载账号信息
+                        loadAccountInfo();
+                    } else {
+                        alert('更新失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('更新失败，请稍后重试');
+                }
+            });
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            if (!dateString) return '--';
+            var date = new Date(dateString);
+            var year = date.getFullYear();
+            var month = ('0' + (date.getMonth() + 1)).slice(-2);
+            var day = ('0' + date.getDate()).slice(-2);
+            var hours = ('0' + date.getHours()).slice(-2);
+            var minutes = ('0' + date.getMinutes()).slice(-2);
+            var seconds = ('0' + date.getSeconds()).slice(-2);
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+        }
+    </script>
+}
