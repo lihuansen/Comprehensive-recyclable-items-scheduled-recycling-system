@@ -3178,5 +3178,138 @@ namespace recycling.Web.UI.Controllers
         }
 
         #endregion
+
+        #region 基地工作人员账号管理
+
+        /// <summary>
+        /// 基地工作人员 - 个人中心
+        /// </summary>
+        public ActionResult SortingCenterWorkerProfile()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+                return RedirectToAction("Login", "Staff");
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            
+            // 重新从数据库获取最新信息
+            var latestWorker = _staffBLL.GetSortingCenterWorkerById(worker.WorkerID);
+            if (latestWorker != null)
+            {
+                Session["LoginStaff"] = latestWorker;
+                return View(latestWorker);
+            }
+            
+            return View(worker);
+        }
+
+        /// <summary>
+        /// 基地工作人员 - 显示编辑个人信息页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult SortingCenterWorkerEditProfile()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+                return RedirectToAction("Login", "Staff");
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            
+            var model = new SortingCenterWorkerProfileViewModel
+            {
+                FullName = worker.FullName,
+                PhoneNumber = worker.PhoneNumber,
+                IDNumber = worker.IDNumber,
+                Position = worker.Position,
+                WorkStation = worker.WorkStation,
+                Specialization = worker.Specialization,
+                ShiftType = worker.ShiftType
+            };
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// 基地工作人员 - 处理编辑个人信息提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SortingCenterWorkerEditProfile(SortingCenterWorkerProfileViewModel model)
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+                return RedirectToAction("Login", "Staff");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            var result = _staffBLL.UpdateSortingCenterWorkerProfile(worker.WorkerID, model);
+
+            if (result.Success)
+            {
+                TempData["SuccessMessage"] = result.Message;
+                
+                // 更新Session中的数据
+                var updatedWorker = _staffBLL.GetSortingCenterWorkerById(worker.WorkerID);
+                if (updatedWorker != null)
+                {
+                    Session["LoginStaff"] = updatedWorker;
+                }
+                
+                return RedirectToAction("SortingCenterWorkerProfile");
+            }
+            else
+            {
+                ModelState.AddModelError("", result.Message);
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// 基地工作人员 - 显示修改密码页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult SortingCenterWorkerChangePassword()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+                return RedirectToAction("Login", "Staff");
+
+            return View(new ChangePasswordViewModel());
+        }
+
+        /// <summary>
+        /// 基地工作人员 - 处理修改密码提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SortingCenterWorkerChangePassword(ChangePasswordViewModel model)
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+                return RedirectToAction("Login", "Staff");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            var result = _staffBLL.ChangeSortingCenterWorkerPassword(worker.WorkerID, model.CurrentPassword, model.NewPassword);
+
+            if (result.Success)
+            {
+                TempData["SuccessMessage"] = result.Message;
+                // 清除Session，要求重新登录
+                Session.Clear();
+                Session.Abandon();
+                return RedirectToAction("Login", "Staff");
+            }
+            else
+            {
+                ModelState.AddModelError("", result.Message);
+                return View(model);
+            }
+        }
+
+        #endregion
     }
 }

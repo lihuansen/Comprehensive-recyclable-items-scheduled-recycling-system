@@ -546,6 +546,100 @@ namespace recycling.DAL
             }
             return null;
         }
+
+        #region 基地工作人员账号管理
+
+        /// <summary>
+        /// 根据ID获取基地工作人员信息
+        /// </summary>
+        public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, IDNumber, 
+                              SortingCenterID, SortingCenterName, Position, WorkStation, Specialization, 
+                              ShiftType, Available, CurrentStatus, TotalItemsProcessed, TotalWeightProcessed, 
+                              AccuracyRate, Rating, HireDate, CreatedDate, LastLoginDate, IsActive, AvatarURL, Notes 
+                              FROM SortingCenterWorkers 
+                              WHERE WorkerID = @WorkerID";
+
+                var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@WorkerID", workerId);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new SortingCenterWorkers
+                        {
+                            WorkerID = Convert.ToInt32(reader["WorkerID"]),
+                            Username = reader["Username"].ToString(),
+                            PasswordHash = reader["PasswordHash"].ToString(),
+                            FullName = reader["FullName"]?.ToString(),
+                            PhoneNumber = reader["PhoneNumber"].ToString(),
+                            IDNumber = reader["IDNumber"]?.ToString(),
+                            SortingCenterID = Convert.ToInt32(reader["SortingCenterID"]),
+                            SortingCenterName = reader["SortingCenterName"]?.ToString(),
+                            Position = reader["Position"]?.ToString(),
+                            WorkStation = reader["WorkStation"]?.ToString(),
+                            Specialization = reader["Specialization"]?.ToString(),
+                            ShiftType = reader["ShiftType"].ToString(),
+                            Available = Convert.ToBoolean(reader["Available"]),
+                            CurrentStatus = reader["CurrentStatus"].ToString(),
+                            TotalItemsProcessed = Convert.ToInt32(reader["TotalItemsProcessed"]),
+                            TotalWeightProcessed = Convert.ToDecimal(reader["TotalWeightProcessed"]),
+                            AccuracyRate = reader["AccuracyRate"] != DBNull.Value ? Convert.ToDecimal(reader["AccuracyRate"]) : (decimal?)null,
+                            Rating = reader["Rating"] != DBNull.Value ? Convert.ToDecimal(reader["Rating"]) : (decimal?)null,
+                            HireDate = reader["HireDate"] != DBNull.Value ? Convert.ToDateTime(reader["HireDate"]) : (DateTime?)null,
+                            CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                            LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
+                            IsActive = Convert.ToBoolean(reader["IsActive"]),
+                            AvatarURL = reader["AvatarURL"]?.ToString(),
+                            Notes = reader["Notes"]?.ToString()
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 更新基地工作人员信息
+        /// </summary>
+        public bool UpdateSortingCenterWorker(SortingCenterWorkers worker)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE SortingCenterWorkers 
+                              SET FullName = @FullName, 
+                                  PhoneNumber = @PhoneNumber, 
+                                  IDNumber = @IDNumber, 
+                                  Position = @Position, 
+                                  WorkStation = @WorkStation, 
+                                  Specialization = @Specialization, 
+                                  ShiftType = @ShiftType,
+                                  PasswordHash = @PasswordHash
+                              WHERE WorkerID = @WorkerID";
+
+                var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@WorkerID", worker.WorkerID);
+                cmd.Parameters.AddWithValue("@FullName", worker.FullName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
+                cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Position", worker.Position ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Specialization", worker.Specialization ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
+                cmd.Parameters.AddWithValue("@PasswordHash", worker.PasswordHash);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+        }
+
+        #endregion
     }
 }
 
