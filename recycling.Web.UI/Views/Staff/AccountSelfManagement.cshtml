@@ -1,38 +1,153 @@
 @{
-    ViewBag.Title = "账号管理";
+    ViewBag.Title = "个人中心";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <style>
-    .account-header {
+    .profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px;
+    }
+
+    .profile-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 30px;
-        border-radius: 10px;
+        border-radius: 15px;
         margin-bottom: 30px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
     }
-    .account-card {
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin-bottom: 15px;
+    }
+
+    .welcome-text {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .member-info {
+        opacity: 0.9;
+        font-size: 14px;
+    }
+
+    .action-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .action-card {
         background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s;
+        border: 2px solid transparent;
+        cursor: pointer;
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        border-color: #667eea;
+    }
+
+    .card-icon {
+        font-size: 48px;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .card-description {
+        color: #666;
+        font-size: 14px;
         margin-bottom: 20px;
     }
+
+    .user-info-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .info-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .info-value {
+        color: #666;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .success-alert {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+
+    /* Modal styles */
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
     .form-group label {
         font-weight: bold;
         color: #495057;
         margin-bottom: 8px;
     }
-    .form-control {
-        border-radius: 4px;
-        border: 1px solid #ced4da;
-        padding: 10px 15px;
-    }
+
     .form-control:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
     }
+
     .btn-primary {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
@@ -40,114 +155,154 @@
         border-radius: 5px;
         font-weight: bold;
     }
+
     .btn-primary:hover {
         background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
+
     .info-text {
         color: #6c757d;
         font-size: 14px;
         margin-top: 5px;
     }
-    .section-title {
-        font-size: 20px;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #667eea;
-    }
-    .readonly-info {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-    }
-    .readonly-info .info-row {
-        display: flex;
-        margin-bottom: 10px;
-    }
-    .readonly-info .info-label {
-        font-weight: bold;
-        color: #495057;
-        width: 120px;
-    }
-    .readonly-info .info-value {
-        color: #333;
-    }
 </style>
 
-<div class="container-fluid">
-    <div class="account-header">
-        <h2><i class="fas fa-user-circle"></i> 账号管理</h2>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理您自己的账号信息</p>
+<div class="profile-container">
+    <!-- 成功消息提示 -->
+    <div id="successAlert" class="success-alert" style="display: none;">
+        <i class="fas fa-check-circle"></i> <span id="successMessage"></span>
     </div>
 
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <!-- 账号基本信息 -->
-            <div class="account-card">
-                <div class="section-title">账号基本信息</div>
-                <div class="readonly-info" id="accountInfo">
-                    <div class="info-row">
-                        <div class="info-label">用户名：</div>
-                        <div class="info-value" id="username">--</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">姓名：</div>
-                        <div class="info-value" id="fullName">--</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">账号状态：</div>
-                        <div class="info-value" id="accountStatus">--</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">创建时间：</div>
-                        <div class="info-value" id="createdAt">--</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">最后登录：</div>
-                        <div class="info-value" id="lastLogin">--</div>
-                    </div>
-                </div>
-            </div>
+    <!-- 个人资料头部 -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="welcome-text">欢迎回来，<span id="headerUsername">管理员</span>！</div>
+        <div class="member-info">
+            <i class="fas fa-calendar-alt"></i> 注册时间：<span id="headerCreatedAt">--</span>
+            <span style="margin-left: 20px;">
+                <i class="fas fa-sign-in-alt"></i> 最后登录：<span id="headerLastLogin">--</span>
+            </span>
+        </div>
+    </div>
 
-            <!-- 修改信息表单 -->
-            <div class="account-card">
-                <div class="section-title">修改账号信息</div>
-                @Html.AntiForgeryToken()
-                <form id="updateAccountForm">
+    <!-- 功能卡片 -->
+    <div class="action-cards">
+        <div class="action-card" onclick="showEditNameModal()">
+            <div class="card-icon">
+                <i class="fas fa-user-edit"></i>
+            </div>
+            <div class="card-title">修改姓名</div>
+            <div class="card-description">
+                更新您的账号姓名信息
+            </div>
+        </div>
+
+        <div class="action-card" onclick="showChangePasswordModal()">
+            <div class="card-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div class="card-title">修改密码</div>
+            <div class="card-description">
+                定期修改密码，保护您的账户安全
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户信息详情 -->
+    <div class="user-info-section">
+        <div class="info-title">
+            <i class="fas fa-info-circle"></i> 账户信息
+        </div>
+        <div class="info-item">
+            <span class="info-label">用户名</span>
+            <span class="info-value" id="username">--</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">姓名</span>
+            <span class="info-value" id="fullName">--</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">账号状态</span>
+            <span class="info-value" id="accountStatus">--</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">创建时间</span>
+            <span class="info-value" id="createdAt">--</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">最后登录</span>
+            <span class="info-value" id="lastLogin">--</span>
+        </div>
+    </div>
+</div>
+
+<!-- 修改姓名模态框 -->
+<div class="modal fade" id="editNameModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" style="color: white;">&times;</span>
+                </button>
+                <h4 class="modal-title"><i class="fas fa-user-edit"></i> 修改姓名</h4>
+            </div>
+            <div class="modal-body">
+                <form id="editNameForm">
+                    @Html.AntiForgeryToken()
                     <div class="form-group">
-                        <label for="newFullName">姓名</label>
-                        <input type="text" class="form-control" id="newFullName" placeholder="输入新姓名">
-                        <small class="info-text">留空则不修改</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="oldPassword">旧密码</label>
-                        <input type="password" class="form-control" id="oldPassword" placeholder="如需修改密码，请输入旧密码">
-                        <small class="info-text">修改密码时必须输入</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="newPassword">新密码</label>
-                        <input type="password" class="form-control" id="newPassword" placeholder="输入新密码">
-                        <small class="info-text">留空则不修改密码</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="confirmPassword">确认新密码</label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="再次输入新密码">
-                        <small class="info-text">必须与新密码一致</small>
-                    </div>
-                    
-                    <div class="form-group text-center" style="margin-top: 30px;">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> 保存修改
-                        </button>
+                        <label for="newFullName">新姓名</label>
+                        <input type="text" class="form-control" id="newFullName" placeholder="请输入新姓名" required>
+                        <small class="info-text">当前姓名：<span id="currentFullName">--</span></small>
                     </div>
                 </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="updateName()">
+                    <i class="fas fa-save"></i> 保存修改
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 修改密码模态框 -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" style="color: white;">&times;</span>
+                </button>
+                <h4 class="modal-title"><i class="fas fa-lock"></i> 修改密码</h4>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label for="oldPassword">旧密码</label>
+                        <input type="password" class="form-control" id="oldPassword" placeholder="请输入旧密码" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">新密码</label>
+                        <input type="password" class="form-control" id="newPassword" placeholder="请输入新密码（至少6个字符）" required>
+                        <small class="info-text">密码长度至少为6个字符</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">确认新密码</label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入新密码" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="updatePassword()">
+                    <i class="fas fa-save"></i> 保存修改
+                </button>
             </div>
         </div>
     </div>
@@ -159,11 +314,10 @@
             // 加载账号信息
             loadAccountInfo();
 
-            // 表单提交
-            $('#updateAccountForm').on('submit', function (e) {
-                e.preventDefault();
-                updateAccount();
-            });
+            // 自动隐藏成功消息
+            setTimeout(function () {
+                $('#successAlert').fadeOut('slow');
+            }, 5000);
         });
 
         // 加载账号信息
@@ -175,16 +329,18 @@
                 success: function (response) {
                     if (response.success) {
                         var data = response.data;
+                        // 更新所有显示区域
                         $('#username').text(data.username);
-                        $('#fullName').text(data.fullName || '--');
+                        $('#headerUsername').text(data.username);
+                        $('#fullName').text(data.fullName || '未设置');
+                        $('#currentFullName').text(data.fullName || '未设置');
                         $('#accountStatus').html(data.isActive 
                             ? '<span style="color: #28a745;">激活</span>' 
                             : '<span style="color: #6c757d;">禁用</span>');
                         $('#createdAt').text(formatDate(data.createdAt));
+                        $('#headerCreatedAt').text(formatDate(data.createdAt, 'short'));
                         $('#lastLogin').text(data.lastLogin ? formatDate(data.lastLogin) : '从未登录');
-                        
-                        // 设置当前姓名到输入框
-                        $('#newFullName').attr('placeholder', '当前：' + (data.fullName || '未设置'));
+                        $('#headerLastLogin').text(data.lastLogin ? formatDate(data.lastLogin, 'short') : '从未登录');
                     } else {
                         alert('加载账号信息失败：' + response.message);
                     }
@@ -195,32 +351,28 @@
             });
         }
 
-        // 更新账号信息
-        function updateAccount() {
+        // 显示修改姓名模态框
+        function showEditNameModal() {
+            $('#newFullName').val('');
+            $('#editNameModal').modal('show');
+        }
+
+        // 显示修改密码模态框
+        function showChangePasswordModal() {
+            $('#oldPassword').val('');
+            $('#newPassword').val('');
+            $('#confirmPassword').val('');
+            $('#changePasswordModal').modal('show');
+        }
+
+        // 更新姓名
+        function updateName() {
             var newFullName = $('#newFullName').val().trim();
-            var oldPassword = $('#oldPassword').val();
-            var newPassword = $('#newPassword').val();
-            var confirmPassword = $('#confirmPassword').val();
 
             // 验证
-            if (!newFullName && !newPassword) {
-                alert('请至少修改一项信息');
+            if (!newFullName) {
+                alert('请输入新姓名');
                 return;
-            }
-
-            if (newPassword) {
-                if (!oldPassword) {
-                    alert('修改密码时必须输入旧密码');
-                    return;
-                }
-                if (newPassword.length < 6) {
-                    alert('新密码长度至少为6个字符');
-                    return;
-                }
-                if (newPassword !== confirmPassword) {
-                    alert('两次输入的新密码不一致');
-                    return;
-                }
             }
 
             $.ajax({
@@ -229,15 +381,14 @@
                 data: {
                     __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                     fullName: newFullName,
-                    oldPassword: oldPassword,
-                    newPassword: newPassword
+                    oldPassword: '',
+                    newPassword: ''
                 },
                 dataType: 'json',
                 success: function (response) {
                     if (response.success) {
-                        alert('账号信息更新成功！');
-                        // 清空表单
-                        $('#updateAccountForm')[0].reset();
+                        $('#editNameModal').modal('hide');
+                        showSuccess('姓名修改成功！');
                         // 重新加载账号信息
                         loadAccountInfo();
                     } else {
@@ -250,8 +401,67 @@
             });
         }
 
+        // 更新密码
+        function updatePassword() {
+            var oldPassword = $('#oldPassword').val();
+            var newPassword = $('#newPassword').val();
+            var confirmPassword = $('#confirmPassword').val();
+
+            // 验证
+            if (!oldPassword) {
+                alert('请输入旧密码');
+                return;
+            }
+            if (!newPassword) {
+                alert('请输入新密码');
+                return;
+            }
+            if (newPassword.length < 6) {
+                alert('新密码长度至少为6个字符');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                alert('两次输入的新密码不一致');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateSelfAccount", "Staff")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                    fullName: '',
+                    oldPassword: oldPassword,
+                    newPassword: newPassword
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        $('#changePasswordModal').modal('hide');
+                        showSuccess('密码修改成功！');
+                        // 重新加载账号信息
+                        loadAccountInfo();
+                    } else {
+                        alert('更新失败：' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('更新失败，请稍后重试');
+                }
+            });
+        }
+
+        // 显示成功消息
+        function showSuccess(message) {
+            $('#successMessage').text(message);
+            $('#successAlert').fadeIn('fast');
+            setTimeout(function () {
+                $('#successAlert').fadeOut('slow');
+            }, 5000);
+        }
+
         // 格式化日期
-        function formatDate(dateString) {
+        function formatDate(dateString, format) {
             if (!dateString) return '--';
             var date = new Date(dateString);
             var year = date.getFullYear();
@@ -260,6 +470,10 @@
             var hours = ('0' + date.getHours()).slice(-2);
             var minutes = ('0' + date.getMinutes()).slice(-2);
             var seconds = ('0' + date.getSeconds()).slice(-2);
+            
+            if (format === 'short') {
+                return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+            }
             return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
         }
     </script>
