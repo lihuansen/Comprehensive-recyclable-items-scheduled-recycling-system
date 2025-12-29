@@ -93,6 +93,7 @@
 
         .normal-nav {
             margin: 0 8px;
+            position: relative;
         }
 
         .left-navs, .right-navs {
@@ -101,6 +102,65 @@
             list-style: none;
             padding: 0;
             margin: 0;
+        }
+
+        /* 下拉菜单样式 */
+        .dropdown-nav {
+            position: relative;
+            margin: 0 8px;
+        }
+
+        .dropdown-toggle {
+            font-size: 18px;
+            padding: 12px 18px;
+            font-weight: bold;
+            color: #9d9d9d !important;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-toggle:after {
+            content: ' ▼';
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .dropdown-toggle:hover {
+            color: white !important;
+            background-color: transparent !important;
+        }
+
+        .dropdown-menu-custom {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #333;
+            min-width: 180px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            z-index: 1000;
+            border-radius: 4px;
+            margin-top: 5px;
+            padding: 8px 0;
+        }
+
+        .dropdown-nav:hover .dropdown-menu-custom {
+            display: block;
+        }
+
+        .dropdown-menu-custom a {
+            color: #9d9d9d !important;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: block;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .dropdown-menu-custom a:hover {
+            background-color: #444;
+            color: white !important;
         }
 
         .navbar-collapse.collapse {
@@ -200,6 +260,29 @@
                 margin-top: 10px;
                 padding-bottom: 10px;
             }
+
+            /* 移动设备上的下拉菜单 */
+            .dropdown-nav {
+                width: 100%;
+            }
+
+            .dropdown-toggle {
+                width: 100%;
+                text-align: center;
+            }
+
+            .dropdown-menu-custom {
+                position: static;
+                display: none;
+                box-shadow: none;
+                margin-top: 0;
+                background-color: #2a2a2a;
+            }
+
+            .dropdown-nav:hover .dropdown-menu-custom,
+            .dropdown-nav.active .dropdown-menu-custom {
+                display: block;
+            }
         }
     </style>
 </head>
@@ -219,10 +302,22 @@
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav">@Html.ActionLink("首页页面管理", "HomepageManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("用户管理", "UserManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("回收员管理", "RecyclerManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("运输人员管理", "TransporterManagement", "Staff")</li>
+                        <li class="dropdown-nav">
+                            <span class="dropdown-toggle">账号管理</span>
+                            <div class="dropdown-menu-custom">
+                                @Html.ActionLink("用户管理", "UserManagement", "Staff")
+                                @Html.ActionLink("回收员管理", "RecyclerManagement", "Staff")
+                                @Html.ActionLink("运输人员管理", "TransporterManagement", "Staff")
+                                @Html.ActionLink("基地人员管理", "SortingCenterWorkerManagement", "Staff")
+                            </div>
+                        </li>
+                        <li class="dropdown-nav">
+                            <span class="dropdown-toggle">内容管理</span>
+                            <div class="dropdown-menu-custom">
+                                @Html.ActionLink("首页页面管理", "HomepageManagement", "Staff")
+                                @Html.ActionLink("仓库管理", "WarehouseManagement", "Staff")
+                            </div>
+                        </li>
                     </ul>
 
                     <div class="diamond-nav">
@@ -233,10 +328,13 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav">@Html.ActionLink("基地人员管理", "SortingCenterWorkerManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("反馈管理", "FeedbackManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("日志管理", "LogManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("仓库管理", "WarehouseManagement", "Staff")</li>
+                        <li class="dropdown-nav">
+                            <span class="dropdown-toggle">系统管理</span>
+                            <div class="dropdown-menu-custom">
+                                @Html.ActionLink("反馈管理", "FeedbackManagement", "Staff")
+                                @Html.ActionLink("日志管理", "LogManagement", "Staff")
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>
