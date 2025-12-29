@@ -1,0 +1,193 @@
+@model recycling.Model.SortingCenterWorkerProfileViewModel
+@{
+    ViewBag.Title = "编辑个人信息";
+    Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
+}
+
+<style>
+    .edit-profile-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 30px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        height: 50px;
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        padding: 0 15px;
+    }
+
+        .form-control:focus {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+        }
+
+    select.form-control {
+        height: 50px;
+        padding: 0 15px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        height: 50px;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        margin-bottom: 15px;
+    }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+    .btn-back {
+        width: 100%;
+        height: 50px;
+        background: #6c757d;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+        }
+
+    .validation-summary {
+        background: #fff5f5;
+        border-left: 4px solid #ff6b6b;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+
+    .field-icon {
+        color: #e74c3c;
+        margin-right: 10px;
+    }
+</style>
+
+<div class="edit-profile-container">
+    <h2 class="page-title">
+        <i class="fas fa-user-edit"></i> 编辑个人信息
+    </h2>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="validation-summary">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+    }
+
+    @using (Html.BeginForm("SortingCenterWorkerEditProfile", "Staff", FormMethod.Post, new { @class = "edit-profile-form" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-user field-icon"></i> 姓名 *
+            </label>
+            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "请输入姓名" })
+            @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-phone field-icon"></i> 手机号码 *
+            </label>
+            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "请输入手机号码" })
+            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-id-card field-icon"></i> 身份证号
+            </label>
+            @Html.TextBoxFor(m => m.IDNumber, new { @class = "form-control", placeholder = "请输入身份证号" })
+            @Html.ValidationMessageFor(m => m.IDNumber, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-briefcase field-icon"></i> 职位
+            </label>
+            @Html.TextBoxFor(m => m.Position, new { @class = "form-control", placeholder = "请输入职位" })
+            @Html.ValidationMessageFor(m => m.Position, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-warehouse field-icon"></i> 工作站
+            </label>
+            @Html.TextBoxFor(m => m.WorkStation, new { @class = "form-control", placeholder = "请输入工作站" })
+            @Html.ValidationMessageFor(m => m.WorkStation, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-star field-icon"></i> 专业特长
+            </label>
+            @Html.TextBoxFor(m => m.Specialization, new { @class = "form-control", placeholder = "请输入专业特长" })
+            @Html.ValidationMessageFor(m => m.Specialization, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-clock field-icon"></i> 班次类型 *
+            </label>
+            @Html.DropDownListFor(m => m.ShiftType, new SelectList(new[] {
+                "白班",
+                "夜班",
+                "早班",
+                "中班",
+                "晚班",
+                "轮班"
+            }), "请选择班次类型", new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.ShiftType, "", new { @class = "text-danger" })
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-save"></i> 保存修改
+        </button>
+
+        <a href="@Url.Action("SortingCenterWorkerProfile", "Staff")" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> 返回个人中心
+        </a>
+    }
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

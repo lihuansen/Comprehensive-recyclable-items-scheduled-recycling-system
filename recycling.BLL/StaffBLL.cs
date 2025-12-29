@@ -315,5 +315,105 @@ namespace recycling.BLL
                 return (false, $"修改密码失败：{ex.Message}");
             }
         }
+
+        #endregion
+
+        #region 基地工作人员账号管理
+
+        /// <summary>
+        /// 根据ID获取基地工作人员信息
+        /// </summary>
+        public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
+        {
+            if (workerId <= 0)
+                throw new ArgumentException("基地工作人员ID无效");
+
+            try
+            {
+                return _staffDAL.GetSortingCenterWorkerById(workerId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("获取基地工作人员信息失败：" + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 更新基地工作人员个人信息
+        /// </summary>
+        public (bool Success, string Message) UpdateSortingCenterWorkerProfile(int workerId, SortingCenterWorkerProfileViewModel model)
+        {
+            if (workerId <= 0)
+                return (false, "基地工作人员ID无效");
+
+            if (model == null)
+                return (false, "数据不能为空");
+
+            try
+            {
+                var worker = _staffDAL.GetSortingCenterWorkerById(workerId);
+                if (worker == null)
+                    return (false, "基地工作人员不存在");
+
+                // 更新字段
+                worker.FullName = model.FullName;
+                worker.PhoneNumber = model.PhoneNumber;
+                worker.IDNumber = model.IDNumber;
+                worker.Position = model.Position;
+                worker.WorkStation = model.WorkStation;
+                worker.Specialization = model.Specialization;
+                worker.ShiftType = model.ShiftType;
+
+                bool result = _staffDAL.UpdateSortingCenterWorker(worker);
+                return result ? (true, "个人信息更新成功") : (false, "更新失败，请重试");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"更新失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 修改基地工作人员密码
+        /// </summary>
+        public (bool Success, string Message) ChangeSortingCenterWorkerPassword(int workerId, string currentPassword, string newPassword)
+        {
+            if (workerId <= 0)
+                return (false, "基地工作人员ID无效");
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+                return (false, "请输入当前密码");
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+                return (false, "请输入新密码");
+
+            if (newPassword.Length < 6)
+                return (false, "新密码长度不能少于6个字符");
+
+            try
+            {
+                var worker = _staffDAL.GetSortingCenterWorkerById(workerId);
+                if (worker == null)
+                    return (false, "基地工作人员不存在");
+
+                // 验证当前密码
+                string currentPasswordHash = HashPassword(currentPassword);
+                if (!string.Equals(worker.PasswordHash, currentPasswordHash, StringComparison.Ordinal))
+                    return (false, "当前密码错误");
+
+                // 更新密码
+                string newPasswordHash = HashPassword(newPassword);
+                worker.PasswordHash = newPasswordHash;
+
+                bool result = _staffDAL.UpdateSortingCenterWorker(worker);
+                return result ? (true, "密码修改成功，请重新登录") : (false, "密码修改失败，请重试");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"修改密码失败：{ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }
