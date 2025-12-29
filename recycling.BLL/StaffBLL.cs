@@ -316,8 +316,6 @@ namespace recycling.BLL
             }
         }
 
-        #endregion
-
         #region 基地工作人员账号管理
 
         /// <summary>
