@@ -141,7 +141,7 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.3);
             z-index: 1000;
             border-radius: 4px;
-            margin-top: 5px;
+            margin-top: 0px;
             padding: 8px 0;
         }
 
@@ -303,8 +303,9 @@
                 <div class="nav-container">
                     <ul class="left-navs">
                         <li class="dropdown-nav">
-                            <span class="dropdown-toggle">账号管理</span>
+                            <span class="dropdown-toggle">角色管理</span>
                             <div class="dropdown-menu-custom">
+                                @Html.ActionLink("账号管理", "AccountSelfManagement", "Staff")
                                 @Html.ActionLink("用户管理", "UserManagement", "Staff")
                                 @Html.ActionLink("回收员管理", "RecyclerManagement", "Staff")
                                 @Html.ActionLink("运输人员管理", "TransporterManagement", "Staff")
