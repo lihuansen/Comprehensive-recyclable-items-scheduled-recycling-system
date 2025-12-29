@@ -276,8 +276,8 @@ namespace recycling.Web.UI.Controllers
                         username = admin.Username,
                         fullName = admin.FullName,
                         isActive = admin.IsActive,
-                        createdAt = admin.CreatedAt,
-                        lastLogin = admin.LastLogin
+                        createdAt = admin.CreatedDate,
+                        lastLogin = admin.LastLoginDate
                     }
                 });
             }
@@ -311,15 +311,15 @@ namespace recycling.Web.UI.Controllers
                         return Json(new { success = false, message = "请输入旧密码" });
                     }
 
-                    // 验证旧密码
-                    string encryptedOldPassword = recycling.Common.EncryptHelper.GetSHA256(oldPassword);
-                    if (admin.Password != encryptedOldPassword)
+                    // 验证旧密码 - 使用与AdminBLL相同的哈希方法
+                    string encryptedOldPassword = HashPasswordSHA256(oldPassword);
+                    if (admin.PasswordHash != encryptedOldPassword)
                     {
                         return Json(new { success = false, message = "旧密码错误" });
                     }
 
                     // 更新密码
-                    admin.Password = recycling.Common.EncryptHelper.GetSHA256(newPassword);
+                    admin.PasswordHash = HashPasswordSHA256(newPassword);
                 }
 
                 // 更新姓名
@@ -345,6 +345,23 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Hash password using SHA256 (same as AdminBLL)
+        /// </summary>
+        private string HashPasswordSHA256(string password)
+        {
+            using (System.Security.Cryptography.SHA256 sha256Hash = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                System.Text.StringBuilder builder = new System.Text.StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
             }
         }
 
