@@ -282,6 +282,7 @@
             </div>
             <div class="modal-body">
                 <form id="changePasswordForm">
+                    @Html.AntiForgeryToken()
                     <div class="form-group">
                         <label for="oldPassword">旧密码</label>
                         <input type="password" class="form-control" id="oldPassword" placeholder="请输入旧密码" required>
