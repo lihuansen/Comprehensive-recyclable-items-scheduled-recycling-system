@@ -3186,7 +3186,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         public ActionResult SortingCenterWorkerProfile()
         {
-            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
                 return RedirectToAction("Login", "Staff");
 
             var worker = (SortingCenterWorkers)Session["LoginStaff"];
@@ -3208,7 +3208,7 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult SortingCenterWorkerEditProfile()
         {
-            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
                 return RedirectToAction("Login", "Staff");
 
             var worker = (SortingCenterWorkers)Session["LoginStaff"];
@@ -3234,7 +3234,7 @@ namespace recycling.Web.UI.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult SortingCenterWorkerEditProfile(SortingCenterWorkerProfileViewModel model)
         {
-            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
                 return RedirectToAction("Login", "Staff");
 
             if (!ModelState.IsValid)
@@ -3271,7 +3271,7 @@ namespace recycling.Web.UI.Controllers
         [HttpGet]
         public ActionResult SortingCenterWorkerChangePassword()
         {
-            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
                 return RedirectToAction("Login", "Staff");
 
             return View(new ChangePasswordViewModel());
@@ -3284,7 +3284,7 @@ namespace recycling.Web.UI.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult SortingCenterWorkerChangePassword(ChangePasswordViewModel model)
         {
-            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sorting_center_worker")
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
                 return RedirectToAction("Login", "Staff");
 
             if (!ModelState.IsValid)
