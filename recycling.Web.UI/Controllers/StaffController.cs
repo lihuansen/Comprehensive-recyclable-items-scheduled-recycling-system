@@ -291,6 +291,7 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 更新自己的账号信息（无权限限制）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult UpdateSelfAccount(string fullName, string oldPassword, string newPassword)
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "admin")

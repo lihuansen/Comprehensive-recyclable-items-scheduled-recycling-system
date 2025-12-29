@@ -116,6 +116,7 @@
             <!-- 修改信息表单 -->
             <div class="account-card">
                 <div class="section-title">修改账号信息</div>
+                @Html.AntiForgeryToken()
                 <form id="updateAccountForm">
                     <div class="form-group">
                         <label for="newFullName">姓名</label>
@@ -226,6 +227,7 @@
                 url: '@Url.Action("UpdateSelfAccount", "Staff")',
                 type: 'POST',
                 data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                     fullName: newFullName,
                     oldPassword: oldPassword,
                     newPassword: newPassword
