@@ -51,6 +51,17 @@ namespace recycling.BLL
         #region Recycler Management
 
         /// <summary>
+        /// Get all recyclers with pagination (optimized with completed orders count and sort order)
+        /// </summary>
+        public PagedResult<RecyclerListViewModel> GetAllRecyclersWithDetails(int page = 1, int pageSize = 8, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 8;
+
+            return _adminDAL.GetAllRecyclersWithDetails(page, pageSize, searchTerm, isActive, sortOrder);
+        }
+
+        /// <summary>
         /// Get all recyclers with pagination
         /// </summary>
         public PagedResult<Recyclers> GetAllRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)

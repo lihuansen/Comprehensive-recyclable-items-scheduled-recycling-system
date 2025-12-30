@@ -167,6 +167,105 @@ namespace recycling.DAL
         #region Recycler Management
 
         /// <summary>
+        /// Get all recyclers with pagination (optimized with completed orders count and sort order)
+        /// </summary>
+        public PagedResult<RecyclerListViewModel> GetAllRecyclersWithDetails(int page = 1, int pageSize = 8, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
+        {
+            var result = new PagedResult<RecyclerListViewModel>
+            {
+                PageIndex = page,
+                PageSize = pageSize,
+                Items = new List<RecyclerListViewModel>()
+            };
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // Build WHERE clause
+                string whereClause = "WHERE 1=1";
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    whereClause += " AND (r.Username LIKE @SearchTerm OR r.FullName LIKE @SearchTerm OR r.PhoneNumber LIKE @SearchTerm OR r.Region LIKE @SearchTerm)";
+                }
+                if (isActive.HasValue)
+                {
+                    whereClause += " AND r.IsActive = @IsActive";
+                }
+
+                // Validate sort order to prevent SQL injection
+                // Only allows "ASC" or "DESC", defaults to "ASC" for any other value
+                string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
+
+                // Get total count
+                string countSql = "SELECT COUNT(*) FROM Recyclers r " + whereClause;
+                SqlCommand countCmd = new SqlCommand(countSql, conn);
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    countCmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+                }
+                if (isActive.HasValue)
+                {
+                    countCmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+                result.TotalCount = (int)countCmd.ExecuteScalar();
+
+                // Get paged data with completed orders count in single query
+                string sql = @"
+                    SELECT 
+                        r.RecyclerID,
+                        r.Username,
+                        r.FullName,
+                        r.PhoneNumber,
+                        r.Region,
+                        r.Rating,
+                        r.Available,
+                        r.IsActive,
+                        r.CreatedDate,
+                        ISNULL((SELECT COUNT(*) FROM Appointments a 
+                                WHERE a.RecyclerID = r.RecyclerID 
+                                AND a.Status = '已完成'), 0) AS CompletedOrders
+                    FROM Recyclers r " + whereClause + 
+                    " ORDER BY r.RecyclerID " + orderDirection + 
+                    " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    cmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+                }
+                if (isActive.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                }
+                cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Items.Add(new RecyclerListViewModel
+                        {
+                            RecyclerID = reader.GetInt32(reader.GetOrdinal("RecyclerID")),
+                            Username = reader.GetString(reader.GetOrdinal("Username")),
+                            FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
+                            PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                            Region = reader.GetString(reader.GetOrdinal("Region")),
+                            Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("Rating")),
+                            Available = reader.GetBoolean(reader.GetOrdinal("Available")),
+                            IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                            CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? null : (DateTime?)reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                            CompletedOrders = reader.GetInt32(reader.GetOrdinal("CompletedOrders"))
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Get all recyclers with pagination
         /// </summary>
         public PagedResult<Recyclers> GetAllRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
