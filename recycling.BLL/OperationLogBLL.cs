@@ -83,6 +83,7 @@ namespace recycling.BLL
             public const string LogManagement = "LogManagement";
             public const string WarehouseManagement = "WarehouseManagement";
             public const string AdminManagement = "AdminManagement";
+            public const string SuperAdminManagement = "SuperAdminManagement";
             public const string AccountManagement = "AccountManagement";
         }
 
@@ -111,6 +112,7 @@ namespace recycling.BLL
                 case Modules.LogManagement: return "日志管理";
                 case Modules.WarehouseManagement: return "仓库管理";
                 case Modules.AdminManagement: return "管理员管理";
+                case Modules.SuperAdminManagement: return "超级管理员管理";
                 case Modules.AccountManagement: return "账号管理";
                 default: return module;
             }
