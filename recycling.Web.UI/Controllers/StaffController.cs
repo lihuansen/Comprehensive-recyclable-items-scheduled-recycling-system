@@ -256,8 +256,6 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员 - 获取自己的账号信息（无权限限制）
-        /// <summary>
         /// 管理员/超级管理员 - 获取自己的账号信息
         /// </summary>
         [HttpGet]
@@ -318,7 +316,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 管理员/超级管理员 - 更新自己的账号信息（无权限限制）
+        /// 管理员/超级管理员 - 更新自己的账号信息（仅限本人操作）
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
