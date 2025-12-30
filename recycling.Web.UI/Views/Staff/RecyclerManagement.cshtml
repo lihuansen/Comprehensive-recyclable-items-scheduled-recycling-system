@@ -183,15 +183,20 @@
 
     <div class="search-box">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、姓名、手机号或区域...">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-control" id="statusFilter">
                     <option value="">全部状态</option>
                     <option value="true">激活</option>
                     <option value="false">禁用</option>
                 </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-default btn-block" onclick="toggleSortOrder()" title="切换ID排序">
+                    <i class="fas fa-sort-amount-down" id="sortOrderIcon"></i> <span id="sortOrderText">顺序</span>
+                </button>
             </div>
             <div class="col-md-2">
                 <button class="btn btn-primary btn-block" onclick="searchRecyclers()">
@@ -301,7 +306,7 @@
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-N8+bLYT8eLKTJXLJp/s0aM+pOHFjz0iqXR6xQSyJo+qNeDuAhTwD7WBmETcNpZ/p" crossorigin="anonymous"></script>
 <script>
-var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
+var currentPage = 1, pageSize = 8, searchTerm = '', statusFilter = null, sortOrder = 'ASC';
 var categoryPieChart = null;
 var dashboardVisible = true;
 // Configurable region prefix for display
@@ -322,6 +327,15 @@ function toggleDashboard() {
         $('#dashboardSection').slideUp();
         $('#toggleBtnText').text('显示数据看板');
     }
+}
+
+// Toggle sort order
+function toggleSortOrder() {
+    sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
+    $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
+    $('#sortOrderText').text(sortOrder === 'ASC' ? '顺序' : '逆序');
+    currentPage = 1;
+    loadRecyclers();
 }
 
 // Load comprehensive dashboard statistics
@@ -511,9 +525,9 @@ function renderRecyclerRanking(rankings) {
 
 function loadRecyclers() {
     $.ajax({
-        url: '@Url.Action("GetRecyclers", "Staff")',
+        url: '@Url.Action("GetRecyclersOptimized", "Staff")',
         type: 'GET',
-        data: { page: currentPage, pageSize: pageSize, searchTerm: searchTerm, isActive: statusFilter },
+        data: { page: currentPage, pageSize: pageSize, searchTerm: searchTerm, isActive: statusFilter, sortOrder: sortOrder },
         success: function (response) {
             if (response.success) renderRecyclers(response.data);
             else alert('加载失败: ' + response.message);
@@ -529,32 +543,24 @@ function renderRecyclers(data) {
         return;
     }
     data.Items.forEach(function (r) {
-        $.ajax({
-            url: '@Url.Action("GetRecyclerDetails", "Staff")',
-            type: 'GET',
-            data: { recyclerId: r.RecyclerID },
-            success: function (detailResponse) {
-                var completedOrders = detailResponse.success ? detailResponse.data.completedOrders : 0;
-                var row = `<tr>
-                    <td>${r.RecyclerID}</td>
-                    <td>${r.Username}</td>
-                    <td>${r.FullName || '-'}</td>
-                    <td>${r.PhoneNumber}</td>
-                    <td>${r.Region}</td>
-                    <td>${r.Rating ? r.Rating.toFixed(1) : '0.0'} ⭐</td>
-                    <td>${completedOrders}</td>
-                    <td>
-                        <span class="badge ${r.IsActive ? 'badge-active' : 'badge-inactive'}">${r.IsActive ? '激活' : '禁用'}</span>
-                        <span class="badge ${r.Available ? 'badge-available' : 'badge-unavailable'}">${r.Available ? '可接单' : '不可接单'}</span>
-                    </td>
-                    <td>
-                        <button class="btn btn-xs btn-info btn-action" onclick='editRecycler(${JSON.stringify(r)})'><i class="fas fa-edit"></i> 编辑</button>
-                        <button class="btn btn-xs btn-danger btn-action" onclick="deleteRecycler(${r.RecyclerID})"><i class="fas fa-trash"></i> 删除</button>
-                    </td>
-                </tr>`;
-                tbody.append(row);
-            }
-        });
+        var row = `<tr>
+            <td>${r.RecyclerID}</td>
+            <td>${r.Username}</td>
+            <td>${r.FullName || '-'}</td>
+            <td>${r.PhoneNumber}</td>
+            <td>${r.Region}</td>
+            <td>${r.Rating ? r.Rating.toFixed(1) : '0.0'} ⭐</td>
+            <td>${r.CompletedOrders}</td>
+            <td>
+                <span class="badge ${r.IsActive ? 'badge-active' : 'badge-inactive'}">${r.IsActive ? '激活' : '禁用'}</span>
+                <span class="badge ${r.Available ? 'badge-available' : 'badge-unavailable'}">${r.Available ? '可接单' : '不可接单'}</span>
+            </td>
+            <td>
+                <button class="btn btn-xs btn-info btn-action" onclick='editRecycler(${JSON.stringify(r)})'><i class="fas fa-edit"></i> 编辑</button>
+                <button class="btn btn-xs btn-danger btn-action" onclick="deleteRecycler(${r.RecyclerID})"><i class="fas fa-trash"></i> 删除</button>
+            </td>
+        </tr>`;
+        tbody.append(row);
     });
     renderPagination(data);
 }

@@ -1531,6 +1531,23 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 管理员 - 获取回收员列表（优化版，包含完成订单数和排序）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetRecyclersOptimized(int page = 1, int pageSize = 8, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
+        {
+            try
+            {
+                var result = _adminBLL.GetAllRecyclersWithDetails(page, pageSize, searchTerm, isActive, sortOrder);
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 管理员 - 获取回收员详情（API）
         /// </summary>
         [HttpGet]
