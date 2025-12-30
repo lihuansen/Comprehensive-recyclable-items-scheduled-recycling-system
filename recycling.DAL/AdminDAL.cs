@@ -193,7 +193,8 @@ namespace recycling.DAL
                     whereClause += " AND r.IsActive = @IsActive";
                 }
 
-                // Validate sort order
+                // Validate sort order to prevent SQL injection
+                // Only allows "ASC" or "DESC", defaults to "ASC" for any other value
                 string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
 
                 // Get total count

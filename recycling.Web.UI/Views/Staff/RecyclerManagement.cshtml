@@ -194,7 +194,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <button class="btn btn-default btn-block" onclick="toggleSortOrder()" title="切换ID排序">
+                <button class="btn btn-default btn-block" onclick="toggleSortOrder()" title="切换ID排序" aria-label="切换排序顺序" id="sortOrderBtn">
                     <i class="fas fa-sort-amount-down" id="sortOrderIcon"></i> <span id="sortOrderText">顺序</span>
                 </button>
             </div>
@@ -334,6 +334,7 @@ function toggleSortOrder() {
     sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
     $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
     $('#sortOrderText').text(sortOrder === 'ASC' ? '顺序' : '逆序');
+    $('#sortOrderBtn').attr('aria-label', sortOrder === 'ASC' ? 'ID顺序排列，点击切换为逆序' : 'ID逆序排列，点击切换为顺序');
     currentPage = 1;
     loadRecyclers();
 }
