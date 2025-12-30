@@ -128,6 +128,14 @@
 - 检查 `pageSize` 变量是否为 8
 - 确认后端正确接收了 pageSize 参数
 
+### 性能优化建议
+如果数据量特别大（数千条回收员记录），建议在数据库上添加索引：
+```sql
+CREATE INDEX IX_Appointments_RecyclerID_Status 
+ON Appointments(RecyclerID, Status);
+```
+这将显著提高查询完成订单数的性能。
+
 ## 总结
 此次改进解决了回收员管理页面的核心问题：
 1. ✅ 改为分页显示（8条/页）
