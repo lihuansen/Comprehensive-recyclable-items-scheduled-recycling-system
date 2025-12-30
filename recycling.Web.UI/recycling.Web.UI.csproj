@@ -196,6 +196,8 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\Unauthorized.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Shared\_TransporterLayout.cshtml" />
+    <Content Include="Views\Shared\_SortingCenterWorkerLayout.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Home\Order.cshtml" />
     <Content Include="Views\Home\Message.cshtml" />
@@ -239,6 +241,17 @@
     <Content Include="Views\Staff\LogManagement.cshtml" />
     <Content Include="Views\Staff\TransporterManagement.cshtml" />
     <Content Include="Views\Staff\SortingCenterWorkerManagement.cshtml" />
+    <Content Include="Views\Staff\StoragePointManagement.cshtml" />
+    <Content Include="Views\Staff\TransporterDashboard.cshtml" />
+    <Content Include="Views\Staff\TransporterProfile.cshtml" />
+    <Content Include="Views\Staff\TransporterEditProfile.cshtml" />
+    <Content Include="Views\Staff\TransporterChangePassword.cshtml" />
+    <Content Include="Views\Staff\SortingCenterWorkerDashboard.cshtml" />
+    <Content Include="Views\Staff\SortingCenterWorkerProfile.cshtml" />
+    <Content Include="Views\Staff\SortingCenterWorkerEditProfile.cshtml" />
+    <Content Include="Views\Staff\SortingCenterWorkerChangePassword.cshtml" />
+    <Content Include="Views\Staff\SuperAdminAccountManagement.cshtml" />
+    <Content Include="Views\Staff\AccountSelfManagement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

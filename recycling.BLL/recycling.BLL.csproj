@@ -59,6 +59,7 @@
     <Compile Include="RecyclerOrderBLL.cs" />
     <Compile Include="StaffBLL.cs" />
     <Compile Include="StoragePointBLL.cs" />
+    <Compile Include="SuperAdminBLL.cs" />
     <Compile Include="UserAddressBLL.cs" />
     <Compile Include="UserBLL.cs" />
     <Compile Include="UserNotificationBLL.cs" />
