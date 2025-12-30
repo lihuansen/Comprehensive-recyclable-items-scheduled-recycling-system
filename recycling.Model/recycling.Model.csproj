@@ -82,6 +82,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecyclableItems.cs" />
     <Compile Include="RecyclableQueryModel.cs" />
+    <Compile Include="RecyclerListViewModel.cs" />
     <Compile Include="RecyclerMessageViewModel.cs" />
     <Compile Include="RecyclerOrderStatistics.cs" />
     <Compile Include="RecyclerOrderViewModel.cs" />
