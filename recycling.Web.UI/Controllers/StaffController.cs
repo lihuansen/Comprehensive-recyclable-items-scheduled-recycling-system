@@ -18,6 +18,7 @@ namespace recycling.Web.UI.Controllers
         private readonly MessageBLL _messageBLL = new MessageBLL();
         private readonly OrderBLL _orderBLL = new OrderBLL();
         private readonly AdminBLL _adminBLL = new AdminBLL();
+        private readonly SuperAdminBLL _superAdminBLL = new SuperAdminBLL();
         private readonly HomepageCarouselBLL _carouselBLL = new HomepageCarouselBLL();
         private readonly RecyclableItemBLL _recyclableItemBLL = new RecyclableItemBLL();
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
@@ -1969,6 +1970,241 @@ namespace recycling.Web.UI.Controllers
             {
                 TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
                 return RedirectToAction("AdminManagement");
+            }
+        }
+
+        #endregion
+
+        #region SuperAdmin - SuperAdmin Account Management
+
+        /// <summary>
+        /// 超级管理员 - 超级管理员账号管理页面
+        /// </summary>
+        public ActionResult SuperAdminAccountManagement()
+        {
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            return View();
+        }
+
+        /// <summary>
+        /// 超级管理员 - 获取超级管理员列表（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetSuperAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var result = _superAdminBLL.GetAllSuperAdmins(page, pageSize, searchTerm, isActive);
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 获取超级管理员详情（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetSuperAdminDetails(int superAdminId)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var superAdmin = _superAdminBLL.GetSuperAdminById(superAdminId);
+                return JsonContent(new {
+                    success = true,
+                    data = superAdmin
+                });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 添加超级管理员（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult AddSuperAdmin(SuperAdmins superAdmin, string password)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var result = _superAdminBLL.AddSuperAdmin(superAdmin, password);
+                
+                // 记录操作日志
+                if (result.Success)
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.SuperAdminManagement, OperationLogBLL.OperationTypes.Create, $"添加超级管理员：{superAdmin.Username}", null, superAdmin.Username, "Success");
+                }
+                else
+                {
+                    LogAdminOperation(OperationLogBLL.Modules.SuperAdminManagement, OperationLogBLL.OperationTypes.Create, $"添加超级管理员失败：{superAdmin.Username}", null, superAdmin.Username, "Failed");
+                }
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 更新超级管理员信息（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult UpdateSuperAdmin(SuperAdmins superAdmin)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var result = _superAdminBLL.UpdateSuperAdmin(superAdmin);
+                
+                // 记录操作日志
+                LogAdminOperation(OperationLogBLL.Modules.SuperAdminManagement, OperationLogBLL.OperationTypes.Update, 
+                    result.Success ? $"更新超级管理员信息：{superAdmin.Username}" : $"更新超级管理员信息失败：{superAdmin.Username}", 
+                    superAdmin.SuperAdminID, superAdmin.Username, result.Success ? "Success" : "Failed");
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 删除超级管理员（API）
+        /// </summary>
+        [HttpPost]
+        public JsonResult DeleteSuperAdmin(int superAdminId)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return Json(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                // 获取超级管理员信息用于日志记录
+                var superAdmin = _superAdminBLL.GetSuperAdminById(superAdminId);
+                string superAdminName = superAdmin?.Username ?? $"ID:{superAdminId}";
+                
+                var result = _superAdminBLL.DeleteSuperAdmin(superAdminId);
+                
+                // 记录操作日志
+                LogAdminOperation(OperationLogBLL.Modules.SuperAdminManagement, OperationLogBLL.OperationTypes.Delete, $"删除超级管理员：{superAdminName}", superAdminId, superAdminName, result.Success ? "Success" : "Failed");
+                
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 获取超级管理员统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetSuperAdminStatistics()
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var stats = _superAdminBLL.GetSuperAdminStatistics();
+                return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 超级管理员 - 导出超级管理员数据到CSV
+        /// </summary>
+        [HttpGet]
+        public ActionResult ExportSuperAdmins(string searchTerm = null, bool? isActive = null)
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            try
+            {
+                // Get all super admins without pagination for export
+                var superAdmins = _superAdminBLL.GetAllSuperAdminsForExport(searchTerm, isActive);
+
+                // Create CSV content
+                var csv = new System.Text.StringBuilder();
+
+                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                csv.Append("\uFEFF");
+
+                // Add header
+                csv.AppendLine("超级管理员ID,用户名,姓名,创建日期,最后登录日期,账号状态");
+
+                // Add data rows
+                foreach (var superAdmin in superAdmins)
+                {
+                    var createdDate = superAdmin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
+                    var lastLoginDate = superAdmin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
+                    var activeStatus = superAdmin.IsActive ? "激活" : "禁用";
+
+                    csv.AppendLine($"{superAdmin.SuperAdminID},{EscapeCsvField(superAdmin.Username)},{EscapeCsvField(superAdmin.FullName)},{EscapeCsvField(createdDate)},{EscapeCsvField(lastLoginDate)},{EscapeCsvField(activeStatus)}");
+                }
+
+                // Generate file
+                var fileName = $"超级管理员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+
+                // 记录导出操作日志
+                LogAdminOperation(OperationLogBLL.Modules.SuperAdminManagement, OperationLogBLL.OperationTypes.Export, $"导出超级管理员数据，共{superAdmins.Count}条记录");
+
+                return File(fileBytes, "text/csv", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"导出失败: {ex.Message}";
+                return RedirectToAction("SuperAdminAccountManagement");
             }
         }
 
