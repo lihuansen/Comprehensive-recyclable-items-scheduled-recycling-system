@@ -432,7 +432,7 @@
 
     <!-- 联系运输人员按钮 -->
     <div style="margin-bottom: 20px;">
-        <button class="btn-contact-transport" onclick="showTransporterModal()">
+        <button class="btn-contact-transport" id="btnContactTransport">
             <i class="glyphicon glyphicon-phone"></i> 联系运输人员
         </button>
     </div>
@@ -470,11 +470,11 @@
     </div>
 
     <!-- 运输人员联系模态框 -->
-    <div class="modal-overlay" id="transporterModal" onclick="closeTransporterModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-overlay" id="transporterModal">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="glyphicon glyphicon-user"></i> 可用运输人员</h3>
-                <button class="modal-close" onclick="closeTransporterModal()">&times;</button>
+                <button class="modal-close" id="btnCloseModal">&times;</button>
             </div>
             <div id="transporterList">
                 <div style="text-align: center; padding: 40px; color: #666;">
@@ -493,6 +493,28 @@
 
     $(document).ready(function () {
         loadSummary();
+        
+        // Bind contact transport button
+        $('#btnContactTransport').on('click', function() {
+            showTransporterModal();
+        });
+        
+        // Bind modal close events
+        $('#btnCloseModal').on('click', function() {
+            closeTransporterModal();
+        });
+        
+        $('#transporterModal').on('click', function(e) {
+            // Close only if clicking on the overlay itself, not the content
+            if (e.target.id === 'transporterModal') {
+                closeTransporterModal();
+            }
+        });
+        
+        // Prevent clicks on modal content from closing modal
+        $('.modal-content').on('click', function(e) {
+            e.stopPropagation();
+        });
     });
 
     // 加载汇总数据
@@ -711,9 +733,14 @@
     }
 
     // 检查重量预警
+    var warningElement = null;  // Track warning element for efficient removal
+    
     function checkWeightWarning(totalWeight) {
         // 移除现有的预警提示
-        $('.warning-alert').remove();
+        if (warningElement) {
+            warningElement.remove();
+            warningElement = null;
+        }
         
         // 当总重量接近50公斤时（45公斤以上）显示预警
         if (totalWeight >= 45) {
@@ -724,9 +751,9 @@
                 warningMsg = '⚠️ 提示：暂存点总重量已达到 ' + totalWeight.toFixed(2) + ' kg，接近50kg预警值！建议及时联系运输人员。';
             }
             
-            var $warning = $('<div class="warning-alert"></div>');
-            $warning.html('<i class="glyphicon glyphicon-warning-sign"></i>' + warningMsg);
-            $('body').append($warning);
+            warningElement = $('<div class="warning-alert"></div>');
+            warningElement.html('<i class="glyphicon glyphicon-warning-sign"></i>' + warningMsg);
+            $('body').append(warningElement);
         }
     }
 
@@ -780,7 +807,7 @@
                     ratingHtml += '<i class="glyphicon glyphicon-star"></i>';
                 }
                 // Show remaining empty stars (out of 5)
-                var emptyStars = 5 - Math.ceil(transporter.rating);
+                var emptyStars = 5 - fullStars;
                 for (var i = 0; i < emptyStars; i++) {
                     ratingHtml += '<i class="glyphicon glyphicon-star-empty"></i>';
                 }
@@ -820,11 +847,8 @@
     }
 
     // 关闭运输人员模态框
-    function closeTransporterModal(event) {
-        // Close if no event (direct call), or if clicking on the overlay itself
-        if (!event || event.target === document.getElementById('transporterModal')) {
-            $('#transporterModal').hide();
-        }
+    function closeTransporterModal() {
+        $('#transporterModal').hide();
     }
 
     // 拨打电话
