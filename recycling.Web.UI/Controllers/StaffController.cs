@@ -1310,6 +1310,76 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// Get available transporters in the same region as the recycler (AJAX)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetAvailableTransporters()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return JsonContent(new { success = false, message = "未登录，请重新登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Recyclers;
+                var role = Session["StaffRole"] as string;
+
+                if (staff == null || role != "recycler")
+                {
+                    return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
+                }
+
+                // Get transporters in the same region who are active and available
+                using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDBConnectionString"].ConnectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT TransporterID, Username, FullName, PhoneNumber, Region, 
+                                  VehicleType, VehiclePlateNumber, VehicleCapacity, 
+                                  CurrentStatus, Available, Rating
+                           FROM Transporters 
+                           WHERE Region = @Region 
+                           AND IsActive = 1 
+                           AND Available = 1
+                           ORDER BY Rating DESC, FullName";
+
+                    var cmd = new System.Data.SqlClient.SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@Region", staff.Region);
+
+                    var transporters = new List<object>();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            transporters.Add(new
+                            {
+                                transporterId = reader.GetInt32(0),
+                                username = reader.GetString(1),
+                                fullName = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                                phoneNumber = reader.GetString(3),
+                                region = reader.GetString(4),
+                                vehicleType = reader.IsDBNull(5) ? "" : reader.GetString(5),
+                                vehiclePlateNumber = reader.GetString(6),
+                                vehicleCapacity = reader.IsDBNull(7) ? (decimal?)null : reader.GetDecimal(7),
+                                currentStatus = reader.GetString(8),
+                                available = reader.GetBoolean(9),
+                                rating = reader.IsDBNull(10) ? (decimal?)null : reader.GetDecimal(10)
+                            });
+                        }
+                    }
+
+                    return JsonContent(new { success = true, data = transporters });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetAvailableTransporters 错误: {ex.Message}");
+                return JsonContent(new { success = false, message = $"获取运输人员失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// 用户评价页面 - 回收员查看收到的评价
         /// </summary>
         [HttpGet]
