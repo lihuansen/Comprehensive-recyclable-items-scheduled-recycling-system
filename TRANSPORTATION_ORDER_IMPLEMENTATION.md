@@ -185,7 +185,8 @@ SQL脚本文件位于：`Database/CreateTransportationOrdersTable.sql`
 {
   "success": true,
   "message": "运输单创建成功",
-  "orderId": 1
+  "orderId": 1,
+  "orderNumber": "TO202601030001"
 }
 ```
 

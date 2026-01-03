@@ -18,6 +18,8 @@ namespace recycling.DAL
         /// <summary>
         /// 生成运输单号
         /// 格式：TO+YYYYMMDD+4位序号
+        /// Note: This implementation has a potential race condition in high-concurrency scenarios.
+        /// For production use, consider using database sequences or implementing proper locking.
         /// </summary>
         private string GenerateOrderNumber()
         {
@@ -27,11 +29,26 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "SELECT COUNT(*) FROM TransportationOrders WHERE OrderNumber LIKE @DatePrefix + '%'";
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                
+                // Use a transaction with serializable isolation level to prevent race conditions
+                using (SqlTransaction transaction = conn.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
-                    cmd.Parameters.AddWithValue("@DatePrefix", datePrefix);
-                    sequence = Convert.ToInt32(cmd.ExecuteScalar()) + 1;
+                    try
+                    {
+                        string sql = "SELECT COUNT(*) FROM TransportationOrders WITH (TABLOCKX) WHERE OrderNumber LIKE @DatePrefix + '%'";
+                        using (SqlCommand cmd = new SqlCommand(sql, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@DatePrefix", datePrefix);
+                            sequence = Convert.ToInt32(cmd.ExecuteScalar()) + 1;
+                        }
+                        
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
             }
 
