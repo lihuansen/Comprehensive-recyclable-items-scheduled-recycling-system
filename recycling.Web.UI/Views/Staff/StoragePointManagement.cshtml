@@ -779,7 +779,9 @@
                 for (var i = 0; i < fullStars; i++) {
                     ratingHtml += '<i class="glyphicon glyphicon-star"></i>';
                 }
-                if (transporter.rating % 1 >= 0.5) {
+                // Show remaining empty stars (out of 5)
+                var emptyStars = 5 - Math.ceil(transporter.rating);
+                for (var i = 0; i < emptyStars; i++) {
                     ratingHtml += '<i class="glyphicon glyphicon-star-empty"></i>';
                 }
                 ratingHtml += ' ' + transporter.rating.toFixed(1) + '</div>';
@@ -801,10 +803,17 @@
                     '<div class="info-item"><i class="glyphicon glyphicon-road"></i> ' + transporter.vehiclePlateNumber + '</div>' +
                     '<div class="info-item"><i class="glyphicon glyphicon-dashboard"></i> ' + vehicleInfo + '</div>' +
                 '</div>' +
-                '<button class="btn-call" onclick="callTransporter(\'' + transporter.phoneNumber + '\', \'' + (transporter.fullName || transporter.username) + '\')">' +
+                '<button class="btn-call" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '">' +
                     '<i class="glyphicon glyphicon-earphone"></i> 拨打电话' +
                 '</button>'
             );
+            
+            // Add event listener with proper data binding
+            card.find('.btn-call').on('click', function() {
+                var phone = $(this).data('phone');
+                var name = $(this).data('name');
+                callTransporter(phone, name);
+            });
             
             $list.append(card);
         });
@@ -812,7 +821,8 @@
 
     // 关闭运输人员模态框
     function closeTransporterModal(event) {
-        if (!event || event.target.id === 'transporterModal') {
+        // Close if no event (direct call), or if clicking on the overlay itself
+        if (!event || event.target === document.getElementById('transporterModal')) {
             $('#transporterModal').hide();
         }
     }

@@ -1360,9 +1360,9 @@ namespace recycling.Web.UI.Controllers
                                 phoneNumber = reader.GetString(3),
                                 region = reader.GetString(4),
                                 vehicleType = reader.IsDBNull(5) ? "" : reader.GetString(5),
-                                vehiclePlateNumber = reader.GetString(6),
+                                vehiclePlateNumber = reader.IsDBNull(6) ? "" : reader.GetString(6),
                                 vehicleCapacity = reader.IsDBNull(7) ? (decimal?)null : reader.GetDecimal(7),
-                                currentStatus = reader.GetString(8),
+                                currentStatus = reader.IsDBNull(8) ? "" : reader.GetString(8),
                                 available = reader.GetBoolean(9),
                                 rating = reader.IsDBNull(10) ? (decimal?)null : reader.GetDecimal(10)
                             });
