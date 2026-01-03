@@ -65,5 +65,16 @@ namespace recycling.Model
 
         [Column(TypeName = "datetime2")]
         public DateTime? CancelledDate { get; set; }
+
+        [StringLength(200)]
+        public string CancelReason { get; set; }
+
+        [StringLength(500)]
+        public string TransporterNotes { get; set; }
+
+        public int? RecyclerRating { get; set; }
+
+        [StringLength(500)]
+        public string RecyclerReview { get; set; }
     }
 }
