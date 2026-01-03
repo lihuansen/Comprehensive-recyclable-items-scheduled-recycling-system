@@ -1332,7 +1332,7 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // Get transporters in the same region who are active and available
-                using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDBConnectionString"].ConnectionString))
+                using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString))
                 {
                     conn.Open();
                     string sql = @"SELECT TransporterID, Username, FullName, PhoneNumber, Region, 
