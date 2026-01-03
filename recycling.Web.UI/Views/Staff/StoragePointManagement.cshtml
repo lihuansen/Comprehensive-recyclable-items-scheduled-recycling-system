@@ -181,6 +181,27 @@
         animation: slideIn 0.3s ease-out;
     }
 
+    .warning-alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 20px 25px;
+        background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 6px 16px rgba(255, 87, 34, 0.3);
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out, pulse 2s infinite;
+        max-width: 400px;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .warning-alert i {
+        margin-right: 10px;
+        font-size: 20px;
+    }
+
     @@keyframes slideIn {
         from {
             transform: translateX(400px);
@@ -190,6 +211,198 @@
             transform: translateX(0);
             opacity: 1;
         }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 6px 16px rgba(255, 87, 34, 0.3);
+        }
+        50% {
+            box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5);
+        }
+    }
+
+    .btn-contact-transport {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 20px;
+    }
+
+    .btn-contact-transport:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-contact-transport i {
+        margin-right: 8px;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 700px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        z-index: 9999;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @@keyframes slideUp {
+        from {
+            transform: translate(-50%, -40%);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, -50%);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 24px;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #999;
+        line-height: 1;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+    }
+
+    .modal-close:hover {
+        color: #333;
+    }
+
+    .transporter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .transporter-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .transporter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .transporter-name {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .transporter-rating {
+        color: #ff9800;
+        font-size: 16px;
+    }
+
+    .transporter-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .info-item i {
+        margin-right: 8px;
+        color: #667eea;
+        width: 16px;
+    }
+
+    .btn-call {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+        transition: background-color 0.2s;
+    }
+
+    .btn-call:hover {
+        background-color: #45a049;
+    }
+
+    .btn-call i {
+        margin-right: 8px;
+    }
+
+    .empty-transporters {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+
+    .empty-transporters i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        color: #ddd;
     }
 </style>
 
@@ -215,6 +428,13 @@
             <div class="stat-value" id="totalValue">0</div>
             <div class="stat-label">总价值 (元)</div>
         </div>
+    </div>
+
+    <!-- 联系运输人员按钮 -->
+    <div style="margin-bottom: 20px;">
+        <button class="btn-contact-transport" id="btnContactTransport">
+            <i class="glyphicon glyphicon-phone"></i> 联系运输人员
+        </button>
     </div>
 
     <!-- 类别汇总卡片 -->
@@ -248,6 +468,22 @@
             </tbody>
         </table>
     </div>
+
+    <!-- 运输人员联系模态框 -->
+    <div class="modal-overlay" id="transporterModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="glyphicon glyphicon-user"></i> 可用运输人员</h3>
+                <button class="modal-close" id="btnCloseModal">&times;</button>
+            </div>
+            <div id="transporterList">
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="glyphicon glyphicon-refresh glyphicon-spin" style="font-size: 32px;"></i>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section scripts {
@@ -257,6 +493,28 @@
 
     $(document).ready(function () {
         loadSummary();
+        
+        // Bind contact transport button
+        $('#btnContactTransport').on('click', function() {
+            showTransporterModal();
+        });
+        
+        // Bind modal close events
+        $('#btnCloseModal').on('click', function() {
+            closeTransporterModal();
+        });
+        
+        $('#transporterModal').on('click', function(e) {
+            // Close only if clicking on the overlay itself, not the content
+            if (e.target.id === 'transporterModal') {
+                closeTransporterModal();
+            }
+        });
+        
+        // Prevent clicks on modal content from closing modal
+        $('.modal-content').on('click', function(e) {
+            e.stopPropagation();
+        });
     });
 
     // 加载汇总数据
@@ -378,6 +636,9 @@
         });
 
         updateStats(data.length, totalWeight, totalValue);
+        
+        // 检查是否接近50公斤预警值
+        checkWeightWarning(totalWeight);
     }
 
     // 更新统计数据
@@ -470,5 +731,132 @@
             });
         }, 3000);
     }
+
+    // 检查重量预警
+    var warningElement = null;  // Track warning element for efficient removal
+    
+    function checkWeightWarning(totalWeight) {
+        // 移除现有的预警提示
+        if (warningElement) {
+            warningElement.remove();
+            warningElement = null;
+        }
+        
+        // 当总重量接近50公斤时（45公斤以上）显示预警
+        if (totalWeight >= 45) {
+            var warningMsg = '';
+            if (totalWeight >= 50) {
+                warningMsg = '⚠️ 警告：暂存点总重量已达到 ' + totalWeight.toFixed(2) + ' kg，已超过预警值！建议立即联系运输人员。';
+            } else {
+                warningMsg = '⚠️ 提示：暂存点总重量已达到 ' + totalWeight.toFixed(2) + ' kg，接近50kg预警值！建议及时联系运输人员。';
+            }
+            
+            warningElement = $('<div class="warning-alert"></div>');
+            warningElement.html('<i class="glyphicon glyphicon-warning-sign"></i>' + warningMsg);
+            $('body').append(warningElement);
+        }
+    }
+
+    // 显示运输人员模态框
+    function showTransporterModal() {
+        $('#transporterModal').show();
+        $('#transporterList').html('<div style="text-align: center; padding: 40px; color: #666;"><i class="glyphicon glyphicon-refresh glyphicon-spin" style="font-size: 32px;"></i><p>加载中...</p></div>');
+        
+        // 加载运输人员列表
+        $.ajax({
+            url: '@Url.Action("GetAvailableTransporters", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: tokenValue
+            },
+            success: function (response) {
+                if (response.success) {
+                    displayTransporters(response.data);
+                } else {
+                    $('#transporterList').html('<div class="empty-transporters"><i class="glyphicon glyphicon-exclamation-sign"></i><p>' + response.message + '</p></div>');
+                }
+            },
+            error: function (xhr, status, error) {
+                var errorMsg = '加载运输人员失败';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                $('#transporterList').html('<div class="empty-transporters"><i class="glyphicon glyphicon-exclamation-sign"></i><p>' + errorMsg + '</p></div>');
+            }
+        });
+    }
+
+    // 显示运输人员列表
+    function displayTransporters(transporters) {
+        var $list = $('#transporterList');
+        $list.empty();
+        
+        if (transporters.length === 0) {
+            $list.html('<div class="empty-transporters"><i class="glyphicon glyphicon-user"></i><p>暂无可用的运输人员</p><p style="color: #999; font-size: 14px; margin-top: 10px;">当前区域没有可用的运输人员</p></div>');
+            return;
+        }
+        
+        transporters.forEach(function (transporter) {
+            var card = $('<div class="transporter-card"></div>');
+            
+            var ratingHtml = '';
+            if (transporter.rating) {
+                ratingHtml = '<div class="transporter-rating">';
+                var fullStars = Math.floor(transporter.rating);
+                for (var i = 0; i < fullStars; i++) {
+                    ratingHtml += '<i class="glyphicon glyphicon-star"></i>';
+                }
+                // Show remaining empty stars (out of 5)
+                var emptyStars = 5 - fullStars;
+                for (var i = 0; i < emptyStars; i++) {
+                    ratingHtml += '<i class="glyphicon glyphicon-star-empty"></i>';
+                }
+                ratingHtml += ' ' + transporter.rating.toFixed(1) + '</div>';
+            }
+            
+            var vehicleInfo = transporter.vehicleType || '未知车型';
+            if (transporter.vehicleCapacity) {
+                vehicleInfo += ' (' + transporter.vehicleCapacity + ' kg)';
+            }
+            
+            card.html(
+                '<div class="transporter-header">' +
+                    '<div class="transporter-name">' + (transporter.fullName || transporter.username) + '</div>' +
+                    ratingHtml +
+                '</div>' +
+                '<div class="transporter-info">' +
+                    '<div class="info-item"><i class="glyphicon glyphicon-phone"></i> ' + transporter.phoneNumber + '</div>' +
+                    '<div class="info-item"><i class="glyphicon glyphicon-map-marker"></i> ' + transporter.region + '</div>' +
+                    '<div class="info-item"><i class="glyphicon glyphicon-road"></i> ' + transporter.vehiclePlateNumber + '</div>' +
+                    '<div class="info-item"><i class="glyphicon glyphicon-dashboard"></i> ' + vehicleInfo + '</div>' +
+                '</div>' +
+                '<button class="btn-call" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '">' +
+                    '<i class="glyphicon glyphicon-earphone"></i> 拨打电话' +
+                '</button>'
+            );
+            
+            // Add event listener with proper data binding
+            card.find('.btn-call').on('click', function() {
+                var phone = $(this).data('phone');
+                var name = $(this).data('name');
+                callTransporter(phone, name);
+            });
+            
+            $list.append(card);
+        });
+    }
+
+    // 关闭运输人员模态框
+    function closeTransporterModal() {
+        $('#transporterModal').hide();
+    }
+
+    // 拨打电话
+    function callTransporter(phoneNumber, name) {
+        if (confirm('确认拨打电话给 ' + name + ' (' + phoneNumber + ') 吗？')) {
+            window.location.href = 'tel:' + phoneNumber;
+        }
+    }
+
 </script>
 }
