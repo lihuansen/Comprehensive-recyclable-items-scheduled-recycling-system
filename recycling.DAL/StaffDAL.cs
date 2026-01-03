@@ -24,7 +24,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT RecyclerID, Username, PasswordHash, PhoneNumber, LastLoginDate, IsActive, Available 
+                    string sql = @"SELECT RecyclerID, Username, PasswordHash, PhoneNumber, Region, LastLoginDate, IsActive, Available 
                                   FROM Recyclers 
                                   WHERE Username = @Username";
 
@@ -42,6 +42,7 @@ namespace recycling.DAL
                                 Username = reader["Username"].ToString(),
                                 PasswordHash = reader["PasswordHash"].ToString(),
                                 PhoneNumber = reader["PhoneNumber"]?.ToString(),
+                                Region = reader["Region"] != DBNull.Value ? reader["Region"].ToString() : null,
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null,
@@ -520,7 +521,7 @@ namespace recycling.DAL
 
             using (var conn = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT RecyclerID, Username, FullName, PhoneNumber, IsActive, Available 
+                string sql = @"SELECT RecyclerID, Username, FullName, PhoneNumber, Region, IsActive, Available 
                       FROM Recyclers 
                       WHERE RecyclerID = @RecyclerID";
 
@@ -538,6 +539,7 @@ namespace recycling.DAL
                             Username = reader["Username"].ToString(),
                             FullName = reader["FullName"]?.ToString(),
                             PhoneNumber = reader["PhoneNumber"]?.ToString(),
+                            Region = reader["Region"] != DBNull.Value ? reader["Region"].ToString() : null,
                             IsActive = Convert.ToBoolean(reader["IsActive"]),
                             Available = Convert.ToBoolean(reader["Available"])
                         };

@@ -1331,6 +1331,12 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
                 }
 
+                // Check if recycler has a region assigned
+                if (string.IsNullOrWhiteSpace(staff.Region))
+                {
+                    return JsonContent(new { success = false, message = "您的账号未分配区域，请联系管理员" });
+                }
+
                 // Get transporters in the same region who are active and available
                 using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString))
                 {
