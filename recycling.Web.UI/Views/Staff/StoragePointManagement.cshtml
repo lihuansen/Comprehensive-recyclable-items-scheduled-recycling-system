@@ -405,8 +405,19 @@
         color: #ddd;
     }
 
+    .btn-select-transporter {
+        background-color: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s;
+    }
+
     .btn-select-transporter:hover {
-        background-color: #5568d3 !important;
+        background-color: #5568d3;
     }
 
     .order-form {
@@ -934,7 +945,7 @@
                     '<button class="btn-call" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '">' +
                         '<i class="glyphicon glyphicon-earphone"></i> 拨打电话' +
                     '</button>' +
-                    '<button class="btn-select-transporter" style="background-color: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background-color 0.2s;" data-id="' + transporter.transporterId + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '">' +
+                    '<button class="btn-select-transporter" data-id="' + transporter.transporterId + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '">' +
                         '<i class="glyphicon glyphicon-ok"></i> 选择此人' +
                     '</button>' +
                 '</div>'

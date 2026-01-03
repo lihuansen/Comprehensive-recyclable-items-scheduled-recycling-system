@@ -41,7 +41,8 @@ namespace recycling.DAL
         /// <summary>
         /// 创建运输单
         /// </summary>
-        public int CreateTransportationOrder(TransportationOrders order)
+        /// <returns>Tuple containing order ID and order number</returns>
+        public (int orderId, string orderNumber) CreateTransportationOrder(TransportationOrders order)
         {
             try
             {
@@ -81,7 +82,7 @@ namespace recycling.DAL
                         cmd.Parameters.AddWithValue("@CreatedDate", order.CreatedDate);
 
                         int orderId = Convert.ToInt32(cmd.ExecuteScalar());
-                        return orderId;
+                        return (orderId, order.OrderNumber);
                     }
                 }
             }

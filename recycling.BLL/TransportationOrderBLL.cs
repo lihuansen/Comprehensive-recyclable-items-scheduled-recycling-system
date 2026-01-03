@@ -17,8 +17,8 @@ namespace recycling.BLL
         /// 创建运输单
         /// </summary>
         /// <param name="order">运输单信息</param>
-        /// <returns>新创建的运输单ID，失败返回0</returns>
-        public int CreateTransportationOrder(TransportationOrders order)
+        /// <returns>Tuple containing order ID and order number, (0, null) if failed</returns>
+        public (int orderId, string orderNumber) CreateTransportationOrder(TransportationOrders order)
         {
             try
             {

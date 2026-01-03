@@ -1450,16 +1450,17 @@ namespace recycling.Web.UI.Controllers
 
                 // 调用BLL创建运输单
                 var transportOrderBLL = new TransportationOrderBLL();
-                int orderId = transportOrderBLL.CreateTransportationOrder(order);
+                var (orderId, orderNumber) = transportOrderBLL.CreateTransportationOrder(order);
 
                 if (orderId > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"运输单创建成功，ID: {orderId}");
+                    System.Diagnostics.Debug.WriteLine($"运输单创建成功，ID: {orderId}, OrderNumber: {orderNumber}");
                     return JsonContent(new 
                     { 
                         success = true, 
                         message = "运输单创建成功", 
-                        orderId = orderId 
+                        orderId = orderId,
+                        orderNumber = orderNumber
                     });
                 }
                 else
