@@ -404,6 +404,44 @@
         margin-bottom: 15px;
         color: #ddd;
     }
+
+    .btn-select-transporter:hover {
+        background-color: #5568d3 !important;
+    }
+
+    .order-form {
+        padding: 10px 0;
+    }
+
+    .order-form .form-group {
+        margin-bottom: 20px;
+    }
+
+    .order-form label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .order-form .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+
+    .order-form .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+    }
+
+    .order-form textarea.form-control {
+        font-family: inherit;
+    }
 </style>
 
 <div class="storage-container">
@@ -481,6 +519,68 @@
                     <i class="glyphicon glyphicon-refresh glyphicon-spin" style="font-size: 32px;"></i>
                     <p>加载中...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建运输单模态框 -->
+    <div class="modal-overlay" id="createOrderModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3><i class="glyphicon glyphicon-file"></i> 创建运输单</h3>
+                <button class="modal-close" id="btnCloseOrderModal">&times;</button>
+            </div>
+            <div class="order-form">
+                <form id="transportOrderForm">
+                    <input type="hidden" id="selectedTransporterId" />
+                    
+                    <div class="form-group">
+                        <label><strong>运输人员：</strong></label>
+                        <p id="selectedTransporterName" style="color: #667eea; font-size: 16px;"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pickupAddress"><strong>取货地址：</strong> <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="pickupAddress" placeholder="请输入取货地址（暂存点地址）" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="destinationAddress"><strong>目的地地址：</strong> <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="destinationAddress" placeholder="请输入目的地地址（基地地址）" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactPerson"><strong>联系人：</strong> <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="contactPerson" placeholder="请输入联系人姓名" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactPhone"><strong>联系电话：</strong> <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="contactPhone" placeholder="请输入联系电话" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="estimatedWeight"><strong>预估总重量 (kg)：</strong> <span style="color: red;">*</span></label>
+                        <input type="number" step="0.01" min="0.01" class="form-control" id="estimatedWeight" placeholder="请输入预估总重量" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="itemCategories"><strong>物品类别：</strong></label>
+                        <textarea class="form-control" id="itemCategories" rows="3" placeholder="请输入物品类别信息（例如：纸类 20kg, 塑料 15kg）" style="resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="specialInstructions"><strong>特殊说明：</strong></label>
+                        <textarea class="form-control" id="specialInstructions" rows="3" placeholder="请输入特殊说明或备注" style="resize: vertical;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn btn-default" style="flex: 1;" onclick="closeOrderModal()">取消</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2; background-color: #667eea; border-color: #667eea;">
+                            <i class="glyphicon glyphicon-ok"></i> 创建运输单
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -830,16 +930,29 @@
                     '<div class="info-item"><i class="glyphicon glyphicon-road"></i> ' + transporter.vehiclePlateNumber + '</div>' +
                     '<div class="info-item"><i class="glyphicon glyphicon-dashboard"></i> ' + vehicleInfo + '</div>' +
                 '</div>' +
-                '<button class="btn-call" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '">' +
-                    '<i class="glyphicon glyphicon-earphone"></i> 拨打电话' +
-                '</button>'
+                '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">' +
+                    '<button class="btn-call" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '">' +
+                        '<i class="glyphicon glyphicon-earphone"></i> 拨打电话' +
+                    '</button>' +
+                    '<button class="btn-select-transporter" style="background-color: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background-color 0.2s;" data-id="' + transporter.transporterId + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '">' +
+                        '<i class="glyphicon glyphicon-ok"></i> 选择此人' +
+                    '</button>' +
+                '</div>'
             );
             
-            // Add event listener with proper data binding
+            // Add event listener with proper data binding for calling
             card.find('.btn-call').on('click', function() {
                 var phone = $(this).data('phone');
                 var name = $(this).data('name');
                 callTransporter(phone, name);
+            });
+            
+            // Add event listener for selecting transporter
+            card.find('.btn-select-transporter').on('click', function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+                var phone = $(this).data('phone');
+                selectTransporter(id, name, phone);
             });
             
             $list.append(card);
@@ -856,6 +969,155 @@
         if (confirm('确认拨打电话给 ' + name + ' (' + phoneNumber + ') 吗？')) {
             window.location.href = 'tel:' + phoneNumber;
         }
+    }
+
+    // 选择运输人员
+    function selectTransporter(transporterId, transporterName, transporterPhone) {
+        // 关闭运输人员列表模态框
+        closeTransporterModal();
+        
+        // 显示创建运输单模态框
+        $('#selectedTransporterId').val(transporterId);
+        $('#selectedTransporterName').text(transporterName + ' (' + transporterPhone + ')');
+        
+        // 清空表单
+        $('#pickupAddress').val('');
+        $('#destinationAddress').val('');
+        $('#contactPerson').val('');
+        $('#contactPhone').val('');
+        $('#estimatedWeight').val('');
+        $('#itemCategories').val('');
+        $('#specialInstructions').val('');
+        
+        // 显示模态框
+        $('#createOrderModal').show();
+    }
+
+    // 关闭创建运输单模态框
+    function closeOrderModal() {
+        $('#createOrderModal').hide();
+    }
+
+    // 绑定创建运输单表单提交事件
+    $(document).ready(function() {
+        // 绑定关闭按钮
+        $('#btnCloseOrderModal').on('click', function() {
+            closeOrderModal();
+        });
+        
+        // 点击遮罩层关闭
+        $('#createOrderModal').on('click', function(e) {
+            if (e.target.id === 'createOrderModal') {
+                closeOrderModal();
+            }
+        });
+        
+        // 提交表单
+        $('#transportOrderForm').on('submit', function(e) {
+            e.preventDefault();
+            createTransportationOrder();
+        });
+    });
+
+    // 创建运输单
+    function createTransportationOrder() {
+        // 获取表单数据
+        var transporterId = $('#selectedTransporterId').val();
+        var pickupAddress = $('#pickupAddress').val().trim();
+        var destinationAddress = $('#destinationAddress').val().trim();
+        var contactPerson = $('#contactPerson').val().trim();
+        var contactPhone = $('#contactPhone').val().trim();
+        var estimatedWeight = $('#estimatedWeight').val();
+        var itemCategories = $('#itemCategories').val().trim();
+        var specialInstructions = $('#specialInstructions').val().trim();
+
+        // 验证必填字段
+        if (!transporterId || transporterId <= 0) {
+            alert('请选择运输人员');
+            return;
+        }
+
+        if (!pickupAddress) {
+            alert('请填写取货地址');
+            $('#pickupAddress').focus();
+            return;
+        }
+
+        if (!destinationAddress) {
+            alert('请填写目的地地址');
+            $('#destinationAddress').focus();
+            return;
+        }
+
+        if (!contactPerson) {
+            alert('请填写联系人');
+            $('#contactPerson').focus();
+            return;
+        }
+
+        if (!contactPhone) {
+            alert('请填写联系电话');
+            $('#contactPhone').focus();
+            return;
+        }
+
+        if (!estimatedWeight || estimatedWeight <= 0) {
+            alert('请填写有效的预估重量');
+            $('#estimatedWeight').focus();
+            return;
+        }
+
+        // 发送创建请求
+        $.ajax({
+            url: '@Url.Action("CreateTransportationOrder", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: tokenValue,
+                transporterId: transporterId,
+                pickupAddress: pickupAddress,
+                destinationAddress: destinationAddress,
+                contactPerson: contactPerson,
+                contactPhone: contactPhone,
+                estimatedWeight: estimatedWeight,
+                itemCategories: itemCategories,
+                specialInstructions: specialInstructions
+            },
+            beforeSend: function() {
+                // 禁用提交按钮
+                $('#transportOrderForm button[type="submit"]').prop('disabled', true).html('<i class="glyphicon glyphicon-refresh glyphicon-spin"></i> 创建中...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('运输单创建成功！运输单号：' + (response.orderNumber || ''));
+                    closeOrderModal();
+                    // 可选：刷新页面或更新库存数据
+                    loadSummary();
+                } else {
+                    alert('创建失败：' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                var errorMsg = '创建运输单失败';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    try {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        if (jsonResponse.message) {
+                            errorMsg = jsonResponse.message;
+                        }
+                    } catch (e) {
+                        errorMsg += '（状态: ' + xhr.status + '）';
+                    }
+                }
+                alert(errorMsg);
+                console.error('创建运输单错误:', { status: xhr.status, error: error, response: xhr.responseText });
+            },
+            complete: function() {
+                // 恢复提交按钮
+                $('#transportOrderForm button[type="submit"]').prop('disabled', false).html('<i class="glyphicon glyphicon-ok"></i> 创建运输单');
+            }
+        });
     }
 
 </script>

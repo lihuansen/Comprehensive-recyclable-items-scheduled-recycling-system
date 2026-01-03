@@ -1380,6 +1380,102 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 创建运输单
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult CreateTransportationOrder(int transporterId, string pickupAddress, 
+            string destinationAddress, string contactPerson, string contactPhone, 
+            decimal estimatedWeight, string itemCategories, string specialInstructions)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return JsonContent(new { success = false, message = "未登录，请重新登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Recyclers;
+                var role = Session["StaffRole"] as string;
+
+                if (staff == null || role != "recycler")
+                {
+                    return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
+                }
+
+                // 验证必填字段
+                if (transporterId <= 0)
+                {
+                    return JsonContent(new { success = false, message = "请选择运输人员" });
+                }
+
+                if (string.IsNullOrWhiteSpace(pickupAddress))
+                {
+                    return JsonContent(new { success = false, message = "请填写取货地址" });
+                }
+
+                if (string.IsNullOrWhiteSpace(destinationAddress))
+                {
+                    return JsonContent(new { success = false, message = "请填写目的地地址" });
+                }
+
+                if (string.IsNullOrWhiteSpace(contactPerson))
+                {
+                    return JsonContent(new { success = false, message = "请填写联系人" });
+                }
+
+                if (string.IsNullOrWhiteSpace(contactPhone))
+                {
+                    return JsonContent(new { success = false, message = "请填写联系电话" });
+                }
+
+                if (estimatedWeight <= 0)
+                {
+                    return JsonContent(new { success = false, message = "预估重量必须大于0" });
+                }
+
+                // 创建运输单对象
+                var order = new TransportationOrders
+                {
+                    RecyclerID = staff.RecyclerID,
+                    TransporterID = transporterId,
+                    PickupAddress = pickupAddress,
+                    DestinationAddress = destinationAddress,
+                    ContactPerson = contactPerson,
+                    ContactPhone = contactPhone,
+                    EstimatedWeight = estimatedWeight,
+                    ItemCategories = itemCategories,
+                    SpecialInstructions = specialInstructions
+                };
+
+                // 调用BLL创建运输单
+                var transportOrderBLL = new TransportationOrderBLL();
+                int orderId = transportOrderBLL.CreateTransportationOrder(order);
+
+                if (orderId > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"运输单创建成功，ID: {orderId}");
+                    return JsonContent(new 
+                    { 
+                        success = true, 
+                        message = "运输单创建成功", 
+                        orderId = orderId 
+                    });
+                }
+                else
+                {
+                    return JsonContent(new { success = false, message = "运输单创建失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateTransportationOrder 错误: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+                return JsonContent(new { success = false, message = $"创建运输单失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// 用户评价页面 - 回收员查看收到的评价
         /// </summary>
         [HttpGet]
