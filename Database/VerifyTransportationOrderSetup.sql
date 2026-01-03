@@ -155,7 +155,7 @@ BEGIN
     FULL OUTER JOIN Transporters t ON r.Region = t.Region
     WHERE r.Region IS NOT NULL OR t.Region IS NOT NULL
     GROUP BY COALESCE(r.Region, t.Region)
-    ORDER BY '区域';
+    ORDER BY COALESCE(r.Region, t.Region);
     
     -- 检查是否有回收员区域没有对应的运输人员
     IF EXISTS (
