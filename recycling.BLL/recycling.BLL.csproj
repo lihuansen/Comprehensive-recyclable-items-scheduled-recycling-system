@@ -60,6 +60,7 @@
     <Compile Include="StaffBLL.cs" />
     <Compile Include="StoragePointBLL.cs" />
     <Compile Include="SuperAdminBLL.cs" />
+    <Compile Include="TransportationOrderBLL.cs" />
     <Compile Include="UserAddressBLL.cs" />
     <Compile Include="UserBLL.cs" />
     <Compile Include="UserNotificationBLL.cs" />
