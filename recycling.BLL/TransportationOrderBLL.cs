@@ -181,13 +181,51 @@ namespace recycling.BLL
                 if (orderId <= 0)
                     throw new ArgumentException("运输单ID无效");
 
-                return _dal.StartTransportation(orderId);
+                // 1. 更新运输单状态为"运输中"
+                bool result = _dal.StartTransportation(orderId);
+
+                // 2. 如果更新成功，发送通知给基地人员
+                if (result)
+                {
+                    try
+                    {
+                        // 获取运输单信息
+                        var order = _dal.GetTransportationOrderById(orderId);
+                        if (order != null)
+                        {
+                            // 发送通知给所有基地人员（通过发送给系统角色）
+                            // 注意：这里需要一个方法来通知所有基地人员
+                            // 可以通过UserNotificationBLL来实现
+                            SendTransportNotificationToBase(order);
+                        }
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        // 通知失败不影响运输状态更新
+                        System.Diagnostics.Debug.WriteLine($"发送运输通知失败: {notifyEx.Message}");
+                    }
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"StartTransportation BLL Error: {ex.Message}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// 发送运输通知给基地人员
+        /// </summary>
+        private void SendTransportNotificationToBase(TransportationOrders order)
+        {
+            // 这里可以实现发送通知的逻辑
+            // 由于系统中可能有多个基地人员，可以通过以下方式实现：
+            // 1. 查询所有基地人员并逐个发送通知
+            // 2. 使用广播机制发送通知
+            // 暂时记录日志，实际实现可以根据需求调整
+            System.Diagnostics.Debug.WriteLine($"运输单 {order.OrderNumber} 开始运输，需要通知基地人员");
         }
 
         /// <summary>

@@ -25,6 +25,7 @@ namespace recycling.Web.UI.Controllers
         private readonly OperationLogBLL _operationLogBLL = new OperationLogBLL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
         private readonly TransportationOrderBLL _transportationOrderBLL = new TransportationOrderBLL();
+        private readonly WarehouseReceiptBLL _warehouseReceiptBLL = new WarehouseReceiptBLL();
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -4178,6 +4179,197 @@ namespace recycling.Web.UI.Controllers
             {
                 ModelState.AddModelError("", result.Message);
                 return View(model);
+            }
+        }
+
+        #endregion
+
+        #region 基地管理功能
+
+        /// <summary>
+        /// 基地管理主页
+        /// </summary>
+        public ActionResult BaseManagement()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                return RedirectToAction("Login", "Staff");
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            ViewBag.StaffName = worker.Username;
+            ViewBag.DisplayName = "基地工作人员";
+            ViewBag.StaffRole = "sortingcenterworker";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 基地运输管理页面（查看运输中的订单）
+        /// </summary>
+        public ActionResult BaseTransportationManagement()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                return RedirectToAction("Login", "Staff");
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            ViewBag.StaffName = worker.Username;
+            ViewBag.DisplayName = "基地工作人员";
+            ViewBag.StaffRole = "sortingcenterworker";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取运输中的订单列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetInTransitOrders()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var orders = _warehouseReceiptBLL.GetInTransitOrders();
+                return JsonContent(new { success = true, data = orders });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"获取运输中订单失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 获取已完成的运输单列表（AJAX）- 用于仓库管理
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetCompletedTransportOrders()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var orders = _warehouseReceiptBLL.GetCompletedTransportOrders();
+                return JsonContent(new { success = true, data = orders });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"获取已完成运输单失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 基地仓库管理页面（入库单管理）
+        /// </summary>
+        public ActionResult BaseWarehouseManagement()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                return RedirectToAction("Login", "Staff");
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            ViewBag.StaffName = worker.Username;
+            ViewBag.DisplayName = "基地工作人员";
+            ViewBag.StaffRole = "sortingcenterworker";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取入库单列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetWarehouseReceipts(int page = 1, int pageSize = 20, string status = null)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                var receipts = _warehouseReceiptBLL.GetWarehouseReceipts(page, pageSize, status, null);
+                
+                return JsonContent(new { success = true, data = receipts });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"获取入库单列表失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 创建入库单（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult CreateWarehouseReceipt(int transportOrderId, decimal totalWeight, string itemCategories, string notes)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+
+                // 创建入库单（BLL层会进行所有必要的验证）
+                var (success, message, receiptId, receiptNumber) = _warehouseReceiptBLL.CreateWarehouseReceipt(
+                    transportOrderId, 
+                    worker.WorkerID, 
+                    totalWeight, 
+                    itemCategories, 
+                    notes);
+
+                if (success)
+                {
+                    return JsonContent(new 
+                    { 
+                        success = true, 
+                        message = message,
+                        receiptId = receiptId,
+                        receiptNumber = receiptNumber
+                    });
+                }
+                else
+                {
+                    return JsonContent(new { success = false, message = message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"创建入库单失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 检查运输单是否已创建入库单（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult CheckWarehouseReceipt(int transportOrderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                bool hasReceipt = _warehouseReceiptBLL.HasWarehouseReceipt(transportOrderId);
+                return JsonContent(new { success = true, hasReceipt = hasReceipt });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"检查失败：{ex.Message}" });
             }
         }
 
