@@ -217,6 +217,62 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 获取已完成的运输单列表（用于入库）
+        /// </summary>
+        public List<TransportNotificationViewModel> GetCompletedTransportOrders()
+        {
+            var orders = new List<TransportNotificationViewModel>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    
+                    string sql = @"
+                        SELECT 
+                            t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, 
+                            t.ItemCategories, t.PickupDate, t.Status,
+                            r.FullName AS RecyclerName,
+                            tr.FullName AS TransporterName
+                        FROM TransportationOrders t
+                        LEFT JOIN Recyclers r ON t.RecyclerID = r.RecyclerID
+                        LEFT JOIN Transporters tr ON t.TransporterID = tr.TransporterID
+                        WHERE t.Status = N'已完成'
+                        ORDER BY t.CompletedDate DESC";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                orders.Add(new TransportNotificationViewModel
+                                {
+                                    TransportOrderID = Convert.ToInt32(reader["TransportOrderID"]),
+                                    OrderNumber = reader["OrderNumber"].ToString(),
+                                    EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
+                                    ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                    PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
+                                    Status = reader["Status"].ToString(),
+                                    RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
+                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString()
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetCompletedTransportOrders Error: {ex.Message}");
+                throw new Exception($"获取已完成运输单失败: {ex.Message}", ex);
+            }
+
+            return orders;
+        }
+
+        /// <summary>
         /// 获取运输中的订单列表（用于基地管理）
         /// </summary>
         public List<TransportNotificationViewModel> GetInTransitOrders()

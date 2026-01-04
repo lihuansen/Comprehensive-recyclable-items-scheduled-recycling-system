@@ -128,6 +128,22 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 获取已完成的运输单列表（用于入库）
+        /// </summary>
+        public List<TransportNotificationViewModel> GetCompletedTransportOrders()
+        {
+            try
+            {
+                return _dal.GetCompletedTransportOrders();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetCompletedTransportOrders BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
         /// 检查运输单是否已创建入库单
         /// </summary>
         public bool HasWarehouseReceipt(int transportOrderId)

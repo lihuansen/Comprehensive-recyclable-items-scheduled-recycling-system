@@ -356,15 +356,13 @@
         $('#transitOrdersList').html('');
 
         $.ajax({
-            url: '@Url.Action("GetInTransitOrders", "Staff")',
+            url: '@Url.Action("GetCompletedTransportOrders", "Staff")',
             type: 'POST',
             data: {
                 __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
             },
             success: function (response) {
                 if (response.success) {
-                    // 这里我们需要获取已完成的运输单，而不是运输中的
-                    // 暂时显示运输中的订单供入库
                     displayTransitOrders(response.data);
                 } else {
                     $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>' + response.message + '</p></div>');

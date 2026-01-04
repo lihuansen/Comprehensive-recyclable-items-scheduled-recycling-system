@@ -4242,6 +4242,29 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取已完成的运输单列表（AJAX）- 用于仓库管理
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetCompletedTransportOrders()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var orders = _warehouseReceiptBLL.GetCompletedTransportOrders();
+                return JsonContent(new { success = true, data = orders });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"获取已完成运输单失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// 基地仓库管理页面（入库单管理）
         /// </summary>
         public ActionResult BaseWarehouseManagement()
@@ -4298,12 +4321,7 @@ namespace recycling.Web.UI.Controllers
 
                 var worker = (SortingCenterWorkers)Session["LoginStaff"];
 
-                // 检查是否已创建入库单
-                if (_warehouseReceiptBLL.HasWarehouseReceipt(transportOrderId))
-                {
-                    return JsonContent(new { success = false, message = "该运输单已创建入库单" });
-                }
-
+                // 创建入库单（BLL层会进行所有必要的验证）
                 var (success, message, receiptId, receiptNumber) = _warehouseReceiptBLL.CreateWarehouseReceipt(
                     transportOrderId, 
                     worker.WorkerID, 
