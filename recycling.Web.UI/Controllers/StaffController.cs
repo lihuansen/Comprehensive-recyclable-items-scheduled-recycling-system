@@ -24,6 +24,7 @@ namespace recycling.Web.UI.Controllers
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
         private readonly OperationLogBLL _operationLogBLL = new OperationLogBLL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
+        private readonly TransportationOrderBLL _transportationOrderBLL = new TransportationOrderBLL();
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -479,6 +480,240 @@ namespace recycling.Web.UI.Controllers
             ViewBag.StaffRole = "transporter";
 
             return View();
+        }
+
+        /// <summary>
+        /// 运输管理页面（运输人员端）
+        /// </summary>
+        public ActionResult TransportationManagement()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                return RedirectToAction("Login", "Staff");
+
+            var transporter = (Transporters)Session["LoginStaff"];
+            ViewBag.StaffName = transporter.Username;
+            ViewBag.TransporterRegion = transporter.Region;
+
+            return View();
+        }
+
+        /// <summary>
+        /// 获取运输人员的运输单列表（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult GetTransporterOrders(string status)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 获取运输单列表，在数据库层面进行状态筛选
+                var orders = _transportationOrderBLL.GetTransportationOrdersByTransporter(
+                    transporter.TransporterID, 
+                    status
+                );
+
+                // 获取所有订单用于计算统计数据
+                // Note: 当筛选状态时，这会产生额外的数据库查询，但确保统计数据始终准确
+                // 对于运输人员通常不会有大量订单，这个开销是可接受的
+                var allOrders = string.IsNullOrEmpty(status) || status == "all"
+                    ? orders
+                    : _transportationOrderBLL.GetTransportationOrdersByTransporter(transporter.TransporterID, null);
+
+                // 计算统计数据
+                var statistics = new
+                {
+                    pending = allOrders.Count(o => o.Status == "待接单"),
+                    inTransit = allOrders.Count(o => o.Status == "运输中"),
+                    completed = allOrders.Count(o => o.Status == "已完成"),
+                    total = allOrders.Count
+                };
+
+                return Json(new
+                {
+                    success = true,
+                    data = orders.Select(o => new
+                    {
+                        o.TransportOrderID,
+                        o.OrderNumber,
+                        o.PickupAddress,
+                        o.DestinationAddress,
+                        o.ContactPerson,
+                        o.ContactPhone,
+                        o.EstimatedWeight,
+                        o.ActualWeight,
+                        o.ItemCategories,
+                        o.SpecialInstructions,
+                        o.Status,
+                        CreatedDate = o.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
+                        AcceptedDate = o.AcceptedDate?.ToString("yyyy-MM-dd HH:mm"),
+                        PickupDate = o.PickupDate?.ToString("yyyy-MM-dd HH:mm"),
+                        CompletedDate = o.CompletedDate?.ToString("yyyy-MM-dd HH:mm")
+                    }),
+                    statistics
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"获取运输单列表失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 验证运输单权限的辅助方法
+        /// </summary>
+        private (bool success, string message, TransportationOrders order) ValidateTransportationOrderAccess(
+            int orderId, 
+            int transporterId, 
+            string expectedStatus = null)
+        {
+            var order = _transportationOrderBLL.GetTransportationOrderById(orderId);
+            
+            if (order == null)
+            {
+                return (false, "运输单不存在", null);
+            }
+
+            if (order.TransporterID != transporterId)
+            {
+                return (false, "无权操作此运输单", null);
+            }
+
+            if (expectedStatus != null && order.Status != expectedStatus)
+            {
+                return (false, $"运输单状态不正确，当前状态为{order.Status}", null);
+            }
+
+            return (true, null, order);
+        }
+
+        /// <summary>
+        /// 接收运输单（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult AcceptTransportOrder(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "待接单");
+                if (!validation.success)
+                {
+                    return Json(new { success = false, message = validation.message });
+                }
+
+                // 接单
+                bool result = _transportationOrderBLL.AcceptTransportationOrder(orderId);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "接单成功" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "接单失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"接单失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 开始运输（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult StartTransport(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "已接单");
+                if (!validation.success)
+                {
+                    return Json(new { success = false, message = validation.message });
+                }
+
+                // 开始运输
+                bool result = _transportationOrderBLL.StartTransportation(orderId);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "已开始运输" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "操作失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"操作失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 完成运输（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult CompleteTransport(int orderId, decimal? actualWeight)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "运输中");
+                if (!validation.success)
+                {
+                    return Json(new { success = false, message = validation.message });
+                }
+
+                // 完成运输
+                bool result = _transportationOrderBLL.CompleteTransportation(orderId, actualWeight);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "运输已完成" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "操作失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"操作失败：{ex.Message}" });
+            }
         }
 
         /// <summary>
