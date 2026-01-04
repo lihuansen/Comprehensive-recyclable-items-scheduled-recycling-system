@@ -275,9 +275,11 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 获取运输人员的运输单列表（按区域筛选）
+        /// 获取运输人员的运输单列表
         /// </summary>
-        public List<TransportationOrders> GetTransportationOrdersByTransporter(int transporterId, string region)
+        /// <param name="transporterId">运输人员ID</param>
+        /// <param name="status">可选的状态筛选</param>
+        public List<TransportationOrders> GetTransportationOrdersByTransporter(int transporterId, string status = null)
         {
             var orders = new List<TransportationOrders>();
 
@@ -286,6 +288,7 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
+                    
                     string sql = @"
                         SELECT t.*, 
                                r.FullName AS RecyclerName, r.PhoneNumber AS RecyclerPhone,
@@ -293,12 +296,24 @@ namespace recycling.DAL
                         FROM TransportationOrders t
                         LEFT JOIN Recyclers r ON t.RecyclerID = r.RecyclerID
                         LEFT JOIN Transporters tr ON t.TransporterID = tr.TransporterID
-                        WHERE t.TransporterID = @TransporterID
-                        ORDER BY t.CreatedDate DESC";
+                        WHERE t.TransporterID = @TransporterID";
+                    
+                    // 如果提供了状态参数，添加状态筛选
+                    if (!string.IsNullOrEmpty(status) && status != "all")
+                    {
+                        sql += " AND t.Status = @Status";
+                    }
+                    
+                    sql += " ORDER BY t.CreatedDate DESC";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@TransporterID", transporterId);
+                        
+                        if (!string.IsNullOrEmpty(status) && status != "all")
+                        {
+                            cmd.Parameters.AddWithValue("@Status", status);
+                        }
 
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {

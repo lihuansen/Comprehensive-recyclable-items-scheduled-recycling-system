@@ -512,16 +512,16 @@ namespace recycling.Web.UI.Controllers
 
                 var transporter = (Transporters)Session["LoginStaff"];
 
-                // 获取运输单列表
-                var allOrders = _transportationOrderBLL.GetTransportationOrdersByTransporter(
+                // 获取运输单列表，在数据库层面进行状态筛选
+                var orders = _transportationOrderBLL.GetTransportationOrdersByTransporter(
                     transporter.TransporterID, 
-                    transporter.Region
+                    status
                 );
 
-                // 根据状态筛选
-                var filteredOrders = string.IsNullOrEmpty(status) || status == "all"
-                    ? allOrders
-                    : allOrders.Where(o => o.Status == status).ToList();
+                // 获取所有订单用于计算统计数据
+                var allOrders = string.IsNullOrEmpty(status) || status == "all"
+                    ? orders
+                    : _transportationOrderBLL.GetTransportationOrdersByTransporter(transporter.TransporterID, null);
 
                 // 计算统计数据
                 var statistics = new
@@ -535,7 +535,7 @@ namespace recycling.Web.UI.Controllers
                 return Json(new
                 {
                     success = true,
-                    data = filteredOrders.Select(o => new
+                    data = orders.Select(o => new
                     {
                         o.TransportOrderID,
                         o.OrderNumber,

@@ -130,16 +130,16 @@ namespace recycling.BLL
         /// 获取运输人员的运输单列表
         /// </summary>
         /// <param name="transporterId">运输人员ID</param>
-        /// <param name="region">运输人员负责的区域</param>
+        /// <param name="status">可选的状态筛选</param>
         /// <returns>运输单列表</returns>
-        public List<TransportationOrders> GetTransportationOrdersByTransporter(int transporterId, string region)
+        public List<TransportationOrders> GetTransportationOrdersByTransporter(int transporterId, string status = null)
         {
             try
             {
                 if (transporterId <= 0)
                     throw new ArgumentException("运输人员ID无效");
 
-                return _dal.GetTransportationOrdersByTransporter(transporterId, region);
+                return _dal.GetTransportationOrdersByTransporter(transporterId, status);
             }
             catch (Exception ex)
             {
