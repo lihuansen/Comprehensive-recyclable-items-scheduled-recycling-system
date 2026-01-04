@@ -29,6 +29,7 @@ namespace recycling.BLL
         /// <param name="notificationType">通知类型</param>
         /// <param name="relatedId">关联ID（可选）</param>
         /// <returns>是否发送成功</returns>
+        /// <exception cref="Exception">当数据库操作失败时可能抛出异常，调用方应处理异常</exception>
         public bool SendNotification(int userId, string title, string content, string notificationType = null, int? relatedId = null)
         {
             if (userId <= 0)
