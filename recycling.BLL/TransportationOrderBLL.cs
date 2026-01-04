@@ -125,5 +125,94 @@ namespace recycling.BLL
                 throw;
             }
         }
+
+        /// <summary>
+        /// 获取运输人员的运输单列表
+        /// </summary>
+        /// <param name="transporterId">运输人员ID</param>
+        /// <param name="region">运输人员负责的区域</param>
+        /// <returns>运输单列表</returns>
+        public List<TransportationOrders> GetTransportationOrdersByTransporter(int transporterId, string region)
+        {
+            try
+            {
+                if (transporterId <= 0)
+                    throw new ArgumentException("运输人员ID无效");
+
+                return _dal.GetTransportationOrdersByTransporter(transporterId, region);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetTransportationOrdersByTransporter BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 运输人员接单
+        /// </summary>
+        /// <param name="orderId">运输单ID</param>
+        /// <returns>是否接单成功</returns>
+        public bool AcceptTransportationOrder(int orderId)
+        {
+            try
+            {
+                if (orderId <= 0)
+                    throw new ArgumentException("运输单ID无效");
+
+                return _dal.AcceptTransportationOrder(orderId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AcceptTransportationOrder BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 开始运输
+        /// </summary>
+        /// <param name="orderId">运输单ID</param>
+        /// <returns>是否更新成功</returns>
+        public bool StartTransportation(int orderId)
+        {
+            try
+            {
+                if (orderId <= 0)
+                    throw new ArgumentException("运输单ID无效");
+
+                return _dal.StartTransportation(orderId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"StartTransportation BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 完成运输
+        /// </summary>
+        /// <param name="orderId">运输单ID</param>
+        /// <param name="actualWeight">实际重量</param>
+        /// <returns>是否完成成功</returns>
+        public bool CompleteTransportation(int orderId, decimal? actualWeight)
+        {
+            try
+            {
+                if (orderId <= 0)
+                    throw new ArgumentException("运输单ID无效");
+
+                if (actualWeight.HasValue && actualWeight.Value < 0)
+                    throw new ArgumentException("实际重量不能为负数");
+
+                return _dal.CompleteTransportation(orderId, actualWeight);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CompleteTransportation BLL Error: {ex.Message}");
+                throw;
+            }
+        }
     }
 }
