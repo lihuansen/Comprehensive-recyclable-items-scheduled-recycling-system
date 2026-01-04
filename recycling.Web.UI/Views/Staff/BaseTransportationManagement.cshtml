@@ -1,0 +1,330 @@
+@{
+    ViewBag.Title = "运输管理";
+    Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
+}
+
+<style>
+    .transport-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-header {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .page-title i {
+        margin-right: 15px;
+        color: #3498db;
+    }
+
+    .statistics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        text-align: center;
+    }
+
+    .stat-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #3498db;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #7f8c8d;
+    }
+
+    .orders-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .refresh-btn {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+        background: #2980b9;
+    }
+
+    .refresh-btn i {
+        margin-right: 8px;
+    }
+
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .orders-table th {
+        background: #f8f9fa;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .orders-table td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        color: #555;
+    }
+
+    .orders-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .status-in-transit {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #7f8c8d;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        color: #bdc3c7;
+    }
+
+    .empty-state-text {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .empty-state-subtext {
+        font-size: 14px;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @@media (max-width: 768px) {
+        .orders-table {
+            font-size: 14px;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            padding: 10px 8px;
+        }
+    }
+</style>
+
+<div class="transport-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-truck-moving"></i>
+            运输管理
+        </h1>
+    </div>
+
+    <div class="statistics-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-shipping-fast"></i>
+            </div>
+            <div class="stat-value" id="totalInTransit">0</div>
+            <div class="stat-label">运输中订单</div>
+        </div>
+    </div>
+
+    <div class="orders-section">
+        <div class="section-header">
+            <h2 class="section-title">运输中订单列表</h2>
+            <button class="refresh-btn" onclick="loadInTransitOrders()">
+                <i class="fas fa-sync-alt"></i>
+                刷新
+            </button>
+        </div>
+
+        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+            <div class="spinner"></div>
+            <p>加载中...</p>
+        </div>
+
+        <div id="ordersTableContainer">
+            <table class="orders-table" id="ordersTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>运输单号</th>
+                        <th>回收员</th>
+                        <th>运输人员</th>
+                        <th>预估重量</th>
+                        <th>取货时间</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                </tbody>
+            </table>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                <div class="empty-state-text">暂无运输中订单</div>
+                <div class="empty-state-subtext">当前没有正在运输的订单</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 页面加载时获取数据
+    $(document).ready(function () {
+        loadInTransitOrders();
+        
+        // 自动刷新（每30秒）
+        setInterval(loadInTransitOrders, 30000);
+    });
+
+    // 加载运输中订单
+    function loadInTransitOrders() {
+        $('#loadingSpinner').show();
+        $('#ordersTable').hide();
+        $('#emptyState').hide();
+
+        $.ajax({
+            url: '@Url.Action("GetInTransitOrders", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    displayOrders(response.data);
+                } else {
+                    alert('获取数据失败：' + response.message);
+                }
+            },
+            error: function () {
+                alert('网络错误，请稍后重试');
+            },
+            complete: function () {
+                $('#loadingSpinner').hide();
+            }
+        });
+    }
+
+    // 显示订单列表
+    function displayOrders(orders) {
+        if (orders && orders.length > 0) {
+            $('#totalInTransit').text(orders.length);
+            
+            var tbody = $('#ordersTableBody');
+            tbody.empty();
+
+            orders.forEach(function (order) {
+                var row = '<tr>' +
+                    '<td>' + order.OrderNumber + '</td>' +
+                    '<td>' + (order.RecyclerName || '-') + '</td>' +
+                    '<td>' + (order.TransporterName || '-') + '</td>' +
+                    '<td>' + order.EstimatedWeight.toFixed(2) + ' kg</td>' +
+                    '<td>' + (order.PickupDate ? formatDateTime(order.PickupDate) : '-') + '</td>' +
+                    '<td><span class="status-badge status-in-transit">' + order.Status + '</span></td>' +
+                    '</tr>';
+                tbody.append(row);
+            });
+
+            $('#ordersTable').show();
+        } else {
+            $('#totalInTransit').text('0');
+            $('#emptyState').show();
+        }
+    }
+
+    // 格式化日期时间
+    function formatDateTime(dateString) {
+        if (!dateString) return '-';
+        var date = new Date(dateString);
+        return date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0') + ' ' +
+            String(date.getHours()).padStart(2, '0') + ':' +
+            String(date.getMinutes()).padStart(2, '0');
+    }
+</script>
+
+@Html.AntiForgeryToken()
