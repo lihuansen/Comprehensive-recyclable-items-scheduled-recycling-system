@@ -37,6 +37,18 @@ namespace recycling.BLL
                 return false;
             }
 
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                System.Diagnostics.Debug.WriteLine("通知标题不能为空，通知发送失败");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                System.Diagnostics.Debug.WriteLine("通知内容不能为空，通知发送失败");
+                return false;
+            }
+
             var notification = new UserNotifications
             {
                 UserID = userId,
