@@ -501,6 +501,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取运输人员的运输单列表（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult GetTransporterOrders(string status)
         {
             try
@@ -596,6 +597,7 @@ namespace recycling.Web.UI.Controllers
         /// 接收运输单（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult AcceptTransportOrder(int orderId)
         {
             try
@@ -636,6 +638,7 @@ namespace recycling.Web.UI.Controllers
         /// 开始运输（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult StartTransport(int orderId)
         {
             try
@@ -676,6 +679,7 @@ namespace recycling.Web.UI.Controllers
         /// 完成运输（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult CompleteTransport(int orderId, decimal? actualWeight)
         {
             try

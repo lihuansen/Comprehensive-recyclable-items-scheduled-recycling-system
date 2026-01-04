@@ -3,6 +3,8 @@
     Layout = "~/Views/Shared/_TransporterLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <style>
     .transport-management-container {
         max-width: 1400px;
@@ -479,8 +481,24 @@
     let currentOrderId = null;
 
     $(document).ready(function () {
+        // Setup AJAX to include anti-forgery token
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (settings.type === 'POST') {
+                    var token = $('input[name="__RequestVerificationToken"]').val();
+                    if (token) {
+                        xhr.setRequestHeader('__RequestVerificationToken', token);
+                    }
+                }
+            }
+        });
+        
         loadOrders();
     });
+
+    function getAntiForgeryToken() {
+        return $('input[name="__RequestVerificationToken"]').val();
+    }
 
     function loadOrders() {
         const status = $('#statusFilter').val();
@@ -495,7 +513,10 @@
         $.ajax({
             url: '@Url.Action("GetTransporterOrders", "Staff")',
             type: 'POST',
-            data: { status: status },
+            data: { 
+                status: status,
+                __RequestVerificationToken: getAntiForgeryToken()
+            },
             success: function (response) {
                 if (response.success) {
                     updateStatistics(response.statistics);
@@ -637,7 +658,10 @@
         $.ajax({
             url: '@Url.Action("AcceptTransportOrder", "Staff")',
             type: 'POST',
-            data: { orderId: orderId },
+            data: { 
+                orderId: orderId,
+                __RequestVerificationToken: getAntiForgeryToken()
+            },
             success: function (response) {
                 if (response.success) {
                     showAlert('success', response.message);
@@ -658,7 +682,10 @@
         $.ajax({
             url: '@Url.Action("StartTransport", "Staff")',
             type: 'POST',
-            data: { orderId: orderId },
+            data: { 
+                orderId: orderId,
+                __RequestVerificationToken: getAntiForgeryToken()
+            },
             success: function (response) {
                 if (response.success) {
                     showAlert('success', response.message);
@@ -687,7 +714,8 @@
             type: 'POST',
             data: { 
                 orderId: currentOrderId,
-                actualWeight: actualWeight || null
+                actualWeight: actualWeight || null,
+                __RequestVerificationToken: getAntiForgeryToken()
             },
             success: function (response) {
                 $('#completeModal').modal('hide');
