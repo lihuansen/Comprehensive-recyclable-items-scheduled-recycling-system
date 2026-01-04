@@ -75,6 +75,7 @@
     <Compile Include="UserAddressDAL.cs" />
     <Compile Include="UserDAL.cs" />
     <Compile Include="UserNotificationDAL.cs" />
+    <Compile Include="WarehouseReceiptDAL.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\recycling.Model\recycling.Model.csproj">
