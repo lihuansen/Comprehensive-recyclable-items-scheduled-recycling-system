@@ -64,6 +64,7 @@
     <Compile Include="UserAddressBLL.cs" />
     <Compile Include="UserBLL.cs" />
     <Compile Include="UserNotificationBLL.cs" />
+    <Compile Include="WarehouseReceiptBLL.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\recycling.Common\recycling.Common.csproj">
