@@ -21,6 +21,50 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 发送通用通知
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="title">通知标题</param>
+        /// <param name="content">通知内容</param>
+        /// <param name="notificationType">通知类型</param>
+        /// <param name="relatedId">关联ID（可选）</param>
+        /// <returns>是否发送成功</returns>
+        /// <exception cref="Exception">当数据库操作失败时可能抛出异常，调用方应处理异常</exception>
+        public bool SendNotification(int userId, string title, string content, string notificationType = null, int? relatedId = null)
+        {
+            if (userId <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine("用户ID无效，通知发送失败");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                System.Diagnostics.Debug.WriteLine("通知标题不能为空，通知发送失败");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                System.Diagnostics.Debug.WriteLine("通知内容不能为空，通知发送失败");
+                return false;
+            }
+
+            var notification = new UserNotifications
+            {
+                UserID = userId,
+                NotificationType = notificationType,
+                Title = title,
+                Content = content,
+                RelatedOrderID = relatedId,
+                CreatedDate = DateTime.Now,
+                IsRead = false
+            };
+
+            return _notificationDAL.AddNotification(notification);
+        }
+
+        /// <summary>
         /// 发送订单创建通知
         /// </summary>
         public bool SendOrderCreatedNotification(int userId, int orderId)
