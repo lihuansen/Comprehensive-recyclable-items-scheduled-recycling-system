@@ -437,21 +437,41 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"
-                        UPDATE TransportationOrders 
-                        SET Status = '已完成',
-                            DeliveryDate = @DeliveryDate,
-                            CompletedDate = @CompletedDate,
-                            ActualWeight = ISNULL(@ActualWeight, ActualWeight)
-                        WHERE TransportOrderID = @OrderID
-                        AND Status = '运输中'";
+                    
+                    // 根据是否提供了实际重量来决定SQL语句
+                    string sql;
+                    if (actualWeight.HasValue)
+                    {
+                        sql = @"
+                            UPDATE TransportationOrders 
+                            SET Status = '已完成',
+                                DeliveryDate = @DeliveryDate,
+                                CompletedDate = @CompletedDate,
+                                ActualWeight = @ActualWeight
+                            WHERE TransportOrderID = @OrderID
+                            AND Status = '运输中'";
+                    }
+                    else
+                    {
+                        sql = @"
+                            UPDATE TransportationOrders 
+                            SET Status = '已完成',
+                                DeliveryDate = @DeliveryDate,
+                                CompletedDate = @CompletedDate
+                            WHERE TransportOrderID = @OrderID
+                            AND Status = '运输中'";
+                    }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@OrderID", orderId);
                         cmd.Parameters.AddWithValue("@DeliveryDate", DateTime.Now);
                         cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
-                        cmd.Parameters.AddWithValue("@ActualWeight", (object)actualWeight ?? DBNull.Value);
+                        
+                        if (actualWeight.HasValue)
+                        {
+                            cmd.Parameters.AddWithValue("@ActualWeight", actualWeight.Value);
+                        }
 
                         int rowsAffected = cmd.ExecuteNonQuery();
                         return rowsAffected > 0;

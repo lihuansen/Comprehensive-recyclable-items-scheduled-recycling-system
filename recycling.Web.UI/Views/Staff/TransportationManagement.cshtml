@@ -538,12 +538,14 @@
     function generateOrderCard(order) {
         const statusClass = {
             '待接单': 'status-pending',
+            '已接单': 'status-pending',
             '运输中': 'status-in-transit',
             '已完成': 'status-completed'
         }[order.Status] || 'status-pending';
 
         const statusIcon = {
             '待接单': 'fa-clock',
+            '已接单': 'fa-hand-point-right',
             '运输中': 'fa-truck-moving',
             '已完成': 'fa-check-circle'
         }[order.Status] || 'fa-clock';

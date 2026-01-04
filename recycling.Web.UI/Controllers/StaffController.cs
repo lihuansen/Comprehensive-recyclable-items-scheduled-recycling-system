@@ -519,6 +519,8 @@ namespace recycling.Web.UI.Controllers
                 );
 
                 // 获取所有订单用于计算统计数据
+                // Note: 当筛选状态时，这会产生额外的数据库查询，但确保统计数据始终准确
+                // 对于运输人员通常不会有大量订单，这个开销是可接受的
                 var allOrders = string.IsNullOrEmpty(status) || status == "all"
                     ? orders
                     : _transportationOrderBLL.GetTransportationOrdersByTransporter(transporter.TransporterID, null);
