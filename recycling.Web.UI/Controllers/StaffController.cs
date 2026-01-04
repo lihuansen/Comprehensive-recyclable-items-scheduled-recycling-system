@@ -565,6 +565,34 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 验证运输单权限的辅助方法
+        /// </summary>
+        private (bool success, string message, TransportationOrders order) ValidateTransportationOrderAccess(
+            int orderId, 
+            int transporterId, 
+            string expectedStatus = null)
+        {
+            var order = _transportationOrderBLL.GetTransportationOrderById(orderId);
+            
+            if (order == null)
+            {
+                return (false, "运输单不存在", null);
+            }
+
+            if (order.TransporterID != transporterId)
+            {
+                return (false, "无权操作此运输单", null);
+            }
+
+            if (expectedStatus != null && order.Status != expectedStatus)
+            {
+                return (false, $"运输单状态不正确，当前状态为{order.Status}", null);
+            }
+
+            return (true, null, order);
+        }
+
+        /// <summary>
         /// 接收运输单（AJAX）
         /// </summary>
         [HttpPost]
@@ -579,21 +607,11 @@ namespace recycling.Web.UI.Controllers
 
                 var transporter = (Transporters)Session["LoginStaff"];
 
-                // 验证运输单是否属于该运输人员
-                var order = _transportationOrderBLL.GetTransportationOrderById(orderId);
-                if (order == null)
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "待接单");
+                if (!validation.success)
                 {
-                    return Json(new { success = false, message = "运输单不存在" });
-                }
-
-                if (order.TransporterID != transporter.TransporterID)
-                {
-                    return Json(new { success = false, message = "无权操作此运输单" });
-                }
-
-                if (order.Status != "待接单")
-                {
-                    return Json(new { success = false, message = "运输单状态不正确，无法接单" });
+                    return Json(new { success = false, message = validation.message });
                 }
 
                 // 接单
@@ -629,21 +647,11 @@ namespace recycling.Web.UI.Controllers
 
                 var transporter = (Transporters)Session["LoginStaff"];
 
-                // 验证运输单是否属于该运输人员
-                var order = _transportationOrderBLL.GetTransportationOrderById(orderId);
-                if (order == null)
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "已接单");
+                if (!validation.success)
                 {
-                    return Json(new { success = false, message = "运输单不存在" });
-                }
-
-                if (order.TransporterID != transporter.TransporterID)
-                {
-                    return Json(new { success = false, message = "无权操作此运输单" });
-                }
-
-                if (order.Status != "已接单")
-                {
-                    return Json(new { success = false, message = "运输单状态不正确，必须先接单" });
+                    return Json(new { success = false, message = validation.message });
                 }
 
                 // 开始运输
@@ -679,21 +687,11 @@ namespace recycling.Web.UI.Controllers
 
                 var transporter = (Transporters)Session["LoginStaff"];
 
-                // 验证运输单是否属于该运输人员
-                var order = _transportationOrderBLL.GetTransportationOrderById(orderId);
-                if (order == null)
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "运输中");
+                if (!validation.success)
                 {
-                    return Json(new { success = false, message = "运输单不存在" });
-                }
-
-                if (order.TransporterID != transporter.TransporterID)
-                {
-                    return Json(new { success = false, message = "无权操作此运输单" });
-                }
-
-                if (order.Status != "运输中")
-                {
-                    return Json(new { success = false, message = "运输单状态不正确，必须先开始运输" });
+                    return Json(new { success = false, message = validation.message });
                 }
 
                 // 完成运输
