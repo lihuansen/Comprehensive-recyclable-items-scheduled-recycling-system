@@ -4224,6 +4224,7 @@ namespace recycling.Web.UI.Controllers
             // 标记运输通知为已查看（将当前运输中订单数量存储到会话中）
             // 注意：这个操作在每次访问页面时执行，但由于只是读取订单数量而不是完整订单数据，
             // 性能开销可接受。实际的订单数据会由前端 AJAX 异步加载。
+            // TODO：未来优化 - 在 BLL/DAL 层添加 GetInTransitOrdersCount() 方法，只执行 SELECT COUNT(*) 查询
             Session["LastViewedTransportCount"] = _warehouseReceiptBLL.GetInTransitOrders()?.Count() ?? 0;
 
             return View();
@@ -4281,6 +4282,14 @@ namespace recycling.Web.UI.Controllers
                 // Math.Max 确保结果不会是负数（处理订单被取消或完成的情况）
                 // 如果有订单被移除，我们简单地不显示徽章，而不是显示负数
                 var newCount = Math.Max(0, currentCount - lastViewedCount);
+                
+                // 记录异常情况：当前订单数少于上次查看数（说明有订单被取消或完成）
+                if (currentCount < lastViewedCount)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Transport order count decreased: was {lastViewedCount}, now {currentCount}. " +
+                        $"Orders may have been cancelled or completed.");
+                }
                 
                 return JsonContent(new { success = true, count = newCount });
             }

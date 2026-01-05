@@ -3,10 +3,12 @@
     Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
 }
 
-@* 将 AntiForgeryToken 放在页面顶部很重要：
-   确保在 $(document).ready() 执行 loadInTransitOrders() 时，
-   DOM 中已经存在 __RequestVerificationToken 输入元素，
-   否则 AJAX POST 请求会因缺少令牌而失败 *@
+@* AntiForgeryToken 必须放在页面顶部的原因：
+   浏览器按顺序解析 HTML，当 $(document).ready() 执行 loadInTransitOrders() 时，
+   需要从 DOM 中读取 __RequestVerificationToken 的值来发送 AJAX POST 请求。
+   如果 Token 在页面底部，jQuery 选择器 $('input[name="__RequestVerificationToken"]') 
+   可能返回 null 或 undefined，导致 AJAX 请求失败。
+   将 Token 放在顶部确保它在脚本执行前已经存在于 DOM 树中。*@
 @Html.AntiForgeryToken()
 
 <style>
@@ -199,8 +201,6 @@
         }
     }
 </style>
-
-<!-- 将 AntiForgeryToken 移到页面顶部，确保在脚本执行前已加载 -->
 
 <div class="transport-container">
     <div class="page-header">
