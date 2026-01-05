@@ -4199,6 +4199,12 @@ namespace recycling.Web.UI.Controllers
             ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
 
+            // 如果是首次访问，初始化已查看数量为0（显示所有订单为新消息）
+            if (Session["LastViewedTransportCount"] == null)
+            {
+                Session["LastViewedTransportCount"] = 0;
+            }
+
             return View();
         }
 
@@ -4214,6 +4220,12 @@ namespace recycling.Web.UI.Controllers
             ViewBag.StaffName = worker.Username;
             ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
+
+            // 标记运输通知为已查看（将当前运输中订单数量存储到会话中）
+            // 注意：这个操作在每次访问页面时执行，但由于只是读取订单数量而不是完整订单数据，
+            // 性能开销可接受。实际的订单数据会由前端 AJAX 异步加载。
+            // TODO：未来优化 - 在 BLL/DAL 层添加 GetInTransitOrdersCount() 方法，只执行 SELECT COUNT(*) 查询
+            Session["LastViewedTransportCount"] = _warehouseReceiptBLL.GetInTransitOrders()?.Count() ?? 0;
 
             return View();
         }
@@ -4243,6 +4255,7 @@ namespace recycling.Web.UI.Controllers
 
         /// <summary>
         /// 获取运输更新数量（用于显示通知徽章）
+        /// 只显示未查看的新运输订单数量
         /// 注意：此方法为GET请求且仅读取数据，不修改任何状态，因此不需要CSRF保护
         /// </summary>
         [HttpGet]
@@ -4256,8 +4269,29 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var orders = _warehouseReceiptBLL.GetInTransitOrders();
-                var count = orders?.Count() ?? 0;
-                return JsonContent(new { success = true, count = count });
+                var currentCount = orders?.Count() ?? 0;
+                
+                // 获取上次查看时的数量
+                int lastViewedCount = 0;
+                if (Session["LastViewedTransportCount"] != null)
+                {
+                    lastViewedCount = (int)Session["LastViewedTransportCount"];
+                }
+                
+                // 只显示新增的订单数量（新订单数 = 当前总数 - 上次查看时的总数）
+                // Math.Max 确保结果不会是负数（处理订单被取消或完成的情况）
+                // 如果有订单被移除，我们简单地不显示徽章，而不是显示负数
+                var newCount = Math.Max(0, currentCount - lastViewedCount);
+                
+                // 记录异常情况：当前订单数少于上次查看数（说明有订单被取消或完成）
+                if (currentCount < lastViewedCount)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Transport order count decreased: was {lastViewedCount}, now {currentCount}. " +
+                        $"Orders may have been cancelled or completed.");
+                }
+                
+                return JsonContent(new { success = true, count = newCount });
             }
             catch (Exception ex)
             {
