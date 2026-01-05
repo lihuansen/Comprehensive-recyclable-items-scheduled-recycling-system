@@ -103,6 +103,7 @@
     <Compile Include="UserAddresses.cs" />
     <Compile Include="UserFeedback.cs" />
     <Compile Include="UserNotifications.cs" />
+    <Compile Include="Users.cs" />
     <Compile Include="WarehouseReceipts.cs" />
     <Compile Include="WarehouseReceiptViewModel.cs" />
   </ItemGroup>
