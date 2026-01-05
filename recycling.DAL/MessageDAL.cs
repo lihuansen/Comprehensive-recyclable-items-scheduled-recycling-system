@@ -163,5 +163,30 @@ namespace recycling.DAL
             }
             return messages;
         }
+
+        /// <summary>
+        /// 获取回收员的未读消息数量
+        /// </summary>
+        public int GetRecyclerUnreadCount(int recyclerId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                // 获取发送给回收员但未被回收员读取的消息数
+                // 即 SenderType != 'recycler' 且 IsRead = 0 的消息，且订单是该回收员接单的
+                string sql = @"
+                    SELECT COUNT(DISTINCT m.OrderID) 
+                    FROM Messages m
+                    INNER JOIN Appointments a ON m.OrderID = a.AppointmentID
+                    WHERE a.RecyclerID = @RecyclerID 
+                      AND m.SenderType != 'recycler'
+                      AND m.IsRead = 0";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+
+                conn.Open();
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
     }
 }
