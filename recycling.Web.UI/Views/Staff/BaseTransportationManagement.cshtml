@@ -3,6 +3,8 @@
     Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <style>
     .transport-container {
         max-width: 1400px;
@@ -194,6 +196,8 @@
     }
 </style>
 
+<!-- 将 AntiForgeryToken 移到页面顶部，确保在脚本执行前已加载 -->
+
 <div class="transport-container">
     <div class="page-header">
         <h1 class="page-title">
@@ -279,7 +283,8 @@
                     alert('获取数据失败：' + response.message);
                 }
             },
-            error: function () {
+            error: function (xhr, status, error) {
+                console.error('获取运输订单失败:', error);
                 alert('网络错误，请稍后重试');
             },
             complete: function () {
@@ -327,4 +332,3 @@
     }
 </script>
 
-@Html.AntiForgeryToken()

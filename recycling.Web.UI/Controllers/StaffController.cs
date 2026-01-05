@@ -4199,6 +4199,12 @@ namespace recycling.Web.UI.Controllers
             ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
 
+            // 如果是首次访问，初始化已查看数量为0（显示所有订单为新消息）
+            if (Session["LastViewedTransportCount"] == null)
+            {
+                Session["LastViewedTransportCount"] = 0;
+            }
+
             return View();
         }
 
@@ -4214,6 +4220,9 @@ namespace recycling.Web.UI.Controllers
             ViewBag.StaffName = worker.Username;
             ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
+
+            // 标记运输通知为已查看（将当前运输中订单数量存储到会话中）
+            Session["LastViewedTransportCount"] = _warehouseReceiptBLL.GetInTransitOrders()?.Count() ?? 0;
 
             return View();
         }
@@ -4243,6 +4252,7 @@ namespace recycling.Web.UI.Controllers
 
         /// <summary>
         /// 获取运输更新数量（用于显示通知徽章）
+        /// 只显示未查看的新运输订单数量
         /// 注意：此方法为GET请求且仅读取数据，不修改任何状态，因此不需要CSRF保护
         /// </summary>
         [HttpGet]
@@ -4256,8 +4266,19 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var orders = _warehouseReceiptBLL.GetInTransitOrders();
-                var count = orders?.Count() ?? 0;
-                return JsonContent(new { success = true, count = count });
+                var currentCount = orders?.Count() ?? 0;
+                
+                // 获取上次查看时的数量
+                int lastViewedCount = 0;
+                if (Session["LastViewedTransportCount"] != null)
+                {
+                    lastViewedCount = (int)Session["LastViewedTransportCount"];
+                }
+                
+                // 只显示新增的订单数量
+                var newCount = Math.Max(0, currentCount - lastViewedCount);
+                
+                return JsonContent(new { success = true, count = newCount });
             }
             catch (Exception ex)
             {
