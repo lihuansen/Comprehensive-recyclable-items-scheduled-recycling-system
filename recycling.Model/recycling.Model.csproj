@@ -86,7 +86,6 @@
     <Compile Include="RecyclerMessageViewModel.cs" />
     <Compile Include="RecyclerOrderStatistics.cs" />
     <Compile Include="RecyclerOrderViewModel.cs" />
-    <Compile Include="Recyclers.cs" />
     <Compile Include="RegisterViewModel.cs" />
     <Compile Include="SendMessageRequest.cs" />
     <Compile Include="SortingCenterWorkerProfileViewModel.cs" />
