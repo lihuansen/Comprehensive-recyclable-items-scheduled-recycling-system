@@ -440,7 +440,8 @@ namespace recycling.DAL
                 {
                     string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, 
                                           SortingCenterID, SortingCenterName, Position, WorkStation,
-                                          ShiftType, Available, CurrentStatus, LastLoginDate, IsActive 
+                                          ShiftType, Available, CurrentStatus, LastLoginDate, IsActive,
+                                          LastViewedTransportCount, LastViewedWarehouseCount
                                   FROM SortingCenterWorkers 
                                   WHERE Username = @Username";
 
@@ -469,7 +470,13 @@ namespace recycling.DAL
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null,
-                                IsActive = Convert.ToBoolean(reader["IsActive"])
+                                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                                LastViewedTransportCount = reader["LastViewedTransportCount"] != DBNull.Value 
+                                    ? Convert.ToInt32(reader["LastViewedTransportCount"]) 
+                                    : 0,
+                                LastViewedWarehouseCount = reader["LastViewedWarehouseCount"] != DBNull.Value 
+                                    ? Convert.ToInt32(reader["LastViewedWarehouseCount"]) 
+                                    : 0
                             };
                         }
                     }
@@ -505,6 +512,64 @@ namespace recycling.DAL
                 catch (Exception ex)
                 {
                     throw new Exception("更新基地工作人员登录时间失败：" + ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新基地工作人员查看运输管理的数量记录
+        /// </summary>
+        /// <param name="workerId">工作人员ID</param>
+        /// <param name="count">当前运输中订单数量</param>
+        public void UpdateSortingCenterWorkerTransportViewCount(int workerId, int count)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE SortingCenterWorkers 
+                               SET LastViewedTransportCount = @Count 
+                               WHERE WorkerID = @WorkerID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Count", count);
+                cmd.Parameters.AddWithValue("@WorkerID", workerId);
+
+                try
+                {
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("更新运输查看记录失败：" + ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新基地工作人员查看仓库管理的数量记录
+        /// </summary>
+        /// <param name="workerId">工作人员ID</param>
+        /// <param name="count">当前待处理入库数量</param>
+        public void UpdateSortingCenterWorkerWarehouseViewCount(int workerId, int count)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE SortingCenterWorkers 
+                               SET LastViewedWarehouseCount = @Count 
+                               WHERE WorkerID = @WorkerID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Count", count);
+                cmd.Parameters.AddWithValue("@WorkerID", workerId);
+
+                try
+                {
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("更新仓库查看记录失败：" + ex.Message);
                 }
             }
         }

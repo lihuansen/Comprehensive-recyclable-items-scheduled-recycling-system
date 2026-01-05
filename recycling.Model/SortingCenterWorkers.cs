@@ -77,5 +77,17 @@ namespace recycling.Model
 
         [StringLength(500)]
         public string Notes { get; set; }
+
+        /// <summary>
+        /// 最后一次查看运输管理时的运输中订单数量
+        /// 用于计算新增的运输订单数（未读数 = 当前总数 - 该值）
+        /// </summary>
+        public int LastViewedTransportCount { get; set; }
+
+        /// <summary>
+        /// 最后一次查看仓库管理时的待处理入库数量
+        /// 用于计算新增的待处理项目数（未读数 = 当前总数 - 该值）
+        /// </summary>
+        public int LastViewedWarehouseCount { get; set; }
     }
 }
