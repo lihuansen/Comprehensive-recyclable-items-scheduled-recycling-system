@@ -93,6 +93,28 @@
 
         .normal-nav {
             margin: 0 8px;
+            position: relative;
+        }
+
+        /* 消息未读数徽章样式 */
+        .nav-message-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-message-badge:empty {
+            display: none;
         }
 
         .left-navs, .right-navs {
@@ -220,7 +242,10 @@
                 <div class="nav-container">
                     <ul class="left-navs">
                         <li class="normal-nav">@Html.ActionLink("订单管理", "Recycler_OrderManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("消息中心", "Message_Center", "Staff")</li>
+                        <li class="normal-nav" id="nav-message-center-item">
+                            @Html.ActionLink("消息中心", "Message_Center", "Staff")
+                            <span id="recycler-message-badge" class="nav-message-badge"></span>
+                        </li>
                     </ul>
 
                     <div class="diamond-nav">
@@ -249,5 +274,51 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
+
+    @* 回收员未读消息数加载脚本 *@
+    @if (Session["LoginStaff"] != null)
+    {
+        <script>
+            (function() {
+                function updateRecyclerMessageBadge() {
+                    var badge = document.getElementById('recycler-message-badge');
+                    if (!badge) return;
+
+                    fetch('@Url.Action("GetRecyclerUnreadCount", "Staff")', {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (data.success && data.unreadCount > 0) {
+                            badge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                        } else {
+                            badge.textContent = '';
+                        }
+                        // CSS规则 .nav-message-badge:empty 会自动隐藏空徽章
+                    })
+                    .catch(function(err) {
+                        console.error('获取未读消息数失败', err);
+                        badge.textContent = '';
+                    });
+                }
+
+                // 页面加载时更新一次
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateRecyclerMessageBadge);
+                } else {
+                    updateRecyclerMessageBadge();
+                }
+
+                // 每分钟自动更新一次
+                setInterval(updateRecyclerMessageBadge, 60000);
+
+                // 暴露给全局作用域，方便其他地方调用
+                window.updateRecyclerMessageBadge = updateRecyclerMessageBadge;
+            })();
+        </script>
+    }
 </body>
 </html>

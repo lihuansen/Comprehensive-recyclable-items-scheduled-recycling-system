@@ -320,7 +320,10 @@
         })
         .then(function (res) { return res.json(); })
         .then(function (data) {
-            // 可选：更新左侧 badge/样式
+            // 更新导航栏未读消息徽章
+            if (window.updateRecyclerMessageBadge) {
+                window.updateRecyclerMessageBadge();
+            }
         })
         .catch(function (err) {
             console.warn('标为已读失败', err);

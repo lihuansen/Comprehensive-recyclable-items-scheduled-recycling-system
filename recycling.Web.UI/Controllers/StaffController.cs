@@ -1008,6 +1008,33 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取回收员未读消息数量（AJAX）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetRecyclerUnreadCount()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, unreadCount = 0 });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var unreadCount = _messageBLL.GetRecyclerUnreadCount(recycler.RecyclerID);
+
+                var json = JsonConvert.SerializeObject(new { success = true, unreadCount = unreadCount });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message, unreadCount = 0 });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+            }
+        }
+
+        /// <summary>
         /// 获取订单详情（AJAX）
         /// </summary>
         [HttpPost]

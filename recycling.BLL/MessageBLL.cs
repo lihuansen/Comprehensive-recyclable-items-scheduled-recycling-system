@@ -152,5 +152,18 @@ namespace recycling.BLL
                 return (false, $"发送失败：{ex.Message}");
             }
         }
+
+        /// <summary>
+        /// 获取回收员的未读消息数量
+        /// </summary>
+        public int GetRecyclerUnreadCount(int recyclerId)
+        {
+            if (recyclerId <= 0)
+            {
+                return 0;
+            }
+
+            return _messageDAL.GetRecyclerUnreadCount(recyclerId);
+        }
     }
 }
