@@ -252,12 +252,14 @@
 </div>
 
 <script>
-    // 页面加载时获取数据
+    // 页面加载时自动获取数据
     $(document).ready(function () {
         loadInTransitOrders();
         
         // 自动刷新（每30秒）
-        setInterval(loadInTransitOrders, 30000);
+        setInterval(function() {
+            loadInTransitOrders();
+        }, 30000);
     });
 
     // 加载运输中订单

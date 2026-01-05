@@ -4242,6 +4242,29 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取运输更新数量（用于显示通知徽章）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetTransportUpdateCount()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, count = 0 });
+                }
+
+                var orders = _warehouseReceiptBLL.GetInTransitOrders();
+                var count = orders?.Count() ?? 0;
+                return JsonContent(new { success = true, count = count });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, count = 0, message = $"获取更新数量失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// 获取已完成的运输单列表（AJAX）- 用于仓库管理
         /// </summary>
         [HttpPost]
