@@ -4222,6 +4222,8 @@ namespace recycling.Web.UI.Controllers
             ViewBag.StaffRole = "sortingcenterworker";
 
             // 标记运输通知为已查看（将当前运输中订单数量存储到会话中）
+            // 注意：这个操作在每次访问页面时执行，但由于只是读取订单数量而不是完整订单数据，
+            // 性能开销可接受。实际的订单数据会由前端 AJAX 异步加载。
             Session["LastViewedTransportCount"] = _warehouseReceiptBLL.GetInTransitOrders()?.Count() ?? 0;
 
             return View();
@@ -4275,7 +4277,9 @@ namespace recycling.Web.UI.Controllers
                     lastViewedCount = (int)Session["LastViewedTransportCount"];
                 }
                 
-                // 只显示新增的订单数量
+                // 只显示新增的订单数量（新订单数 = 当前总数 - 上次查看时的总数）
+                // Math.Max 确保结果不会是负数（处理订单被取消或完成的情况）
+                // 如果有订单被移除，我们简单地不显示徽章，而不是显示负数
                 var newCount = Math.Max(0, currentCount - lastViewedCount);
                 
                 return JsonContent(new { success = true, count = newCount });

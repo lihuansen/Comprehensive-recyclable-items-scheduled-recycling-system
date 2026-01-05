@@ -3,6 +3,10 @@
     Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
 }
 
+@* 将 AntiForgeryToken 放在页面顶部很重要：
+   确保在 $(document).ready() 执行 loadInTransitOrders() 时，
+   DOM 中已经存在 __RequestVerificationToken 输入元素，
+   否则 AJAX POST 请求会因缺少令牌而失败 *@
 @Html.AntiForgeryToken()
 
 <style>
