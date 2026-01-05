@@ -1015,7 +1015,7 @@ namespace recycling.Web.UI.Controllers
         {
             try
             {
-                if (Session["LoginStaff"] == null)
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
                 {
                     var errorJson = JsonConvert.SerializeObject(new { success = false, unreadCount = 0 });
                     return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
