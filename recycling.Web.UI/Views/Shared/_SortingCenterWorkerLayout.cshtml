@@ -270,29 +270,67 @@
     @RenderSection("scripts", required: false)
     
     <script>
-        // 检查运输更新通知
-        function checkTransportUpdates() {
+        // 检查所有基地管理更新通知（运输 + 仓库）
+        function checkBaseManagementUpdates() {
+            var transportCount = 0;
+            var warehouseCount = 0;
+            var requests = 0;
+            var completed = 0;
+
+            // 获取运输更新数量
             $.ajax({
                 url: '@Url.Action("GetTransportUpdateCount", "Staff")',
                 type: 'GET',
                 success: function (response) {
-                    if (response.success && response.count > 0) {
-                        $('#baseManagementBadge').text(response.count).show();
-                    } else {
-                        $('#baseManagementBadge').hide();
+                    if (response.success) {
+                        transportCount = response.count || 0;
                     }
                 },
                 error: function () {
-                    // 静默失败，不影响用户体验
+                    // 静默失败
+                },
+                complete: function () {
+                    completed++;
+                    updateBadge();
                 }
             });
+
+            // 获取仓库更新数量
+            $.ajax({
+                url: '@Url.Action("GetWarehouseUpdateCount", "Staff")',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        warehouseCount = response.count || 0;
+                    }
+                },
+                error: function () {
+                    // 静默失败
+                },
+                complete: function () {
+                    completed++;
+                    updateBadge();
+                }
+            });
+
+            // 当两个请求都完成后更新徽章
+            function updateBadge() {
+                if (completed === 2) {
+                    var totalCount = transportCount + warehouseCount;
+                    if (totalCount > 0) {
+                        $('#baseManagementBadge').text(totalCount).show();
+                    } else {
+                        $('#baseManagementBadge').hide();
+                    }
+                }
+            }
         }
 
         // 页面加载时检查
         $(document).ready(function () {
-            checkTransportUpdates();
+            checkBaseManagementUpdates();
             // 每30秒检查一次
-            setInterval(checkTransportUpdates, 30000);
+            setInterval(checkBaseManagementUpdates, 30000);
         });
     </script>
 </body>
