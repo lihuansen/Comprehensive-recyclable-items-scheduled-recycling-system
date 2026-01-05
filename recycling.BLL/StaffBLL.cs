@@ -413,17 +413,24 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 验证工作人员视图计数参数
+        /// </summary>
+        private void ValidateViewCountParameters(int workerId, int count)
+        {
+            if (workerId <= 0)
+                throw new ArgumentException("工作人员ID无效");
+            if (count < 0)
+                throw new ArgumentException("数量不能为负数");
+        }
+
+        /// <summary>
         /// 更新基地工作人员查看运输管理的数量记录
         /// </summary>
         /// <param name="workerId">工作人员ID</param>
         /// <param name="count">当前运输中订单数量</param>
         public void UpdateSortingCenterWorkerTransportViewCount(int workerId, int count)
         {
-            if (workerId <= 0)
-                throw new ArgumentException("工作人员ID无效");
-            if (count < 0)
-                throw new ArgumentException("数量不能为负数");
-
+            ValidateViewCountParameters(workerId, count);
             _staffDAL.UpdateSortingCenterWorkerTransportViewCount(workerId, count);
         }
 
@@ -434,11 +441,7 @@ namespace recycling.BLL
         /// <param name="count">当前待处理入库数量</param>
         public void UpdateSortingCenterWorkerWarehouseViewCount(int workerId, int count)
         {
-            if (workerId <= 0)
-                throw new ArgumentException("工作人员ID无效");
-            if (count < 0)
-                throw new ArgumentException("数量不能为负数");
-
+            ValidateViewCountParameters(workerId, count);
             _staffDAL.UpdateSortingCenterWorkerWarehouseViewCount(workerId, count);
         }
 

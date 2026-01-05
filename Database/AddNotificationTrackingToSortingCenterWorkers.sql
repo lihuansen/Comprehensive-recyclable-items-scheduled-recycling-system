@@ -17,9 +17,9 @@ GO
 -- ==============================================================================
 -- 添加通知追踪字段
 -- ==============================================================================
-IF NOT EXISTS (SELECT * FROM sys.columns 
-               WHERE object_id = OBJECT_ID(N'[dbo].[SortingCenterWorkers]') 
-               AND name = 'LastViewedTransportCount')
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+               WHERE TABLE_NAME = 'SortingCenterWorkers' 
+               AND COLUMN_NAME = 'LastViewedTransportCount')
 BEGIN
     ALTER TABLE [dbo].[SortingCenterWorkers]
     ADD [LastViewedTransportCount] INT NOT NULL DEFAULT 0;
@@ -32,9 +32,9 @@ BEGIN
 END
 GO
 
-IF NOT EXISTS (SELECT * FROM sys.columns 
-               WHERE object_id = OBJECT_ID(N'[dbo].[SortingCenterWorkers]') 
-               AND name = 'LastViewedWarehouseCount')
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+               WHERE TABLE_NAME = 'SortingCenterWorkers' 
+               AND COLUMN_NAME = 'LastViewedWarehouseCount')
 BEGIN
     ALTER TABLE [dbo].[SortingCenterWorkers]
     ADD [LastViewedWarehouseCount] INT NOT NULL DEFAULT 0;
