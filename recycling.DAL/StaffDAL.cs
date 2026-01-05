@@ -489,11 +489,15 @@ namespace recycling.DAL
                                     : (DateTime?)null,
                                 IsActive = Convert.ToBoolean(reader["IsActive"]),
                                 // 如果列存在，读取值；否则使用默认值0
-                                LastViewedTransportCount = hasNotificationColumns && reader["LastViewedTransportCount"] != DBNull.Value 
-                                    ? Convert.ToInt32(reader["LastViewedTransportCount"]) 
+                                LastViewedTransportCount = hasNotificationColumns 
+                                    ? (reader["LastViewedTransportCount"] != DBNull.Value 
+                                        ? Convert.ToInt32(reader["LastViewedTransportCount"]) 
+                                        : 0)
                                     : 0,
-                                LastViewedWarehouseCount = hasNotificationColumns && reader["LastViewedWarehouseCount"] != DBNull.Value 
-                                    ? Convert.ToInt32(reader["LastViewedWarehouseCount"]) 
+                                LastViewedWarehouseCount = hasNotificationColumns 
+                                    ? (reader["LastViewedWarehouseCount"] != DBNull.Value 
+                                        ? Convert.ToInt32(reader["LastViewedWarehouseCount"]) 
+                                        : 0)
                                     : 0
                             };
                         }
@@ -525,7 +529,7 @@ namespace recycling.DAL
                 // 如果两个列都存在，返回true
                 return count == 2;
             }
-            catch
+            catch (SqlException)
             {
                 // 如果检查失败，假设列不存在
                 return false;
@@ -589,10 +593,11 @@ namespace recycling.DAL
 
                     cmd.ExecuteNonQuery();
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
+                    // 207 = Invalid column name error
                     // 如果列不存在，不抛出异常，静默失败
-                    if (!ex.Message.Contains("Invalid column name") && !ex.Message.Contains("列名") && !ex.Message.Contains("无效"))
+                    if (ex.Number != 207)
                     {
                         throw new Exception("更新运输查看记录失败：" + ex.Message);
                     }
@@ -630,10 +635,11 @@ namespace recycling.DAL
 
                     cmd.ExecuteNonQuery();
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
+                    // 207 = Invalid column name error
                     // 如果列不存在，不抛出异常，静默失败
-                    if (!ex.Message.Contains("Invalid column name") && !ex.Message.Contains("列名") && !ex.Message.Contains("无效"))
+                    if (ex.Number != 207)
                     {
                         throw new Exception("更新仓库查看记录失败：" + ex.Message);
                     }
