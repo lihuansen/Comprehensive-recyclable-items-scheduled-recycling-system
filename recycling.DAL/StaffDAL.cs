@@ -438,17 +438,34 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, 
-                                          SortingCenterID, SortingCenterName, Position, WorkStation,
-                                          ShiftType, Available, CurrentStatus, LastLoginDate, IsActive,
-                                          LastViewedTransportCount, LastViewedWarehouseCount
-                                  FROM SortingCenterWorkers 
-                                  WHERE Username = @Username";
+                    conn.Open();
+                    
+                    // 检查通知追踪列是否存在
+                    bool hasNotificationColumns = CheckNotificationColumnsExist(conn);
+                    
+                    // 根据列是否存在构建不同的SQL查询
+                    string sql;
+                    if (hasNotificationColumns)
+                    {
+                        sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, 
+                                      SortingCenterID, SortingCenterName, Position, WorkStation,
+                                      ShiftType, Available, CurrentStatus, LastLoginDate, IsActive,
+                                      LastViewedTransportCount, LastViewedWarehouseCount
+                              FROM SortingCenterWorkers 
+                              WHERE Username = @Username";
+                    }
+                    else
+                    {
+                        sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, 
+                                      SortingCenterID, SortingCenterName, Position, WorkStation,
+                                      ShiftType, Available, CurrentStatus, LastLoginDate, IsActive
+                              FROM SortingCenterWorkers 
+                              WHERE Username = @Username";
+                    }
 
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@Username", username);
 
-                    conn.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -471,10 +488,11 @@ namespace recycling.DAL
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null,
                                 IsActive = Convert.ToBoolean(reader["IsActive"]),
-                                LastViewedTransportCount = reader["LastViewedTransportCount"] != DBNull.Value 
+                                // 如果列存在，读取值；否则使用默认值0
+                                LastViewedTransportCount = hasNotificationColumns && reader["LastViewedTransportCount"] != DBNull.Value 
                                     ? Convert.ToInt32(reader["LastViewedTransportCount"]) 
                                     : 0,
-                                LastViewedWarehouseCount = reader["LastViewedWarehouseCount"] != DBNull.Value 
+                                LastViewedWarehouseCount = hasNotificationColumns && reader["LastViewedWarehouseCount"] != DBNull.Value 
                                     ? Convert.ToInt32(reader["LastViewedWarehouseCount"]) 
                                     : 0
                             };
@@ -487,6 +505,31 @@ namespace recycling.DAL
                 }
             }
             return worker;
+        }
+        
+        /// <summary>
+        /// 检查通知追踪列是否存在于数据库中
+        /// </summary>
+        private bool CheckNotificationColumnsExist(SqlConnection conn)
+        {
+            try
+            {
+                string checkSql = @"SELECT COUNT(*) 
+                                   FROM INFORMATION_SCHEMA.COLUMNS 
+                                   WHERE TABLE_NAME = 'SortingCenterWorkers' 
+                                   AND COLUMN_NAME IN ('LastViewedTransportCount', 'LastViewedWarehouseCount')";
+                
+                SqlCommand checkCmd = new SqlCommand(checkSql, conn);
+                int count = (int)checkCmd.ExecuteScalar();
+                
+                // 如果两个列都存在，返回true
+                return count == 2;
+            }
+            catch
+            {
+                // 如果检查失败，假设列不存在
+                return false;
+            }
         }
 
         /// <summary>
@@ -525,22 +568,34 @@ namespace recycling.DAL
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"UPDATE SortingCenterWorkers 
-                               SET LastViewedTransportCount = @Count 
-                               WHERE WorkerID = @WorkerID";
-
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Count", count);
-                cmd.Parameters.AddWithValue("@WorkerID", workerId);
-
                 try
                 {
                     conn.Open();
+                    
+                    // 检查列是否存在
+                    if (!CheckNotificationColumnsExist(conn))
+                    {
+                        // 列不存在，静默返回，不执行更新
+                        return;
+                    }
+                    
+                    string sql = @"UPDATE SortingCenterWorkers 
+                                   SET LastViewedTransportCount = @Count 
+                                   WHERE WorkerID = @WorkerID";
+
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@Count", count);
+                    cmd.Parameters.AddWithValue("@WorkerID", workerId);
+
                     cmd.ExecuteNonQuery();
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("更新运输查看记录失败：" + ex.Message);
+                    // 如果列不存在，不抛出异常，静默失败
+                    if (!ex.Message.Contains("Invalid column name") && !ex.Message.Contains("列名") && !ex.Message.Contains("无效"))
+                    {
+                        throw new Exception("更新运输查看记录失败：" + ex.Message);
+                    }
                 }
             }
         }
@@ -554,22 +609,34 @@ namespace recycling.DAL
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"UPDATE SortingCenterWorkers 
-                               SET LastViewedWarehouseCount = @Count 
-                               WHERE WorkerID = @WorkerID";
-
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Count", count);
-                cmd.Parameters.AddWithValue("@WorkerID", workerId);
-
                 try
                 {
                     conn.Open();
+                    
+                    // 检查列是否存在
+                    if (!CheckNotificationColumnsExist(conn))
+                    {
+                        // 列不存在，静默返回，不执行更新
+                        return;
+                    }
+                    
+                    string sql = @"UPDATE SortingCenterWorkers 
+                                   SET LastViewedWarehouseCount = @Count 
+                                   WHERE WorkerID = @WorkerID";
+
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@Count", count);
+                    cmd.Parameters.AddWithValue("@WorkerID", workerId);
+
                     cmd.ExecuteNonQuery();
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("更新仓库查看记录失败：" + ex.Message);
+                    // 如果列不存在，不抛出异常，静默失败
+                    if (!ex.Message.Contains("Invalid column name") && !ex.Message.Contains("列名") && !ex.Message.Contains("无效"))
+                    {
+                        throw new Exception("更新仓库查看记录失败：" + ex.Message);
+                    }
                 }
             }
         }
