@@ -97,7 +97,6 @@
     <Compile Include="SuperAdmins.cs" />
     <Compile Include="TransportationOrders.cs" />
     <Compile Include="TransportationOrdrers.cs" />
-    <Compile Include="Transporters.cs" />
     <Compile Include="TransporterProfileViewModel.cs" />
     <Compile Include="UpdateProfileViewModel.cs" />
     <Compile Include="UserAddresses.cs" />
