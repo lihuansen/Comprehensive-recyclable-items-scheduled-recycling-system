@@ -90,7 +90,6 @@
     <Compile Include="RegisterViewModel.cs" />
     <Compile Include="SendMessageRequest.cs" />
     <Compile Include="SortingCenterWorkerProfileViewModel.cs" />
-    <Compile Include="SortingCenterWorkers.cs" />
     <Compile Include="StaffLoginViewModel.cs" />
     <Compile Include="StoragePointDetail.cs" />
     <Compile Include="StoragePointSummary.cs" />
