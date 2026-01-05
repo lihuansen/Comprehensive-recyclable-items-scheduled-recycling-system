@@ -257,9 +257,7 @@
         loadInTransitOrders();
         
         // 自动刷新（每30秒）
-        setInterval(function() {
-            loadInTransitOrders();
-        }, 30000);
+        setInterval(loadInTransitOrders, 30000);
     });
 
     // 加载运输中订单

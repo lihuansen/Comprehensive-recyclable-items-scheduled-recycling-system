@@ -4243,6 +4243,7 @@ namespace recycling.Web.UI.Controllers
 
         /// <summary>
         /// 获取运输更新数量（用于显示通知徽章）
+        /// 注意：此方法为GET请求且仅读取数据，不修改任何状态，因此不需要CSRF保护
         /// </summary>
         [HttpGet]
         public ContentResult GetTransportUpdateCount()
