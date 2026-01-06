@@ -203,6 +203,7 @@
     <Content Include="Views\Home\Message.cshtml" />
     <Content Include="Views\Home\Help.cshtml" />
     <Content Include="Views\Home\Profile.cshtml" />
+    <Content Include="Views\Home\MyWallet.cshtml" />
     <Content Include="Views\User\Login.cshtml" />
     <Content Include="Views\User\Register.cshtml" />
     <Content Include="Views\User\Forgot.cshtml" />
