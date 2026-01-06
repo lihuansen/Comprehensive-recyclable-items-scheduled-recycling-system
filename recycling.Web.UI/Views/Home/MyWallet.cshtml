@@ -4,6 +4,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@* Inline styles are used to match the existing project pattern (see Profile.cshtml, AddressManagement.cshtml, etc.) *@
 <style>
     .wallet-container {
         max-width: 900px;
@@ -416,9 +417,7 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-            // 页面加载完成后的初始化
-            console.log('My Wallet page loaded');
-        });
+        // 钱包页面脚本 - 预留用于后续功能实现
+        // 未来将在此处添加充值、提现、转账等功能的交互逻辑
     </script>
 }
