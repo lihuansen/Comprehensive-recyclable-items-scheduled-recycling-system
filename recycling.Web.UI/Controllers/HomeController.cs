@@ -454,6 +454,31 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 我的钱包页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult MyWallet()
+        {
+            // 检查登录状态
+            if (Session["LoginUser"] == null)
+            {
+                TempData["ReturnUrl"] = Url.Action("MyWallet", "Home");
+                return RedirectToAction("LoginSelect", "Home");
+            }
+
+            var user = (Users)Session["LoginUser"];
+            
+            // 从数据库重新获取最新用户信息，确保余额数据同步
+            var currentUser = _userBLL.GetUserById(user.UserID);
+            if (currentUser != null)
+            {
+                Session["LoginUser"] = currentUser; // 更新Session中的用户信息
+            }
+
+            return View(currentUser ?? user);
+        }
+
         public ActionResult LoginSelect()
         {
             return View();
