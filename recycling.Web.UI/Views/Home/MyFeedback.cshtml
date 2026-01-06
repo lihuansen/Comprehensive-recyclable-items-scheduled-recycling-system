@@ -265,9 +265,29 @@
         border-radius: 8px;
         margin-bottom: 20px;
     }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #667eea;
+        text-decoration: none;
+        margin-bottom: 20px;
+        font-size: 15px;
+        transition: color 0.3s;
+    }
+
+    .back-link:hover {
+        color: #764ba2;
+    }
 </style>
 
 <div class="feedback-container">
+    <!-- 返回个人中心链接 -->
+    <a href="@Url.Action("Profile", "Home")" class="back-link">
+        <i class="fas fa-arrow-left"></i> 返回个人中心
+    </a>
+
     <!-- 页面标题 -->
     <div class="page-header">
         <div class="page-title">
