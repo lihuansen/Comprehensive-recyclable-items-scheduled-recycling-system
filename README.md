@@ -1,5 +1,33 @@
 # 全品类可回收物预约回收系统
 
+## 🔥 重要公告：修复"我的钱包"功能错误
+
+**如果您看到以下错误：**
+```
+System.Data.SqlClient.SqlException
+对象名 'UserPaymentAccounts' 无效。
+```
+
+**⭐ 从这里开始：** 📖 [START_HERE_WALLET_FIX.md](START_HERE_WALLET_FIX.md)
+
+**或查看详细指南：**
+- 💡 [FIX_WALLET_ERROR_IMMEDIATE.md](FIX_WALLET_ERROR_IMMEDIATE.md) - 3分钟快速修复
+- 📚 [WALLET_ERROR_FIX_DETAILED_STEPS.md](WALLET_ERROR_FIX_DETAILED_STEPS.md) - 图文详细步骤
+
+**自动修复（最简单）：**
+```batch
+# Windows 用户
+cd Database
+FixWalletIssueNow.bat
+
+# Linux/Mac 用户
+cd Database
+chmod +x FixWalletIssueNow.sh
+./FixWalletIssueNow.sh
+```
+
+---
+
 ## 项目简介
 
 这是一个基于 ASP.NET MVC 的**可回收物品预约回收管理系统**，为用户提供便捷的回收物品预约服务，同时为回收员提供高效的订单管理平台。

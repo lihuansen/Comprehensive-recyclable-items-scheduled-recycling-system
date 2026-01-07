@@ -6,6 +6,25 @@
 
 如果您在用户端点击**"我的钱包"**时遇到**"对象名 'UserPaymentAccounts' 无效"**错误：
 
+### 🎯 超快速修复（1分钟搞定）
+
+#### 方法 0：自动修复脚本（最快！新增）
+
+##### Windows 用户：
+```batch
+cd Database
+FixWalletIssueNow.bat
+```
+
+##### Linux/macOS 用户：
+```bash
+cd Database
+chmod +x FixWalletIssueNow.sh
+./FixWalletIssueNow.sh
+```
+
+这个脚本会自动检查并修复所有问题！⚡
+
 ### 快速修复（推荐）
 
 #### 方法一：SQL脚本直接修复（最简单）
@@ -22,21 +41,21 @@
 - 为 `Users` 表添加 `money` 列（如不存在）
 - 初始化现有用户的钱包余额为 0.00
 
-#### 方法二：使用批处理脚本
+#### 方法二：验证后修复
 
 ##### Windows 用户：
 ```batch
 cd Database
-VerifyWalletSetup.bat    # 先验证问题
-SetupWalletTables.bat    # 如果表不存在，运行此脚本修复
+QuickVerifyWalletTables.sql    # 在 SSMS 中打开并执行，先验证问题
+FixWalletIssueNow.bat          # 如果表不存在，运行此脚本修复
 ```
 
 ##### Linux/macOS 用户：
 ```bash
 cd Database
-chmod +x VerifyWalletSetup.sh SetupWalletTables.sh
-./VerifyWalletSetup.sh    # 先验证问题
-./SetupWalletTables.sh    # 如果表不存在，运行此脚本修复
+# 在 SSMS 或其他工具中执行 QuickVerifyWalletTables.sql 验证
+chmod +x FixWalletIssueNow.sh
+./FixWalletIssueNow.sh    # 如果表不存在，运行此脚本修复
 ```
 
 ### 问题原因
@@ -51,9 +70,19 @@ chmod +x VerifyWalletSetup.sh SetupWalletTables.sh
 
 ### 相关文档
 
+- **[FIX_WALLET_ERROR_IMMEDIATE.md](../FIX_WALLET_ERROR_IMMEDIATE.md)** - ⭐ 立即修复指南（推荐）
+- **[WALLET_ERROR_FIX_DETAILED_STEPS.md](../WALLET_ERROR_FIX_DETAILED_STEPS.md)** - ⭐ 详细图文步骤（新手必读）
 - **[WALLET_SYSTEM_IMPLEMENTATION.md](../WALLET_SYSTEM_IMPLEMENTATION.md)** - 钱包系统实现文档
 - **[WALLET_SYSTEM_QUICKSTART.md](../WALLET_SYSTEM_QUICKSTART.md)** - 钱包系统快速入门
 - **[WALLET_SYSTEM_ARCHITECTURE.md](../WALLET_SYSTEM_ARCHITECTURE.md)** - 钱包系统架构文档
+- **[FIX_USERPAYMENTACCOUNTS_FINAL_SOLUTION.md](../FIX_USERPAYMENTACCOUNTS_FINAL_SOLUTION.md)** - 之前的修复文档
+
+### 数据库脚本文件
+
+- **QuickVerifyWalletTables.sql** - 快速验证脚本
+- **AddWalletTablesToExistingDatabase.sql** - 修复脚本
+- **FixWalletIssueNow.bat** - Windows 自动修复脚本
+- **FixWalletIssueNow.sh** - Linux/macOS 自动修复脚本
 
 ---
 
