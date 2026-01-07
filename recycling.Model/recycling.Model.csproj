@@ -100,6 +100,7 @@
     <Compile Include="Transporters.cs" />
     <Compile Include="UpdateProfileViewModel.cs" />
     <Compile Include="UserAddresses.cs" />
+    <Compile Include="UserFeedback.cs" />
     <Compile Include="UserNotifications.cs" />
     <Compile Include="UserPaymentAccount.cs" />
     <Compile Include="Users.cs" />
