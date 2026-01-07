@@ -8,14 +8,30 @@
 
 ### 快速修复（推荐）
 
-#### Windows 用户：
+#### 方法一：SQL脚本直接修复（最简单）
+
+在 SQL Server Management Studio (SSMS) 中：
+
+1. 连接到数据库 **RecyclingSystemDB**
+2. 打开 **`AddWalletTablesToExistingDatabase.sql`** 脚本
+3. 执行脚本（按 F5 或点击"执行"按钮）
+
+此脚本会自动：
+- 检查并添加缺失的 `UserPaymentAccounts` 表
+- 检查并添加缺失的 `WalletTransactions` 表  
+- 为 `Users` 表添加 `money` 列（如不存在）
+- 初始化现有用户的钱包余额为 0.00
+
+#### 方法二：使用批处理脚本
+
+##### Windows 用户：
 ```batch
 cd Database
 VerifyWalletSetup.bat    # 先验证问题
 SetupWalletTables.bat    # 如果表不存在，运行此脚本修复
 ```
 
-#### Linux/macOS 用户：
+##### Linux/macOS 用户：
 ```bash
 cd Database
 chmod +x VerifyWalletSetup.sh SetupWalletTables.sh
@@ -80,11 +96,11 @@ chmod +x VerifyStoragePointSetup.sh FixStoragePointManagement.sh
 
 **CreateAllTables.sql** - 包含所有实体类对应的数据库表
 
-此脚本包含以下18个表的完整定义：
+此脚本包含以下21个表的完整定义（**已包含钱包系统表**）：
 
 | 序号 | 表名 | 实体类 | 说明 |
 |------|------|--------|------|
-| 1 | Users | recycling.Model.Users | 用户表 |
+| 1 | Users | recycling.Model.Users | 用户表（含钱包余额字段） |
 | 2 | Recyclers | recycling.Model.Recyclers | 回收员表 |
 | 3 | Admins | recycling.Model.Admins | 管理员表 |
 | 4 | SuperAdmins | recycling.Model.SuperAdmins | 超级管理员表 |
@@ -98,18 +114,25 @@ chmod +x VerifyStoragePointSetup.sh FixStoragePointManagement.sh
 | 12 | OrderReviews | recycling.Model.OrderReviews | 订单评价表 |
 | 13 | UserFeedback | recycling.Model.UserFeedback | 用户反馈表 |
 | 14 | UserNotifications | recycling.Model.UserNotifications | 用户通知表 |
-| 15 | AdminOperationLogs | recycling.Model.AdminOperationLogs | 管理员操作日志表 |
-| 16 | UserContactRequests | 使用ADO.NET直接访问 | 用户联系请求表 |
-| 17 | AdminContactMessages | 使用ADO.NET直接访问 | 管理员联系消息表 |
-| 18 | AdminContactConversations | 使用ADO.NET直接访问 | 管理员联系会话表 |
+| 15 | UserAddresses | recycling.Model.UserAddresses | 用户地址表 |
+| 16 | AdminOperationLogs | recycling.Model.AdminOperationLogs | 管理员操作日志表 |
+| 17 | UserContactRequests | 使用ADO.NET直接访问 | 用户联系请求表 |
+| 18 | AdminContactMessages | 使用ADO.NET直接访问 | 管理员联系消息表 |
+| 19 | AdminContactConversations | 使用ADO.NET直接访问 | 管理员联系会话表 |
+| 20 | **UserPaymentAccounts** | **recycling.Model.UserPaymentAccount** | **用户支付账户表** |
+| 21 | **WalletTransactions** | **无（ADO.NET访问）** | **钱包交易记录表** |
 
-> **注意**: 表 16-18 没有对应的实体类，因为这些表通过 ADO.NET 直接访问，不通过 Entity Framework。
+> **注意**: 
+> - 表 17-19 和 21 没有对应的实体类，因为这些表通过 ADO.NET 直接访问，不通过 Entity Framework。
+> - **表 20-21 是钱包系统的核心表，已包含在最新版本的 CreateAllTables.sql 中。**
 
 **使用方法：**
 ```sql
 -- 在 SQL Server Management Studio (SSMS) 中执行
--- 直接运行 CreateAllTables.sql 即可创建所有表
+-- 直接运行 CreateAllTables.sql 即可自动创建 RecyclingSystemDB 数据库和所有21个表（包括钱包系统表）
 ```
+
+**重要提示：** 脚本会自动创建数据库 **RecyclingSystemDB**（而非 RecyclingDB）。
 
 ---
 
