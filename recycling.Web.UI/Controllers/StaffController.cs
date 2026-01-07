@@ -1688,7 +1688,7 @@ namespace recycling.Web.UI.Controllers
                             {
                                 workerId = reader.GetInt32(0),
                                 fullName = reader.IsDBNull(1) ? "" : reader.GetString(1),
-                                phoneNumber = reader.GetString(2),
+                                phoneNumber = reader.IsDBNull(2) ? "" : reader.GetString(2),
                                 position = reader.IsDBNull(3) ? "" : reader.GetString(3)
                             });
                         }
