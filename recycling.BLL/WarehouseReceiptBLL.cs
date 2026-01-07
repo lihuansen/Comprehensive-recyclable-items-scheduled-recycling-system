@@ -159,5 +159,43 @@ namespace recycling.BLL
                 return false;
             }
         }
+
+        /// <summary>
+        /// 获取仓库库存汇总（按类别分组）- 从入库单数据中统计
+        /// Get warehouse inventory summary grouped by category - from warehouse receipts
+        /// </summary>
+        public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetWarehouseSummary()
+        {
+            try
+            {
+                return _dal.GetWarehouseSummary();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetWarehouseSummary BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 获取仓库库存明细（包含回收员信息）- 从入库单数据中提取
+        /// Get warehouse inventory detail with recycler info - from warehouse receipts
+        /// </summary>
+        public PagedResult<InventoryDetailViewModel> GetWarehouseDetailWithRecycler(int pageIndex = 1, int pageSize = 20, string categoryKey = null)
+        {
+            try
+            {
+                if (pageIndex < 1) pageIndex = 1;
+                if (pageSize < 1) pageSize = 20;
+                if (pageSize > 100) pageSize = 100;
+
+                return _dal.GetWarehouseDetailWithRecycler(pageIndex, pageSize, categoryKey);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetWarehouseDetailWithRecycler BLL Error: {ex.Message}");
+                throw;
+            }
+        }
     }
 }
