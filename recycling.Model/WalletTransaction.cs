@@ -8,6 +8,7 @@ namespace recycling.Model
     /// 钱包交易记录实体类
     /// 用于存储所有钱包相关的交易记录
     /// </summary>
+    [Table("WalletTransactions")]
     public partial class WalletTransaction
     {
         /// <summary>
