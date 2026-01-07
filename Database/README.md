@@ -2,6 +2,45 @@
 
 本目录包含数据库相关的SQL脚本文件。
 
+## 🔴 解决"我的钱包"功能错误（UserPaymentAccounts 表缺失）
+
+如果您在用户端点击**"我的钱包"**时遇到**"对象名 'UserPaymentAccounts' 无效"**错误：
+
+### 快速修复（推荐）
+
+#### Windows 用户：
+```batch
+cd Database
+VerifyWalletSetup.bat    # 先验证问题
+SetupWalletTables.bat    # 如果表不存在，运行此脚本修复
+```
+
+#### Linux/macOS 用户：
+```bash
+cd Database
+chmod +x VerifyWalletSetup.sh SetupWalletTables.sh
+./VerifyWalletSetup.sh    # 先验证问题
+./SetupWalletTables.sh    # 如果表不存在，运行此脚本修复
+```
+
+### 问题原因
+
+此错误是因为 **UserPaymentAccounts（用户支付账户）表和 WalletTransactions（钱包交易）表未创建**导致的。钱包功能依赖这些表来存储用户的支付账户和交易记录。
+
+### 会创建的表
+
+1. **UserPaymentAccounts** - 用户支付账户表（支付宝、微信、银行卡）
+2. **WalletTransactions** - 钱包交易记录表（充值、提现、支付等）
+3. **Users.money** - 用户余额字段（如不存在则创建）
+
+### 相关文档
+
+- **[WALLET_SYSTEM_IMPLEMENTATION.md](../WALLET_SYSTEM_IMPLEMENTATION.md)** - 钱包系统实现文档
+- **[WALLET_SYSTEM_QUICKSTART.md](../WALLET_SYSTEM_QUICKSTART.md)** - 钱包系统快速入门
+- **[WALLET_SYSTEM_ARCHITECTURE.md](../WALLET_SYSTEM_ARCHITECTURE.md)** - 钱包系统架构文档
+
+---
+
 ## 🔴 解决"暂存点管理"网络错误（状态：500）
 
 如果您在回收员端点击**"暂存点管理"**时遇到**"网络问题，请重试（状态：500）"**错误：
