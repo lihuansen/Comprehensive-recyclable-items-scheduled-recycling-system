@@ -46,5 +46,20 @@ namespace recycling.BLL
 
             return _storagePointDAL.GetStoragePointDetail(recyclerId, categoryKey);
         }
+
+        /// <summary>
+        /// 清空回收员的暂存点物品
+        /// </summary>
+        /// <param name="recyclerId">回收员ID</param>
+        /// <returns>是否成功</returns>
+        public bool ClearStoragePointForRecycler(int recyclerId)
+        {
+            if (recyclerId <= 0)
+            {
+                throw new ArgumentException("回收员ID无效");
+            }
+
+            return _storagePointDAL.ClearStoragePointForRecycler(recyclerId);
+        }
     }
 }

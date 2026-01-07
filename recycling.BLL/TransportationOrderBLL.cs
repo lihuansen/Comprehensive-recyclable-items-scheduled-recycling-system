@@ -174,23 +174,39 @@ namespace recycling.BLL
                 if (orderId <= 0)
                     throw new ArgumentException("运输单ID无效");
 
-                // 1. 更新运输单状态为"运输中"
+                // 1. 获取运输单信息以获取回收员ID
+                var order = _dal.GetTransportationOrderById(orderId);
+                if (order == null)
+                {
+                    throw new ArgumentException("运输单不存在");
+                }
+
+                // 2. 更新运输单状态为"运输中"
                 bool result = _dal.StartTransportation(orderId);
 
-                // 2. 如果更新成功，发送通知给基地人员
+                // 3. 如果更新成功，执行后续操作
                 if (result)
                 {
                     try
                     {
-                        // 获取运输单信息
-                        var order = _dal.GetTransportationOrderById(orderId);
-                        if (order != null)
-                        {
-                            // 发送通知给所有基地人员（通过发送给系统角色）
-                            // 注意：这里需要一个方法来通知所有基地人员
-                            // 可以通过UserNotificationBLL来实现
-                            SendTransportNotificationToBase(order);
-                        }
+                        // 3.1 清空该回收员的暂存点物品
+                        // 因为这些物品已经被运输到基地，所以暂存点应该清空
+                        var storagePointBLL = new StoragePointBLL();
+                        storagePointBLL.ClearStoragePointForRecycler(order.RecyclerID);
+                        System.Diagnostics.Debug.WriteLine($"运输单 {order.OrderNumber} 开始运输，回收员 {order.RecyclerID} 的暂存点物品已清空");
+                    }
+                    catch (Exception clearEx)
+                    {
+                        // 清空暂存点失败不影响运输状态更新，但记录日志
+                        System.Diagnostics.Debug.WriteLine($"清空暂存点失败: {clearEx.Message}");
+                    }
+
+                    try
+                    {
+                        // 3.2 发送通知给基地人员
+                        // 注意：这里需要一个方法来通知所有基地人员
+                        // 可以通过UserNotificationBLL来实现
+                        SendTransportNotificationToBase(order);
                     }
                     catch (Exception notifyEx)
                     {
