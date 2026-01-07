@@ -8,13 +8,23 @@ System.Data.SqlClient.SqlException
 对象名 'UserPaymentAccounts' 无效。
 ```
 
-**立即查看修复指南：** 📖 [FIX_WALLET_ERROR_IMMEDIATE.md](FIX_WALLET_ERROR_IMMEDIATE.md)
+**⭐ 从这里开始：** 📖 [START_HERE_WALLET_FIX.md](START_HERE_WALLET_FIX.md)
 
-**快速修复步骤（3分钟）：**
-1. 打开 SQL Server Management Studio
-2. 执行脚本：`Database/AddWalletTablesToExistingDatabase.sql`
-3. 重启应用程序
-4. ✅ 完成！
+**或查看详细指南：**
+- 💡 [FIX_WALLET_ERROR_IMMEDIATE.md](FIX_WALLET_ERROR_IMMEDIATE.md) - 3分钟快速修复
+- 📚 [WALLET_ERROR_FIX_DETAILED_STEPS.md](WALLET_ERROR_FIX_DETAILED_STEPS.md) - 图文详细步骤
+
+**自动修复（最简单）：**
+```batch
+# Windows 用户
+cd Database
+FixWalletIssueNow.bat
+
+# Linux/Mac 用户
+cd Database
+chmod +x FixWalletIssueNow.sh
+./FixWalletIssueNow.sh
+```
 
 ---
 
