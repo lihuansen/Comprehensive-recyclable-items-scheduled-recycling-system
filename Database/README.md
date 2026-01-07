@@ -129,7 +129,7 @@ chmod +x VerifyStoragePointSetup.sh FixStoragePointManagement.sh
 **使用方法：**
 ```sql
 -- 在 SQL Server Management Studio (SSMS) 中执行
--- 直接运行 CreateAllTables.sql 即可创建所有表（包括钱包系统表）
+-- 直接运行 CreateAllTables.sql 即可自动创建 RecyclingSystemDB 数据库和所有21个表（包括钱包系统表）
 ```
 
 **重要提示：** 脚本会自动创建数据库 **RecyclingSystemDB**（而非 RecyclingDB）。

@@ -816,6 +816,7 @@ PRINT ' 19. AdminContactConversations - 管理员联系会话表';
 PRINT ' 20. UserPaymentAccounts - 用户支付账户表';
 PRINT ' 21. WalletTransactions - 钱包交易记录表';
 PRINT '';
+PRINT '注意: 表 17-19 和 21 通过 ADO.NET 直接访问，不使用 Entity Framework';
 PRINT '对应的实体类位于: recycling.Model 项目';
 PRINT '';
 GO
