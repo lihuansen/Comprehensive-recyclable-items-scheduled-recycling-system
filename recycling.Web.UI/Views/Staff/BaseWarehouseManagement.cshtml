@@ -3,6 +3,8 @@
     Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <style>
     .warehouse-container {
         max-width: 1600px;
@@ -562,5 +564,3 @@
             String(date.getMinutes()).padStart(2, '0');
     }
 </script>
-
-@Html.AntiForgeryToken()
