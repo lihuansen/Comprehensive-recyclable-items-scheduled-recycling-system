@@ -254,16 +254,12 @@
                 </button>
             </div>
 
-            <div id="transitOrdersLoading" class="loading-spinner" style="display: none;">
+            <div id="transitOrdersLoading" class="loading-spinner">
                 <div class="spinner"></div>
                 <p>加载中...</p>
             </div>
 
-            <div id="transitOrdersList" class="transit-orders-list">
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p>暂无已完成的运输单</p>
-                </div>
+            <div id="transitOrdersList" class="transit-orders-list" style="display: none;">
             </div>
 
             <div id="receiptForm" style="display: none;">
@@ -312,12 +308,12 @@
                 </button>
             </div>
 
-            <div id="receiptsLoading" class="loading-spinner" style="display: none;">
+            <div id="receiptsLoading" class="loading-spinner">
                 <div class="spinner"></div>
                 <p>加载中...</p>
             </div>
 
-            <div id="receiptsTableContainer">
+            <div id="receiptsTableContainer" style="display: none;">
                 <table class="receipts-table" id="receiptsTable" style="display: none;">
                     <thead>
                         <tr>
@@ -353,7 +349,7 @@
     // 加载已完成的运输单
     function loadCompletedTransportOrders() {
         $('#transitOrdersLoading').show();
-        $('#transitOrdersList').html('');
+        $('#transitOrdersList').hide().html('');
 
         $.ajax({
             url: '@Url.Action("GetCompletedTransportOrders", "Staff")',
@@ -365,11 +361,11 @@
                 if (response.success) {
                     displayTransitOrders(response.data);
                 } else {
-                    $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>' + response.message + '</p></div>');
+                    $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>' + response.message + '</p></div>').show();
                 }
             },
             error: function () {
-                $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>加载失败</p></div>');
+                $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>加载失败</p></div>').show();
             },
             complete: function () {
                 $('#transitOrdersLoading').hide();
@@ -397,9 +393,9 @@
                     '</div>' +
                     '</div>';
             });
-            $('#transitOrdersList').html(html);
+            $('#transitOrdersList').html(html).show();
         } else {
-            $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无可入库的运输单</p></div>');
+            $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无可入库的运输单</p></div>').show();
         }
     }
 
@@ -494,6 +490,7 @@
     // 加载入库记录
     function loadWarehouseReceipts() {
         $('#receiptsLoading').show();
+        $('#receiptsTableContainer').hide();
         $('#receiptsTable').hide();
         $('#receiptsEmptyState').hide();
 
@@ -510,10 +507,12 @@
                     displayReceipts(response.data);
                 } else {
                     $('#receiptsEmptyState').html('<i class="fas fa-exclamation-circle"></i><p>' + response.message + '</p>').show();
+                    $('#receiptsTableContainer').show();
                 }
             },
             error: function () {
                 $('#receiptsEmptyState').html('<i class="fas fa-exclamation-circle"></i><p>加载失败</p>').show();
+                $('#receiptsTableContainer').show();
             },
             complete: function () {
                 $('#receiptsLoading').hide();
@@ -539,8 +538,10 @@
                 tbody.append(row);
             });
 
+            $('#receiptsTableContainer').show();
             $('#receiptsTable').show();
         } else {
+            $('#receiptsTableContainer').show();
             $('#receiptsEmptyState').show();
         }
     }
