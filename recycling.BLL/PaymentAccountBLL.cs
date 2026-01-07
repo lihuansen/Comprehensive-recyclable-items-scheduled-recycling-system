@@ -63,7 +63,7 @@ namespace recycling.BLL
                 
                 if (accountId > 0)
                 {
-                    return new OperationResult { Success = true, Message = "支付账户添加成功", Data = accountId };
+                    return new OperationResult<int> { Success = true, Message = "支付账户添加成功", Data = accountId };
                 }
                 else
                 {

@@ -401,5 +401,34 @@ namespace recycling.DAL
                 return rowsAffected > 0;
             }
         }
+
+        /// <summary>
+        /// 更新用户信息（包括余额等字段）
+        /// </summary>
+        public bool UpdateUser(Users user)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Users 
+                              SET Username = @Username, 
+                                  PhoneNumber = @PhoneNumber, 
+                                  Email = @Email, 
+                                  money = @money,
+                                  url = @url
+                              WHERE UserID = @UserID";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", user.Username);
+                cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
+                cmd.Parameters.AddWithValue("@Email", user.Email);
+                cmd.Parameters.AddWithValue("@money", (object)user.money ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@url", (object)user.url ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@UserID", user.UserID);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+        }
     }
 }
