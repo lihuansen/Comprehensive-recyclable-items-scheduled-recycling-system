@@ -1759,7 +1759,7 @@ namespace recycling.Web.UI.Controllers
                     TransporterID = transporterId,
                     PickupAddress = pickupAddress,
                     DestinationAddress = "深圳基地", // 固定目的地
-                    ContactPerson = staff.FullName, // 回收员姓名
+                    ContactPerson = string.IsNullOrWhiteSpace(staff.FullName) ? staff.Username : staff.FullName, // 回收员姓名，如果FullName为空则使用Username
                     ContactPhone = staff.PhoneNumber, // 回收员电话
                     BaseContactPerson = baseContactPerson, // 基地联系人（可编辑）
                     BaseContactPhone = baseContactPhone, // 基地联系电话（可编辑）
