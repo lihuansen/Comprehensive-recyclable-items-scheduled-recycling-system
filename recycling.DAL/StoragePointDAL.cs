@@ -173,8 +173,10 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 清空回收员的暂存点物品（将已完成的订单状态更新为已入库）
-        /// Clear storage point items for a recycler by updating completed appointments to warehoused status
+        /// 清空回收员的暂存点物品（标记为已运输，不改变预约订单状态）
+        /// Clear storage point items for a recycler by deleting inventory records
+        /// Note: This method does NOT change appointment status. Appointments remain "已完成".
+        /// The inventory is cleared when transport starts, representing items being moved to the base.
         /// </summary>
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>是否成功</returns>
@@ -186,27 +188,32 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // 将该回收员的已完成订单状态更新为"已入库"
-                    // 这样这些订单就不会再出现在暂存点管理中
+                    // 清空该回收员的暂存点库存记录（如果存在Inventory表）
+                    // 注意：不改变预约订单的状态，预约订单应该保持"已完成"状态
+                    // 暂存点的清空仅表示物品已被运输走，不应该改变预约订单的状态
                     string sql = @"
-                        UPDATE Appointments 
-                        SET Status = N'已入库',
-                            UpdatedDate = GETDATE()
-                        WHERE RecyclerID = @RecyclerID 
-                            AND Status = N'已完成'";
+                        DELETE FROM Inventory 
+                        WHERE RecyclerID = @RecyclerID";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
                         
                         int rowsAffected = cmd.ExecuteNonQuery();
-                        System.Diagnostics.Debug.WriteLine($"Cleared {rowsAffected} storage point items for recycler {recyclerId}");
+                        System.Diagnostics.Debug.WriteLine($"Cleared {rowsAffected} inventory items for recycler {recyclerId}. Appointment status remains unchanged.");
                         return true; // Return true even if no rows affected (no items to clear)
                     }
                 }
             }
             catch (SqlException sqlEx)
             {
+                // If Inventory table doesn't exist, that's okay - just log and return true
+                if (sqlEx.Number == 208) // Invalid object name
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inventory table not found for recycler {recyclerId}, this is expected if inventory is tracked via appointments only.");
+                    return true;
+                }
+                
                 System.Diagnostics.Debug.WriteLine($"SQL Error in ClearStoragePointForRecycler: {sqlEx.Message}");
                 System.Diagnostics.Debug.WriteLine($"SQL State: {sqlEx.State}, Number: {sqlEx.Number}");
                 throw new Exception($"数据库更新错误 (代码: {sqlEx.Number}): {sqlEx.Message}", sqlEx);

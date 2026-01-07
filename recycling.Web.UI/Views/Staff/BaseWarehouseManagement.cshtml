@@ -272,6 +272,9 @@
                              data-order-number="@order.OrderNumber" 
                              data-estimated-weight="@order.EstimatedWeight" 
                              data-item-categories="@(order.ItemCategories ?? "")" 
+                             data-recycler-name="@(order.RecyclerName ?? "")"
+                             data-transporter-name="@(order.TransporterName ?? "")"
+                             data-pickup-date="@(order.PickupDate?.ToString("yyyy-MM-dd HH:mm") ?? "")"
                              onclick="selectOrder(this)">
                             <div class="order-info">
                                 <span class="order-number">@order.OrderNumber</span>
@@ -280,6 +283,12 @@
                             <div class="order-details">
                                 回收员：@(order.RecyclerName ?? "-") | 运输人员：@(order.TransporterName ?? "-")
                             </div>
+                            @if (order.PickupDate.HasValue)
+                            {
+                                <div style="font-size: 12px; color: #777; margin-top: 5px;">
+                                    取货时间：@order.PickupDate.Value.ToString("yyyy-MM-dd HH:mm")
+                                </div>
+                            }
                         </div>
                     }
                 }
@@ -298,31 +307,58 @@
                     
                     <div class="form-group">
                         <label class="form-label">运输单号</label>
-                        <input type="text" class="form-control" id="orderNumberDisplay" readonly />
+                        <input type="text" class="form-control" id="orderNumberDisplay" readonly style="background-color: #f5f5f5;" />
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">入库重量（kg）<span style="color: red;">*</span></label>
-                        <input type="number" class="form-control" id="totalWeight" step="0.01" required />
+                        <label class="form-label">回收员</label>
+                        <input type="text" class="form-control" id="recyclerNameDisplay" readonly style="background-color: #f5f5f5;" />
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">物品类别（JSON格式）</label>
+                        <label class="form-label">运输人员</label>
+                        <input type="text" class="form-control" id="transporterNameDisplay" readonly style="background-color: #f5f5f5;" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">取货时间</label>
+                        <input type="text" class="form-control" id="pickupDateDisplay" readonly style="background-color: #f5f5f5;" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">预估重量（kg）</label>
+                        <input type="text" class="form-control" id="estimatedWeightDisplay" readonly style="background-color: #f5f5f5;" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">实际入库重量（kg）<span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="totalWeight" step="0.01" required 
+                               placeholder="请输入实际称重后的重量" />
+                        <small style="color: #666;">提示：可以修改为实际称重重量</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">物品类别明细</label>
+                        <div id="categoriesPreview" style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px; min-height: 50px;">
+                            <small style="color: #666;">从运输单自动获取</small>
+                        </div>
                         <textarea class="form-control" id="itemCategories" rows="4" 
-                                  placeholder='例如：[{"categoryKey":"paper","categoryName":"纸类","weight":20.5}]'></textarea>
+                                  placeholder='JSON格式：[{"categoryKey":"paper","categoryName":"纸类","weight":20.5,"price":41.0}]'></textarea>
+                        <small style="color: #666;">提示：系统已自动填充，如需调整请修改上方JSON数据</small>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">备注</label>
-                        <textarea class="form-control" id="notes" rows="3"></textarea>
+                        <label class="form-label">入库备注</label>
+                        <textarea class="form-control" id="notes" rows="3" 
+                                  placeholder="如：物品完好无损、包装完整等"></textarea>
                     </div>
 
-                    <div style="text-align: center;">
+                    <div style="text-align: center; padding-top: 10px; border-top: 1px solid #e0e0e0;">
                         <button type="button" class="btn-primary" onclick="createReceipt()">
                             <i class="fas fa-plus-circle"></i> 创建入库单
                         </button>
                         <button type="button" class="btn-secondary" onclick="cancelSelection()" style="margin-left: 10px;">
-                            取消
+                            <i class="fas fa-times"></i> 取消
                         </button>
                     </div>
                 </form>
@@ -430,6 +466,9 @@
                     'data-order-number="' + order.OrderNumber + '" ' +
                     'data-estimated-weight="' + order.EstimatedWeight + '" ' +
                     'data-item-categories="' + (order.ItemCategories || '') + '" ' +
+                    'data-recycler-name="' + (order.RecyclerName || '') + '" ' +
+                    'data-transporter-name="' + (order.TransporterName || '') + '" ' +
+                    'data-pickup-date="' + (order.PickupDate || '') + '" ' +
                     'onclick="selectOrder(this)">' +
                     '<div class="order-info">' +
                     '<span class="order-number">' + order.OrderNumber + '</span>' +
@@ -438,8 +477,13 @@
                     '<div class="order-details">' +
                     '回收员：' + (order.RecyclerName || '-') + ' | ' +
                     '运输人员：' + (order.TransporterName || '-') +
-                    '</div>' +
                     '</div>';
+                
+                if (order.PickupDate) {
+                    html += '<div style="font-size: 12px; color: #777; margin-top: 5px;">取货时间：' + order.PickupDate + '</div>';
+                }
+                
+                html += '</div>';
             });
             $('#transitOrdersList').html(html).show();
         } else {
@@ -471,10 +515,23 @@
                     $(element).addClass('selected');
 
                     selectedOrderId = orderId;
+                    
+                    // 填充表单数据（自动从运输单获取）
                     $('#selectedTransportOrderId').val(orderId);
                     $('#orderNumberDisplay').val($(element).data('order-number'));
-                    $('#totalWeight').val($(element).data('estimated-weight'));
-                    $('#itemCategories').val($(element).data('item-categories'));
+                    $('#recyclerNameDisplay').val($(element).data('recycler-name') || '未知');
+                    $('#transporterNameDisplay').val($(element).data('transporter-name') || '未知');
+                    $('#pickupDateDisplay').val($(element).data('pickup-date') || '未记录');
+                    
+                    var estimatedWeight = $(element).data('estimated-weight');
+                    $('#estimatedWeightDisplay').val(estimatedWeight);
+                    $('#totalWeight').val(estimatedWeight); // 默认使用预估重量，可修改
+                    
+                    var itemCategories = $(element).data('item-categories') || '';
+                    $('#itemCategories').val(itemCategories);
+                    
+                    // 解析并显示类别预览
+                    displayCategoriesPreview(itemCategories);
 
                     $('#transitOrdersList').hide();
                     $('#receiptForm').show();
@@ -488,6 +545,48 @@
         });
     }
 
+    // 显示物品类别预览
+    function displayCategoriesPreview(categoriesJson) {
+        var preview = $('#categoriesPreview');
+        
+        if (!categoriesJson || categoriesJson.trim() === '') {
+            preview.html('<small style="color: #999;">无类别信息</small>');
+            return;
+        }
+        
+        try {
+            var categories = JSON.parse(categoriesJson);
+            if (!Array.isArray(categories) || categories.length === 0) {
+                preview.html('<small style="color: #999;">无类别信息</small>');
+                return;
+            }
+            
+            var html = '<div style="font-size: 13px;">';
+            var totalWeight = 0;
+            
+            categories.forEach(function(cat, index) {
+                var weight = parseFloat(cat.weight || 0);
+                totalWeight += weight;
+                
+                html += '<div style="padding: 5px 0; border-bottom: 1px solid #e0e0e0;">';
+                html += '<strong>' + (cat.categoryName || '未知类别') + '</strong>: ';
+                html += weight.toFixed(2) + ' kg';
+                
+                if (cat.price) {
+                    html += ' (价值: ¥' + parseFloat(cat.price).toFixed(2) + ')';
+                }
+                html += '</div>';
+            });
+            
+            html += '<div style="padding: 8px 0; font-weight: bold; color: #27ae60;">总重量: ' + totalWeight.toFixed(2) + ' kg</div>';
+            html += '</div>';
+            
+            preview.html(html);
+        } catch (e) {
+            preview.html('<small style="color: #e74c3c;">类别数据格式错误</small>');
+        }
+    }
+
     // 取消选择
     function cancelSelection() {
         selectedOrderId = null;
@@ -495,6 +594,7 @@
         $('#transitOrdersList').show();
         $('.transit-order-item').removeClass('selected');
         $('#createReceiptForm')[0].reset();
+        $('#categoriesPreview').html('<small style="color: #666;">从运输单自动获取</small>');
     }
 
     // 创建入库单
