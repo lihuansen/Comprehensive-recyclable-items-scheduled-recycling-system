@@ -52,7 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AcceptOrderRequest.cs" />
-    <Compile Include="AdminOperationLog.cs" />
     <Compile Include="AdminOperationLogs.cs" />
     <Compile Include="AdminPermissions.cs" />
     <Compile Include="Admins.cs" />
