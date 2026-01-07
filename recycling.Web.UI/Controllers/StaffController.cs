@@ -4474,10 +4474,21 @@ namespace recycling.Web.UI.Controllers
             ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
 
+            // 创建视图模型并加载数据
+            var viewModel = new BaseWarehouseManagementViewModel();
+
             try
             {
+                // 加载已完成的运输单（待入库）
+                var orders = _warehouseReceiptBLL.GetCompletedTransportOrders();
+                viewModel.CompletedTransportOrders = orders?.ToList() ?? new List<TransportNotificationViewModel>();
+
+                // 加载入库记录
+                var receipts = _warehouseReceiptBLL.GetWarehouseReceipts(1, 50, null, null);
+                viewModel.WarehouseReceipts = receipts?.ToList() ?? new List<WarehouseReceiptViewModel>();
+
                 // 标记仓库通知为已查看（将当前已完成运输单数量存储到数据库和Session）
-                var currentCount = _warehouseReceiptBLL.GetCompletedTransportOrders()?.Count() ?? 0;
+                var currentCount = viewModel.CompletedTransportOrders.Count;
                 
                 // 更新到数据库（持久化）
                 _staffBLL.UpdateSortingCenterWorkerWarehouseViewCount(worker.WorkerID, currentCount);
@@ -4488,10 +4499,10 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 // 记录错误但不中断页面加载
-                System.Diagnostics.Debug.WriteLine($"更新仓库查看记录失败：{ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"加载仓库数据失败：{ex.Message}");
             }
 
-            return View();
+            return View(viewModel);
         }
 
         /// <summary>
