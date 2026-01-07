@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
 using System.Linq;
+using Newtonsoft.Json;
 using recycling.Model;
 
 namespace recycling.DAL
@@ -417,7 +418,7 @@ namespace recycling.DAL
                                     try
                                     {
                                         // 解析JSON数组
-                                        var categories = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategoriesJson);
+                                        var categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategoriesJson);
                                         
                                         foreach (var category in categories)
                                         {
@@ -547,7 +548,7 @@ namespace recycling.DAL
                                     try
                                     {
                                         // 解析JSON数组
-                                        var categories = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategoriesJson);
+                                        var categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategoriesJson);
 
                                         foreach (var category in categories)
                                         {
