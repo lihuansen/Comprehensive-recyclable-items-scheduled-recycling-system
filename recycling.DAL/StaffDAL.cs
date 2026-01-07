@@ -24,7 +24,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT RecyclerID, Username, PasswordHash, PhoneNumber, Region, LastLoginDate, IsActive, Available 
+                    string sql = @"SELECT RecyclerID, Username, PasswordHash, FullName, PhoneNumber, Region, LastLoginDate, IsActive, Available 
                                   FROM Recyclers 
                                   WHERE Username = @Username";
 
@@ -41,6 +41,7 @@ namespace recycling.DAL
                                 RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                                 Username = reader["Username"].ToString(),
                                 PasswordHash = reader["PasswordHash"].ToString(),
+                                FullName = reader["FullName"] != DBNull.Value ? reader["FullName"].ToString() : null,
                                 PhoneNumber = reader["PhoneNumber"]?.ToString(),
                                 Region = reader["Region"] != DBNull.Value ? reader["Region"].ToString() : null,
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
