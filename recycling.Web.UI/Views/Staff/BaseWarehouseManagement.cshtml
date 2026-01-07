@@ -422,6 +422,14 @@
 
 <script>
     var selectedOrderId = null;
+    
+    // 常量定义 - Constants for fallback text
+    var FALLBACK_TEXT = {
+        UNKNOWN_RECYCLER: '未知',
+        UNKNOWN_TRANSPORTER: '未知',
+        NO_PICKUP_DATE: '未记录',
+        UNKNOWN_CATEGORY: '未知类别'
+    };
 
     // 注意：页面加载时数据已通过服务器端渲染直接显示，无需自动调用 AJAX
     // Note: Data is rendered server-side on page load, no need to call AJAX automatically
@@ -519,9 +527,9 @@
                     // 填充表单数据（自动从运输单获取）
                     $('#selectedTransportOrderId').val(orderId);
                     $('#orderNumberDisplay').val($(element).data('order-number'));
-                    $('#recyclerNameDisplay').val($(element).data('recycler-name') || '未知');
-                    $('#transporterNameDisplay').val($(element).data('transporter-name') || '未知');
-                    $('#pickupDateDisplay').val($(element).data('pickup-date') || '未记录');
+                    $('#recyclerNameDisplay').val($(element).data('recycler-name') || FALLBACK_TEXT.UNKNOWN_RECYCLER);
+                    $('#transporterNameDisplay').val($(element).data('transporter-name') || FALLBACK_TEXT.UNKNOWN_TRANSPORTER);
+                    $('#pickupDateDisplay').val($(element).data('pickup-date') || FALLBACK_TEXT.NO_PICKUP_DATE);
                     
                     var estimatedWeight = $(element).data('estimated-weight');
                     $('#estimatedWeightDisplay').val(estimatedWeight);
@@ -561,29 +569,35 @@
                 return;
             }
             
-            var html = '<div style="font-size: 13px;">';
             var totalWeight = 0;
+            var rows = [];
             
             categories.forEach(function(cat, index) {
                 var weight = parseFloat(cat.weight || 0);
                 totalWeight += weight;
                 
-                html += '<div style="padding: 5px 0; border-bottom: 1px solid #e0e0e0;">';
-                html += '<strong>' + (cat.categoryName || '未知类别') + '</strong>: ';
-                html += weight.toFixed(2) + ' kg';
+                // Escape HTML to prevent XSS
+                var categoryName = $('<div>').text(cat.categoryName || FALLBACK_TEXT.UNKNOWN_CATEGORY).html();
+                var priceText = '';
                 
                 if (cat.price) {
-                    html += ' (价值: ¥' + parseFloat(cat.price).toFixed(2) + ')';
+                    priceText = ' (价值: ¥' + parseFloat(cat.price).toFixed(2) + ')';
                 }
-                html += '</div>';
+                
+                rows.push(
+                    '<div style="padding: 5px 0; border-bottom: 1px solid #e0e0e0;">' +
+                    '<strong>' + categoryName + '</strong>: ' +
+                    weight.toFixed(2) + ' kg' + priceText +
+                    '</div>'
+                );
             });
             
-            html += '<div style="padding: 8px 0; font-weight: bold; color: #27ae60;">总重量: ' + totalWeight.toFixed(2) + ' kg</div>';
-            html += '</div>';
+            rows.push('<div style="padding: 8px 0; font-weight: bold; color: #27ae60;">总重量: ' + totalWeight.toFixed(2) + ' kg</div>');
             
-            preview.html(html);
+            preview.html('<div style="font-size: 13px;">' + rows.join('') + '</div>');
         } catch (e) {
-            preview.html('<small style="color: #e74c3c;">类别数据格式错误</small>');
+            preview.html('<small style="color: #e74c3c;">类别数据格式错误，请检查JSON格式是否正确</small>');
+            console.error('解析类别数据失败:', e);
         }
     }
 

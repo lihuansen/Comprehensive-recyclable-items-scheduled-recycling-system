@@ -173,7 +173,7 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 清空回收员的暂存点物品（标记为已运输，不改变预约订单状态）
+        /// 清空回收员的暂存点库存记录（删除库存数据，不改变预约订单状态）
         /// Clear storage point items for a recycler by deleting inventory records
         /// Note: This method does NOT change appointment status. Appointments remain "已完成".
         /// The inventory is cleared when transport starts, representing items being moved to the base.
