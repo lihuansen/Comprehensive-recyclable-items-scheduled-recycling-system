@@ -75,6 +75,7 @@
     <Compile Include="OperationResult.cs" />
     <Compile Include="OrderDetailModel.cs" />
     <Compile Include="OrderFilterModel.cs" />
+    <Compile Include="OrderReviews.cs" />
     <Compile Include="PagedResult.cs" />
     <Compile Include="PhoneLoginViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
