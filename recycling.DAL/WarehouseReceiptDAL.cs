@@ -18,6 +18,41 @@ namespace recycling.DAL
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         /// <summary>
+        /// 预加载所有活动的类别价格
+        /// Preload all active category prices to avoid N+1 queries
+        /// </summary>
+        private Dictionary<string, decimal> LoadCategoryPrices(SqlConnection conn)
+        {
+            var categoryPrices = new Dictionary<string, decimal>();
+            string pricesSql = @"
+                SELECT Category, PricePerKg 
+                FROM RecyclableItems 
+                WHERE IsActive = 1
+                ORDER BY SortOrder, ItemId";
+
+            using (SqlCommand pricesCmd = new SqlCommand(pricesSql, conn))
+            {
+                using (SqlDataReader priceReader = pricesCmd.ExecuteReader())
+                {
+                    while (priceReader.Read())
+                    {
+                        string category = priceReader["Category"].ToString();
+                        decimal pricePerKg = Convert.ToDecimal(priceReader["PricePerKg"]);
+
+                        // 使用每个类别的第一个价格（已按SortOrder排序）
+                        // Use the first price for each category (ordered by SortOrder)
+                        if (!categoryPrices.ContainsKey(category))
+                        {
+                            categoryPrices[category] = pricePerKg;
+                        }
+                    }
+                }
+            }
+
+            return categoryPrices;
+        }
+
+        /// <summary>
         /// 生成入库单号
         /// 格式：WR+YYYYMMDD+4位序号
         /// </summary>
@@ -450,29 +485,7 @@ namespace recycling.DAL
                     }
 
                     // 预加载所有类别的价格（避免N+1查询问题）
-                    var categoryPrices = new Dictionary<string, decimal>();
-                    string pricesSql = @"
-                        SELECT Category, PricePerKg 
-                        FROM RecyclableItems 
-                        WHERE IsActive = 1";
-                    
-                    using (SqlCommand pricesCmd = new SqlCommand(pricesSql, conn))
-                    {
-                        using (SqlDataReader priceReader = pricesCmd.ExecuteReader())
-                        {
-                            while (priceReader.Read())
-                            {
-                                string category = priceReader["Category"].ToString();
-                                decimal pricePerKg = Convert.ToDecimal(priceReader["PricePerKg"]);
-                                
-                                // 如果同一类别有多个项目，使用第一个（或可以取平均值）
-                                if (!categoryPrices.ContainsKey(category))
-                                {
-                                    categoryPrices[category] = pricePerKg;
-                                }
-                            }
-                        }
-                    }
+                    var categoryPrices = LoadCategoryPrices(conn);
 
                     // 计算每个类别的总价
                     foreach (var kvp in categoryData)
@@ -601,29 +614,7 @@ namespace recycling.DAL
                     }
 
                     // 预加载所有类别的价格（避免N+1查询问题）
-                    var categoryPrices = new Dictionary<string, decimal>();
-                    string pricesSql = @"
-                        SELECT Category, PricePerKg 
-                        FROM RecyclableItems 
-                        WHERE IsActive = 1";
-                    
-                    using (SqlCommand pricesCmd = new SqlCommand(pricesSql, conn))
-                    {
-                        using (SqlDataReader priceReader = pricesCmd.ExecuteReader())
-                        {
-                            while (priceReader.Read())
-                            {
-                                string category = priceReader["Category"].ToString();
-                                decimal pricePerKg = Convert.ToDecimal(priceReader["PricePerKg"]);
-                                
-                                // 如果同一类别有多个项目，使用第一个（或可以取平均值）
-                                if (!categoryPrices.ContainsKey(category))
-                                {
-                                    categoryPrices[category] = pricePerKg;
-                                }
-                            }
-                        }
-                    }
+                    var categoryPrices = LoadCategoryPrices(conn);
 
                     // 为每条明细计算价格（使用预加载的价格字典）
                     foreach (var detail in allDetails)
