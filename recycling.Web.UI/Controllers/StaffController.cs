@@ -1649,6 +1649,67 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取所有活跃的基地工作人员列表（用于运输单的基地联系人下拉选择）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetBaseStaffList()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return JsonContent(new { success = false, message = "未登录，请重新登录" });
+                }
+
+                var role = Session["StaffRole"] as string;
+                if (role != "recycler")
+                {
+                    return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
+                }
+
+                // Get all active base staff from SortingCenterWorkers table
+                using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT WorkerID, FullName, PhoneNumber, Position 
+                           FROM SortingCenterWorkers 
+                           WHERE IsActive = 1 
+                           ORDER BY FullName";
+
+                    var cmd = new System.Data.SqlClient.SqlCommand(sql, conn);
+
+                    var baseStaffList = new List<object>();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            baseStaffList.Add(new
+                            {
+                                workerId = reader.GetInt32(0),
+                                fullName = reader.IsDBNull(1) ? "" : reader.GetString(1),
+                                phoneNumber = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                                position = reader.IsDBNull(3) ? "" : reader.GetString(3)
+                            });
+                        }
+                    }
+
+                    if (baseStaffList.Count == 0)
+                    {
+                        return JsonContent(new { success = false, message = "当前没有可用的基地工作人员" });
+                    }
+
+                    return JsonContent(new { success = true, data = baseStaffList });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetBaseStaffList 错误: {ex.Message}");
+                return JsonContent(new { success = false, message = $"获取基地工作人员失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// 创建运输单
         /// </summary>
         [HttpPost]
