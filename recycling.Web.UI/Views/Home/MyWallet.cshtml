@@ -1,4 +1,4 @@
-@model recycling.Model.Users
+@model recycling.Model.WalletViewModel
 @{
     ViewBag.Title = "我的钱包";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -256,7 +256,7 @@
         </div>
         <div class="balance-label">钱包余额</div>
         <div class="balance-amount">
-            ¥ @(Model.money.HasValue ? Model.money.Value.ToString("F2") : "0.00")
+            ¥ @(Model.CurrentBalance.ToString("F2"))
         </div>
         <div class="balance-info">
             <i class="fas fa-shield-alt"></i> 资金安全由平台保障
@@ -284,21 +284,82 @@
         </div>
         <div class="quick-stats">
             <div class="stat-card">
-                <div class="stat-value">--</div>
+                <div class="stat-value">¥@Model.TotalIncome.ToString("F2")</div>
                 <div class="stat-label">累计收入</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">--</div>
+                <div class="stat-value">¥@Model.TotalExpense.ToString("F2")</div>
                 <div class="stat-label">累计支出</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">--</div>
+                <div class="stat-value">@Model.MonthlyTransactionCount</div>
                 <div class="stat-label">本月交易</div>
             </div>
         </div>
-        <div class="info-box">
+    </div>
+
+    <!-- 钱包功能区 -->
+    <div class="wallet-section">
+        <div class="section-title">
+            <i class="fas fa-credit-card"></i>
+            <span>支付账户管理</span>
+        </div>
+        
+        @if (Model.PaymentAccounts != null && Model.PaymentAccounts.Count > 0)
+        {
+            <div style="margin-bottom: 20px;">
+                @foreach (var account in Model.PaymentAccounts)
+                {
+                    <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: @(account.IsDefault ? "#f8f9fa" : "white");">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: bold; margin-bottom: 5px;">
+                                    <i class="@(account.AccountType == "Alipay" ? "fab fa-alipay" : account.AccountType == "WeChat" ? "fab fa-weixin" : "fas fa-university")" style="color: #f5576c; margin-right: 8px;"></i>
+                                    @account.GetAccountTypeDisplayName()
+                                    @if (account.IsDefault)
+                                    {
+                                        <span style="background: #28a745; color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">默认</span>
+                                    }
+                                    @if (account.IsVerified)
+                                    {
+                                        <i class="fas fa-check-circle" style="color: #28a745; margin-left: 5px;" title="已验证"></i>
+                                    }
+                                </div>
+                                <div style="color: #666; font-size: 14px;">
+                                    @account.AccountName - @account.GetMaskedAccountNumber()
+                                </div>
+                                @if (!string.IsNullOrEmpty(account.BankName))
+                                {
+                                    <div style="color: #999; font-size: 13px; margin-top: 3px;">
+                                        @account.BankName
+                                    </div>
+                                }
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="if(confirm('确定要删除此支付账户吗？')) alert('删除功能开发中');">删除</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <button class="btn btn-primary" onclick="alert('添加支付账户功能开发中');">
+                <i class="fas fa-plus"></i> 添加支付账户
+            </button>
+        }
+        else
+        {
+            <div style="text-align: center; padding: 40px 20px; color: #999;">
+                <i class="fas fa-credit-card" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
+                <div style="margin-bottom: 15px;">您还没有绑定支付账户</div>
+                <button class="btn btn-primary" onclick="alert('添加支付账户功能开发中');">
+                    <i class="fas fa-plus"></i> 添加支付账户
+                </button>
+            </div>
+        }
+        
+        <div class="info-box" style="margin-top: 20px;">
             <i class="fas fa-info-circle"></i>
-            <span class="info-box-text">注：资金概览功能正在开发中，将在后续版本中提供详细的统计数据。</span>
+            <span class="info-box-text">提示：绑定支付账户后，您可以快速进行充值和提现操作。支持支付宝、微信支付和银行卡。</span>
         </div>
     </div>
 
@@ -380,23 +441,56 @@
         </div>
         
         <div class="transaction-list">
-            <!-- 暂无交易记录 -->
-            <div class="transaction-empty">
-                <div>
-                    <i class="fas fa-receipt"></i>
+            @if (Model.RecentTransactions != null && Model.RecentTransactions.Count > 0)
+            {
+                @foreach (var transaction in Model.RecentTransactions)
+                {
+                    <div style="border-bottom: 1px solid #f0f0f0; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">
+                                @transaction.GetTransactionTypeDisplayName()
+                                <span style="color: #999; font-size: 13px; margin-left: 10px;">
+                                    @transaction.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                                </span>
+                            </div>
+                            <div style="color: #666; font-size: 14px;">
+                                @transaction.Description
+                            </div>
+                            <div style="color: #999; font-size: 12px; margin-top: 3px;">
+                                流水号: @transaction.TransactionNo
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 18px; font-weight: bold; color: @(transaction.IsIncome() ? "#28a745" : "#dc3545");">
+                                @(transaction.IsIncome() ? "+" : "-")¥@transaction.Amount.ToString("F2")
+                            </div>
+                            <div style="color: #999; font-size: 13px; margin-top: 3px;">
+                                余额: ¥@transaction.BalanceAfter.ToString("F2")
+                            </div>
+                        </div>
+                    </div>
+                }
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="javascript:void(0)" onclick="alert('查看完整交易记录功能开发中');" style="color: #f5576c; text-decoration: none;">
+                        查看完整交易记录 <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
-                <div class="transaction-empty-text">
-                    暂无交易记录
+            }
+            else
+            {
+                <!-- 暂无交易记录 -->
+                <div class="transaction-empty">
+                    <div>
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="transaction-empty-text">
+                        暂无交易记录
+                    </div>
+                    <div style="margin-top: 10px; font-size: 13px; color: #bbb;">
+                        您的交易记录将会显示在这里
+                    </div>
                 </div>
-                <div style="margin-top: 10px; font-size: 13px; color: #bbb;">
-                    您的交易记录将会显示在这里
-                </div>
-            </div>
-        </div>
-
-        <div class="info-box">
-            <i class="fas fa-info-circle"></i>
-            <span class="info-box-text">注：交易记录功能正在开发中，完成后将显示您的所有收支明细、充值提现记录等。</span>
+            }
         </div>
     </div>
 
