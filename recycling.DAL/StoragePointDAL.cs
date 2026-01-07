@@ -14,6 +14,9 @@ namespace recycling.DAL
     public class StoragePointDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
+        
+        // SQL Server error codes
+        private const int SQL_ERROR_INVALID_OBJECT = 208; // Invalid object name (table doesn't exist)
 
         /// <summary>
         /// 获取回收员的暂存点库存汇总（按类别分组）
@@ -208,7 +211,7 @@ namespace recycling.DAL
             catch (SqlException sqlEx)
             {
                 // If Inventory table doesn't exist, that's okay - just log and return true
-                if (sqlEx.Number == 208) // Invalid object name
+                if (sqlEx.Number == SQL_ERROR_INVALID_OBJECT)
                 {
                     System.Diagnostics.Debug.WriteLine($"Inventory table not found for recycler {recyclerId}, this is expected if inventory is tracked via appointments only.");
                     return true;
