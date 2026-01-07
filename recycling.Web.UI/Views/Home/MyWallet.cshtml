@@ -443,7 +443,7 @@
         <div class="transaction-list">
             @if (Model.RecentTransactions != null && Model.RecentTransactions.Count > 0)
             {
-                foreach (var transaction in Model.RecentTransactions)
+                @foreach (var transaction in Model.RecentTransactions)
                 {
                     <div style="border-bottom: 1px solid #f0f0f0; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
                         <div style="flex: 1;">
