@@ -1,3 +1,4 @@
+@model recycling.Model.BaseWarehouseManagementViewModel
 @{
     ViewBag.Title = "仓库管理";
     Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
@@ -256,12 +257,39 @@
                 </button>
             </div>
 
-            <div id="transitOrdersLoading" class="loading-spinner">
+            <div id="transitOrdersLoading" class="loading-spinner" style="display: none;">
                 <div class="spinner"></div>
                 <p>加载中...</p>
             </div>
 
-            <div id="transitOrdersList" class="transit-orders-list" style="display: none;">
+            <div id="transitOrdersList" class="transit-orders-list">
+                @if (Model != null && Model.CompletedTransportOrders != null && Model.CompletedTransportOrders.Any())
+                {
+                    foreach (var order in Model.CompletedTransportOrders)
+                    {
+                        <div class="transit-order-item" 
+                             data-order-id="@order.TransportOrderID" 
+                             data-order-number="@order.OrderNumber" 
+                             data-estimated-weight="@order.EstimatedWeight" 
+                             data-item-categories="@(order.ItemCategories ?? "")" 
+                             onclick="selectOrder(this)">
+                            <div class="order-info">
+                                <span class="order-number">@order.OrderNumber</span>
+                                <span class="order-weight">@order.EstimatedWeight.ToString("F2") kg</span>
+                            </div>
+                            <div class="order-details">
+                                回收员：@(order.RecyclerName ?? "-") | 运输人员：@(order.TransporterName ?? "-")
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>暂无可入库的运输单</p>
+                    </div>
+                }
             </div>
 
             <div id="receiptForm" style="display: none;">
@@ -310,31 +338,47 @@
                 </button>
             </div>
 
-            <div id="receiptsLoading" class="loading-spinner">
+            <div id="receiptsLoading" class="loading-spinner" style="display: none;">
                 <div class="spinner"></div>
                 <p>加载中...</p>
             </div>
 
-            <div id="receiptsTableContainer" style="display: none;">
-                <table class="receipts-table" id="receiptsTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>入库单号</th>
-                            <th>运输单号</th>
-                            <th>回收员</th>
-                            <th>重量(kg)</th>
-                            <th>入库时间</th>
-                            <th>状态</th>
-                        </tr>
-                    </thead>
-                    <tbody id="receiptsTableBody">
-                    </tbody>
-                </table>
-
-                <div id="receiptsEmptyState" class="empty-state" style="display: none;">
-                    <i class="fas fa-inbox"></i>
-                    <p>暂无入库记录</p>
-                </div>
+            <div id="receiptsTableContainer">
+                @if (Model != null && Model.WarehouseReceipts != null && Model.WarehouseReceipts.Any())
+                {
+                    <table class="receipts-table" id="receiptsTable">
+                        <thead>
+                            <tr>
+                                <th>入库单号</th>
+                                <th>运输单号</th>
+                                <th>回收员</th>
+                                <th>重量(kg)</th>
+                                <th>入库时间</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receiptsTableBody">
+                            @foreach (var receipt in Model.WarehouseReceipts)
+                            {
+                                <tr>
+                                    <td>@receipt.ReceiptNumber</td>
+                                    <td>@(receipt.TransportOrderNumber ?? "-")</td>
+                                    <td>@(receipt.RecyclerName ?? "-")</td>
+                                    <td>@receipt.TotalWeight.ToString("F2")</td>
+                                    <td>@receipt.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td><span class="status-badge status-completed">@receipt.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div id="receiptsEmptyState" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>暂无入库记录</p>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -343,12 +387,14 @@
 <script>
     var selectedOrderId = null;
 
-    $(document).ready(function () {
-        loadCompletedTransportOrders();
-        loadWarehouseReceipts();
-    });
+    // 注意：页面加载时数据已通过服务器端渲染直接显示，无需自动调用 AJAX
+    // Note: Data is rendered server-side on page load, no need to call AJAX automatically
+    // 
+    // 下面的 AJAX 函数仅在用户手动点击"刷新"按钮时调用
+    // The AJAX functions below are only called when user clicks the "Refresh" buttons
 
-    // 加载已完成的运输单
+    // 加载已完成的运输单（仅用于手动刷新）
+    // Load completed transport orders (only for manual refresh)
     function loadCompletedTransportOrders() {
         $('#transitOrdersLoading').show();
         $('#transitOrdersList').hide().html('');
@@ -489,7 +535,8 @@
         });
     }
 
-    // 加载入库记录
+    // 加载入库记录（仅用于手动刷新）
+    // Load warehouse receipts (only for manual refresh)
     function loadWarehouseReceipts() {
         $('#receiptsLoading').show();
         $('#receiptsTableContainer').hide();

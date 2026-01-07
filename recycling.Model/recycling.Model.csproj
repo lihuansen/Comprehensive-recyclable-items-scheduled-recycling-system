@@ -105,6 +105,7 @@
     <Compile Include="Users.cs" />
     <Compile Include="WarehouseReceipts.cs" />
     <Compile Include="WarehouseReceiptViewModel.cs" />
+    <Compile Include="BaseWarehouseManagementViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.Config" />
