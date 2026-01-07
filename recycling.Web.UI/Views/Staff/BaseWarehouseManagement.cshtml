@@ -387,10 +387,14 @@
 <script>
     var selectedOrderId = null;
 
-    // Document ready - no need to load data automatically since it's rendered server-side
-    // Data is only loaded when refresh buttons are clicked
+    // 注意：页面加载时数据已通过服务器端渲染直接显示，无需自动调用 AJAX
+    // Note: Data is rendered server-side on page load, no need to call AJAX automatically
+    // 
+    // 下面的 AJAX 函数仅在用户手动点击"刷新"按钮时调用
+    // The AJAX functions below are only called when user clicks the "Refresh" buttons
 
-    // 加载已完成的运输单
+    // 加载已完成的运输单（仅用于手动刷新）
+    // Load completed transport orders (only for manual refresh)
     function loadCompletedTransportOrders() {
         $('#transitOrdersLoading').show();
         $('#transitOrdersList').hide().html('');
@@ -531,7 +535,8 @@
         });
     }
 
-    // 加载入库记录
+    // 加载入库记录（仅用于手动刷新）
+    // Load warehouse receipts (only for manual refresh)
     function loadWarehouseReceipts() {
         $('#receiptsLoading').show();
         $('#receiptsTableContainer').hide();
