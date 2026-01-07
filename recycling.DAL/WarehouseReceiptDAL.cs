@@ -449,7 +449,32 @@ namespace recycling.DAL
                         }
                     }
 
-                    // 获取每个类别的价格并计算总价
+                    // 预加载所有类别的价格（避免N+1查询问题）
+                    var categoryPrices = new Dictionary<string, decimal>();
+                    string pricesSql = @"
+                        SELECT Category, PricePerKg 
+                        FROM RecyclableItems 
+                        WHERE IsActive = 1";
+                    
+                    using (SqlCommand pricesCmd = new SqlCommand(pricesSql, conn))
+                    {
+                        using (SqlDataReader priceReader = pricesCmd.ExecuteReader())
+                        {
+                            while (priceReader.Read())
+                            {
+                                string category = priceReader["Category"].ToString();
+                                decimal pricePerKg = Convert.ToDecimal(priceReader["PricePerKg"]);
+                                
+                                // 如果同一类别有多个项目，使用第一个（或可以取平均值）
+                                if (!categoryPrices.ContainsKey(category))
+                                {
+                                    categoryPrices[category] = pricePerKg;
+                                }
+                            }
+                        }
+                    }
+
+                    // 计算每个类别的总价
                     foreach (var kvp in categoryData)
                     {
                         string categoryKey = kvp.Key;
@@ -457,23 +482,11 @@ namespace recycling.DAL
                         decimal totalWeight = kvp.Value.TotalWeight;
                         decimal totalPrice = 0;
 
-                        // 从RecyclableItems表获取该类别的价格
-                        string priceSql = @"
-                            SELECT TOP 1 PricePerKg 
-                            FROM RecyclableItems 
-                            WHERE Category = @Category AND IsActive = 1
-                            ORDER BY SortOrder";
-
-                        using (SqlCommand priceCmd = new SqlCommand(priceSql, conn))
+                        // 从预加载的价格字典中获取价格
+                        if (categoryPrices.ContainsKey(categoryKey))
                         {
-                            priceCmd.Parameters.AddWithValue("@Category", categoryKey);
-                            var priceResult = priceCmd.ExecuteScalar();
-                            
-                            if (priceResult != null && priceResult != DBNull.Value)
-                            {
-                                decimal pricePerKg = Convert.ToDecimal(priceResult);
-                                totalPrice = totalWeight * pricePerKg;
-                            }
+                            decimal pricePerKg = categoryPrices[categoryKey];
+                            totalPrice = totalWeight * pricePerKg;
                         }
 
                         summary.Add((categoryKey, categoryName, totalWeight, totalPrice));
@@ -587,25 +600,38 @@ namespace recycling.DAL
                         }
                     }
 
-                    // 为每条明细计算价格
+                    // 预加载所有类别的价格（避免N+1查询问题）
+                    var categoryPrices = new Dictionary<string, decimal>();
+                    string pricesSql = @"
+                        SELECT Category, PricePerKg 
+                        FROM RecyclableItems 
+                        WHERE IsActive = 1";
+                    
+                    using (SqlCommand pricesCmd = new SqlCommand(pricesSql, conn))
+                    {
+                        using (SqlDataReader priceReader = pricesCmd.ExecuteReader())
+                        {
+                            while (priceReader.Read())
+                            {
+                                string category = priceReader["Category"].ToString();
+                                decimal pricePerKg = Convert.ToDecimal(priceReader["PricePerKg"]);
+                                
+                                // 如果同一类别有多个项目，使用第一个（或可以取平均值）
+                                if (!categoryPrices.ContainsKey(category))
+                                {
+                                    categoryPrices[category] = pricePerKg;
+                                }
+                            }
+                        }
+                    }
+
+                    // 为每条明细计算价格（使用预加载的价格字典）
                     foreach (var detail in allDetails)
                     {
-                        string priceSql = @"
-                            SELECT TOP 1 PricePerKg 
-                            FROM RecyclableItems 
-                            WHERE Category = @Category AND IsActive = 1
-                            ORDER BY SortOrder";
-
-                        using (SqlCommand priceCmd = new SqlCommand(priceSql, conn))
+                        if (categoryPrices.ContainsKey(detail.CategoryKey))
                         {
-                            priceCmd.Parameters.AddWithValue("@Category", detail.CategoryKey);
-                            var priceResult = priceCmd.ExecuteScalar();
-
-                            if (priceResult != null && priceResult != DBNull.Value)
-                            {
-                                decimal pricePerKg = Convert.ToDecimal(priceResult);
-                                detail.Price = detail.Weight * pricePerKg;
-                            }
+                            decimal pricePerKg = categoryPrices[detail.CategoryKey];
+                            detail.Price = detail.Weight * pricePerKg;
                         }
                     }
 
