@@ -7,7 +7,7 @@ echo ======================================
 echo.
 
 REM 设置数据库连接参数
-set SERVER=.
+set SERVER=localhost
 set DATABASE=RecyclingSystemDB
 
 echo 正在检查数据库连接和表状态...

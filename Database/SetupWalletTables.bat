@@ -11,11 +11,11 @@ echo 2. WalletTransactions - 钱包交易记录表
 echo 3. Users.money - 用户余额字段（如不存在）
 echo.
 echo 数据库: RecyclingSystemDB
-echo 服务器: . (本地SQL Server)
+echo 服务器: localhost
 echo.
 
 REM 设置数据库连接参数
-set SERVER=.
+set SERVER=localhost
 set DATABASE=RecyclingSystemDB
 set SQL_SCRIPT=CreateWalletTables.sql
 
@@ -26,6 +26,38 @@ if not exist "%SQL_SCRIPT%" (
     pause
     exit /b 1
 )
+
+REM 检查SQL Server连接
+echo 正在检查SQL Server连接...
+sqlcmd -S %SERVER% -Q "SELECT @@VERSION" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo 错误: 无法连接到SQL Server
+    echo 请确认：
+    echo 1. SQL Server服务正在运行
+    echo 2. 使用正确的服务器名称（默认：localhost）
+    echo.
+    pause
+    exit /b 1
+)
+
+echo SQL Server连接正常
+echo.
+
+REM 检查数据库是否存在
+echo 正在检查数据库 %DATABASE% ...
+sqlcmd -S %SERVER% -Q "IF DB_ID('%DATABASE%') IS NOT NULL SELECT 1" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo 错误: 数据库 %DATABASE% 不存在
+    echo 请先创建数据库或修改此脚本中的数据库名称
+    echo.
+    pause
+    exit /b 1
+)
+
+echo 数据库存在
+echo.
 
 echo 正在执行 SQL 脚本...
 echo.

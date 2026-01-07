@@ -7,7 +7,7 @@ echo "======================================"
 echo ""
 
 # 设置数据库连接参数
-SERVER="."
+SERVER="localhost"
 DATABASE="RecyclingSystemDB"
 
 echo "正在检查数据库连接和表状态..."
