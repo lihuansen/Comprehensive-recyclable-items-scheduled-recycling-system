@@ -189,8 +189,8 @@ namespace recycling.DAL
         /// </summary>
         public string GenerateTransactionNo()
         {
-            // 格式: TXN + 年月日时分秒 + 6位随机数
-            return "TXN" + DateTime.Now.ToString("yyyyMMddHHmmss") + new Random().Next(100000, 999999).ToString();
+            // 使用 GUID 确保唯一性
+            return "TXN" + DateTime.Now.ToString("yyyyMMddHHmmss") + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
         }
 
         /// <summary>

@@ -2,6 +2,7 @@ namespace recycling.Model
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// 钱包视图模型

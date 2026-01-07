@@ -125,5 +125,22 @@ namespace recycling.Model
 
             return prefix + mask + suffix;
         }
+        /// <summary>
+        /// 获取账户类型的图标 CSS 类
+        /// </summary>
+        public string GetAccountTypeIconClass()
+        {
+            switch (AccountType)
+            {
+                case "Alipay":
+                    return "fab fa-alipay";
+                case "WeChat":
+                    return "fab fa-weixin";
+                case "BankCard":
+                    return "fas fa-university";
+                default:
+                    return "fas fa-credit-card";
+            }
+        }
     }
 }

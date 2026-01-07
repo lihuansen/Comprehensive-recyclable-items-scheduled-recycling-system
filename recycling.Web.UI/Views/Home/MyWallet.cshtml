@@ -314,7 +314,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <div style="font-weight: bold; margin-bottom: 5px;">
-                                    <i class="@(account.AccountType == "Alipay" ? "fab fa-alipay" : account.AccountType == "WeChat" ? "fab fa-weixin" : "fas fa-university")" style="color: #f5576c; margin-right: 8px;"></i>
+                                    <i class="@account.GetAccountTypeIconClass()" style="color: #f5576c; margin-right: 8px;"></i>
                                     @account.GetAccountTypeDisplayName()
                                     @if (account.IsDefault)
                                     {
