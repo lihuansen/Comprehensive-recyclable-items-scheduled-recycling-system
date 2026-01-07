@@ -32,8 +32,7 @@ namespace recycling.BLL
                 if (string.IsNullOrWhiteSpace(order.PickupAddress))
                     throw new ArgumentException("取货地址不能为空");
 
-                if (string.IsNullOrWhiteSpace(order.DestinationAddress))
-                    throw new ArgumentException("目的地地址不能为空");
+                // 注意：DestinationAddress 现在由Controller自动填充为"深圳基地"，此处不再验证
 
                 if (order.EstimatedWeight <= 0)
                     throw new ArgumentException("预估重量必须大于0");

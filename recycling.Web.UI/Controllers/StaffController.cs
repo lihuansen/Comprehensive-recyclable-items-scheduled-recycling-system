@@ -1689,7 +1689,9 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // 创建运输单对象
-                // 目的地固定为深圳基地，回收员联系人信息从session获取
+                // 目的地固定为"深圳基地"：根据业务需求，当前所有运输都统一送往深圳基地集中分拣中心
+                // 如果将来需要支持多个基地，需要修改此处逻辑为可配置的选项
+                // 回收员联系人信息从session自动获取，确保数据准确性
                 var order = new TransportationOrders
                 {
                     RecyclerID = staff.RecyclerID,

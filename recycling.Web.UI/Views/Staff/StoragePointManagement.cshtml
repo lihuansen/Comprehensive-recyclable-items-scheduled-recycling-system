@@ -773,7 +773,7 @@
             totalWeight: totalWeight,
             totalValue: totalValue,
             itemCategories: categoryList.join('; '),
-            pickupAddress: '暂存点地址' // 这里可以从session或其他地方获取实际地址
+            pickupAddress: '回收员暂存点' // TODO: 应该从回收员的实际注册地址或暂存点位置获取
         };
 
         updateStats(data.length, totalWeight, totalValue);
@@ -1022,7 +1022,7 @@
         $('#selectedTransporterName').text(transporterName + ' (' + transporterPhone + ')');
         
         // 自动填充表单数据（只读字段）
-        $('#pickupAddress').val(storagePointData.pickupAddress || '暂存点地址');
+        $('#pickupAddress').val(storagePointData.pickupAddress || '回收员暂存点');
         $('#destinationAddress').val('深圳基地'); // 固定值
         $('#estimatedWeight').val(storagePointData.totalWeight.toFixed(2));
         $('#itemTotalValue').val(storagePointData.totalValue.toFixed(2));
