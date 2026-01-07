@@ -170,6 +170,14 @@
             // 绑定验证码点击刷新事件
             document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
 
+            // 绑定角色切换时刷新验证码事件
+            const roleRadios = document.querySelectorAll('input[name="StaffRole"]');
+            roleRadios.forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    refreshCaptcha();
+                });
+            });
+
             // 处理验证错误后的验证码刷新（任何错误都需要刷新验证码以防止重放攻击）
             @if (!ViewData.ModelState.IsValid)
             {
