@@ -171,5 +171,51 @@ namespace recycling.DAL
 
             return details;
         }
+
+        /// <summary>
+        /// 清空回收员的暂存点物品（将已完成的订单状态更新为已入库）
+        /// Clear storage point items for a recycler by updating completed appointments to warehoused status
+        /// </summary>
+        /// <param name="recyclerId">回收员ID</param>
+        /// <returns>是否成功</returns>
+        public bool ClearStoragePointForRecycler(int recyclerId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    
+                    // 将该回收员的已完成订单状态更新为"已入库"
+                    // 这样这些订单就不会再出现在暂存点管理中
+                    string sql = @"
+                        UPDATE Appointments 
+                        SET Status = N'已入库',
+                            UpdatedDate = GETDATE()
+                        WHERE RecyclerID = @RecyclerID 
+                            AND Status = N'已完成'";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                        
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        System.Diagnostics.Debug.WriteLine($"Cleared {rowsAffected} storage point items for recycler {recyclerId}");
+                        return true; // Return true even if no rows affected (no items to clear)
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"SQL Error in ClearStoragePointForRecycler: {sqlEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"SQL State: {sqlEx.State}, Number: {sqlEx.Number}");
+                throw new Exception($"数据库更新错误 (代码: {sqlEx.Number}): {sqlEx.Message}", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ClearStoragePointForRecycler: {ex.Message}");
+                throw new Exception($"清空暂存点失败: {ex.Message}", ex);
+            }
+        }
     }
 }
