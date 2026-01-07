@@ -20,6 +20,8 @@ namespace recycling.Web.UI.Controllers
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
         private readonly UserAddressBLL _addressBLL = new UserAddressBLL();
+        private readonly WalletTransactionBLL _walletTransactionBLL = new WalletTransactionBLL();
+        private readonly PaymentAccountBLL _paymentAccountBLL = new PaymentAccountBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -476,7 +478,10 @@ namespace recycling.Web.UI.Controllers
                 Session["LoginUser"] = currentUser; // 更新Session中的用户信息
             }
 
-            return View(currentUser ?? user);
+            // 获取钱包视图模型（包含支付账户、交易记录、统计数据）
+            var walletViewModel = _walletTransactionBLL.GetWalletViewModel(user.UserID);
+
+            return View(walletViewModel);
         }
 
         public ActionResult LoginSelect()
