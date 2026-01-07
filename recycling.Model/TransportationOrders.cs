@@ -27,17 +27,23 @@ namespace recycling.Model
         [StringLength(200)]
         public string DestinationAddress { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string ContactPerson { get; set; }
 
-        [Required]
         [StringLength(20)]
         public string ContactPhone { get; set; }
+
+        [StringLength(50)]
+        public string BaseContactPerson { get; set; }
+
+        [StringLength(20)]
+        public string BaseContactPhone { get; set; }
 
         public decimal EstimatedWeight { get; set; }
 
         public decimal? ActualWeight { get; set; }
+
+        public decimal ItemTotalValue { get; set; }
 
         public string ItemCategories { get; set; }
 

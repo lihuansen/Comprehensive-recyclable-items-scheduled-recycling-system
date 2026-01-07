@@ -75,11 +75,13 @@ namespace recycling.DAL
                     string sql = @"
                         INSERT INTO TransportationOrders 
                         (OrderNumber, RecyclerID, TransporterID, PickupAddress, DestinationAddress,
-                         ContactPerson, ContactPhone, EstimatedWeight, ItemCategories, 
+                         ContactPerson, ContactPhone, BaseContactPerson, BaseContactPhone, 
+                         EstimatedWeight, ItemTotalValue, ItemCategories, 
                          SpecialInstructions, Status, CreatedDate)
                         VALUES 
                         (@OrderNumber, @RecyclerID, @TransporterID, @PickupAddress, @DestinationAddress,
-                         @ContactPerson, @ContactPhone, @EstimatedWeight, @ItemCategories, 
+                         @ContactPerson, @ContactPhone, @BaseContactPerson, @BaseContactPhone,
+                         @EstimatedWeight, @ItemTotalValue, @ItemCategories, 
                          @SpecialInstructions, @Status, @CreatedDate);
                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
@@ -90,9 +92,12 @@ namespace recycling.DAL
                         cmd.Parameters.AddWithValue("@TransporterID", order.TransporterID);
                         cmd.Parameters.AddWithValue("@PickupAddress", order.PickupAddress);
                         cmd.Parameters.AddWithValue("@DestinationAddress", order.DestinationAddress);
-                        cmd.Parameters.AddWithValue("@ContactPerson", order.ContactPerson);
-                        cmd.Parameters.AddWithValue("@ContactPhone", order.ContactPhone);
+                        cmd.Parameters.AddWithValue("@ContactPerson", (object)order.ContactPerson ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ContactPhone", (object)order.ContactPhone ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@BaseContactPerson", (object)order.BaseContactPerson ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@BaseContactPhone", (object)order.BaseContactPhone ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@EstimatedWeight", order.EstimatedWeight);
+                        cmd.Parameters.AddWithValue("@ItemTotalValue", order.ItemTotalValue);
                         cmd.Parameters.AddWithValue("@ItemCategories", (object)order.ItemCategories ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@SpecialInstructions", (object)order.SpecialInstructions ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Status", order.Status);
@@ -148,10 +153,13 @@ namespace recycling.DAL
                                     TransporterID = Convert.ToInt32(reader["TransporterID"]),
                                     PickupAddress = reader["PickupAddress"].ToString(),
                                     DestinationAddress = reader["DestinationAddress"].ToString(),
-                                    ContactPerson = reader["ContactPerson"].ToString(),
-                                    ContactPhone = reader["ContactPhone"].ToString(),
+                                    ContactPerson = reader["ContactPerson"] == DBNull.Value ? null : reader["ContactPerson"].ToString(),
+                                    ContactPhone = reader["ContactPhone"] == DBNull.Value ? null : reader["ContactPhone"].ToString(),
+                                    BaseContactPerson = reader["BaseContactPerson"] == DBNull.Value ? null : reader["BaseContactPerson"].ToString(),
+                                    BaseContactPhone = reader["BaseContactPhone"] == DBNull.Value ? null : reader["BaseContactPhone"].ToString(),
                                     EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
                                     ActualWeight = reader["ActualWeight"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["ActualWeight"]),
+                                    ItemTotalValue = reader["ItemTotalValue"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["ItemTotalValue"]),
                                     ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
@@ -210,10 +218,13 @@ namespace recycling.DAL
                                     TransporterID = Convert.ToInt32(reader["TransporterID"]),
                                     PickupAddress = reader["PickupAddress"].ToString(),
                                     DestinationAddress = reader["DestinationAddress"].ToString(),
-                                    ContactPerson = reader["ContactPerson"].ToString(),
-                                    ContactPhone = reader["ContactPhone"].ToString(),
+                                    ContactPerson = reader["ContactPerson"] == DBNull.Value ? null : reader["ContactPerson"].ToString(),
+                                    ContactPhone = reader["ContactPhone"] == DBNull.Value ? null : reader["ContactPhone"].ToString(),
+                                    BaseContactPerson = reader["BaseContactPerson"] == DBNull.Value ? null : reader["BaseContactPerson"].ToString(),
+                                    BaseContactPhone = reader["BaseContactPhone"] == DBNull.Value ? null : reader["BaseContactPhone"].ToString(),
                                     EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
                                     ActualWeight = reader["ActualWeight"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["ActualWeight"]),
+                                    ItemTotalValue = reader["ItemTotalValue"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["ItemTotalValue"]),
                                     ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
@@ -327,10 +338,13 @@ namespace recycling.DAL
                                     TransporterID = Convert.ToInt32(reader["TransporterID"]),
                                     PickupAddress = reader["PickupAddress"].ToString(),
                                     DestinationAddress = reader["DestinationAddress"].ToString(),
-                                    ContactPerson = reader["ContactPerson"].ToString(),
-                                    ContactPhone = reader["ContactPhone"].ToString(),
+                                    ContactPerson = reader["ContactPerson"] == DBNull.Value ? null : reader["ContactPerson"].ToString(),
+                                    ContactPhone = reader["ContactPhone"] == DBNull.Value ? null : reader["ContactPhone"].ToString(),
+                                    BaseContactPerson = reader["BaseContactPerson"] == DBNull.Value ? null : reader["BaseContactPerson"].ToString(),
+                                    BaseContactPhone = reader["BaseContactPhone"] == DBNull.Value ? null : reader["BaseContactPhone"].ToString(),
                                     EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
                                     ActualWeight = reader["ActualWeight"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["ActualWeight"]),
+                                    ItemTotalValue = reader["ItemTotalValue"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["ItemTotalValue"]),
                                     ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
