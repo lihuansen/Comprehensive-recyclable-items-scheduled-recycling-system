@@ -65,10 +65,8 @@
     <Compile Include="OperationLogDAL.cs" />
     <Compile Include="OrderDAL.cs" />
     <Compile Include="OrderReviewDAL.cs" />
-    <Compile Include="PaymentAccountDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecyclableItemDAL.cs" />
-    <Compile Include="WalletTransactionDAL.cs" />
     <Compile Include="RecyclerOrderDAL.cs" />
     <Compile Include="StaffDAL.cs" />
     <Compile Include="StoragePointDAL.cs" />
