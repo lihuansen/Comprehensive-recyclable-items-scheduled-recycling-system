@@ -1319,7 +1319,7 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        // 获取库存汇总数据 - 管理员端
+        // 获取库存汇总数据 - 管理员端（从入库单数据获取）
         [HttpPost]
         public JsonResult GetInventorySummary()
         {
@@ -1332,10 +1332,8 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return Json(new { success = false, message = "权限不足" });
 
-                var inventoryBll = new InventoryBLL();
-
-                // 获取所有库存汇总（不过滤回收员）
-                var summary = inventoryBll.GetInventorySummary(null);
+                // 使用WarehouseReceiptBLL获取入库后的仓库数据
+                var summary = _warehouseReceiptBLL.GetWarehouseSummary();
 
                 var result = summary.Select(s => new
                 {
@@ -1353,7 +1351,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 获取库存明细数据 - 管理员端
+        // 获取库存明细数据 - 管理员端（从入库单数据获取）
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetInventoryDetail(int page = 1, int pageSize = 20, string categoryKey = null)
@@ -1367,10 +1365,8 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
-                var inventoryBll = new InventoryBLL();
-
-                // 获取库存明细列表（包含回收员信息）
-                var result = inventoryBll.GetInventoryDetailWithRecycler(page, pageSize, categoryKey);
+                // 使用WarehouseReceiptBLL获取入库后的仓库明细数据（包含回收员信息）
+                var result = _warehouseReceiptBLL.GetWarehouseDetailWithRecycler(page, pageSize, categoryKey);
 
                 return JsonContent(new { success = true, data = result });
             }

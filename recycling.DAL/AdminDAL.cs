@@ -1470,25 +1470,20 @@ namespace recycling.DAL
                 }
                 stats["MonthlyOrderTrend"] = monthlyOrderTrend;
 
-                // === Inventory Statistics ===
-                cmd = new SqlCommand(@"
-                    SELECT CategoryKey, CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
-                    FROM Inventory
-                    GROUP BY CategoryKey, CategoryName
-                    ORDER BY TotalWeight DESC", conn);
-
+                // === Inventory Statistics (从入库单数据获取) ===
+                // Get inventory statistics from WarehouseReceipts instead of Inventory table
+                var warehouseReceiptDAL = new WarehouseReceiptDAL();
+                var warehouseSummary = warehouseReceiptDAL.GetWarehouseSummary();
+                
                 var inventoryStats = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                foreach (var item in warehouseSummary)
                 {
-                    while (reader.Read())
+                    inventoryStats.Add(new Dictionary<string, object>
                     {
-                        inventoryStats.Add(new Dictionary<string, object>
-                        {
-                            ["CategoryKey"] = reader.GetString(0),
-                            ["CategoryName"] = reader.GetString(1),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(2))
-                        });
-                    }
+                        ["CategoryKey"] = item.CategoryKey,
+                        ["CategoryName"] = item.CategoryName,
+                        ["TotalWeight"] = item.TotalWeight
+                    });
                 }
                 stats["InventoryStats"] = inventoryStats;
             }
