@@ -23,6 +23,10 @@ namespace recycling.Model
             modelBuilder.Entity<TransportationOrders>()
                 .Property(e => e.ActualWeight)
                 .HasPrecision(10, 2);
+
+            modelBuilder.Entity<TransportationOrders>()
+                .Property(e => e.ItemTotalValue)
+                .HasPrecision(10, 2);
         }
     }
 }

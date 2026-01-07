@@ -35,12 +35,6 @@ namespace recycling.BLL
                 if (string.IsNullOrWhiteSpace(order.DestinationAddress))
                     throw new ArgumentException("目的地地址不能为空");
 
-                if (string.IsNullOrWhiteSpace(order.ContactPerson))
-                    throw new ArgumentException("联系人不能为空");
-
-                if (string.IsNullOrWhiteSpace(order.ContactPhone))
-                    throw new ArgumentException("联系电话不能为空");
-
                 if (order.EstimatedWeight <= 0)
                     throw new ArgumentException("预估重量必须大于0");
 

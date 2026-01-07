@@ -1654,8 +1654,8 @@ namespace recycling.Web.UI.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult CreateTransportationOrder(int transporterId, string pickupAddress, 
-            string destinationAddress, string contactPerson, string contactPhone, 
-            decimal estimatedWeight, string itemCategories, string specialInstructions)
+            decimal estimatedWeight, decimal itemTotalValue, string itemCategories, 
+            string baseContactPerson, string baseContactPhone, string specialInstructions)
         {
             try
             {
@@ -1683,36 +1683,25 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请填写取货地址" });
                 }
 
-                if (string.IsNullOrWhiteSpace(destinationAddress))
-                {
-                    return JsonContent(new { success = false, message = "请填写目的地地址" });
-                }
-
-                if (string.IsNullOrWhiteSpace(contactPerson))
-                {
-                    return JsonContent(new { success = false, message = "请填写联系人" });
-                }
-
-                if (string.IsNullOrWhiteSpace(contactPhone))
-                {
-                    return JsonContent(new { success = false, message = "请填写联系电话" });
-                }
-
                 if (estimatedWeight <= 0)
                 {
                     return JsonContent(new { success = false, message = "预估重量必须大于0" });
                 }
 
                 // 创建运输单对象
+                // 目的地固定为深圳基地，回收员联系人信息从session获取
                 var order = new TransportationOrders
                 {
                     RecyclerID = staff.RecyclerID,
                     TransporterID = transporterId,
                     PickupAddress = pickupAddress,
-                    DestinationAddress = destinationAddress,
-                    ContactPerson = contactPerson,
-                    ContactPhone = contactPhone,
+                    DestinationAddress = "深圳基地", // 固定目的地
+                    ContactPerson = staff.FullName, // 回收员姓名
+                    ContactPhone = staff.PhoneNumber, // 回收员电话
+                    BaseContactPerson = baseContactPerson, // 基地联系人（可编辑）
+                    BaseContactPhone = baseContactPhone, // 基地联系电话（可编辑）
                     EstimatedWeight = estimatedWeight,
+                    ItemTotalValue = itemTotalValue,
                     ItemCategories = itemCategories,
                     SpecialInstructions = specialInstructions
                 };

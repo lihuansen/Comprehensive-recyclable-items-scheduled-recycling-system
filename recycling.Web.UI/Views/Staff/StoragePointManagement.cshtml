@@ -551,38 +551,43 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="pickupAddress"><strong>取货地址：</strong> <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="pickupAddress" placeholder="请输入取货地址（暂存点地址）" required />
+                        <label for="pickupAddress"><strong>取货地址：</strong> <span style="color: gray;">(自动填充)</span></label>
+                        <input type="text" class="form-control" id="pickupAddress" readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
                     </div>
 
                     <div class="form-group">
-                        <label for="destinationAddress"><strong>目的地地址：</strong> <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="destinationAddress" placeholder="请输入目的地地址（基地地址）" required />
+                        <label for="destinationAddress"><strong>目的地：</strong> <span style="color: gray;">(固定)</span></label>
+                        <input type="text" class="form-control" id="destinationAddress" value="深圳基地" readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
                     </div>
 
                     <div class="form-group">
-                        <label for="contactPerson"><strong>联系人：</strong> <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="contactPerson" placeholder="请输入联系人姓名" required />
+                        <label for="estimatedWeight"><strong>预估总重量 (kg)：</strong> <span style="color: gray;">(自动计算)</span></label>
+                        <input type="text" class="form-control" id="estimatedWeight" readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
                     </div>
 
                     <div class="form-group">
-                        <label for="contactPhone"><strong>联系电话：</strong> <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="contactPhone" placeholder="请输入联系电话" required />
+                        <label for="itemTotalValue"><strong>物品总金额 (元)：</strong> <span style="color: gray;">(自动计算)</span></label>
+                        <input type="text" class="form-control" id="itemTotalValue" readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
                     </div>
 
                     <div class="form-group">
-                        <label for="estimatedWeight"><strong>预估总重量 (kg)：</strong> <span style="color: red;">*</span></label>
-                        <input type="number" step="0.01" min="0.01" class="form-control" id="estimatedWeight" placeholder="请输入预估总重量" required />
+                        <label for="itemCategories"><strong>物品类别：</strong> <span style="color: gray;">(自动生成)</span></label>
+                        <textarea class="form-control" id="itemCategories" rows="3" readonly style="background-color: #f5f5f5; cursor: not-allowed; resize: vertical;"></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="itemCategories"><strong>物品类别：</strong></label>
-                        <textarea class="form-control" id="itemCategories" rows="3" placeholder="请输入物品类别信息（例如：纸类 20kg, 塑料 15kg）" style="resize: vertical;"></textarea>
+                        <label for="baseContactPerson"><strong>基地联系人：</strong> <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="baseContactPerson" placeholder="请输入基地联系人姓名" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="baseContactPhone"><strong>基地联系电话：</strong> <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="baseContactPhone" placeholder="请输入基地联系电话" />
                     </div>
 
                     <div class="form-group">
                         <label for="specialInstructions"><strong>特殊说明：</strong></label>
-                        <textarea class="form-control" id="specialInstructions" rows="3" placeholder="请输入特殊说明或备注" style="resize: vertical;"></textarea>
+                        <textarea class="form-control" id="specialInstructions" rows="3" placeholder="请输入特殊说明或备注（可选）" style="resize: vertical;"></textarea>
                     </div>
 
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -627,6 +632,14 @@
             e.stopPropagation();
         });
     });
+
+    // 全局变量存储暂存点汇总数据
+    var storagePointData = {
+        totalWeight: 0,
+        totalValue: 0,
+        itemCategories: '',
+        pickupAddress: ''
+    };
 
     // 加载汇总数据
     function loadSummary() {
@@ -724,15 +737,24 @@
         if (data.length === 0) {
             $cards.html('<div class="empty-state"><i class="glyphicon glyphicon-inbox"></i><p>暂无库存数据</p><p style="color: #999; font-size: 14px; margin-top: 10px;">完成订单后，回收物品会自动记录到库存中</p></div>');
             updateStats(0, 0, 0);
+            // 重置全局数据
+            storagePointData = {
+                totalWeight: 0,
+                totalValue: 0,
+                itemCategories: '',
+                pickupAddress: ''
+            };
             return;
         }
 
         var totalWeight = 0;
         var totalValue = 0;
+        var categoryList = [];
 
         data.forEach(function (item) {
             totalWeight += item.totalWeight;
             totalValue += item.totalPrice || 0;
+            categoryList.push(item.categoryName + ': ' + item.totalWeight.toFixed(2) + ' kg');
 
             var card = $('<div class="summary-card"></div>');
             card.html(
@@ -745,6 +767,14 @@
             });
             $cards.append(card);
         });
+
+        // 更新全局数据用于创建运输单
+        storagePointData = {
+            totalWeight: totalWeight,
+            totalValue: totalValue,
+            itemCategories: categoryList.join('; '),
+            pickupAddress: '暂存点地址' // 这里可以从session或其他地方获取实际地址
+        };
 
         updateStats(data.length, totalWeight, totalValue);
         
@@ -991,13 +1021,16 @@
         $('#selectedTransporterId').val(transporterId);
         $('#selectedTransporterName').text(transporterName + ' (' + transporterPhone + ')');
         
-        // 清空表单
-        $('#pickupAddress').val('');
-        $('#destinationAddress').val('');
-        $('#contactPerson').val('');
-        $('#contactPhone').val('');
-        $('#estimatedWeight').val('');
-        $('#itemCategories').val('');
+        // 自动填充表单数据（只读字段）
+        $('#pickupAddress').val(storagePointData.pickupAddress || '暂存点地址');
+        $('#destinationAddress').val('深圳基地'); // 固定值
+        $('#estimatedWeight').val(storagePointData.totalWeight.toFixed(2));
+        $('#itemTotalValue').val(storagePointData.totalValue.toFixed(2));
+        $('#itemCategories').val(storagePointData.itemCategories);
+        
+        // 清空可编辑字段
+        $('#baseContactPerson').val('');
+        $('#baseContactPhone').val('');
         $('#specialInstructions').val('');
         
         // 显示模态框
@@ -1035,11 +1068,11 @@
         // 获取表单数据
         var transporterId = $('#selectedTransporterId').val();
         var pickupAddress = $('#pickupAddress').val().trim();
-        var destinationAddress = $('#destinationAddress').val().trim();
-        var contactPerson = $('#contactPerson').val().trim();
-        var contactPhone = $('#contactPhone').val().trim();
-        var estimatedWeight = $('#estimatedWeight').val();
+        var estimatedWeight = parseFloat($('#estimatedWeight').val());
+        var itemTotalValue = parseFloat($('#itemTotalValue').val());
         var itemCategories = $('#itemCategories').val().trim();
+        var baseContactPerson = $('#baseContactPerson').val().trim();
+        var baseContactPhone = $('#baseContactPhone').val().trim();
         var specialInstructions = $('#specialInstructions').val().trim();
 
         // 验证必填字段
@@ -1049,32 +1082,12 @@
         }
 
         if (!pickupAddress) {
-            alert('请填写取货地址');
-            $('#pickupAddress').focus();
-            return;
-        }
-
-        if (!destinationAddress) {
-            alert('请填写目的地地址');
-            $('#destinationAddress').focus();
-            return;
-        }
-
-        if (!contactPerson) {
-            alert('请填写联系人');
-            $('#contactPerson').focus();
-            return;
-        }
-
-        if (!contactPhone) {
-            alert('请填写联系电话');
-            $('#contactPhone').focus();
+            alert('取货地址不能为空');
             return;
         }
 
         if (!estimatedWeight || estimatedWeight <= 0) {
-            alert('请填写有效的预估重量');
-            $('#estimatedWeight').focus();
+            alert('预估重量必须大于0');
             return;
         }
 
@@ -1086,11 +1099,11 @@
                 __RequestVerificationToken: tokenValue,
                 transporterId: transporterId,
                 pickupAddress: pickupAddress,
-                destinationAddress: destinationAddress,
-                contactPerson: contactPerson,
-                contactPhone: contactPhone,
                 estimatedWeight: estimatedWeight,
+                itemTotalValue: itemTotalValue,
                 itemCategories: itemCategories,
+                baseContactPerson: baseContactPerson,
+                baseContactPhone: baseContactPhone,
                 specialInstructions: specialInstructions
             },
             beforeSend: function() {
