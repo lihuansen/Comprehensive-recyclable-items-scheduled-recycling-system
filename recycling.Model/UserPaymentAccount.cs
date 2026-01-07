@@ -8,6 +8,7 @@ namespace recycling.Model
     /// 用户支付账户实体类
     /// 用于存储用户绑定的支付账户（支付宝、微信、银行卡等）
     /// </summary>
+    [Table("UserPaymentAccounts")]
     public partial class UserPaymentAccount
     {
         /// <summary>
