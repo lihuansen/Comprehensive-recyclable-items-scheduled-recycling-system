@@ -20,8 +20,6 @@ namespace recycling.Web.UI.Controllers
         private readonly FeedbackBLL _feedbackBLL = new FeedbackBLL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
         private readonly UserAddressBLL _addressBLL = new UserAddressBLL();
-        private readonly WalletTransactionBLL _walletTransactionBLL = new WalletTransactionBLL();
-        private readonly PaymentAccountBLL _paymentAccountBLL = new PaymentAccountBLL();
 
         [HttpGet]
         public ActionResult Index(RecyclableQueryModel query)
@@ -459,30 +457,6 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// 我的钱包页面
         /// </summary>
-        [HttpGet]
-        public ActionResult MyWallet()
-        {
-            // 检查登录状态
-            if (Session["LoginUser"] == null)
-            {
-                TempData["ReturnUrl"] = Url.Action("MyWallet", "Home");
-                return RedirectToAction("LoginSelect", "Home");
-            }
-
-            var user = (Users)Session["LoginUser"];
-            
-            // 从数据库重新获取最新用户信息，确保余额数据同步
-            var currentUser = _userBLL.GetUserById(user.UserID);
-            if (currentUser != null)
-            {
-                Session["LoginUser"] = currentUser; // 更新Session中的用户信息
-            }
-
-            // 获取钱包视图模型（包含支付账户、交易记录、统计数据）
-            var walletViewModel = _walletTransactionBLL.GetWalletViewModel(user.UserID);
-
-            return View(walletViewModel);
-        }
 
         public ActionResult LoginSelect()
         {
