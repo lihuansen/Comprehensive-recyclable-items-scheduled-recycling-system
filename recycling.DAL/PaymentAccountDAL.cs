@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace recycling.DAL
     /// </summary>
     public class PaymentAccountDAL
     {
+        // 从配置文件获取数据库连接字符串
+        private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
         /// <summary>
         /// 添加支付账户
         /// </summary>
@@ -25,19 +28,22 @@ namespace recycling.DAL
                            @IsDefault, @IsVerified, @CreatedDate, @Status);
                           SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@UserID", account.UserID),
-                new SqlParameter("@AccountType", account.AccountType),
-                new SqlParameter("@AccountName", account.AccountName),
-                new SqlParameter("@AccountNumber", account.AccountNumber),
-                new SqlParameter("@BankName", (object)account.BankName ?? DBNull.Value),
-                new SqlParameter("@IsDefault", account.IsDefault),
-                new SqlParameter("@IsVerified", account.IsVerified),
-                new SqlParameter("@CreatedDate", account.CreatedDate),
-                new SqlParameter("@Status", account.Status)
-            };
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", account.UserID);
+                cmd.Parameters.AddWithValue("@AccountType", account.AccountType);
+                cmd.Parameters.AddWithValue("@AccountName", account.AccountName);
+                cmd.Parameters.AddWithValue("@AccountNumber", account.AccountNumber);
+                cmd.Parameters.AddWithValue("@BankName", (object)account.BankName ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@IsDefault", account.IsDefault);
+                cmd.Parameters.AddWithValue("@IsVerified", account.IsVerified);
+                cmd.Parameters.AddWithValue("@CreatedDate", account.CreatedDate);
+                cmd.Parameters.AddWithValue("@Status", account.Status);
 
-            return Convert.ToInt32(SqlHelper.ExecuteScalar(SqlHelper.ConnectionString, CommandType.Text, sql, parameters));
+                conn.Open();
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
         }
 
         /// <summary>
@@ -49,16 +55,19 @@ namespace recycling.DAL
                           WHERE UserID = @UserID AND Status != 'Deleted'
                           ORDER BY IsDefault DESC, CreatedDate DESC";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@UserID", userId)
-            };
-
             List<UserPaymentAccount> accounts = new List<UserPaymentAccount>();
-            using (SqlDataReader reader = SqlHelper.ExecuteReader(SqlHelper.ConnectionString, CommandType.Text, sql, parameters))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                while (reader.Read())
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    accounts.Add(MapReaderToAccount(reader));
+                    while (reader.Read())
+                    {
+                        accounts.Add(MapReaderToAccount(reader));
+                    }
                 }
             }
             return accounts;
@@ -72,15 +81,18 @@ namespace recycling.DAL
             string sql = @"SELECT * FROM UserPaymentAccounts 
                           WHERE AccountID = @AccountID AND Status != 'Deleted'";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@AccountID", accountId)
-            };
-
-            using (SqlDataReader reader = SqlHelper.ExecuteReader(SqlHelper.ConnectionString, CommandType.Text, sql, parameters))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                if (reader.Read())
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@AccountID", accountId);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    return MapReaderToAccount(reader);
+                    if (reader.Read())
+                    {
+                        return MapReaderToAccount(reader);
+                    }
                 }
             }
             return null;
@@ -101,18 +113,21 @@ namespace recycling.DAL
                               Status = @Status
                           WHERE AccountID = @AccountID";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@AccountID", account.AccountID),
-                new SqlParameter("@AccountName", account.AccountName),
-                new SqlParameter("@AccountNumber", account.AccountNumber),
-                new SqlParameter("@BankName", (object)account.BankName ?? DBNull.Value),
-                new SqlParameter("@IsDefault", account.IsDefault),
-                new SqlParameter("@IsVerified", account.IsVerified),
-                new SqlParameter("@LastUsedDate", (object)account.LastUsedDate ?? DBNull.Value),
-                new SqlParameter("@Status", account.Status)
-            };
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@AccountID", account.AccountID);
+                cmd.Parameters.AddWithValue("@AccountName", account.AccountName);
+                cmd.Parameters.AddWithValue("@AccountNumber", account.AccountNumber);
+                cmd.Parameters.AddWithValue("@BankName", (object)account.BankName ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@IsDefault", account.IsDefault);
+                cmd.Parameters.AddWithValue("@IsVerified", account.IsVerified);
+                cmd.Parameters.AddWithValue("@LastUsedDate", (object)account.LastUsedDate ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Status", account.Status);
 
-            return SqlHelper.ExecuteNonQuery(SqlHelper.ConnectionString, CommandType.Text, sql, parameters) > 0;
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
         }
 
         /// <summary>
@@ -121,10 +136,14 @@ namespace recycling.DAL
         public bool DeletePaymentAccount(int accountId)
         {
             string sql = "UPDATE UserPaymentAccounts SET Status = 'Deleted' WHERE AccountID = @AccountID";
-            SqlParameter[] parameters = {
-                new SqlParameter("@AccountID", accountId)
-            };
-            return SqlHelper.ExecuteNonQuery(SqlHelper.ConnectionString, CommandType.Text, sql, parameters) > 0;
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@AccountID", accountId);
+
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
         }
 
         /// <summary>
@@ -137,12 +156,15 @@ namespace recycling.DAL
                 UPDATE UserPaymentAccounts SET IsDefault = 1 WHERE AccountID = @AccountID AND UserID = @UserID;
             ";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@UserID", userId),
-                new SqlParameter("@AccountID", accountId)
-            };
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+                cmd.Parameters.AddWithValue("@AccountID", accountId);
 
-            return SqlHelper.ExecuteNonQuery(SqlHelper.ConnectionString, CommandType.Text, sql, parameters) > 0;
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
         }
 
         /// <summary>
@@ -151,11 +173,15 @@ namespace recycling.DAL
         public bool UpdateLastUsedDate(int accountId)
         {
             string sql = "UPDATE UserPaymentAccounts SET LastUsedDate = @LastUsedDate WHERE AccountID = @AccountID";
-            SqlParameter[] parameters = {
-                new SqlParameter("@AccountID", accountId),
-                new SqlParameter("@LastUsedDate", DateTime.Now)
-            };
-            return SqlHelper.ExecuteNonQuery(SqlHelper.ConnectionString, CommandType.Text, sql, parameters) > 0;
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@AccountID", accountId);
+                cmd.Parameters.AddWithValue("@LastUsedDate", DateTime.Now);
+
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
         }
 
         /// <summary>

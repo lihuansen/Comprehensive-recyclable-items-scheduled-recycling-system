@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using recycling.Model;
@@ -11,6 +12,8 @@ namespace recycling.DAL
     /// </summary>
     public class WalletTransactionDAL
     {
+        // 从配置文件获取数据库连接字符串
+        private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
         /// <summary>
         /// 添加交易记录
         /// </summary>
@@ -26,23 +29,26 @@ namespace recycling.DAL
                            @TransactionNo, @CreatedDate, @CompletedDate, @Remarks);
                           SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@UserID", transaction.UserID),
-                new SqlParameter("@TransactionType", transaction.TransactionType),
-                new SqlParameter("@Amount", transaction.Amount),
-                new SqlParameter("@BalanceBefore", transaction.BalanceBefore),
-                new SqlParameter("@BalanceAfter", transaction.BalanceAfter),
-                new SqlParameter("@PaymentAccountID", (object)transaction.PaymentAccountID ?? DBNull.Value),
-                new SqlParameter("@RelatedOrderID", (object)transaction.RelatedOrderID ?? DBNull.Value),
-                new SqlParameter("@TransactionStatus", transaction.TransactionStatus),
-                new SqlParameter("@Description", (object)transaction.Description ?? DBNull.Value),
-                new SqlParameter("@TransactionNo", transaction.TransactionNo),
-                new SqlParameter("@CreatedDate", transaction.CreatedDate),
-                new SqlParameter("@CompletedDate", (object)transaction.CompletedDate ?? DBNull.Value),
-                new SqlParameter("@Remarks", (object)transaction.Remarks ?? DBNull.Value)
-            };
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", transaction.UserID);
+                cmd.Parameters.AddWithValue("@TransactionType", transaction.TransactionType);
+                cmd.Parameters.AddWithValue("@Amount", transaction.Amount);
+                cmd.Parameters.AddWithValue("@BalanceBefore", transaction.BalanceBefore);
+                cmd.Parameters.AddWithValue("@BalanceAfter", transaction.BalanceAfter);
+                cmd.Parameters.AddWithValue("@PaymentAccountID", (object)transaction.PaymentAccountID ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@RelatedOrderID", (object)transaction.RelatedOrderID ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@TransactionStatus", transaction.TransactionStatus);
+                cmd.Parameters.AddWithValue("@Description", (object)transaction.Description ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@TransactionNo", transaction.TransactionNo);
+                cmd.Parameters.AddWithValue("@CreatedDate", transaction.CreatedDate);
+                cmd.Parameters.AddWithValue("@CompletedDate", (object)transaction.CompletedDate ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Remarks", (object)transaction.Remarks ?? DBNull.Value);
 
-            return Convert.ToInt32(SqlHelper.ExecuteScalar(SqlHelper.ConnectionString, CommandType.Text, sql, parameters));
+                conn.Open();
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
         }
 
         /// <summary>
@@ -60,18 +66,21 @@ namespace recycling.DAL
             int startRow = (pageIndex - 1) * pageSize + 1;
             int endRow = pageIndex * pageSize;
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@UserID", userId),
-                new SqlParameter("@StartRow", startRow),
-                new SqlParameter("@EndRow", endRow)
-            };
-
             List<WalletTransaction> transactions = new List<WalletTransaction>();
-            using (SqlDataReader reader = SqlHelper.ExecuteReader(SqlHelper.ConnectionString, CommandType.Text, sql, parameters))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                while (reader.Read())
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+                cmd.Parameters.AddWithValue("@StartRow", startRow);
+                cmd.Parameters.AddWithValue("@EndRow", endRow);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    transactions.Add(MapReaderToTransaction(reader));
+                    while (reader.Read())
+                    {
+                        transactions.Add(MapReaderToTransaction(reader));
+                    }
                 }
             }
             return transactions;
@@ -83,15 +92,18 @@ namespace recycling.DAL
         public WalletTransaction GetTransactionById(int transactionId)
         {
             string sql = "SELECT * FROM WalletTransactions WHERE TransactionID = @TransactionID";
-            SqlParameter[] parameters = {
-                new SqlParameter("@TransactionID", transactionId)
-            };
-
-            using (SqlDataReader reader = SqlHelper.ExecuteReader(SqlHelper.ConnectionString, CommandType.Text, sql, parameters))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                if (reader.Read())
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@TransactionID", transactionId);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    return MapReaderToTransaction(reader);
+                    if (reader.Read())
+                    {
+                        return MapReaderToTransaction(reader);
+                    }
                 }
             }
             return null;
@@ -103,15 +115,18 @@ namespace recycling.DAL
         public WalletTransaction GetTransactionByNo(string transactionNo)
         {
             string sql = "SELECT * FROM WalletTransactions WHERE TransactionNo = @TransactionNo";
-            SqlParameter[] parameters = {
-                new SqlParameter("@TransactionNo", transactionNo)
-            };
-
-            using (SqlDataReader reader = SqlHelper.ExecuteReader(SqlHelper.ConnectionString, CommandType.Text, sql, parameters))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                if (reader.Read())
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@TransactionNo", transactionNo);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    return MapReaderToTransaction(reader);
+                    if (reader.Read())
+                    {
+                        return MapReaderToTransaction(reader);
+                    }
                 }
             }
             return null;
@@ -127,13 +142,16 @@ namespace recycling.DAL
                               CompletedDate = @CompletedDate
                           WHERE TransactionID = @TransactionID";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@TransactionID", transactionId),
-                new SqlParameter("@Status", status),
-                new SqlParameter("@CompletedDate", (object)completedDate ?? DBNull.Value)
-            };
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@TransactionID", transactionId);
+                cmd.Parameters.AddWithValue("@Status", status);
+                cmd.Parameters.AddWithValue("@CompletedDate", (object)completedDate ?? DBNull.Value);
 
-            return SqlHelper.ExecuteNonQuery(SqlHelper.ConnectionString, CommandType.Text, sql, parameters) > 0;
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
         }
 
         /// <summary>
@@ -149,10 +167,6 @@ namespace recycling.DAL
                 FROM WalletTransactions
                 WHERE UserID = @UserID";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@UserID", userId)
-            };
-
             Dictionary<string, decimal> stats = new Dictionary<string, decimal>
             {
                 { "TotalIncome", 0 },
@@ -160,13 +174,20 @@ namespace recycling.DAL
                 { "MonthlyCount", 0 }
             };
 
-            using (SqlDataReader reader = SqlHelper.ExecuteReader(SqlHelper.ConnectionString, CommandType.Text, sql, parameters))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                if (reader.Read())
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    stats["TotalIncome"] = reader["TotalIncome"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["TotalIncome"]);
-                    stats["TotalExpense"] = reader["TotalExpense"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["TotalExpense"]);
-                    stats["MonthlyCount"] = reader["MonthlyCount"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["MonthlyCount"]);
+                    if (reader.Read())
+                    {
+                        stats["TotalIncome"] = reader["TotalIncome"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["TotalIncome"]);
+                        stats["TotalExpense"] = reader["TotalExpense"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["TotalExpense"]);
+                        stats["MonthlyCount"] = reader["MonthlyCount"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["MonthlyCount"]);
+                    }
                 }
             }
             return stats;
@@ -178,10 +199,14 @@ namespace recycling.DAL
         public int GetTransactionCountByUserId(int userId)
         {
             string sql = "SELECT COUNT(*) FROM WalletTransactions WHERE UserID = @UserID";
-            SqlParameter[] parameters = {
-                new SqlParameter("@UserID", userId)
-            };
-            return Convert.ToInt32(SqlHelper.ExecuteScalar(SqlHelper.ConnectionString, CommandType.Text, sql, parameters));
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                conn.Open();
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
         }
 
         /// <summary>
