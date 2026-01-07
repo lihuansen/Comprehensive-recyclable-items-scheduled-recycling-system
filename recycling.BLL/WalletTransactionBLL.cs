@@ -79,7 +79,7 @@ namespace recycling.BLL
                 // 更新支付账户最后使用时间
                 _accountDAL.UpdateLastUsedDate(model.PaymentAccountID);
 
-                return new OperationResult 
+                return new OperationResult<int> 
                 { 
                     Success = true, 
                     Message = "充值成功", 
@@ -164,7 +164,7 @@ namespace recycling.BLL
                 // 更新支付账户最后使用时间
                 _accountDAL.UpdateLastUsedDate(model.PaymentAccountID);
 
-                return new OperationResult 
+                return new OperationResult<int> 
                 { 
                     Success = true, 
                     Message = "提现申请已提交", 
