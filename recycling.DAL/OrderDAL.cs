@@ -109,7 +109,7 @@ WHERE a.UserID = @UserID";
                 string sql = @"
 SELECT 
     a.*,
-    r.Username as RecyclerName, -- 回收员姓名
+    r.FullName as RecyclerName, -- 回收员姓名
     r.RecyclerID, -- 回收员ID
     ac.CategoryID,
     ac.CategoryName,

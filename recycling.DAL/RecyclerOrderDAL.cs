@@ -124,7 +124,7 @@ namespace recycling.DAL
                         a.Status,
                         a.CreatedDate,
                         a.RecyclerID,
-                        r.Username as RecyclerName,
+                        r.FullName as RecyclerName,
                         STUFF((
                             SELECT DISTINCT ', ' + ac.CategoryName
                             FROM AppointmentCategories ac
