@@ -136,15 +136,21 @@ namespace recycling.DAL
                                 receiptId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
 
-                            // 3. 清零对应暂存点的重量（通过删除Inventory记录）
-                            string clearInventorySql = @"
-                                DELETE FROM Inventory 
-                                WHERE RecyclerID = @RecyclerID";
+                            // 3. 将暂存点库存转移到仓库（更新InventoryType从StoragePoint到Warehouse）
+                            // Transfer storage point inventory to warehouse (update InventoryType from StoragePoint to Warehouse)
+                            string transferInventorySql = @"
+                                UPDATE Inventory 
+                                SET InventoryType = N'Warehouse',
+                                    CreatedDate = @TransferDate
+                                WHERE RecyclerID = @RecyclerID 
+                                  AND InventoryType = N'StoragePoint'";
 
-                            using (SqlCommand cmd = new SqlCommand(clearInventorySql, conn, transaction))
+                            using (SqlCommand cmd = new SqlCommand(transferInventorySql, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
-                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.AddWithValue("@TransferDate", DateTime.Now);
+                                int transferredRows = cmd.ExecuteNonQuery();
+                                System.Diagnostics.Debug.WriteLine($"Transferred {transferredRows} inventory items from storage point to warehouse for recycler {receipt.RecyclerID}");
                             }
 
                             transaction.Commit();

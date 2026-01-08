@@ -29,5 +29,9 @@ namespace recycling.Model
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         public decimal? Price { get; set; }
+
+        [Required]
+        [StringLength(20)]
+        public string InventoryType { get; set; } = "StoragePoint";
     }
 }

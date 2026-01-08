@@ -1319,7 +1319,7 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        // 获取库存汇总数据 - 管理员端（从入库单数据获取）
+        // 获取库存汇总数据 - 管理员端（从仓库库存数据获取）
         [HttpPost]
         public JsonResult GetInventorySummary()
         {
@@ -1332,8 +1332,9 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return Json(new { success = false, message = "权限不足" });
 
-                // 使用WarehouseReceiptBLL获取入库后的仓库数据
-                var summary = _warehouseReceiptBLL.GetWarehouseSummary();
+                // 使用InventoryBLL获取仓库类型的库存数据
+                var inventoryBll = new InventoryBLL();
+                var summary = inventoryBll.GetInventorySummary(null, "Warehouse");
 
                 var result = summary.Select(s => new
                 {
@@ -1351,7 +1352,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 获取库存明细数据 - 管理员端（从入库单数据获取）
+        // 获取库存明细数据 - 管理员端（从仓库库存数据获取）
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetInventoryDetail(int page = 1, int pageSize = 20, string categoryKey = null)
@@ -1365,8 +1366,9 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
-                // 使用WarehouseReceiptBLL获取入库后的仓库明细数据（包含回收员信息）
-                var result = _warehouseReceiptBLL.GetWarehouseDetailWithRecycler(page, pageSize, categoryKey);
+                // 使用InventoryBLL获取仓库类型的库存明细数据（包含回收员信息）
+                var inventoryBll = new InventoryBLL();
+                var result = inventoryBll.GetInventoryDetailWithRecycler(page, pageSize, categoryKey, "Warehouse");
 
                 return JsonContent(new { success = true, data = result });
             }
@@ -4609,8 +4611,9 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请先登录" });
                 }
 
-                // 使用WarehouseReceiptBLL获取入库后的仓库数据
-                var summary = _warehouseReceiptBLL.GetWarehouseSummary();
+                // 使用InventoryBLL获取仓库类型的库存数据
+                var inventoryBll = new InventoryBLL();
+                var summary = inventoryBll.GetInventorySummary(null, "Warehouse");
 
                 var result = summary.Select(s => new
                 {
@@ -4643,8 +4646,9 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请先登录" });
                 }
 
-                // 使用WarehouseReceiptBLL获取入库后的仓库明细数据（包含回收员信息）
-                var result = _warehouseReceiptBLL.GetWarehouseDetailWithRecycler(page, pageSize, categoryKey);
+                // 使用InventoryBLL获取仓库类型的库存明细数据（包含回收员信息）
+                var inventoryBll = new InventoryBLL();
+                var result = inventoryBll.GetInventoryDetailWithRecycler(page, pageSize, categoryKey, "Warehouse");
 
                 return JsonContent(new { success = true, data = result });
             }
