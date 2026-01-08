@@ -418,7 +418,175 @@
             </div>
         </div>
     </div>
+
+    <!-- 库存信息显示区域 - Inventory Information Display Area -->
+    <div class="section-card" style="margin-top: 25px;">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-warehouse"></i> 当前库存信息
+            </h2>
+            <button class="btn-secondary" onclick="loadInventorySummary()">
+                <i class="fas fa-sync-alt"></i> 刷新
+            </button>
+        </div>
+
+        <div id="inventoryLoading" class="loading-spinner" style="display: none;">
+            <div class="spinner"></div>
+            <p>加载中...</p>
+        </div>
+
+        <!-- 库存汇总卡片 -->
+        <div id="inventorySummaryCards" class="inventory-summary-grid" style="display: none;">
+            <!-- Cards will be inserted here by JavaScript -->
+        </div>
+
+        <div id="inventoryEmptyState" class="empty-state" style="display: none;">
+            <i class="fas fa-box-open"></i>
+            <p>暂无库存数据</p>
+        </div>
+
+        <!-- 库存明细表格 -->
+        <div id="inventoryDetailSection" style="display: none; margin-top: 25px;">
+            <div class="section-header" style="border-top: 2px solid #f0f0f0; padding-top: 20px;">
+                <h3 class="section-title" style="font-size: 18px;">
+                    <i class="fas fa-list"></i> 库存明细 <span id="inventoryDetailTitle"></span>
+                </h3>
+                <button class="btn-secondary" onclick="showAllInventoryDetails()" style="font-size: 14px; padding: 8px 16px;">
+                    <i class="fas fa-refresh"></i> 显示全部
+                </button>
+            </div>
+
+            <table class="receipts-table" id="inventoryDetailTable">
+                <thead>
+                    <tr>
+                        <th>入库单号</th>
+                        <th>品类</th>
+                        <th>重量(kg)</th>
+                        <th>价值(元)</th>
+                        <th>回收员</th>
+                        <th>入库时间</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryDetailTableBody">
+                </tbody>
+            </table>
+
+            <!-- 分页 -->
+            <div id="inventoryPaginationContainer" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div id="inventoryPaginationInfo" style="color: #666;"></div>
+                <div id="inventoryPagination" class="pagination-controls">
+                    <!-- Pagination will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    .inventory-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .inventory-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .inventory-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .inventory-card.active {
+        box-shadow: 0 0 0 3px #27ae60;
+    }
+
+    .inventory-card-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .inventory-card-category {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .inventory-card-weight {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .inventory-card-price {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .pagination-controls {
+        display: flex;
+        gap: 5px;
+    }
+
+    .pagination-controls button {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        background: white;
+        color: #333;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .pagination-controls button:hover:not(:disabled) {
+        background: #27ae60;
+        color: white;
+        border-color: #27ae60;
+    }
+
+    .pagination-controls button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination-controls button.active {
+        background: #27ae60;
+        color: white;
+        border-color: #27ae60;
+    }
+
+    .badge-inventory {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-glass { background: #e3f2fd; color: #1976d2; }
+    .badge-metal { background: #eceff1; color: #546e7a; }
+    .badge-plastic { background: #ffebee; color: #c62828; }
+    .badge-paper { background: #fff3e0; color: #e65100; }
+    .badge-fabric { background: #f3e5f5; color: #7b1fa2; }
+    .badge-unknown { background: #f5f5f5; color: #666; }
+
+    .empty-details-message {
+        text-align: center;
+        padding: 30px;
+        color: #999;
+    }
+    .badge-plastic { background: #ffebee; color: #c62828; }
+    .badge-paper { background: #fff3e0; color: #e65100; }
+    .badge-fabric { background: #f3e5f5; color: #7b1fa2; }
+</style>
 
 <script>
     var selectedOrderId = null;
@@ -724,4 +892,313 @@
             String(date.getHours()).padStart(2, '0') + ':' +
             String(date.getMinutes()).padStart(2, '0');
     }
+
+    // ==================== 库存管理功能 ====================
+    // Inventory Management Functions
+
+    // 封装库存管理相关变量和函数 - Encapsulate inventory management variables and functions
+    var InventoryManager = {
+        currentPage: 1,
+        pageSize: 20,
+        currentCategoryKey: null,
+        
+        // 类别图标映射
+        categoryIcons: {
+            'glass': 'fa-wine-glass',
+            'metal': 'fa-screwdriver-wrench',
+            'plastic': 'fa-bottle-water',
+            'paper': 'fa-file-lines',
+            'fabric': 'fa-shirt'
+        },
+
+        // 类别颜色映射
+        categoryColors: {
+            'glass': '#3498db',
+            'metal': '#95a5a6',
+            'plastic': '#e74c3c',
+            'paper': '#f39c12',
+            'fabric': '#9b59b6'
+        },
+
+        // 显示错误消息
+        showError: function(message) {
+            var errorDiv = $('#inventoryEmptyState');
+            errorDiv.html('<i class="fas fa-exclamation-circle"></i><p style="color: #e74c3c;">' + escapeHtml(message) + '</p>').show();
+            setTimeout(function() {
+                errorDiv.hide();
+            }, 5000);
+        },
+
+        // 调整颜色亮度（简化版本）
+        adjustColor: function(color, percent) {
+            var num = parseInt(color.replace('#', ''), 16);
+            var amt = Math.round(2.55 * percent);
+            var R = Math.max(0, Math.min(255, (num >> 16) + amt));
+            var G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+            var B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+            return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
+        },
+
+        // 验证类别键是否有效（严格的白名单验证）
+        isValidCategoryKey: function(categoryKey) {
+            if (!categoryKey || typeof categoryKey !== 'string') return false;
+            // 严格的白名单：只允许预定义的类别键
+            return this.categoryIcons.hasOwnProperty(categoryKey);
+        },
+
+        // 安全地转义 jQuery 选择器（使用更全面的转义）
+        escapeSelector: function(selector) {
+            if (!selector) return '';
+            // 使用 CSS.escape 如果可用，否则使用手动转义
+            if (window.CSS && window.CSS.escape) {
+                return window.CSS.escape(selector);
+            }
+            // 回退到手动转义特殊字符
+            return selector.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+        },
+
+        // 显示错误消息（使用安全的DOM创建）
+        showError: function(message) {
+            var errorDiv = $('#inventoryEmptyState');
+            errorDiv.empty();
+            var icon = $('<i>').addClass('fas fa-exclamation-circle');
+            var text = $('<p>').css('color', '#e74c3c').text(message);
+            errorDiv.append(icon).append(text).show();
+            setTimeout(function() {
+                errorDiv.hide();
+            }, 5000);
+        },
+
+        // 获取已验证的 badge class 名称
+        getBadgeClass: function(categoryKey) {
+            if (!this.isValidCategoryKey(categoryKey)) return 'badge-unknown';
+            return 'badge-' + categoryKey;
+        }
+    };
+
+    // 加载库存汇总
+    function loadInventorySummary() {
+        $('#inventoryLoading').show();
+        $('#inventorySummaryCards').hide();
+        $('#inventoryEmptyState').hide();
+        $('#inventoryDetailSection').hide();
+
+        $.ajax({
+            url: '@Url.Action("GetBaseWarehouseInventorySummary", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (response) {
+                if (response.success && response.data && response.data.length > 0) {
+                    displayInventorySummary(response.data);
+                    // 自动加载明细
+                    loadInventoryDetail();
+                } else {
+                    $('#inventoryEmptyState').show();
+                }
+            },
+            error: function () {
+                $('#inventoryEmptyState').html('<i class="fas fa-exclamation-circle"></i><p>加载库存失败</p>').show();
+            },
+            complete: function () {
+                $('#inventoryLoading').hide();
+            }
+        });
+    }
+
+    // 显示库存汇总卡片
+    function displayInventorySummary(summaryData) {
+        var container = $('#inventorySummaryCards');
+        container.empty();
+
+        summaryData.forEach(function (item) {
+            // 验证并清理类别键
+            if (!InventoryManager.isValidCategoryKey(item.categoryKey)) {
+                console.warn('Invalid category key:', item.categoryKey);
+                return; // 跳过无效的类别
+            }
+
+            var icon = InventoryManager.categoryIcons[item.categoryKey] || 'fa-box';
+            var color = InventoryManager.categoryColors[item.categoryKey] || '#3498db';
+            
+            // 清理类别键用于 data 属性
+            var safeCategoryKey = escapeHtml(item.categoryKey);
+
+            var card = $('<div>')
+                .addClass('inventory-card')
+                .attr('data-category', safeCategoryKey)
+                .css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + InventoryManager.adjustColor(color, -20) + ' 100%)');
+            
+            // Safely create card content with validated icon class
+            var iconDiv = $('<div>').addClass('inventory-card-icon').append($('<i>').addClass('fas ' + icon));
+            var categoryDiv = $('<div>').addClass('inventory-card-category').text(item.categoryName);
+            var weightDiv = $('<div>').addClass('inventory-card-weight').text(item.totalWeight.toFixed(1) + ' kg');
+            var priceDiv = $('<div>').addClass('inventory-card-price').text('价值: ¥' + item.totalPrice.toFixed(2));
+            
+            card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv)
+                .on('click', function () {
+                    filterInventoryByCategory(safeCategoryKey, item.categoryName);
+                });
+
+            container.append(card);
+        });
+
+        container.show();
+    }
+
+    // 按类别筛选库存
+    function filterInventoryByCategory(categoryKey, categoryName) {
+        // 验证类别键
+        if (!InventoryManager.isValidCategoryKey(categoryKey)) {
+            console.error('Invalid category key:', categoryKey);
+            return;
+        }
+
+        $('.inventory-card').removeClass('active');
+        // 使用安全的选择器
+        var safeSelector = '[data-category="' + InventoryManager.escapeSelector(categoryKey) + '"]';
+        $('.inventory-card' + safeSelector).addClass('active');
+
+        $('#inventoryDetailTitle').text(' - ' + categoryName);
+        InventoryManager.currentCategoryKey = categoryKey;
+        InventoryManager.currentPage = 1;
+        loadInventoryDetail();
+    }
+
+    // 显示全部库存明细
+    function showAllInventoryDetails() {
+        $('.inventory-card').removeClass('active');
+        $('#inventoryDetailTitle').text('');
+        InventoryManager.currentCategoryKey = null;
+        InventoryManager.currentPage = 1;
+        loadInventoryDetail();
+    }
+
+    // 加载库存明细
+    function loadInventoryDetail() {
+        $('#inventoryDetailSection').show();
+
+        $.ajax({
+            url: '@Url.Action("GetBaseWarehouseInventoryDetail", "Staff")',
+            type: 'POST',
+            data: {
+                page: InventoryManager.currentPage,
+                pageSize: InventoryManager.pageSize,
+                categoryKey: InventoryManager.currentCategoryKey,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    displayInventoryDetail(response.data);
+                } else {
+                    InventoryManager.showError('加载库存明细失败: ' + response.message);
+                }
+            },
+            error: function () {
+                InventoryManager.showError('加载库存明细失败，请稍后重试');
+            }
+        });
+    }
+
+    // 显示库存明细
+    function displayInventoryDetail(data) {
+        var tbody = $('#inventoryDetailTableBody');
+        tbody.empty();
+
+        if (!data.Items || data.Items.length === 0) {
+            var emptyRow = $('<tr>').append(
+                $('<td>').attr('colspan', '6').addClass('empty-details-message').text('暂无明细数据')
+            );
+            tbody.append(emptyRow);
+            $('#inventoryPaginationContainer').hide();
+            return;
+        }
+
+        data.Items.forEach(function (item) {
+            // 使用安全的 badge class 获取方法
+            var badgeClass = InventoryManager.getBadgeClass(item.CategoryKey);
+            var price = item.Price != null ? '¥' + item.Price.toFixed(2) : '-';
+            var createdDate = formatDateTime(item.CreatedDate);
+
+            var row = $('<tr>');
+            row.append($('<td>').html('<strong>' + escapeHtml(item.OrderNumber) + '</strong>'));
+            row.append($('<td>').html('<span class="badge-inventory ' + badgeClass + '">' + escapeHtml(item.CategoryName) + '</span>'));
+            row.append($('<td>').text(item.Weight.toFixed(2)));
+            row.append($('<td>').text(price));
+            row.append($('<td>').text(item.RecyclerName || '-'));
+            row.append($('<td>').text(createdDate));
+
+            tbody.append(row);
+        });
+
+        displayInventoryPagination(data);
+        $('#inventoryPaginationContainer').show();
+    }
+
+    // 显示分页控件
+    function displayInventoryPagination(data) {
+        var totalPages = Math.ceil(data.TotalCount / data.PageSize);
+        var startItem = (data.PageIndex - 1) * data.PageSize + 1;
+        var endItem = Math.min(data.PageIndex * data.PageSize, data.TotalCount);
+
+        $('#inventoryPaginationInfo').text('显示 ' + startItem + ' - ' + endItem + ' 条，共 ' + data.TotalCount + ' 条');
+
+        var pagination = $('#inventoryPagination');
+        pagination.empty();
+
+        if (totalPages <= 1) return;
+
+        // 上一页
+        var prevBtn = $('<button>')
+            .text('上一页')
+            .prop('disabled', data.PageIndex === 1)
+            .on('click', function () {
+                if (data.PageIndex > 1) {
+                    InventoryManager.currentPage = data.PageIndex - 1;
+                    loadInventoryDetail();
+                }
+            });
+        pagination.append(prevBtn);
+
+        // 页码按钮
+        var startPage = Math.max(1, data.PageIndex - 2);
+        var endPage = Math.min(totalPages, data.PageIndex + 2);
+
+        for (var i = startPage; i <= endPage; i++) {
+            (function (pageNum) {
+                var pageBtn = $('<button>')
+                    .text(pageNum)
+                    .toggleClass('active', pageNum === data.PageIndex)
+                    .on('click', function () {
+                        InventoryManager.currentPage = pageNum;
+                        loadInventoryDetail();
+                    });
+                pagination.append(pageBtn);
+            })(i);
+        }
+
+        // 下一页
+        var nextBtn = $('<button>')
+            .text('下一页')
+            .prop('disabled', data.PageIndex >= totalPages)
+            .on('click', function () {
+                if (data.PageIndex < totalPages) {
+                    InventoryManager.currentPage = data.PageIndex + 1;
+                    loadInventoryDetail();
+                }
+            });
+        pagination.append(nextBtn);
+    }
+
+    // HTML转义函数（防止XSS）
+    function escapeHtml(text) {
+        if (!text) return '';
+        return $('<div>').text(text).html();
+    }
+
+    // 页面加载时自动加载库存信息
+    $(document).ready(function () {
+        loadInventorySummary();
+    });
 </script>
