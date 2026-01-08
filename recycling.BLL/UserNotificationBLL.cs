@@ -235,6 +235,38 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 发送回收员消息通知
+        /// </summary>
+        public bool SendRecyclerMessageNotification(int orderId, string recyclerName, string messagePreview)
+        {
+            int userId = _notificationDAL.GetUserIdByOrderId(orderId);
+            if (userId <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取订单 {orderId} 的用户ID，回收员消息通知发送失败");
+                return false;
+            }
+
+            // 限制消息预览长度
+            if (messagePreview.Length > 50)
+            {
+                messagePreview = messagePreview.Substring(0, 50) + "...";
+            }
+
+            var notification = new UserNotifications
+            {
+                UserID = userId,
+                NotificationType = NotificationTypes.RecyclerMessageReceived,
+                Title = $"回收员 {recyclerName} 发来新消息",
+                Content = messagePreview,
+                RelatedOrderID = orderId,
+                CreatedDate = DateTime.Now,
+                IsRead = false
+            };
+
+            return _notificationDAL.AddNotification(notification);
+        }
+
+        /// <summary>
         /// 获取用户通知列表
         /// </summary>
         public List<UserNotifications> GetUserNotifications(int userId, int pageIndex = 1, int pageSize = 20)
