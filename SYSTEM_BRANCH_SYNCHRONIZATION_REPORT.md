@@ -116,7 +116,8 @@ The system has been extended with the following new features, but the documentat
 | Home视图 / Home Views | 13个 | 13个 | ✅ 一致 / Match |
 | User视图 / User Views | 7个 | 7个 | ✅ 一致 / Match |
 | Staff视图 / Staff Views | 31个 | 37个 | ⚠️ 更新 / Updated |
-| Shared视图 / Shared Views | 9个 | 7个 | ⚠️ 更新 / Updated |
+| Shared视图 / Shared Views | 9个 | 8个 | ⚠️ 更新 / Updated |
+| _ViewStart.cshtml（根目录） | 未单独计数 | 1个 | ⚠️ 更新 / Updated |
 | **总计 / Total** | **60个** | **64个** | ✅ **已同步 / Synchronized** |
 
 **新增Staff视图 / New Staff Views:**
@@ -281,14 +282,14 @@ Confirm whether this file exists or has been removed. The documentation has been
 
 ### 3. Shared视图数量 / Shared Views Count
 
-文档记录9个Shared视图，但实际只有7个（6个布局+2个错误页+1个_ViewStart）= 9个？需要重新核算。
+文档记录9个Shared视图，但实际Shared文件夹中只有8个文件（6个布局 + 2个错误页）。_ViewStart.cshtml 位于Views根目录，不在Shared文件夹中。
 
-The documentation recorded 9 Shared views, but there are actually only 7 files. Need to recount.
+The documentation recorded 9 Shared views, but there are actually only 8 files in the Shared folder (6 layouts + 2 error pages). _ViewStart.cshtml is in the Views root directory, not in the Shared folder.
 
 **建议 / Recommendation:**
-已验证实际文件数量为7个Shared视图文件。
+已验证实际文件数量为：Shared文件夹8个 + Views根目录1个（_ViewStart.cshtml）= 共9个共享相关视图文件。
 
-Verified that there are actually 7 Shared view files.
+Verified that there are: 8 files in Shared folder + 1 file in Views root (_ViewStart.cshtml) = 9 shared-related view files total.
 
 ---
 
