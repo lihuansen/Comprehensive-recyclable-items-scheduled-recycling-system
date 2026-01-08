@@ -954,7 +954,7 @@
                 return window.CSS.escape(selector);
             }
             // 回退到手动转义特殊字符
-            return selector.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+            return selector.replace(/[!"#$%&'()*+,.\/:;<=>?@@[\\\]^`{|}~]/g, '\\$&');
         },
 
         // 显示错误消息（使用安全的DOM创建）
