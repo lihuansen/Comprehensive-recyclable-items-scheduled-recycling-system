@@ -927,6 +927,20 @@
             var G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
             var B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
             return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
+        },
+
+        // 验证类别键是否有效
+        isValidCategoryKey: function(categoryKey) {
+            if (!categoryKey || typeof categoryKey !== 'string') return false;
+            // 只允许字母字符作为类别键
+            return /^[a-z]+$/i.test(categoryKey) && this.categoryIcons.hasOwnProperty(categoryKey);
+        },
+
+        // 安全地转义 jQuery 选择器
+        escapeSelector: function(selector) {
+            if (!selector) return '';
+            // 转义特殊字符以防止选择器注入
+            return selector.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
         }
     };
 
@@ -967,15 +981,24 @@
         container.empty();
 
         summaryData.forEach(function (item) {
+            // 验证并清理类别键
+            if (!InventoryManager.isValidCategoryKey(item.categoryKey)) {
+                console.warn('Invalid category key:', item.categoryKey);
+                return; // 跳过无效的类别
+            }
+
             var icon = InventoryManager.categoryIcons[item.categoryKey] || 'fa-box';
             var color = InventoryManager.categoryColors[item.categoryKey] || '#3498db';
+            
+            // 清理类别键用于 data 属性
+            var safeCategoryKey = escapeHtml(item.categoryKey);
 
             var card = $('<div>')
                 .addClass('inventory-card')
-                .attr('data-category', item.categoryKey)
+                .attr('data-category', safeCategoryKey)
                 .css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + InventoryManager.adjustColor(color, -20) + ' 100%)');
             
-            // Safely create card content
+            // Safely create card content with validated icon class
             var iconDiv = $('<div>').addClass('inventory-card-icon').append($('<i>').addClass('fas ' + icon));
             var categoryDiv = $('<div>').addClass('inventory-card-category').text(item.categoryName);
             var weightDiv = $('<div>').addClass('inventory-card-weight').text(item.totalWeight.toFixed(1) + ' kg');
@@ -983,7 +1006,7 @@
             
             card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv)
                 .on('click', function () {
-                    filterInventoryByCategory(item.categoryKey, item.categoryName);
+                    filterInventoryByCategory(safeCategoryKey, item.categoryName);
                 });
 
             container.append(card);
@@ -994,8 +1017,16 @@
 
     // 按类别筛选库存
     function filterInventoryByCategory(categoryKey, categoryName) {
+        // 验证类别键
+        if (!InventoryManager.isValidCategoryKey(categoryKey)) {
+            console.error('Invalid category key:', categoryKey);
+            return;
+        }
+
         $('.inventory-card').removeClass('active');
-        $('.inventory-card[data-category="' + categoryKey + '"]').addClass('active');
+        // 使用安全的选择器
+        var safeSelector = '[data-category="' + InventoryManager.escapeSelector(categoryKey) + '"]';
+        $('.inventory-card' + safeSelector).addClass('active');
 
         $('#inventoryDetailTitle').text(' - ' + categoryName);
         InventoryManager.currentCategoryKey = categoryKey;
@@ -1050,18 +1081,19 @@
         }
 
         data.Items.forEach(function (item) {
-            var badgeClass = 'badge-' + item.CategoryKey;
+            // 验证类别键并安全地构建 badge class
+            var safeCategoryKey = InventoryManager.isValidCategoryKey(item.CategoryKey) ? item.CategoryKey : 'unknown';
+            var badgeClass = 'badge-' + safeCategoryKey;
             var price = item.Price != null ? '¥' + item.Price.toFixed(2) : '-';
             var createdDate = formatDateTime(item.CreatedDate);
 
-            var row = $('<tr>').html(
-                '<td><strong>' + escapeHtml(item.OrderNumber) + '</strong></td>' +
-                '<td><span class="badge-inventory ' + badgeClass + '">' + escapeHtml(item.CategoryName) + '</span></td>' +
-                '<td>' + item.Weight.toFixed(2) + '</td>' +
-                '<td>' + price + '</td>' +
-                '<td>' + escapeHtml(item.RecyclerName || '-') + '</td>' +
-                '<td>' + createdDate + '</td>'
-            );
+            var row = $('<tr>');
+            row.append($('<td>').html('<strong>' + escapeHtml(item.OrderNumber) + '</strong>'));
+            row.append($('<td>').html('<span class="badge-inventory ' + badgeClass + '">' + escapeHtml(item.CategoryName) + '</span>'));
+            row.append($('<td>').text(item.Weight.toFixed(2)));
+            row.append($('<td>').text(price));
+            row.append($('<td>').text(item.RecyclerName || '-'));
+            row.append($('<td>').text(createdDate));
 
             tbody.append(row);
         });
