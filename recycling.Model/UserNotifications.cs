@@ -74,7 +74,7 @@ namespace recycling.Model
         /// </summary>
         public const string FeedbackReplied = "FeedbackReplied";
 
-        /// <summary>
+
         /// <summary>
         /// 回收员发送消息
         /// </summary>
@@ -87,14 +87,6 @@ namespace recycling.Model
 
         /// <summary>
         /// ��ȡ֪ͨ���͵���������
-        /// </summary>
-        /// <summary>
-        /// 回收员回退订单
-        /// </summary>
-        public const string OrderRolledBack = "OrderRolledBack";
-
-        /// <summary>
-        /// ��ȡ֪ͨ���͵���������
         /// </summary>
         public static string GetDisplayName(string type)
         {
