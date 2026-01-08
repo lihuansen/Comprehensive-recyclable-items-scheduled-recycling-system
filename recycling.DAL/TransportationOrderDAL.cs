@@ -472,11 +472,20 @@ namespace recycling.DAL
                                 WHERE RecyclerID = @RecyclerID 
                                   AND InventoryType = N'StoragePoint'";
 
+                            int movedRows;
                             using (SqlCommand cmd = new SqlCommand(moveInventorySql, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@RecyclerID", recyclerID);
-                                int movedRows = cmd.ExecuteNonQuery();
+                                movedRows = cmd.ExecuteNonQuery();
                                 System.Diagnostics.Debug.WriteLine($"Moved {movedRows} inventory items from StoragePoint to InTransit for recycler {recyclerID}");
+                            }
+                            
+                            // Validate that inventory was moved
+                            // Note: It's valid to have 0 rows if the storage point is empty (goods already transported)
+                            // But we log a warning for tracking purposes
+                            if (movedRows == 0)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Warning: No inventory items moved for recycler {recyclerID}. Storage point may be empty.");
                             }
                             
                             transaction.Commit();
