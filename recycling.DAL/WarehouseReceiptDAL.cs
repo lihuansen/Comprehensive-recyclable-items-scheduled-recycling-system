@@ -138,17 +138,16 @@ namespace recycling.DAL
 
                             // 3. 将暂存点库存转移到仓库（更新InventoryType从StoragePoint到Warehouse）
                             // Transfer storage point inventory to warehouse (update InventoryType from StoragePoint to Warehouse)
+                            // Note: CreatedDate is preserved to maintain original creation timestamp
                             string transferInventorySql = @"
                                 UPDATE Inventory 
-                                SET InventoryType = N'Warehouse',
-                                    CreatedDate = @TransferDate
+                                SET InventoryType = N'Warehouse'
                                 WHERE RecyclerID = @RecyclerID 
                                   AND InventoryType = N'StoragePoint'";
 
                             using (SqlCommand cmd = new SqlCommand(transferInventorySql, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
-                                cmd.Parameters.AddWithValue("@TransferDate", DateTime.Now);
                                 int transferredRows = cmd.ExecuteNonQuery();
                                 System.Diagnostics.Debug.WriteLine($"Transferred {transferredRows} inventory items from storage point to warehouse for recycler {receipt.RecyclerID}");
                             }

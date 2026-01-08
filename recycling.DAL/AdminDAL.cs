@@ -566,9 +566,8 @@ namespace recycling.DAL
                 cmd = new SqlCommand(@"
                     SELECT r.Region, ISNULL(SUM(i.Weight), 0) AS TotalWeight
                     FROM Recyclers r
-                    LEFT JOIN Inventory i ON r.RecyclerID = i.RecyclerID
+                    LEFT JOIN Inventory i ON r.RecyclerID = i.RecyclerID AND i.InventoryType = N'Warehouse'
                     WHERE r.Region IS NOT NULL AND r.Region <> ''
-                      AND (i.InventoryType IS NULL OR i.InventoryType = N'Warehouse')
                     GROUP BY r.Region
                     ORDER BY TotalWeight DESC", conn);
 

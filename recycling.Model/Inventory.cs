@@ -30,6 +30,11 @@ namespace recycling.Model
 
         public decimal? Price { get; set; }
 
+        /// <summary>
+        /// 库存类型：StoragePoint(暂存点) 或 Warehouse(仓库)
+        /// Inventory type: StoragePoint or Warehouse
+        /// Note: Consider using enum in future refactoring for type safety
+        /// </summary>
         [Required]
         [StringLength(20)]
         public string InventoryType { get; set; } = "StoragePoint";
