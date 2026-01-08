@@ -187,5 +187,54 @@ namespace recycling.BLL
                 return (null, $"获取订单详情失败：{ex.Message}");
             }
         }
+
+        /// <summary>
+        /// 回收员回退订单（当线下发现物品不符合要求时使用）
+        /// </summary>
+        public (bool Success, string Message) RollbackOrder(int appointmentId, int recyclerId, string reason = null)
+        {
+            if (appointmentId <= 0 || recyclerId <= 0)
+            {
+                return (false, "参数无效");
+            }
+
+            try
+            {
+                // 验证回收员
+                var recycler = _staffDAL.GetRecyclerById(recyclerId);
+                if (recycler == null)
+                {
+                    return (false, "回收员不存在");
+                }
+
+                // 获取订单详情，验证回收员权限
+                var orderDetail = _recyclerOrderDAL.GetOrderDetail(appointmentId, recyclerId);
+                if (orderDetail == null || string.IsNullOrEmpty(orderDetail.OrderNumber))
+                {
+                    return (false, "订单不存在或无权操作");
+                }
+
+                // 验证订单状态必须是"进行中"
+                if (orderDetail.Status != "进行中")
+                {
+                    return (false, $"订单状态不正确，当前状态为：{orderDetail.Status}，只有进行中的订单才能回退");
+                }
+
+                // 更新订单状态为"已取消-回收员回退"
+                var orderDAL = new OrderDAL();
+                bool updateResult = orderDAL.UpdateOrderStatus(appointmentId, "已取消-回收员回退");
+                
+                if (!updateResult)
+                {
+                    return (false, "更新订单状态失败");
+                }
+
+                return (true, "订单已成功回退");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"回退订单失败：{ex.Message}");
+            }
+        }
     }
 }

@@ -272,6 +272,34 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 发送订单回退通知（回收员回退订单）
+        /// </summary>
+        public bool SendOrderRolledBackNotification(int orderId, string recyclerName, string reason = null)
+        {
+            int userId = _notificationDAL.GetUserIdByOrderId(orderId);
+            if (userId <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取订单 {orderId} 的用户ID，订单回退通知发送失败");
+                return false;
+            }
+
+            string reasonText = string.IsNullOrEmpty(reason) ? "回收员发现物品不符合回收要求" : reason;
+            
+            var notification = new UserNotifications
+            {
+                UserID = userId,
+                NotificationType = NotificationTypes.OrderRolledBack,
+                Title = "订单已回退",
+                Content = $"您的订单 {FormatOrderNumber(orderId)} 已被回收员 {recyclerName} 回退。原因：{reasonText}。您可以继续与回收员沟通了解详情。",
+                RelatedOrderID = orderId,
+                CreatedDate = DateTime.Now,
+                IsRead = false
+            };
+
+            return _notificationDAL.AddNotification(notification);
+        }
+
+        /// <summary>
         /// 获取用户通知列表
         /// </summary>
         public List<UserNotifications> GetUserNotifications(int userId, int pageIndex = 1, int pageSize = 20)

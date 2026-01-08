@@ -242,6 +242,8 @@ namespace recycling.Web.UI.Controllers
                     return "status-completed-badge";
                 case "已取消":
                     return "status-cancelled-badge";
+                case "已取消-回收员回退":
+                    return "status-rolledback-badge";
                 default:
                     return "status-pending-badge";
             }
