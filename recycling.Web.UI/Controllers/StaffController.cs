@@ -4594,6 +4594,66 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 获取仓库库存汇总 - 基地工作人员端（AJAX）
+        /// Get warehouse inventory summary for base staff
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetBaseWarehouseInventorySummary()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                // 使用WarehouseReceiptBLL获取入库后的仓库数据
+                var summary = _warehouseReceiptBLL.GetWarehouseSummary();
+
+                var result = summary.Select(s => new
+                {
+                    categoryKey = s.CategoryKey,
+                    categoryName = s.CategoryName,
+                    totalWeight = s.TotalWeight,
+                    totalPrice = s.TotalPrice
+                }).ToList();
+
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"获取库存汇总失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 获取仓库库存明细 - 基地工作人员端（AJAX）
+        /// Get warehouse inventory detail for base staff
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult GetBaseWarehouseInventoryDetail(int page = 1, int pageSize = 20, string categoryKey = null)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                // 使用WarehouseReceiptBLL获取入库后的仓库明细数据（包含回收员信息）
+                var result = _warehouseReceiptBLL.GetWarehouseDetailWithRecycler(page, pageSize, categoryKey);
+
+                return JsonContent(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"获取库存明细失败：{ex.Message}" });
+            }
+        }
+
         #endregion
     }
 }
