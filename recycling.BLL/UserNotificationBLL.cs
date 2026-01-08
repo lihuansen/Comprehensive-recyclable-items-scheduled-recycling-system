@@ -246,8 +246,13 @@ namespace recycling.BLL
                 return false;
             }
 
+            // 处理空或null的消息预览
+            if (string.IsNullOrEmpty(messagePreview))
+            {
+                messagePreview = "（新消息）";
+            }
             // 限制消息预览长度
-            if (messagePreview.Length > 50)
+            else if (messagePreview.Length > 50)
             {
                 messagePreview = messagePreview.Substring(0, 50) + "...";
             }
