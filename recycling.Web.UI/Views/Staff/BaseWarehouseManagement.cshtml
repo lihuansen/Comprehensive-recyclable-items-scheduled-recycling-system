@@ -576,6 +576,16 @@
     .badge-plastic { background: #ffebee; color: #c62828; }
     .badge-paper { background: #fff3e0; color: #e65100; }
     .badge-fabric { background: #f3e5f5; color: #7b1fa2; }
+    .badge-unknown { background: #f5f5f5; color: #666; }
+
+    .empty-details-message {
+        text-align: center;
+        padding: 30px;
+        color: #999;
+    }
+    .badge-plastic { background: #ffebee; color: #c62828; }
+    .badge-paper { background: #fff3e0; color: #e65100; }
+    .badge-fabric { background: #f3e5f5; color: #7b1fa2; }
 </style>
 
 <script>
@@ -929,18 +939,40 @@
             return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
         },
 
-        // 验证类别键是否有效
+        // 验证类别键是否有效（严格的白名单验证）
         isValidCategoryKey: function(categoryKey) {
             if (!categoryKey || typeof categoryKey !== 'string') return false;
-            // 只允许字母字符作为类别键
-            return /^[a-z]+$/i.test(categoryKey) && this.categoryIcons.hasOwnProperty(categoryKey);
+            // 严格的白名单：只允许预定义的类别键
+            return this.categoryIcons.hasOwnProperty(categoryKey);
         },
 
-        // 安全地转义 jQuery 选择器
+        // 安全地转义 jQuery 选择器（使用更全面的转义）
         escapeSelector: function(selector) {
             if (!selector) return '';
-            // 转义特殊字符以防止选择器注入
+            // 使用 CSS.escape 如果可用，否则使用手动转义
+            if (window.CSS && window.CSS.escape) {
+                return window.CSS.escape(selector);
+            }
+            // 回退到手动转义特殊字符
             return selector.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+        },
+
+        // 显示错误消息（使用安全的DOM创建）
+        showError: function(message) {
+            var errorDiv = $('#inventoryEmptyState');
+            errorDiv.empty();
+            var icon = $('<i>').addClass('fas fa-exclamation-circle');
+            var text = $('<p>').css('color', '#e74c3c').text(message);
+            errorDiv.append(icon).append(text).show();
+            setTimeout(function() {
+                errorDiv.hide();
+            }, 5000);
+        },
+
+        // 获取已验证的 badge class 名称
+        getBadgeClass: function(categoryKey) {
+            if (!this.isValidCategoryKey(categoryKey)) return 'badge-unknown';
+            return 'badge-' + categoryKey;
         }
     };
 
@@ -1075,15 +1107,17 @@
         tbody.empty();
 
         if (!data.Items || data.Items.length === 0) {
-            tbody.html('<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">暂无明细数据</td></tr>');
+            var emptyRow = $('<tr>').append(
+                $('<td>').attr('colspan', '6').addClass('empty-details-message').text('暂无明细数据')
+            );
+            tbody.append(emptyRow);
             $('#inventoryPaginationContainer').hide();
             return;
         }
 
         data.Items.forEach(function (item) {
-            // 验证类别键并安全地构建 badge class
-            var safeCategoryKey = InventoryManager.isValidCategoryKey(item.CategoryKey) ? item.CategoryKey : 'unknown';
-            var badgeClass = 'badge-' + safeCategoryKey;
+            // 使用安全的 badge class 获取方法
+            var badgeClass = InventoryManager.getBadgeClass(item.CategoryKey);
             var price = item.Price != null ? '¥' + item.Price.toFixed(2) : '-';
             var createdDate = formatDateTime(item.CreatedDate);
 
