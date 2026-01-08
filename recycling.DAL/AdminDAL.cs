@@ -536,7 +536,8 @@ namespace recycling.DAL
                 cmd = new SqlCommand(@"
                     SELECT CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
                     FROM Inventory
-                    WHERE CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))
+                    WHERE InventoryType = N'Warehouse'
+                      AND CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))
                     GROUP BY CategoryName
                     ORDER BY TotalWeight DESC", conn);
 
@@ -557,14 +558,15 @@ namespace recycling.DAL
                 // Total daily weight
                 cmd = new SqlCommand(@"
                     SELECT ISNULL(SUM(Weight), 0) FROM Inventory 
-                    WHERE CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))", conn);
+                    WHERE InventoryType = N'Warehouse' 
+                      AND CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))", conn);
                 stats["TodayTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
                 // === Regional Recycling Totals (十个街道区域回收总量) ===
                 cmd = new SqlCommand(@"
                     SELECT r.Region, ISNULL(SUM(i.Weight), 0) AS TotalWeight
                     FROM Recyclers r
-                    LEFT JOIN Inventory i ON r.RecyclerID = i.RecyclerID
+                    LEFT JOIN Inventory i ON r.RecyclerID = i.RecyclerID AND i.InventoryType = N'Warehouse'
                     WHERE r.Region IS NOT NULL AND r.Region <> ''
                     GROUP BY r.Region
                     ORDER BY TotalWeight DESC", conn);
@@ -626,12 +628,13 @@ namespace recycling.DAL
                 // This month's total weight
                 cmd = new SqlCommand(@"
                     SELECT ISNULL(SUM(Weight), 0) FROM Inventory 
-                    WHERE CreatedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
-                    AND CreatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
+                    WHERE InventoryType = N'Warehouse'
+                      AND CreatedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
+                      AND CreatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
                 stats["MonthTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
                 // All-time total weight
-                cmd = new SqlCommand("SELECT ISNULL(SUM(Weight), 0) FROM Inventory", conn);
+                cmd = new SqlCommand("SELECT ISNULL(SUM(Weight), 0) FROM Inventory WHERE InventoryType = N'Warehouse'", conn);
                 stats["AllTimeTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
                 // Average recycler rating
@@ -650,7 +653,8 @@ namespace recycling.DAL
                 cmd = new SqlCommand(@"
                     SELECT CAST(CreatedDate AS DATE) AS RecycleDate, ISNULL(SUM(Weight), 0) AS TotalWeight
                     FROM Inventory
-                    WHERE CreatedDate >= DATEADD(day, -7, GETDATE())
+                    WHERE InventoryType = N'Warehouse'
+                      AND CreatedDate >= DATEADD(day, -7, GETDATE())
                     GROUP BY CAST(CreatedDate AS DATE)
                     ORDER BY RecycleDate", conn);
 
@@ -672,6 +676,7 @@ namespace recycling.DAL
                 cmd = new SqlCommand(@"
                     SELECT CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
                     FROM Inventory
+                    WHERE InventoryType = N'Warehouse'
                     GROUP BY CategoryName
                     ORDER BY TotalWeight DESC", conn);
 
