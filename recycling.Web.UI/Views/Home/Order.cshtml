@@ -658,10 +658,15 @@
                         <div id="detailCategoryQuestions"></div>
                     </div>
 
-                    <!-- 回收员ID字段（默认隐藏） -->
-                    <div class="detail-item" id="detailRecyclerId" style="display: none;">
-                        <span class="detail-label">回收员ID：</span>
-                        <span class="detail-value" id="recyclerID"></span>
+                    <!-- 回收员信息字段（进行中/已完成时显示） -->
+                    <div class="detail-section" id="detailRecyclerSection" style="display: none;">
+                        <h6 class="section-title">
+                            <i class="fas fa-user-check"></i>回收员信息
+                        </h6>
+                        <div class="detail-item">
+                            <span class="detail-label">回收员：</span>
+                            <span class="detail-value" id="recyclerName"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1213,18 +1218,18 @@
                 categoryQuestionsSection.style.display = 'none';
             }
 
-            // 处理回收员ID显示（仅进行中/已完成状态）
-            const recyclerIdElement = document.getElementById('detailRecyclerId');
-            const recyclerIdValue = document.getElementById('recyclerID');
+            // 处理回收员信息显示（仅进行中/已完成状态）
+            const recyclerSection = document.getElementById('detailRecyclerSection');
+            const recyclerNameValue = document.getElementById('recyclerName');
 
-            // 判断订单状态，显示/隐藏回收员ID
+            // 判断订单状态，显示/隐藏回收员信息
             if (order.status === '进行中' || order.status === '已完成') {
-                // 显示回收员ID（无值时显示“未分配”）
-                recyclerIdValue.textContent = order.recyclerID || '未分配';
-                recyclerIdElement.style.display = 'block';
+                // 显示回收员名称（无值时显示"未分配"）
+                recyclerNameValue.textContent = order.recyclerName || '未分配';
+                recyclerSection.style.display = 'block';
             } else {
                 // 其他状态（已预约/已取消）隐藏
-                recyclerIdElement.style.display = 'none';
+                recyclerSection.style.display = 'none';
             }
         }
 
