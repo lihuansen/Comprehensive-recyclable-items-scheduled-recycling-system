@@ -152,6 +152,22 @@ namespace recycling.DAL
                                 System.Diagnostics.Debug.WriteLine($"Transferred {transferredRows} inventory items from storage point to warehouse for recycler {receipt.RecyclerID}");
                             }
 
+                            // 4. 更新预约订单状态从"已完成"到"已入库"，清空暂存点显示
+                            // Update appointment status from "Completed" to "Warehoused" to clear storage point display
+                            string updateAppointmentsSql = @"
+                                UPDATE Appointments 
+                                SET Status = N'已入库',
+                                    UpdatedDate = GETDATE()
+                                WHERE RecyclerID = @RecyclerID 
+                                  AND Status = N'已完成'";
+
+                            using (SqlCommand cmd = new SqlCommand(updateAppointmentsSql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
+                                int updatedRows = cmd.ExecuteNonQuery();
+                                System.Diagnostics.Debug.WriteLine($"Updated {updatedRows} appointments from '已完成' to '已入库' for recycler {receipt.RecyclerID}");
+                            }
+
                             transaction.Commit();
                             return (receiptId, receipt.ReceiptNumber);
                         }

@@ -1,5 +1,8 @@
 # 仓库库存转移实现 / Warehouse Inventory Transfer Implementation
 
+> **最新更新**: 暂存点清空问题已修复。详见 [STORAGE_POINT_CLEARING_FIX.md](./STORAGE_POINT_CLEARING_FIX.md)  
+> **Latest Update**: Storage point clearing issue has been fixed. See [STORAGE_POINT_CLEARING_FIX.md](./STORAGE_POINT_CLEARING_FIX.md)
+
 ## 概述 / Overview
 
 本实现解决了入库单创建后，暂存点库存转移到仓库管理的需求。
@@ -161,13 +164,13 @@ var result = inventoryBll.GetInventoryDetailWithRecycler(page, pageSize, categor
 - [x] 管理员仓库管理 (Admin WarehouseManagement)
 - [x] 基地工作人员仓库管理 (Base Worker WarehouseManagement)
 - [x] 数据看板统计 (Dashboard Statistics)
-- [x] 暂存点清空 (StoragePoint Clear)
+- [x] 暂存点清空 (StoragePoint Clear) - **已修复** ✅ (2026-01-08)
 
 ### 🔍 需要测试
 - [ ] 完整的订单到入库流程
 - [ ] 多个回收员同时入库
 - [ ] 仓库库存统计准确性
-- [ ] 回收员暂存点不显示已转移的库存
+- [x] 回收员暂存点不显示已转移的库存 - **已修复** ✅
 
 ## 数据库迁移 / Database Migration
 
@@ -224,6 +227,7 @@ ALTER TABLE Inventory DROP COLUMN InventoryType;
 
 ## 相关文档 / Related Documentation
 
+- `STORAGE_POINT_CLEARING_FIX.md` - **暂存点清空问题修复（最新）** ✅
 - `WAREHOUSE_UPDATE_QUICKREF.md` - 仓库数据源更新快速参考
 - `CLEAR_STORAGE_POINT_IMPLEMENTATION.md` - 暂存点清空实现
 - `BASE_MANAGEMENT_IMPLEMENTATION_GUIDE.md` - 基地管理实现指南
