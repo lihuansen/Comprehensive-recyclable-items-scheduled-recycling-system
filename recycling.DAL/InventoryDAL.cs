@@ -75,8 +75,8 @@ namespace recycling.DAL
 
                         // 插入库存记录
                         string insertSql = @"
-                            INSERT INTO Inventory (OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate)
-                            VALUES (@OrderID, @CategoryKey, @CategoryName, @Weight, @Price, @RecyclerID, @CreatedDate)";
+                            INSERT INTO Inventory (OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate, InventoryType)
+                            VALUES (@OrderID, @CategoryKey, @CategoryName, @Weight, @Price, @RecyclerID, @CreatedDate, N'StoragePoint')";
 
                         foreach (var category in categories)
                         {
@@ -115,22 +115,28 @@ namespace recycling.DAL
         /// <summary>
         /// 获取库存列表
         /// </summary>
-        public List<Inventory> GetInventoryList(int? recyclerId = null, int pageIndex = 1, int pageSize = 50)
+        /// <param name="recyclerId">回收员ID（可选）</param>
+        /// <param name="pageIndex">页码</param>
+        /// <param name="pageSize">页大小</param>
+        /// <param name="inventoryType">库存类型：StoragePoint(暂存点) 或 Warehouse(仓库)，默认为StoragePoint</param>
+        public List<Inventory> GetInventoryList(int? recyclerId = null, int pageIndex = 1, int pageSize = 50, string inventoryType = "StoragePoint")
         {
             List<Inventory> list = new List<Inventory>();
             
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT InventoryID, OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate
+                    SELECT InventoryID, OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate, InventoryType
                     FROM Inventory
                     WHERE (@RecyclerID IS NULL OR RecyclerID = @RecyclerID)
+                      AND InventoryType = @InventoryType
                     ORDER BY CreatedDate DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId.HasValue ? (object)recyclerId.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@InventoryType", inventoryType);
                     cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
                     cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
@@ -148,7 +154,8 @@ namespace recycling.DAL
                                 Weight = Convert.ToDecimal(reader["Weight"]),
                                 Price = reader.IsDBNull(reader.GetOrdinal("Price")) ? (decimal?)null : Convert.ToDecimal(reader["Price"]),
                                 RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
-                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
+                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                                InventoryType = reader["InventoryType"].ToString()
                             });
                         }
                     }
@@ -161,7 +168,9 @@ namespace recycling.DAL
         /// <summary>
         /// 获取库存汇总（按类别分组）
         /// </summary>
-        public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetInventorySummary(int? recyclerId = null)
+        /// <param name="recyclerId">回收员ID（可选）</param>
+        /// <param name="inventoryType">库存类型：StoragePoint(暂存点) 或 Warehouse(仓库)，默认为Warehouse</param>
+        public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetInventorySummary(int? recyclerId = null, string inventoryType = "Warehouse")
         {
             var summary = new List<(string, string, decimal, decimal)>();
 
@@ -175,12 +184,14 @@ namespace recycling.DAL
                         SUM(ISNULL(Price, 0)) AS TotalPrice
                     FROM Inventory
                     WHERE (@RecyclerID IS NULL OR RecyclerID = @RecyclerID)
+                      AND InventoryType = @InventoryType
                     GROUP BY CategoryKey, CategoryName
                     ORDER BY CategoryName";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId.HasValue ? (object)recyclerId.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@InventoryType", inventoryType);
 
                     conn.Open();
                     using (var reader = cmd.ExecuteReader())
@@ -204,7 +215,11 @@ namespace recycling.DAL
         /// <summary>
         /// 获取库存明细（包含回收员信息）- 管理员端使用
         /// </summary>
-        public PagedResult<InventoryDetailViewModel> GetInventoryDetailWithRecycler(int pageIndex = 1, int pageSize = 20, string categoryKey = null)
+        /// <param name="pageIndex">页码</param>
+        /// <param name="pageSize">页大小</param>
+        /// <param name="categoryKey">类别键（可选）</param>
+        /// <param name="inventoryType">库存类型：StoragePoint(暂存点) 或 Warehouse(仓库)，默认为Warehouse</param>
+        public PagedResult<InventoryDetailViewModel> GetInventoryDetailWithRecycler(int pageIndex = 1, int pageSize = 20, string categoryKey = null, string inventoryType = "Warehouse")
         {
             var result = new PagedResult<InventoryDetailViewModel>
             {
@@ -218,13 +233,15 @@ namespace recycling.DAL
                 string countSql = @"
                     SELECT COUNT(*) 
                     FROM Inventory i
-                    WHERE (@CategoryKey IS NULL OR @CategoryKey = '' OR i.CategoryKey = @CategoryKey)";
+                    WHERE (@CategoryKey IS NULL OR @CategoryKey = '' OR i.CategoryKey = @CategoryKey)
+                      AND i.InventoryType = @InventoryType";
 
                 conn.Open();
 
                 using (SqlCommand cmd = new SqlCommand(countSql, conn))
                 {
                     cmd.Parameters.AddWithValue("@CategoryKey", string.IsNullOrEmpty(categoryKey) ? (object)DBNull.Value : categoryKey);
+                    cmd.Parameters.AddWithValue("@InventoryType", inventoryType);
                     result.TotalCount = (int)cmd.ExecuteScalar();
                 }
 
@@ -244,12 +261,14 @@ namespace recycling.DAL
                     FROM Inventory i
                     LEFT JOIN Recyclers r ON i.RecyclerID = r.RecyclerID
                     WHERE (@CategoryKey IS NULL OR @CategoryKey = '' OR i.CategoryKey = @CategoryKey)
+                      AND i.InventoryType = @InventoryType
                     ORDER BY i.CreatedDate DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@CategoryKey", string.IsNullOrEmpty(categoryKey) ? (object)DBNull.Value : categoryKey);
+                    cmd.Parameters.AddWithValue("@InventoryType", inventoryType);
                     cmd.Parameters.AddWithValue("@Offset", (pageIndex - 1) * pageSize);
                     cmd.Parameters.AddWithValue("@PageSize", pageSize);
 

@@ -194,9 +194,11 @@ namespace recycling.DAL
                     // 清空该回收员的暂存点库存记录（如果存在Inventory表）
                     // 注意：不改变预约订单的状态，预约订单应该保持"已完成"状态
                     // 暂存点的清空仅表示物品已被运输走，不应该改变预约订单的状态
+                    // 更新：只删除StoragePoint类型的库存，不删除Warehouse类型的
                     string sql = @"
                         DELETE FROM Inventory 
-                        WHERE RecyclerID = @RecyclerID";
+                        WHERE RecyclerID = @RecyclerID 
+                          AND InventoryType = N'StoragePoint'";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
