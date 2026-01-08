@@ -35,73 +35,80 @@ namespace recycling.Model
         public DateTime? ReadDate { get; set; }
     }
     /// <summary>
-    /// Í¨ÖªÀàĞÍÃ¶¾Ù
+    /// Í¨Öªï¿½ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½
     /// </summary>
     public static class NotificationTypes
     {
         /// <summary>
-        /// ¶©µ¥ÒÑ´´½¨
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½ï¿½ï¿½
         /// </summary>
         public const string OrderCreated = "OrderCreated";
 
         /// <summary>
-        /// »ØÊÕÔ±ÒÑ½Óµ¥
+        /// ï¿½ï¿½ï¿½ï¿½Ô±ï¿½Ñ½Óµï¿½
         /// </summary>
         public const string OrderAccepted = "OrderAccepted";
 
         /// <summary>
-        /// ¶©µ¥ÒÑÍê³É
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public const string OrderCompleted = "OrderCompleted";
 
         /// <summary>
-        /// ÆÀ¼ÛÌáĞÑ
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public const string ReviewReminder = "ReviewReminder";
 
         /// <summary>
-        /// ¶©µ¥ÒÑÈ¡Ïû
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½
         /// </summary>
         public const string OrderCancelled = "OrderCancelled";
 
         /// <summary>
-        /// ÂÖ²¥Í¼¸üĞÂ
+        /// ï¿½Ö²ï¿½Í¼ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public const string CarouselUpdated = "CarouselUpdated";
 
         /// <summary>
-        /// ·´À¡ÒÑ»Ø¸´
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½Ñ»Ø¸ï¿½
         /// </summary>
         public const string FeedbackReplied = "FeedbackReplied";
 
         /// <summary>
-        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÖĞÎÄÃû³Æ
+        /// å›æ”¶å‘˜å‘é€æ¶ˆæ¯
+        /// </summary>
+        public const string RecyclerMessageReceived = "RecyclerMessageReceived";
+
+        /// <summary>
+        /// ï¿½ï¿½È¡Í¨Öªï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public static string GetDisplayName(string type)
         {
             switch (type)
             {
                 case OrderCreated:
-                    return "¶©µ¥Í¨Öª";
+                    return "ï¿½ï¿½ï¿½ï¿½Í¨Öª";
                 case OrderAccepted:
-                    return "½Óµ¥Í¨Öª";
+                    return "ï¿½Óµï¿½Í¨Öª";
                 case OrderCompleted:
-                    return "Íê³ÉÍ¨Öª";
+                    return "ï¿½ï¿½ï¿½Í¨Öª";
                 case ReviewReminder:
-                    return "ÆÀ¼ÛÌáĞÑ";
+                    return "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
                 case OrderCancelled:
-                    return "È¡ÏûÍ¨Öª";
+                    return "È¡ï¿½ï¿½Í¨Öª";
                 case CarouselUpdated:
-                    return "ÏµÍ³¹«¸æ";
+                    return "ÏµÍ³ï¿½ï¿½ï¿½ï¿½";
                 case FeedbackReplied:
-                    return "·´À¡»Ø¸´";
+                    return "ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½";
+                case RecyclerMessageReceived:
+                    return "å›æ”¶å‘˜æ¶ˆæ¯";
                 default:
                     return "ÏµÍ³Í¨Öª";
             }
         }
 
         /// <summary>
-        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÍ¼±ê
+        /// ï¿½ï¿½È¡Í¨Öªï¿½ï¿½ï¿½Íµï¿½Í¼ï¿½ï¿½
         /// </summary>
         public static string GetIcon(string type)
         {
@@ -121,13 +128,15 @@ namespace recycling.Model
                     return "fa-bullhorn";
                 case FeedbackReplied:
                     return "fa-comment-dots";
+                case RecyclerMessageReceived:
+                    return "fa-envelope";
                 default:
                     return "fa-bell";
             }
         }
 
         /// <summary>
-        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÑÕÉ«
+        /// ï¿½ï¿½È¡Í¨Öªï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½É«
         /// </summary>
         public static string GetColor(string type)
         {
@@ -147,6 +156,8 @@ namespace recycling.Model
                     return "#6f42c1"; // purple
                 case FeedbackReplied:
                     return "#007bff"; // primary blue
+                case RecyclerMessageReceived:
+                    return "#20c997"; // teal green
                 default:
                     return "#6c757d"; // gray
             }

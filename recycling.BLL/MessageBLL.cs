@@ -12,6 +12,7 @@ namespace recycling.BLL
     {
         private readonly MessageDAL _messageDAL = new MessageDAL();
         private readonly ConversationBLL _conversationBLL = new ConversationBLL();
+        private readonly UserNotificationBLL _userNotificationBLL = new UserNotificationBLL();
 
         /// <summary>
         /// 发送消息
@@ -42,6 +43,30 @@ namespace recycling.BLL
                 bool result = _messageDAL.SendMessage(message);
                 if (result)
                 {
+                    // 如果是回收员发送的消息，创建用户通知
+                    if (request.SenderType == "recycler" && request.SenderID > 0)
+                    {
+                        try
+                        {
+                            // 获取回收员名称
+                            var staffDAL = new StaffDAL();
+                            var recycler = staffDAL.GetRecyclerById(request.SenderID);
+                            string recyclerName = recycler?.Username ?? "回收员";
+                            
+                            // 发送用户通知
+                            _userNotificationBLL.SendRecyclerMessageNotification(
+                                request.OrderID, 
+                                recyclerName, 
+                                request.Content
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            // 通知发送失败不应影响消息发送，只记录错误
+                            System.Diagnostics.Debug.WriteLine($"创建用户通知失败：{ex.Message}");
+                        }
+                    }
+                    
                     return (true, "消息发送成功");
                 }
                 else
