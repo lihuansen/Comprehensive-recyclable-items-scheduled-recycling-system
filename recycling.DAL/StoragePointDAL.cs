@@ -20,7 +20,7 @@ namespace recycling.DAL
 
         /// <summary>
         /// 获取回收员的暂存点库存汇总（按类别分组）
-        /// 从已完成的订单中汇总数据
+        /// 从Inventory表查询InventoryType = 'StoragePoint'的数据
         /// </summary>
         public List<StoragePointSummary> GetStoragePointSummary(int recyclerId)
         {
@@ -30,25 +30,20 @@ namespace recycling.DAL
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
-                // Query completed orders summary by category for this recycler
-                // Improved SQL with better NULL and division handling
+                // Query from Inventory table where InventoryType = 'StoragePoint'
+                // This ensures only items in storage point are shown (not in transit or warehouse)
                 string sql = @"
                     SELECT 
-                        ac.CategoryKey, 
-                        ac.CategoryName, 
-                        SUM(ISNULL(ac.Weight, 0)) AS TotalWeight,
-                        SUM(CASE 
-                            WHEN ISNULL(a.EstimatedWeight, 0) > 0 
-                            THEN ISNULL(a.EstimatedPrice, 0) * ISNULL(ac.Weight, 0) / a.EstimatedWeight
-                            ELSE 0
-                        END) AS TotalPrice
-                    FROM Appointments a WITH (NOLOCK)
-                    INNER JOIN AppointmentCategories ac WITH (NOLOCK) ON a.AppointmentID = ac.AppointmentID
-                    WHERE a.RecyclerID = @RecyclerID 
-                        AND a.Status = N'已完成'
-                        AND ISNULL(ac.Weight, 0) > 0
-                    GROUP BY ac.CategoryKey, ac.CategoryName
-                    ORDER BY ac.CategoryName";
+                        CategoryKey, 
+                        CategoryName, 
+                        SUM(ISNULL(Weight, 0)) AS TotalWeight,
+                        SUM(ISNULL(Price, 0)) AS TotalPrice
+                    FROM Inventory WITH (NOLOCK)
+                    WHERE RecyclerID = @RecyclerID 
+                        AND InventoryType = N'StoragePoint'
+                        AND ISNULL(Weight, 0) > 0
+                    GROUP BY CategoryKey, CategoryName
+                    ORDER BY CategoryName";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
@@ -96,7 +91,7 @@ namespace recycling.DAL
 
         /// <summary>
         /// Get storage point inventory details for a recycler
-        /// Query from completed orders
+        /// Query from Inventory table where InventoryType = 'StoragePoint'
         /// </summary>
         public List<StoragePointDetail> GetStoragePointDetail(int recyclerId, string categoryKey = null)
         {
@@ -106,27 +101,22 @@ namespace recycling.DAL
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
-                // Query detailed records of completed orders for this recycler
-                // Improved SQL with better NULL and division handling
+                // Query from Inventory table where InventoryType = 'StoragePoint'
+                // This ensures only items in storage point are shown (not in transit or warehouse)
                 string sql = @"
                     SELECT 
-                        a.AppointmentID AS OrderID,
-                        ac.CategoryKey, 
-                        ac.CategoryName, 
-                        ISNULL(ac.Weight, 0) AS Weight,
-                        CASE 
-                            WHEN ISNULL(a.EstimatedWeight, 0) > 0 
-                            THEN ISNULL(a.EstimatedPrice, 0) * ISNULL(ac.Weight, 0) / a.EstimatedWeight
-                            ELSE 0
-                        END AS Price,
-                        ISNULL(a.UpdatedDate, a.CreatedDate) AS CompletedDate
-                    FROM Appointments a WITH (NOLOCK)
-                    INNER JOIN AppointmentCategories ac WITH (NOLOCK) ON a.AppointmentID = ac.AppointmentID
-                    WHERE a.RecyclerID = @RecyclerID 
-                        AND a.Status = N'已完成'
-                        AND ISNULL(ac.Weight, 0) > 0
-                        AND (@CategoryKey IS NULL OR @CategoryKey = '' OR ac.CategoryKey = @CategoryKey)
-                    ORDER BY ISNULL(a.UpdatedDate, a.CreatedDate) DESC";
+                        OrderID,
+                        CategoryKey, 
+                        CategoryName, 
+                        ISNULL(Weight, 0) AS Weight,
+                        ISNULL(Price, 0) AS Price,
+                        CreatedDate
+                    FROM Inventory WITH (NOLOCK)
+                    WHERE RecyclerID = @RecyclerID 
+                        AND InventoryType = N'StoragePoint'
+                        AND ISNULL(Weight, 0) > 0
+                        AND (@CategoryKey IS NULL OR @CategoryKey = '' OR CategoryKey = @CategoryKey)
+                    ORDER BY CreatedDate DESC";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
@@ -147,7 +137,7 @@ namespace recycling.DAL
                                     CategoryName = reader["CategoryName"]?.ToString() ?? "未知类别",
                                     Weight = reader["Weight"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Weight"]),
                                     Price = reader["Price"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Price"]),
-                                    CreatedDate = reader["CompletedDate"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(reader["CompletedDate"])
+                                    CreatedDate = reader["CreatedDate"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(reader["CreatedDate"])
                                 });
                             }
                             catch (Exception ex)

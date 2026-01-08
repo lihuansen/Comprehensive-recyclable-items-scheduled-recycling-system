@@ -136,37 +136,37 @@ namespace recycling.DAL
                                 receiptId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
 
-                            // 3. 将暂存点库存转移到仓库（更新InventoryType从StoragePoint到Warehouse）
-                            // Transfer storage point inventory to warehouse (update InventoryType from StoragePoint to Warehouse)
+                            // 3. 将运输中的库存转移到仓库（更新InventoryType从InTransit到Warehouse）
+                            // Transfer in-transit inventory to warehouse (update InventoryType from InTransit to Warehouse)
                             // Note: CreatedDate is preserved to maintain original creation timestamp
+                            // This happens when goods arrive at base after transportation is complete
                             string transferInventorySql = @"
                                 UPDATE Inventory 
                                 SET InventoryType = N'Warehouse'
                                 WHERE RecyclerID = @RecyclerID 
-                                  AND InventoryType = N'StoragePoint'";
+                                  AND InventoryType = N'InTransit'";
 
+                            int transferredRows;
                             using (SqlCommand cmd = new SqlCommand(transferInventorySql, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
-                                int transferredRows = cmd.ExecuteNonQuery();
-                                System.Diagnostics.Debug.WriteLine($"Transferred {transferredRows} inventory items from storage point to warehouse for recycler {receipt.RecyclerID}");
+                                transferredRows = cmd.ExecuteNonQuery();
+                                System.Diagnostics.Debug.WriteLine($"Transferred {transferredRows} inventory items from InTransit to Warehouse for recycler {receipt.RecyclerID}");
                             }
-
-                            // 4. 更新预约订单状态从"已完成"到"已入库"，清空暂存点显示
-                            // Update appointment status from "Completed" to "Warehoused" to clear storage point display
-                            string updateAppointmentsSql = @"
-                                UPDATE Appointments 
-                                SET Status = N'已入库',
-                                    UpdatedDate = GETDATE()
-                                WHERE RecyclerID = @RecyclerID 
-                                  AND Status = N'已完成'";
-
-                            using (SqlCommand cmd = new SqlCommand(updateAppointmentsSql, conn, transaction))
+                            
+                            // Validate that inventory was transferred
+                            // If no inventory was transferred, it could indicate:
+                            // 1. Inventory was already warehoused (duplicate receipt)
+                            // 2. Transport was started but no goods were in transit
+                            // 3. Data inconsistency
+                            if (transferredRows == 0)
                             {
-                                cmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
-                                int updatedRows = cmd.ExecuteNonQuery();
-                                System.Diagnostics.Debug.WriteLine($"Updated {updatedRows} appointments from '已完成' to '已入库' for recycler {receipt.RecyclerID}");
+                                System.Diagnostics.Debug.WriteLine($"Warning: No inventory items transferred for recycler {receipt.RecyclerID}. All inventory may already be warehoused or transport had no goods in transit.");
                             }
+
+                            // Note: Do NOT update Appointment status here
+                            // Appointment status should remain "已完成" (Completed)
+                            // Only WarehouseReceipts.Status should be "已入库" (Warehoused)
 
                             transaction.Commit();
                             return (receiptId, receipt.ReceiptNumber);
