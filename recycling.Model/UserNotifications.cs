@@ -75,9 +75,23 @@ namespace recycling.Model
         public const string FeedbackReplied = "FeedbackReplied";
 
         /// <summary>
+        /// <summary>
         /// 回收员发送消息
         /// </summary>
         public const string RecyclerMessageReceived = "RecyclerMessageReceived";
+
+        /// <summary>
+        /// 回收员回退订单
+        /// </summary>
+        public const string OrderRolledBack = "OrderRolledBack";
+
+        /// <summary>
+        /// ��ȡ֪ͨ���͵���������
+        /// </summary>
+        /// <summary>
+        /// 回收员回退订单
+        /// </summary>
+        public const string OrderRolledBack = "OrderRolledBack";
 
         /// <summary>
         /// ��ȡ֪ͨ���͵���������
@@ -102,6 +116,8 @@ namespace recycling.Model
                     return "�����ظ�";
                 case RecyclerMessageReceived:
                     return "回收员消息";
+                case OrderRolledBack:
+                    return "订单回退";
                 default:
                     return "ϵͳ֪ͨ";
             }
@@ -130,6 +146,8 @@ namespace recycling.Model
                     return "fa-comment-dots";
                 case RecyclerMessageReceived:
                     return "fa-envelope";
+                case OrderRolledBack:
+                    return "fa-undo";
                 default:
                     return "fa-bell";
             }
@@ -158,6 +176,8 @@ namespace recycling.Model
                     return "#007bff"; // primary blue
                 case RecyclerMessageReceived:
                     return "#20c997"; // teal green
+                case OrderRolledBack:
+                    return "#fd7e14"; // orange
                 default:
                     return "#6c757d"; // gray
             }

@@ -1082,11 +1082,14 @@ select.form-control::-ms-expand {
                 </div>
             `;
                 } else if (order.Status === '进行中') {
-                    // 进行中订单：查看详情 + 完成订单（联系用户请通过消息中心）
+                    // 进行中订单：查看详情 + 回退订单 + 完成订单
                     actionButtons = `
                 <div class="order-actions">
                     <button class="btn-action primary" onclick="viewOrderDetail(${order.AppointmentID})">
                         <i class="fas fa-eye"></i>查看详情
+                    </button>
+                    <button class="btn-action warning" onclick="rollbackOrder(${order.AppointmentID})">
+                        <i class="fas fa-undo"></i>回退订单
                     </button>
                     <button class="btn-action success" onclick="completeOrderDirect(${order.AppointmentID})">
                         <i class="fas fa-check-circle"></i>完成订单
@@ -1317,6 +1320,80 @@ select.form-control::-ms-expand {
                 }
                 console.error('完成订单出错：', error);
                 showAlert('完成订单出错', 'error');
+            });
+        }
+
+        // 回退订单
+        function rollbackOrder(appointmentId) {
+            if (!appointmentId || appointmentId <= 0) {
+                alert('订单ID无效');
+                return;
+            }
+
+            // 弹出对话框让回收员输入回退原因
+            const reason = prompt('请输入回退订单的原因（将发送给用户）：', '物品不符合回收要求');
+            
+            if (reason === null) {
+                // 用户点击了取消
+                return;
+            }
+
+            if (reason.trim() === '') {
+                alert('请输入回退原因');
+                return;
+            }
+
+            if (!confirm('确认要回退此订单吗？订单将变为已取消状态，但您仍可与用户保持沟通。')) {
+                return;
+            }
+
+            // 获取防伪令牌
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            // 找到按钮并禁用防止重复点击
+            const btn = event.target.closest('button');
+            if (btn) {
+                btn.disabled = true;
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+                
+                // 保存原始HTML以便恢复
+                btn.dataset.originalHTML = originalHTML;
+            }
+
+            fetch('@Url.Action("RollbackOrder", "Staff")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    __RequestVerificationToken: token,
+                    appointmentId: appointmentId,
+                    reason: reason.trim()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalHTML || '<i class="fas fa-undo"></i>回退订单';
+                }
+
+                if (data.success) {
+                    showAlert('订单已成功回退，用户已收到通知', 'success');
+                    loadOrders(currentPage); // 刷新订单列表
+                } else {
+                    showAlert('回退失败：' + (data.message || '未知错误'), 'error');
+                }
+            })
+            .catch(error => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalHTML || '<i class="fas fa-undo"></i>回退订单';
+                }
+                console.error('回退订单出错：', error);
+                showAlert('回退订单出错：' + error.message, 'error');
             });
         }
 

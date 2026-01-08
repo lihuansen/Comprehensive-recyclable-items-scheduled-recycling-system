@@ -219,6 +219,12 @@
         border: 1px solid #f5c6cb;
     }
 
+    .status-rolledback-badge {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
     .order-details {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -830,6 +836,22 @@
                             <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
                                 <i class="fas fa-eye"></i>查看详情
                             </button>
+                            <button class="btn-action success" onclick="reAppointment(${order.id})">
+                                <i class="fas fa-redo"></i>再预约一单
+                            </button>
+                        </div>
+                    `;
+                } else if (order.status === '已取消-回收员回退') {
+                    // 回收员回退的订单：查看详情 + 联系回收员（可沟通原因） + 再预约一单
+                    actionButtons = `
+                        <div class="order-actions">
+                            <button class="btn-action primary" onclick="viewOrderDetail(${order.id})">
+                                <i class="fas fa-eye"></i>查看详情
+                            </button>
+                            <a href='@Url.Action("ContactRecycler", "Home")?orderId=${order.id}&recyclerId=${order.recyclerID || ""}'
+                               class="btn-action warning contact-recycler">
+                                <i class="fas fa-comments"></i>联系回收员
+                            </a>
                             <button class="btn-action success" onclick="reAppointment(${order.id})">
                                 <i class="fas fa-redo"></i>再预约一单
                             </button>

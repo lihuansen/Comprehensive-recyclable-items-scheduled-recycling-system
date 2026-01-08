@@ -826,6 +826,54 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 回收员回退订单
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult RollbackOrder(int appointmentId, string reason)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                // 调用 BLL 回退订单
+                var result = _recyclerOrderBLL.RollbackOrder(appointmentId, recycler.RecyclerID, reason);
+
+                if (result.Success)
+                {
+                    // 发送系统消息通知用户
+                    var reasonText = string.IsNullOrEmpty(reason) ? "物品不符合回收要求" : reason;
+                    var systemMessage = new SendMessageRequest
+                    {
+                        OrderID = appointmentId,
+                        SenderType = "system",
+                        SenderID = 0,
+                        Content = $"订单已被回收员 {recycler.Username} 回退。原因：{reasonText}。如有疑问，请与回收员联系沟通。"
+                    };
+                    _messageBLL.SendMessage(systemMessage);
+
+                    // 发送用户通知消息
+                    _notificationBLL.SendOrderRolledBackNotification(appointmentId, recycler.Username, reasonText);
+
+                    return Json(new { success = true, message = result.Message });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"回退失败：{ex.Message}" });
+            }
+        }
+
         // <summary>
         /// 消息中心页面（回收员端）
         /// 该方法返回视图，视图的 Model 为 List<RecyclerMessageViewModel>（每条为一条消息记录）
