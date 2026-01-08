@@ -491,9 +491,10 @@ namespace recycling.DAL
                             transaction.Commit();
                             return true;
                         }
-                        catch
+                        catch (Exception ex)
                         {
                             transaction.Rollback();
+                            System.Diagnostics.Debug.WriteLine($"Transaction rollback in StartTransportation: {ex.Message}");
                             throw;
                         }
                     }

@@ -157,11 +157,11 @@ namespace recycling.DAL
                             // Validate that inventory was transferred
                             // If no inventory was transferred, it could indicate:
                             // 1. Inventory was already warehoused (duplicate receipt)
-                            // 2. Transport was started but no goods were at storage point
+                            // 2. Transport was started but no goods were in transit
                             // 3. Data inconsistency
                             if (transferredRows == 0)
                             {
-                                System.Diagnostics.Debug.WriteLine($"Warning: No inventory items transferred for recycler {receipt.RecyclerID}. All inventory may already be warehoused or transport had no goods.");
+                                System.Diagnostics.Debug.WriteLine($"Warning: No inventory items transferred for recycler {receipt.RecyclerID}. All inventory may already be warehoused or transport had no goods in transit.");
                             }
 
                             // Note: Do NOT update Appointment status here
