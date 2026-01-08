@@ -886,26 +886,48 @@
     // ==================== 库存管理功能 ====================
     // Inventory Management Functions
 
-    var currentInventoryPage = 1;
-    var inventoryPageSize = 20;
-    var currentInventoryCategoryKey = null;
+    // 封装库存管理相关变量和函数 - Encapsulate inventory management variables and functions
+    var InventoryManager = {
+        currentPage: 1,
+        pageSize: 20,
+        currentCategoryKey: null,
+        
+        // 类别图标映射
+        categoryIcons: {
+            'glass': 'fa-wine-glass',
+            'metal': 'fa-screwdriver-wrench',
+            'plastic': 'fa-bottle-water',
+            'paper': 'fa-file-lines',
+            'fabric': 'fa-shirt'
+        },
 
-    // 类别图标映射
-    var categoryIcons = {
-        'glass': 'fa-wine-glass',
-        'metal': 'fa-screwdriver-wrench',
-        'plastic': 'fa-bottle-water',
-        'paper': 'fa-file-lines',
-        'fabric': 'fa-shirt'
-    };
+        // 类别颜色映射
+        categoryColors: {
+            'glass': '#3498db',
+            'metal': '#95a5a6',
+            'plastic': '#e74c3c',
+            'paper': '#f39c12',
+            'fabric': '#9b59b6'
+        },
 
-    // 类别颜色映射
-    var categoryColors = {
-        'glass': '#3498db',
-        'metal': '#95a5a6',
-        'plastic': '#e74c3c',
-        'paper': '#f39c12',
-        'fabric': '#9b59b6'
+        // 显示错误消息
+        showError: function(message) {
+            var errorDiv = $('#inventoryEmptyState');
+            errorDiv.html('<i class="fas fa-exclamation-circle"></i><p style="color: #e74c3c;">' + escapeHtml(message) + '</p>').show();
+            setTimeout(function() {
+                errorDiv.hide();
+            }, 5000);
+        },
+
+        // 调整颜色亮度（简化版本）
+        adjustColor: function(color, percent) {
+            var num = parseInt(color.replace('#', ''), 16);
+            var amt = Math.round(2.55 * percent);
+            var R = Math.max(0, Math.min(255, (num >> 16) + amt));
+            var G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+            var B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+            return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
+        }
     };
 
     // 加载库存汇总
@@ -945,19 +967,21 @@
         container.empty();
 
         summaryData.forEach(function (item) {
-            var icon = categoryIcons[item.categoryKey] || 'fa-box';
-            var color = categoryColors[item.categoryKey] || '#3498db';
+            var icon = InventoryManager.categoryIcons[item.categoryKey] || 'fa-box';
+            var color = InventoryManager.categoryColors[item.categoryKey] || '#3498db';
 
             var card = $('<div>')
                 .addClass('inventory-card')
                 .attr('data-category', item.categoryKey)
-                .css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + adjustColor(color, -20) + ' 100%)')
-                .html(
-                    '<div class="inventory-card-icon"><i class="fas ' + icon + '"></i></div>' +
-                    '<div class="inventory-card-category">' + escapeHtml(item.categoryName) + '</div>' +
-                    '<div class="inventory-card-weight">' + item.totalWeight.toFixed(1) + ' kg</div>' +
-                    '<div class="inventory-card-price">价值: ¥' + item.totalPrice.toFixed(2) + '</div>'
-                )
+                .css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + InventoryManager.adjustColor(color, -20) + ' 100%)');
+            
+            // Safely create card content
+            var iconDiv = $('<div>').addClass('inventory-card-icon').append($('<i>').addClass('fas ' + icon));
+            var categoryDiv = $('<div>').addClass('inventory-card-category').text(item.categoryName);
+            var weightDiv = $('<div>').addClass('inventory-card-weight').text(item.totalWeight.toFixed(1) + ' kg');
+            var priceDiv = $('<div>').addClass('inventory-card-price').text('价值: ¥' + item.totalPrice.toFixed(2));
+            
+            card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv)
                 .on('click', function () {
                     filterInventoryByCategory(item.categoryKey, item.categoryName);
                 });
@@ -974,8 +998,8 @@
         $('.inventory-card[data-category="' + categoryKey + '"]').addClass('active');
 
         $('#inventoryDetailTitle').text(' - ' + categoryName);
-        currentInventoryCategoryKey = categoryKey;
-        currentInventoryPage = 1;
+        InventoryManager.currentCategoryKey = categoryKey;
+        InventoryManager.currentPage = 1;
         loadInventoryDetail();
     }
 
@@ -983,8 +1007,8 @@
     function showAllInventoryDetails() {
         $('.inventory-card').removeClass('active');
         $('#inventoryDetailTitle').text('');
-        currentInventoryCategoryKey = null;
-        currentInventoryPage = 1;
+        InventoryManager.currentCategoryKey = null;
+        InventoryManager.currentPage = 1;
         loadInventoryDetail();
     }
 
@@ -996,20 +1020,20 @@
             url: '@Url.Action("GetBaseWarehouseInventoryDetail", "Staff")',
             type: 'POST',
             data: {
-                page: currentInventoryPage,
-                pageSize: inventoryPageSize,
-                categoryKey: currentInventoryCategoryKey,
+                page: InventoryManager.currentPage,
+                pageSize: InventoryManager.pageSize,
+                categoryKey: InventoryManager.currentCategoryKey,
                 __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
             },
             success: function (response) {
                 if (response.success) {
                     displayInventoryDetail(response.data);
                 } else {
-                    alert('加载库存明细失败: ' + response.message);
+                    InventoryManager.showError('加载库存明细失败: ' + response.message);
                 }
             },
             error: function () {
-                alert('加载库存明细失败，请稍后重试');
+                InventoryManager.showError('加载库存明细失败，请稍后重试');
             }
         });
     }
@@ -1065,7 +1089,7 @@
             .prop('disabled', data.PageIndex === 1)
             .on('click', function () {
                 if (data.PageIndex > 1) {
-                    currentInventoryPage = data.PageIndex - 1;
+                    InventoryManager.currentPage = data.PageIndex - 1;
                     loadInventoryDetail();
                 }
             });
@@ -1081,7 +1105,7 @@
                     .text(pageNum)
                     .toggleClass('active', pageNum === data.PageIndex)
                     .on('click', function () {
-                        currentInventoryPage = pageNum;
+                        InventoryManager.currentPage = pageNum;
                         loadInventoryDetail();
                     });
                 pagination.append(pageBtn);
@@ -1094,24 +1118,11 @@
             .prop('disabled', data.PageIndex >= totalPages)
             .on('click', function () {
                 if (data.PageIndex < totalPages) {
-                    currentInventoryPage = data.PageIndex + 1;
+                    InventoryManager.currentPage = data.PageIndex + 1;
                     loadInventoryDetail();
                 }
             });
         pagination.append(nextBtn);
-    }
-
-    // 调整颜色亮度
-    function adjustColor(color, percent) {
-        var num = parseInt(color.replace('#', ''), 16);
-        var amt = Math.round(2.55 * percent);
-        var R = (num >> 16) + amt;
-        var G = (num >> 8 & 0x00FF) + amt;
-        var B = (num & 0x0000FF) + amt;
-        return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-            (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-            (B < 255 ? B < 1 ? 0 : B : 255))
-            .toString(16).slice(1);
     }
 
     // HTML转义函数（防止XSS）
