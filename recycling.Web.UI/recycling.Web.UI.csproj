@@ -242,6 +242,10 @@
     <Content Include="Views\Staff\TransporterManagement.cshtml" />
     <Content Include="Views\Staff\SortingCenterWorkerManagement.cshtml" />
     <Content Include="Views\Staff\StoragePointManagement.cshtml" />
+    <Content Include="Views\Staff\BaseManagement.cshtml" />
+    <Content Include="Views\Staff\BaseTransportationManagement.cshtml" />
+    <Content Include="Views\Staff\BaseWarehouseManagement.cshtml" />
+    <Content Include="Views\Staff\TransportationManagement.cshtml" />
     <Content Include="Views\Staff\TransporterDashboard.cshtml" />
     <Content Include="Views\Staff\TransporterProfile.cshtml" />
     <Content Include="Views\Staff\TransporterEditProfile.cshtml" />
