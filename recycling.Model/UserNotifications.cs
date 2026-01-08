@@ -35,42 +35,42 @@ namespace recycling.Model
         public DateTime? ReadDate { get; set; }
     }
     /// <summary>
-    /// ֪ͨ����ö��
+    /// 通知类型枚举
     /// </summary>
     public static class NotificationTypes
     {
         /// <summary>
-        /// �����Ѵ���
+        /// 订单已创建
         /// </summary>
         public const string OrderCreated = "OrderCreated";
 
         /// <summary>
-        /// ����Ա�ѽӵ�
+        /// 回收员已接单
         /// </summary>
         public const string OrderAccepted = "OrderAccepted";
 
         /// <summary>
-        /// ���������
+        /// 订单已完成
         /// </summary>
         public const string OrderCompleted = "OrderCompleted";
 
         /// <summary>
-        /// ��������
+        /// 评价提醒
         /// </summary>
         public const string ReviewReminder = "ReviewReminder";
 
         /// <summary>
-        /// ������ȡ��
+        /// 订单已取消
         /// </summary>
         public const string OrderCancelled = "OrderCancelled";
 
         /// <summary>
-        /// �ֲ�ͼ����
+        /// 轮播图更新
         /// </summary>
         public const string CarouselUpdated = "CarouselUpdated";
 
         /// <summary>
-        /// �����ѻظ�
+        /// 反馈已回复
         /// </summary>
         public const string FeedbackReplied = "FeedbackReplied";
 
@@ -86,37 +86,37 @@ namespace recycling.Model
         public const string OrderRolledBack = "OrderRolledBack";
 
         /// <summary>
-        /// ��ȡ֪ͨ���͵���������
+        /// 获取通知类型的显示名称
         /// </summary>
         public static string GetDisplayName(string type)
         {
             switch (type)
             {
                 case OrderCreated:
-                    return "����֪ͨ";
+                    return "下单通知";
                 case OrderAccepted:
-                    return "�ӵ�֪ͨ";
+                    return "接单通知";
                 case OrderCompleted:
-                    return "���֪ͨ";
+                    return "完成通知";
                 case ReviewReminder:
-                    return "��������";
+                    return "评价提醒";
                 case OrderCancelled:
-                    return "ȡ��֪ͨ";
+                    return "取消通知";
                 case CarouselUpdated:
-                    return "ϵͳ����";
+                    return "系统公告";
                 case FeedbackReplied:
-                    return "�����ظ�";
+                    return "反馈回复";
                 case RecyclerMessageReceived:
                     return "回收员消息";
                 case OrderRolledBack:
                     return "订单回退";
                 default:
-                    return "ϵͳ֪ͨ";
+                    return "系统通知";
             }
         }
 
         /// <summary>
-        /// ��ȡ֪ͨ���͵�ͼ��
+        /// 获取通知类型的图标
         /// </summary>
         public static string GetIcon(string type)
         {
@@ -146,7 +146,7 @@ namespace recycling.Model
         }
 
         /// <summary>
-        /// ��ȡ֪ͨ���͵���ɫ
+        /// 获取通知类型的颜色
         /// </summary>
         public static string GetColor(string type)
         {
