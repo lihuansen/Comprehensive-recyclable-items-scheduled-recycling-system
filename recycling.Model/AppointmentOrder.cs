@@ -29,6 +29,7 @@ namespace recycling.Model
     {
         public Appointments Appointment { get; set; }
         public List<AppointmentCategories> Categories { get; set; }
+        public string RecyclerName { get; set; } // 回收员姓名
     }
 
     public class OrderStatistics

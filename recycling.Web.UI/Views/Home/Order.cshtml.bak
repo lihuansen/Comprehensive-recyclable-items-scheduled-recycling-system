@@ -1218,18 +1218,18 @@
                 categoryQuestionsSection.style.display = 'none';
             }
 
-            // 处理回收员信息显示（仅进行中/已完成状态）
-            const recyclerSection = document.getElementById('detailRecyclerSection');
-            const recyclerNameValue = document.getElementById('recyclerName');
+            // 处理回收员ID显示（仅进行中/已完成状态）
+            const recyclerIdElement = document.getElementById('detailRecyclerId');
+            const recyclerIdValue = document.getElementById('recyclerID');
 
-            // 判断订单状态，显示/隐藏回收员信息
+            // 判断订单状态，显示/隐藏回收员ID
             if (order.status === '进行中' || order.status === '已完成') {
-                // 显示回收员名称（无值时显示"未分配"）
-                recyclerNameValue.textContent = order.recyclerName || '未分配';
-                recyclerSection.style.display = 'block';
+                // 显示回收员ID（无值时显示“未分配”）
+                recyclerIdValue.textContent = order.recyclerID || '未分配';
+                recyclerIdElement.style.display = 'block';
             } else {
                 // 其他状态（已预约/已取消）隐藏
-                recyclerSection.style.display = 'none';
+                recyclerIdElement.style.display = 'none';
             }
         }
 

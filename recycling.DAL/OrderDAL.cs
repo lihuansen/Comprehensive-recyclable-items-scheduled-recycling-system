@@ -157,6 +157,7 @@ ORDER BY ac.CategoryID";
                                     UpdatedDate = Convert.ToDateTime(reader["UpdatedDate"]),
                                     RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"])
                                 },
+                                RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
                                 Categories = categories
                             };
                         }
