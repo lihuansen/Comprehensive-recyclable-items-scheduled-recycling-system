@@ -813,6 +813,7 @@ namespace recycling.DAL
                     conn.Open();
                     
                     // 根据是否提供了实际重量来决定SQL语句
+                    // 支持旧订单（TransportStage 为 NULL）的向后兼容
                     string sql;
                     if (actualWeight.HasValue)
                     {
@@ -825,7 +826,7 @@ namespace recycling.DAL
                                 TransportStage = NULL
                             WHERE TransportOrderID = @OrderID
                             AND Status = N'运输中'
-                            AND TransportStage = N'到达送货地点'";
+                            AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
                     }
                     else
                     {
@@ -837,7 +838,7 @@ namespace recycling.DAL
                                 TransportStage = NULL
                             WHERE TransportOrderID = @OrderID
                             AND Status = N'运输中'
-                            AND TransportStage = N'到达送货地点'";
+                            AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
                     }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))

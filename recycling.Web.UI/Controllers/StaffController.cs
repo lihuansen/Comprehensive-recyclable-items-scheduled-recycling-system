@@ -700,10 +700,10 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段必须是"到达送货地点"
-                if (validation.order.TransportStage != "到达送货地点")
+                // 验证运输阶段必须是"到达送货地点"（或 NULL 以支持旧订单）
+                if (validation.order.TransportStage != "到达送货地点" && validation.order.TransportStage != null)
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}，必须先完成前面的步骤" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}，必须先完成前面的步骤" });
                 }
 
                 // 完成运输

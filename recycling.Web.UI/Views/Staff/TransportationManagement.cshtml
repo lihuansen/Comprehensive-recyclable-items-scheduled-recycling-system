@@ -603,6 +603,11 @@
                 actions = `<button class="btn-action btn-complete" onclick="showCompleteModal(${order.TransportOrderID})">
                     <i class="fas fa-check"></i> 运输完成
                 </button>`;
+            } else {
+                // Fallback for null, empty, or unrecognized stages - show complete button as legacy support
+                actions = `<button class="btn-action btn-complete" onclick="showCompleteModal(${order.TransportOrderID})">
+                    <i class="fas fa-check"></i> 运输完成
+                </button>`;
             }
         }
 
