@@ -578,13 +578,43 @@
                 <i class="fas fa-hand-point-right"></i> 接单
             </button>`;
         } else if (order.Status === '已接单') {
-            actions = `<button class="btn-action btn-start" onclick="startTransport(${order.TransportOrderID})">
-                <i class="fas fa-play"></i> 开始运输
+            actions = `<button class="btn-action btn-start" onclick="confirmPickupLocation(${order.TransportOrderID})">
+                <i class="fas fa-map-marker-alt"></i> 确认取货地点
             </button>`;
         } else if (order.Status === '运输中') {
-            actions = `<button class="btn-action btn-complete" onclick="showCompleteModal(${order.TransportOrderID})">
-                <i class="fas fa-check"></i> 完成运输
-            </button>`;
+            // 根据运输阶段显示不同的按钮
+            if (order.TransportStage === '确认取货地点') {
+                actions = `<button class="btn-action btn-start" onclick="arriveAtPickupLocation(${order.TransportOrderID})">
+                    <i class="fas fa-location-arrow"></i> 到达取货地点
+                </button>`;
+            } else if (order.TransportStage === '到达取货地点') {
+                actions = `<button class="btn-action btn-start" onclick="completeLoading(${order.TransportOrderID})">
+                    <i class="fas fa-box"></i> 装货完毕
+                </button>`;
+            } else if (order.TransportStage === '装货完毕') {
+                actions = `<button class="btn-action btn-start" onclick="confirmDeliveryLocation(${order.TransportOrderID})">
+                    <i class="fas fa-map-marked-alt"></i> 确认送货地点
+                </button>`;
+            } else if (order.TransportStage === '确认送货地点') {
+                actions = `<button class="btn-action btn-start" onclick="arriveAtDeliveryLocation(${order.TransportOrderID})">
+                    <i class="fas fa-flag-checkered"></i> 到达送货地点
+                </button>`;
+            } else if (order.TransportStage === '到达送货地点') {
+                actions = `<button class="btn-action btn-complete" onclick="showCompleteModal(${order.TransportOrderID})">
+                    <i class="fas fa-check"></i> 运输完成
+                </button>`;
+            }
+        }
+
+        // 显示当前运输阶段
+        let stageInfo = '';
+        if (order.Status === '运输中' && order.TransportStage) {
+            stageInfo = `
+                <div style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-radius: 8px; border-left: 4px solid #007bff;">
+                    <div class="detail-label"><i class="fas fa-info-circle"></i> 当前运输阶段</div>
+                    <div class="detail-value" style="color: #007bff; font-weight: bold;">${order.TransportStage}</div>
+                </div>
+            `;
         }
 
         return `
@@ -641,6 +671,7 @@
                         </div>
                     </div>
                 </div>
+                ${stageInfo}
                 ${order.SpecialInstructions ? `
                     <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
                         <div class="detail-label"><i class="fas fa-info-circle"></i> 特殊说明</div>
@@ -681,6 +712,126 @@
 
         $.ajax({
             url: '@Url.Action("StartTransport", "Staff")',
+            type: 'POST',
+            data: { 
+                orderId: orderId,
+                __RequestVerificationToken: getAntiForgeryToken()
+            },
+            success: function (response) {
+                if (response.success) {
+                    showAlert('success', response.message);
+                    loadOrders();
+                } else {
+                    showAlert('error', response.message);
+                }
+            },
+            error: function () {
+                showAlert('error', '网络错误，请稍后重试');
+            }
+        });
+    }
+
+    function confirmPickupLocation(orderId) {
+        if (!confirm('确认取货地点吗？确认后将进入运输流程')) return;
+
+        $.ajax({
+            url: '@Url.Action("ConfirmPickupLocation", "Staff")',
+            type: 'POST',
+            data: { 
+                orderId: orderId,
+                __RequestVerificationToken: getAntiForgeryToken()
+            },
+            success: function (response) {
+                if (response.success) {
+                    showAlert('success', response.message);
+                    loadOrders();
+                } else {
+                    showAlert('error', response.message);
+                }
+            },
+            error: function () {
+                showAlert('error', '网络错误，请稍后重试');
+            }
+        });
+    }
+
+    function arriveAtPickupLocation(orderId) {
+        if (!confirm('确认已到达取货地点吗？')) return;
+
+        $.ajax({
+            url: '@Url.Action("ArriveAtPickupLocation", "Staff")',
+            type: 'POST',
+            data: { 
+                orderId: orderId,
+                __RequestVerificationToken: getAntiForgeryToken()
+            },
+            success: function (response) {
+                if (response.success) {
+                    showAlert('success', response.message);
+                    loadOrders();
+                } else {
+                    showAlert('error', response.message);
+                }
+            },
+            error: function () {
+                showAlert('error', '网络错误，请稍后重试');
+            }
+        });
+    }
+
+    function completeLoading(orderId) {
+        if (!confirm('确认装货完毕吗？')) return;
+
+        $.ajax({
+            url: '@Url.Action("CompleteLoading", "Staff")',
+            type: 'POST',
+            data: { 
+                orderId: orderId,
+                __RequestVerificationToken: getAntiForgeryToken()
+            },
+            success: function (response) {
+                if (response.success) {
+                    showAlert('success', response.message);
+                    loadOrders();
+                } else {
+                    showAlert('error', response.message);
+                }
+            },
+            error: function () {
+                showAlert('error', '网络错误，请稍后重试');
+            }
+        });
+    }
+
+    function confirmDeliveryLocation(orderId) {
+        if (!confirm('确认送货地点吗？')) return;
+
+        $.ajax({
+            url: '@Url.Action("ConfirmDeliveryLocation", "Staff")',
+            type: 'POST',
+            data: { 
+                orderId: orderId,
+                __RequestVerificationToken: getAntiForgeryToken()
+            },
+            success: function (response) {
+                if (response.success) {
+                    showAlert('success', response.message);
+                    loadOrders();
+                } else {
+                    showAlert('error', response.message);
+                }
+            },
+            error: function () {
+                showAlert('error', '网络错误，请稍后重试');
+            }
+        });
+    }
+
+    function arriveAtDeliveryLocation(orderId) {
+        if (!confirm('确认已到达送货地点吗？')) return;
+
+        $.ajax({
+            url: '@Url.Action("ArriveAtDeliveryLocation", "Staff")',
             type: 'POST',
             data: { 
                 orderId: orderId,
