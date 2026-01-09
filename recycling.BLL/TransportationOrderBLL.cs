@@ -164,6 +164,7 @@ namespace recycling.BLL
 
         /// <summary>
         /// 开始运输
+        /// DEPRECATED: Use ConfirmPickupLocation instead to follow new workflow
         /// </summary>
         /// <param name="orderId">运输单ID</param>
         /// <returns>是否更新成功</returns>
@@ -220,6 +221,139 @@ namespace recycling.BLL
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"StartTransportation BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 确认取货地点
+        /// </summary>
+        public bool ConfirmPickupLocation(int orderId)
+        {
+            try
+            {
+                if (orderId <= 0)
+                    throw new ArgumentException("运输单ID无效");
+
+                return _dal.ConfirmPickupLocation(orderId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ConfirmPickupLocation BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 到达取货地点
+        /// </summary>
+        public bool ArriveAtPickupLocation(int orderId)
+        {
+            try
+            {
+                if (orderId <= 0)
+                    throw new ArgumentException("运输单ID无效");
+
+                return _dal.ArriveAtPickupLocation(orderId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ArriveAtPickupLocation BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 装货完毕
+        /// </summary>
+        public bool CompleteLoading(int orderId)
+        {
+            try
+            {
+                if (orderId <= 0)
+                    throw new ArgumentException("运输单ID无效");
+
+                // 1. 获取运输单信息以获取回收员ID
+                var order = _dal.GetTransportationOrderById(orderId);
+                if (order == null)
+                {
+                    throw new ArgumentException("运输单不存在");
+                }
+
+                // 2. 完成装货
+                bool result = _dal.CompleteLoading(orderId);
+
+                // 3. 如果更新成功，执行后续操作
+                if (result)
+                {
+                    try
+                    {
+                        // 清空该回收员的暂存点物品
+                        var storagePointBLL = new StoragePointBLL();
+                        storagePointBLL.ClearStoragePointForRecycler(order.RecyclerID);
+                        System.Diagnostics.Debug.WriteLine($"运输单 {order.OrderNumber} 装货完毕，回收员 {order.RecyclerID} 的暂存点物品已清空");
+                    }
+                    catch (Exception clearEx)
+                    {
+                        // 清空暂存点失败不影响运输状态更新，但记录日志
+                        System.Diagnostics.Debug.WriteLine($"清空暂存点失败: {clearEx.Message}");
+                    }
+
+                    try
+                    {
+                        // 发送通知给基地人员
+                        SendTransportNotificationToBase(order);
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        // 通知失败不影响运输状态更新
+                        System.Diagnostics.Debug.WriteLine($"发送运输通知失败: {notifyEx.Message}");
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CompleteLoading BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 确认送货地点
+        /// </summary>
+        public bool ConfirmDeliveryLocation(int orderId)
+        {
+            try
+            {
+                if (orderId <= 0)
+                    throw new ArgumentException("运输单ID无效");
+
+                return _dal.ConfirmDeliveryLocation(orderId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ConfirmDeliveryLocation BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 到达送货地点
+        /// </summary>
+        public bool ArriveAtDeliveryLocation(int orderId)
+        {
+            try
+            {
+                if (orderId <= 0)
+                    throw new ArgumentException("运输单ID无效");
+
+                return _dal.ArriveAtDeliveryLocation(orderId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ArriveAtDeliveryLocation BLL Error: {ex.Message}");
                 throw;
             }
         }

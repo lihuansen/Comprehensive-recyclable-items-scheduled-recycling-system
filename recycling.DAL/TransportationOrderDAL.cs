@@ -228,6 +228,7 @@ namespace recycling.DAL
                                     ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
+                                    TransportStage = reader["TransportStage"] == DBNull.Value ? null : reader["TransportStage"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
                                     PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
@@ -237,7 +238,12 @@ namespace recycling.DAL
                                     CancelReason = reader["CancelReason"] == DBNull.Value ? null : reader["CancelReason"].ToString(),
                                     TransporterNotes = reader["TransporterNotes"] == DBNull.Value ? null : reader["TransporterNotes"].ToString(),
                                     RecyclerRating = reader["RecyclerRating"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["RecyclerRating"]),
-                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString()
+                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString(),
+                                    PickupConfirmedDate = reader["PickupConfirmedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupConfirmedDate"]),
+                                    ArrivedAtPickupDate = reader["ArrivedAtPickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["ArrivedAtPickupDate"]),
+                                    LoadingCompletedDate = reader["LoadingCompletedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["LoadingCompletedDate"]),
+                                    DeliveryConfirmedDate = reader["DeliveryConfirmedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["DeliveryConfirmedDate"]),
+                                    ArrivedAtDeliveryDate = reader["ArrivedAtDeliveryDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["ArrivedAtDeliveryDate"])
                                 };
                             }
                         }
@@ -348,6 +354,7 @@ namespace recycling.DAL
                                     ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
+                                    TransportStage = reader["TransportStage"] == DBNull.Value ? null : reader["TransportStage"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
                                     PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
@@ -357,7 +364,12 @@ namespace recycling.DAL
                                     CancelReason = reader["CancelReason"] == DBNull.Value ? null : reader["CancelReason"].ToString(),
                                     TransporterNotes = reader["TransporterNotes"] == DBNull.Value ? null : reader["TransporterNotes"].ToString(),
                                     RecyclerRating = reader["RecyclerRating"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["RecyclerRating"]),
-                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString()
+                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString(),
+                                    PickupConfirmedDate = reader["PickupConfirmedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupConfirmedDate"]),
+                                    ArrivedAtPickupDate = reader["ArrivedAtPickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["ArrivedAtPickupDate"]),
+                                    LoadingCompletedDate = reader["LoadingCompletedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["LoadingCompletedDate"]),
+                                    DeliveryConfirmedDate = reader["DeliveryConfirmedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["DeliveryConfirmedDate"]),
+                                    ArrivedAtDeliveryDate = reader["ArrivedAtDeliveryDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["ArrivedAtDeliveryDate"])
                                 });
                             }
                         }
@@ -410,6 +422,7 @@ namespace recycling.DAL
         /// <summary>
         /// 开始运输（更新状态为运输中并记录取货时间）
         /// Also moves inventory from StoragePoint to InTransit state
+        /// DEPRECATED: Use ConfirmPickupLocation instead to follow new workflow
         /// </summary>
         public bool StartTransportation(int orderId)
         {
@@ -446,7 +459,9 @@ namespace recycling.DAL
                             string updateOrderSql = @"
                                 UPDATE TransportationOrders 
                                 SET Status = '运输中',
-                                    PickupDate = @PickupDate
+                                    PickupDate = @PickupDate,
+                                    TransportStage = N'确认取货地点',
+                                    PickupConfirmedDate = @PickupDate
                                 WHERE TransportOrderID = @OrderID
                                 AND Status = '已接单'";
 
@@ -508,6 +523,285 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 确认取货地点
+        /// </summary>
+        public bool ConfirmPickupLocation(int orderId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    
+                    using (SqlTransaction transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Get the RecyclerID from the transport order
+                            string getRecyclerSql = @"
+                                SELECT RecyclerID 
+                                FROM TransportationOrders 
+                                WHERE TransportOrderID = @OrderID";
+                            
+                            int recyclerID;
+                            using (SqlCommand cmd = new SqlCommand(getRecyclerSql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@OrderID", orderId);
+                                var result = cmd.ExecuteScalar();
+                                if (result == null)
+                                {
+                                    transaction.Rollback();
+                                    return false;
+                                }
+                                recyclerID = Convert.ToInt32(result);
+                            }
+                            
+                            // 2. Update transport order to "运输中" with stage "确认取货地点"
+                            string updateOrderSql = @"
+                                UPDATE TransportationOrders 
+                                SET Status = N'运输中',
+                                    TransportStage = N'确认取货地点',
+                                    PickupConfirmedDate = @ConfirmedDate
+                                WHERE TransportOrderID = @OrderID
+                                AND Status = N'已接单'";
+
+                            int rowsAffected;
+                            using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@OrderID", orderId);
+                                cmd.Parameters.AddWithValue("@ConfirmedDate", DateTime.Now);
+                                rowsAffected = cmd.ExecuteNonQuery();
+                            }
+                            
+                            if (rowsAffected == 0)
+                            {
+                                transaction.Rollback();
+                                return false;
+                            }
+                            
+                            transaction.Commit();
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            System.Diagnostics.Debug.WriteLine($"Transaction rollback in ConfirmPickupLocation: {ex.Message}");
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ConfirmPickupLocation Error: {ex.Message}");
+                throw new Exception($"确认取货地点失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// 到达取货地点
+        /// </summary>
+        public bool ArriveAtPickupLocation(int orderId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"
+                        UPDATE TransportationOrders 
+                        SET TransportStage = N'到达取货地点',
+                            ArrivedAtPickupDate = @ArrivedDate
+                        WHERE TransportOrderID = @OrderID
+                        AND Status = N'运输中'
+                        AND TransportStage = N'确认取货地点'";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@OrderID", orderId);
+                        cmd.Parameters.AddWithValue("@ArrivedDate", DateTime.Now);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ArriveAtPickupLocation Error: {ex.Message}");
+                throw new Exception($"到达取货地点失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// 装货完毕
+        /// </summary>
+        public bool CompleteLoading(int orderId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    
+                    using (SqlTransaction transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Get the RecyclerID from the transport order
+                            string getRecyclerSql = @"
+                                SELECT RecyclerID 
+                                FROM TransportationOrders 
+                                WHERE TransportOrderID = @OrderID";
+                            
+                            int recyclerID;
+                            using (SqlCommand cmd = new SqlCommand(getRecyclerSql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@OrderID", orderId);
+                                var result = cmd.ExecuteScalar();
+                                if (result == null)
+                                {
+                                    transaction.Rollback();
+                                    return false;
+                                }
+                                recyclerID = Convert.ToInt32(result);
+                            }
+                            
+                            // 2. Update transport stage to "装货完毕"
+                            string updateOrderSql = @"
+                                UPDATE TransportationOrders 
+                                SET TransportStage = N'装货完毕',
+                                    LoadingCompletedDate = @CompletedDate
+                                WHERE TransportOrderID = @OrderID
+                                AND Status = N'运输中'
+                                AND TransportStage = N'到达取货地点'";
+
+                            int rowsAffected;
+                            using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@OrderID", orderId);
+                                cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
+                                rowsAffected = cmd.ExecuteNonQuery();
+                            }
+                            
+                            if (rowsAffected == 0)
+                            {
+                                transaction.Rollback();
+                                return false;
+                            }
+                            
+                            // 3. Move inventory from StoragePoint to InTransit
+                            // This ensures goods are not visible in storage point during transport
+                            string moveInventorySql = @"
+                                UPDATE Inventory 
+                                SET InventoryType = N'InTransit'
+                                WHERE RecyclerID = @RecyclerID 
+                                  AND InventoryType = N'StoragePoint'";
+
+                            int movedRows;
+                            using (SqlCommand cmd = new SqlCommand(moveInventorySql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@RecyclerID", recyclerID);
+                                movedRows = cmd.ExecuteNonQuery();
+                                System.Diagnostics.Debug.WriteLine($"Moved {movedRows} inventory items from StoragePoint to InTransit for recycler {recyclerID}");
+                            }
+                            
+                            // Note: It's valid to have 0 rows if the storage point is empty
+                            if (movedRows == 0)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Warning: No inventory items moved for recycler {recyclerID}. Storage point may be empty.");
+                            }
+                            
+                            transaction.Commit();
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            System.Diagnostics.Debug.WriteLine($"Transaction rollback in CompleteLoading: {ex.Message}");
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CompleteLoading Error: {ex.Message}");
+                throw new Exception($"装货完毕失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// 确认送货地点
+        /// </summary>
+        public bool ConfirmDeliveryLocation(int orderId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"
+                        UPDATE TransportationOrders 
+                        SET TransportStage = N'确认送货地点',
+                            DeliveryConfirmedDate = @ConfirmedDate
+                        WHERE TransportOrderID = @OrderID
+                        AND Status = N'运输中'
+                        AND TransportStage = N'装货完毕'";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@OrderID", orderId);
+                        cmd.Parameters.AddWithValue("@ConfirmedDate", DateTime.Now);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ConfirmDeliveryLocation Error: {ex.Message}");
+                throw new Exception($"确认送货地点失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// 到达送货地点
+        /// </summary>
+        public bool ArriveAtDeliveryLocation(int orderId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"
+                        UPDATE TransportationOrders 
+                        SET TransportStage = N'到达送货地点',
+                            ArrivedAtDeliveryDate = @ArrivedDate
+                        WHERE TransportOrderID = @OrderID
+                        AND Status = N'运输中'
+                        AND TransportStage = N'确认送货地点'";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@OrderID", orderId);
+                        cmd.Parameters.AddWithValue("@ArrivedDate", DateTime.Now);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ArriveAtDeliveryLocation Error: {ex.Message}");
+                throw new Exception($"到达送货地点失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
         /// 完成运输（更新状态为已完成并记录完成时间）
         /// </summary>
         public bool CompleteTransportation(int orderId, decimal? actualWeight)
@@ -519,27 +813,32 @@ namespace recycling.DAL
                     conn.Open();
                     
                     // 根据是否提供了实际重量来决定SQL语句
+                    // 支持旧订单（TransportStage 为 NULL）的向后兼容
                     string sql;
                     if (actualWeight.HasValue)
                     {
                         sql = @"
                             UPDATE TransportationOrders 
-                            SET Status = '已完成',
+                            SET Status = N'已完成',
                                 DeliveryDate = @DeliveryDate,
                                 CompletedDate = @CompletedDate,
-                                ActualWeight = @ActualWeight
+                                ActualWeight = @ActualWeight,
+                                TransportStage = NULL
                             WHERE TransportOrderID = @OrderID
-                            AND Status = '运输中'";
+                            AND Status = N'运输中'
+                            AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
                     }
                     else
                     {
                         sql = @"
                             UPDATE TransportationOrders 
-                            SET Status = '已完成',
+                            SET Status = N'已完成',
                                 DeliveryDate = @DeliveryDate,
-                                CompletedDate = @CompletedDate
+                                CompletedDate = @CompletedDate,
+                                TransportStage = NULL
                             WHERE TransportOrderID = @OrderID
-                            AND Status = '运输中'";
+                            AND Status = N'运输中'
+                            AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
                     }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))

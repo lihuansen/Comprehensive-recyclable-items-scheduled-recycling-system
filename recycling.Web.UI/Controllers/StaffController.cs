@@ -552,6 +552,7 @@ namespace recycling.Web.UI.Controllers
                         o.ItemCategories,
                         o.SpecialInstructions,
                         o.Status,
+                        o.TransportStage,
                         CreatedDate = o.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
                         AcceptedDate = o.AcceptedDate?.ToString("yyyy-MM-dd HH:mm"),
                         PickupDate = o.PickupDate?.ToString("yyyy-MM-dd HH:mm"),
@@ -699,12 +700,247 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
+                // 验证运输阶段必须是"到达送货地点"（或 NULL 以支持旧订单）
+                if (validation.order.TransportStage != "到达送货地点" && validation.order.TransportStage != null)
+                {
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}，必须先完成前面的步骤" });
+                }
+
                 // 完成运输
                 bool result = _transportationOrderBLL.CompleteTransportation(orderId, actualWeight);
 
                 if (result)
                 {
                     return Json(new { success = true, message = "运输已完成" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "操作失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"操作失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 确认取货地点（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult ConfirmPickupLocation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "已接单");
+                if (!validation.success)
+                {
+                    return Json(new { success = false, message = validation.message });
+                }
+
+                // 确认取货地点
+                bool result = _transportationOrderBLL.ConfirmPickupLocation(orderId);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "已确认取货地点" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "操作失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"操作失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 到达取货地点（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult ArriveAtPickupLocation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "运输中");
+                if (!validation.success)
+                {
+                    return Json(new { success = false, message = validation.message });
+                }
+
+                // 验证运输阶段
+                if (validation.order.TransportStage != "确认取货地点")
+                {
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
+                }
+
+                // 到达取货地点
+                bool result = _transportationOrderBLL.ArriveAtPickupLocation(orderId);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "已到达取货地点" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "操作失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"操作失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 装货完毕（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult CompleteLoading(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "运输中");
+                if (!validation.success)
+                {
+                    return Json(new { success = false, message = validation.message });
+                }
+
+                // 验证运输阶段
+                if (validation.order.TransportStage != "到达取货地点")
+                {
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
+                }
+
+                // 装货完毕
+                bool result = _transportationOrderBLL.CompleteLoading(orderId);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "装货完毕" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "操作失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"操作失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 确认送货地点（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult ConfirmDeliveryLocation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "运输中");
+                if (!validation.success)
+                {
+                    return Json(new { success = false, message = validation.message });
+                }
+
+                // 验证运输阶段
+                if (validation.order.TransportStage != "装货完毕")
+                {
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
+                }
+
+                // 确认送货地点
+                bool result = _transportationOrderBLL.ConfirmDeliveryLocation(orderId);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "已确认送货地点" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "操作失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"操作失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 到达送货地点（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult ArriveAtDeliveryLocation(int orderId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+
+                // 验证运输单权限和状态
+                var validation = ValidateTransportationOrderAccess(orderId, transporter.TransporterID, "运输中");
+                if (!validation.success)
+                {
+                    return Json(new { success = false, message = validation.message });
+                }
+
+                // 验证运输阶段
+                if (validation.order.TransportStage != "确认送货地点")
+                {
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
+                }
+
+                // 到达送货地点
+                bool result = _transportationOrderBLL.ArriveAtDeliveryLocation(orderId);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "已到达送货地点" });
                 }
                 else
                 {
