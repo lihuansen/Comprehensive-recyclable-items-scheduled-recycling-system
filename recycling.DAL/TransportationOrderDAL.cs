@@ -636,7 +636,6 @@ namespace recycling.DAL
                 throw new Exception($"开始运输失败: {ex.Message}", ex);
             }
         }
-        }
 
         /// <summary>
         /// 确认取货地点
