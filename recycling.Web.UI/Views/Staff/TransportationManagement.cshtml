@@ -738,7 +738,7 @@
     }
 
     function confirmPickupLocation(orderId) {
-        if (!confirm('确认取货地点吗？确认后将进入运输流程')) return;
+        if (!confirm('确认收货地点吗？确认后将进入运输流程')) return;
 
         $.ajax({
             url: '@Url.Action("ConfirmPickupLocation", "Staff")',
@@ -762,7 +762,7 @@
     }
 
     function arriveAtPickupLocation(orderId) {
-        if (!confirm('确认已到达取货地点吗？')) return;
+        if (!confirm('确认已到达收货地点吗？')) return;
 
         $.ajax({
             url: '@Url.Action("ArriveAtPickupLocation", "Staff")',
