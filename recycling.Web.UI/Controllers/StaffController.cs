@@ -788,10 +788,10 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段
-                if (validation.order.TransportStage != "确认收货地点")
+                // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
+                if (validation.order.TransportStage != null && validation.order.TransportStage != "确认收货地点")
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
                 }
 
                 // 到达收货地点
@@ -835,10 +835,10 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段
-                if (validation.order.TransportStage != "到达收货地点")
+                // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
+                if (validation.order.TransportStage != null && validation.order.TransportStage != "到达收货地点")
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
                 }
 
                 // 装货完毕
@@ -882,10 +882,10 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段
-                if (validation.order.TransportStage != "装货完毕")
+                // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
+                if (validation.order.TransportStage != null && validation.order.TransportStage != "装货完毕")
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
                 }
 
                 // 确认送货地点
@@ -929,10 +929,10 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段
-                if (validation.order.TransportStage != "确认送货地点")
+                // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
+                if (validation.order.TransportStage != null && validation.order.TransportStage != "确认送货地点")
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
                 }
 
                 // 到达送货地点

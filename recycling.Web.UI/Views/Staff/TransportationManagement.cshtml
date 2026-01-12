@@ -605,9 +605,12 @@
                     <i class="fas fa-check"></i> 运输完成
                 </button>`;
             } else {
-                // Fallback for null, empty, or unrecognized stages - show complete button as legacy support
-                actions = `<button class="btn-action btn-complete" onclick="showCompleteModal(${order.TransportOrderID})">
-                    <i class="fas fa-check"></i> 运输完成
+                // Fallback: 当TransportStage为null或未识别时，默认显示第一阶段按钮（到达收货地点）
+                // 这确保了即使数据库没有TransportStage列，工作流程也能正常进行
+                // Fallback: When TransportStage is null or unrecognized, default to first stage button (arrive at pickup location)
+                // This ensures the workflow continues properly even if the database lacks the TransportStage column
+                actions = `<button class="btn-action btn-start" onclick="arriveAtPickupLocation(${order.TransportOrderID})">
+                    <i class="fas fa-location-arrow"></i> 到达收货地点
                 </button>`;
             }
         }
