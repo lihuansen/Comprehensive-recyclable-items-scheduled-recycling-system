@@ -68,54 +68,7 @@ namespace recycling.DAL
         /// 检查数据库表中是否存在指定列
         /// Check if a column exists in the database table
         /// Results are cached to improve performance
-        /// </summary>
-        private bool ColumnExistsInTable(SqlConnection conn, string tableName, string columnName)
-        {
-            string cacheKey = $"{tableName}.{columnName}";
-            
-            lock (_cacheLock)
-            {
-                if (_columnExistsCache.ContainsKey(cacheKey))
-                {
-                    return _columnExistsCache[cacheKey];
-                }
-            }
-            
-            try
-            {
-                string sql = @"
-                    SELECT COUNT(*) 
-                    FROM INFORMATION_SCHEMA.COLUMNS 
-                    WHERE TABLE_NAME = @TableName 
-                    AND COLUMN_NAME = @ColumnName";
-                
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@TableName", tableName);
-                    cmd.Parameters.AddWithValue("@ColumnName", columnName);
-                    
-                    int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    bool exists = count > 0;
-                    
-                    lock (_cacheLock)
-                    {
-                        _columnExistsCache[cacheKey] = exists;
-                    }
-                    
-                    return exists;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"ColumnExistsInTable Error: {ex.Message}");
-                // If we can't check, assume column doesn't exist to avoid errors
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 检查数据库表中是否存在指定列（带事务支持）
-        /// Check if a column exists in the database table with transaction support
+        /// Supports both transactional and non-transactional contexts
         /// </summary>
         private bool ColumnExistsInTable(SqlConnection conn, SqlTransaction transaction, string tableName, string columnName)
         {
@@ -137,6 +90,7 @@ namespace recycling.DAL
                     WHERE TABLE_NAME = @TableName 
                     AND COLUMN_NAME = @ColumnName";
                 
+                // SqlCommand constructor accepts null for transaction parameter
                 using (SqlCommand cmd = new SqlCommand(sql, conn, transaction))
                 {
                     cmd.Parameters.AddWithValue("@TableName", tableName);
