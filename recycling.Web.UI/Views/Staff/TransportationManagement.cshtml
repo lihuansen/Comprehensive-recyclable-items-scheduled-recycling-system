@@ -578,16 +578,17 @@
                 <i class="fas fa-hand-point-right"></i> 接单
             </button>`;
         } else if (order.Status === '已接单') {
+            // 已接单状态下，显示确认收货地点按钮（无论TransportStage是'接单'还是NULL都显示相同按钮，保持向后兼容）
             actions = `<button class="btn-action btn-start" onclick="confirmPickupLocation(${order.TransportOrderID})">
-                <i class="fas fa-map-marker-alt"></i> 确认取货地点
+                <i class="fas fa-map-marker-alt"></i> 确认收货地点
             </button>`;
         } else if (order.Status === '运输中') {
             // 根据运输阶段显示不同的按钮
-            if (order.TransportStage === '确认取货地点') {
+            if (order.TransportStage === '确认收货地点') {
                 actions = `<button class="btn-action btn-start" onclick="arriveAtPickupLocation(${order.TransportOrderID})">
-                    <i class="fas fa-location-arrow"></i> 到达取货地点
+                    <i class="fas fa-location-arrow"></i> 到达收货地点
                 </button>`;
-            } else if (order.TransportStage === '到达取货地点') {
+            } else if (order.TransportStage === '到达收货地点') {
                 actions = `<button class="btn-action btn-start" onclick="completeLoading(${order.TransportOrderID})">
                     <i class="fas fa-box"></i> 装货完毕
                 </button>`;
@@ -737,7 +738,7 @@
     }
 
     function confirmPickupLocation(orderId) {
-        if (!confirm('确认取货地点吗？确认后将进入运输流程')) return;
+        if (!confirm('确认收货地点吗？确认后将进入运输流程')) return;
 
         $.ajax({
             url: '@Url.Action("ConfirmPickupLocation", "Staff")',
@@ -761,7 +762,7 @@
     }
 
     function arriveAtPickupLocation(orderId) {
-        if (!confirm('确认已到达取货地点吗？')) return;
+        if (!confirm('确认已到达收货地点吗？')) return;
 
         $.ajax({
             url: '@Url.Action("ArriveAtPickupLocation", "Staff")',
