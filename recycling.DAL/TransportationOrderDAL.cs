@@ -18,6 +18,9 @@ namespace recycling.DAL
         /// <summary>
         /// 安全地检查列是否存在于DataReader中
         /// Safely check if a column exists in the DataReader
+        /// Note: For better performance in high-volume scenarios, consider caching column ordinals
+        /// in a HashSet at the beginning of each query method. Current implementation prioritizes
+        /// simplicity and backward compatibility.
         /// </summary>
         private bool ColumnExists(SqlDataReader reader, string columnName)
         {
@@ -52,7 +55,8 @@ namespace recycling.DAL
             if (!ColumnExists(reader, columnName))
                 return null;
             
-            return reader[columnName] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader[columnName]);
+            var value = reader[columnName];
+            return value == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(value);
         }
 
         /// <summary>
