@@ -841,7 +841,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                setClauses.Add("TransportStage = N'装货完毕'");
+                                setClauses.Add("TransportStage = N'装货完成'");
                             }
                             
                             if (hasLoadingCompletedDate)
@@ -980,7 +980,8 @@ namespace recycling.DAL
                     
                     if (hasTransportStage)
                     {
-                        sql += " AND TransportStage = N'装货完毕'";
+                        // Accept both "装货完成" (new) and "装货完毕" (old) for backward compatibility
+                        sql += " AND (TransportStage = N'装货完成' OR TransportStage = N'装货完毕')";
                     }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))

@@ -883,7 +883,10 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
-                if (validation.order.TransportStage != null && validation.order.TransportStage != "装货完毕")
+                // 接受"装货完成"（新）和"装货完毕"（旧）两种说法
+                if (validation.order.TransportStage != null && 
+                    validation.order.TransportStage != "装货完成" && 
+                    validation.order.TransportStage != "装货完毕")
                 {
                     return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
                 }

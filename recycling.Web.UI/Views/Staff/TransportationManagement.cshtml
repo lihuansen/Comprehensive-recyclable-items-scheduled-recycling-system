@@ -578,21 +578,22 @@
                 <i class="fas fa-hand-point-right"></i> 接单
             </button>`;
         } else if (order.Status === '已接单') {
-            // 已接单状态下，显示确认收货地点按钮（无论TransportStage是NULL还是其他值都显示相同按钮，保持向后兼容）
+            // 已接单状态下，显示确认取货地点按钮（无论TransportStage是NULL还是其他值都显示相同按钮，保持向后兼容）
             actions = `<button class="btn-action btn-start" onclick="confirmPickupLocation(${order.TransportOrderID})">
-                <i class="fas fa-map-marker-alt"></i> 确认收货地点
+                <i class="fas fa-map-marker-alt"></i> 确认取货地点
             </button>`;
         } else if (order.Status === '运输中') {
             // 根据运输阶段显示不同的按钮
             if (order.TransportStage === '确认取货地点') {
                 actions = `<button class="btn-action btn-start" onclick="arriveAtPickupLocation(${order.TransportOrderID})">
-                    <i class="fas fa-location-arrow"></i> 到达收货地点
+                    <i class="fas fa-location-arrow"></i> 到达取货地点
                 </button>`;
             } else if (order.TransportStage === '到达取货地点') {
                 actions = `<button class="btn-action btn-start" onclick="completeLoading(${order.TransportOrderID})">
                     <i class="fas fa-box"></i> 装货完成
                 </button>`;
-            } else if (order.TransportStage === '装货完毕') {
+            } else if (order.TransportStage === '装货完成' || order.TransportStage === '装货完毕') {
+                // 支持两种说法：装货完成（新）和装货完毕（旧），向后兼容
                 actions = `<button class="btn-action btn-start" onclick="confirmDeliveryLocation(${order.TransportOrderID})">
                     <i class="fas fa-map-marked-alt"></i> 确认送货地点
                 </button>`;
@@ -605,12 +606,12 @@
                     <i class="fas fa-check"></i> 运输完成
                 </button>`;
             } else {
-                // Fallback: 当TransportStage为null或未识别时，默认显示第一阶段按钮（到达收货地点）
+                // Fallback: 当TransportStage为null或未识别时，默认显示第一阶段按钮（到达取货地点）
                 // 这确保了即使数据库没有TransportStage列，工作流程也能正常进行
                 // Fallback: When TransportStage is null or unrecognized, default to first stage button (arrive at pickup location)
                 // This ensures the workflow continues properly even if the database lacks the TransportStage column
                 actions = `<button class="btn-action btn-start" onclick="arriveAtPickupLocation(${order.TransportOrderID})">
-                    <i class="fas fa-location-arrow"></i> 到达收货地点
+                    <i class="fas fa-location-arrow"></i> 到达取货地点
                 </button>`;
             }
         }
