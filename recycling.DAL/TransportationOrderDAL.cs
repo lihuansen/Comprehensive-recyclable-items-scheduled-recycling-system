@@ -163,6 +163,7 @@ namespace recycling.DAL
                                     ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
+                                    TransportStage = reader["TransportStage"] == DBNull.Value ? null : reader["TransportStage"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
                                     PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
@@ -172,7 +173,12 @@ namespace recycling.DAL
                                     CancelReason = reader["CancelReason"] == DBNull.Value ? null : reader["CancelReason"].ToString(),
                                     TransporterNotes = reader["TransporterNotes"] == DBNull.Value ? null : reader["TransporterNotes"].ToString(),
                                     RecyclerRating = reader["RecyclerRating"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["RecyclerRating"]),
-                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString()
+                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString(),
+                                    PickupConfirmedDate = reader["PickupConfirmedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupConfirmedDate"]),
+                                    ArrivedAtPickupDate = reader["ArrivedAtPickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["ArrivedAtPickupDate"]),
+                                    LoadingCompletedDate = reader["LoadingCompletedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["LoadingCompletedDate"]),
+                                    DeliveryConfirmedDate = reader["DeliveryConfirmedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["DeliveryConfirmedDate"]),
+                                    ArrivedAtDeliveryDate = reader["ArrivedAtDeliveryDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["ArrivedAtDeliveryDate"])
                                 });
                             }
                         }
