@@ -502,22 +502,13 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Check if TransportStage column exists for backward compatibility
-                    // If the column exists, set initial stage to '接单'; otherwise just update status
-                    bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
-                    
-                    // Build dynamic UPDATE SQL based on available columns
+                    // Build UPDATE SQL
+                    // Note: We don't set TransportStage here because '接单' is not in the database constraint
+                    // The stage will be set when ConfirmPickupLocation is called
                     string sql = @"
                         UPDATE TransportationOrders 
                         SET Status = N'已接单',
-                            AcceptedDate = @AcceptedDate";
-                    
-                    if (hasTransportStage)
-                    {
-                        sql += ", TransportStage = N'接单'";
-                    }
-                    
-                    sql += @"
+                            AcceptedDate = @AcceptedDate
                         WHERE TransportOrderID = @OrderID
                         AND Status = N'待接单'";
 
@@ -583,7 +574,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += ", TransportStage = N'确认收货地点'";
+                                updateOrderSql += ", TransportStage = N'确认取货地点'";
                             }
                             
                             if (hasPickupConfirmedDate)
@@ -693,7 +684,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += ", TransportStage = N'确认收货地点'";
+                                updateOrderSql += ", TransportStage = N'确认取货地点'";
                             }
                             
                             if (hasPickupConfirmedDate)
@@ -762,7 +753,7 @@ namespace recycling.DAL
                     
                     if (hasTransportStage)
                     {
-                        setClauses.Add("TransportStage = N'到达收货地点'");
+                        setClauses.Add("TransportStage = N'到达取货地点'");
                     }
                     
                     if (hasArrivedAtPickupDate)
@@ -782,7 +773,7 @@ namespace recycling.DAL
                     
                     if (hasTransportStage)
                     {
-                        sql += " AND TransportStage = N'确认收货地点'";
+                        sql += " AND TransportStage = N'确认取货地点'";
                     }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -850,7 +841,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                setClauses.Add("TransportStage = N'装货完毕'");
+                                setClauses.Add("TransportStage = N'装货完成'");
                             }
                             
                             if (hasLoadingCompletedDate)
@@ -872,7 +863,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += " AND TransportStage = N'到达收货地点'";
+                                updateOrderSql += " AND TransportStage = N'到达取货地点'";
                             }
 
                             int rowsAffected = 0;
@@ -989,7 +980,8 @@ namespace recycling.DAL
                     
                     if (hasTransportStage)
                     {
-                        sql += " AND TransportStage = N'装货完毕'";
+                        // Accept both "装货完成" (new) and "装货完毕" (old) for backward compatibility
+                        sql += " AND (TransportStage = N'装货完成' OR TransportStage = N'装货完毕')";
                     }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
