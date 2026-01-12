@@ -18,15 +18,26 @@
 -- 创建日期: 2026-01-12
 -- ==============================================================================
 
--- 尝试使用主数据库名称
-USE RecyclingSystemDB;
-GO
-
--- 如果主数据库不存在，尝试备用名称
-IF DB_ID('RecyclingSystemDB') IS NULL
+-- 检查数据库是否存在并使用
+-- Check if database exists and use it
+IF DB_ID('RecyclingSystemDB') IS NOT NULL
 BEGIN
-    PRINT '警告: RecyclingSystemDB 数据库不存在，尝试使用 RecyclingDB';
+    USE RecyclingSystemDB;
+END
+ELSE IF DB_ID('RecyclingDB') IS NOT NULL
+BEGIN
+    PRINT '警告: RecyclingSystemDB 数据库不存在，使用 RecyclingDB';
+    PRINT 'Warning: RecyclingSystemDB database does not exist, using RecyclingDB';
     USE RecyclingDB;
+END
+ELSE
+BEGIN
+    PRINT '❌ 错误: 找不到 RecyclingSystemDB 或 RecyclingDB 数据库！';
+    PRINT '❌ Error: Cannot find RecyclingSystemDB or RecyclingDB database!';
+    PRINT '   请确认数据库名称并手动修改脚本开头的 USE 语句';
+    PRINT '   Please confirm the database name and manually modify the USE statement at the beginning of the script';
+    RAISERROR('Database not found', 16, 1);
+    RETURN;
 END
 GO
 
@@ -252,16 +263,18 @@ GO
 -- 步骤 13: 添加 TransportStage 值约束（如果不存在）
 -- ==============================================================================
 PRINT '检查 TransportStage 约束...';
+-- Note: Using Chinese values as they are required by the application business logic
+-- The application uses these specific Chinese strings to track transport stages
 IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_TransportationOrders_TransportStage')
 BEGIN
     ALTER TABLE [dbo].[TransportationOrders]
     ADD CONSTRAINT CK_TransportationOrders_TransportStage 
         CHECK ([TransportStage] IS NULL OR [TransportStage] IN (
-            N'确认取货地点', 
-            N'到达取货地点', 
-            N'装货完毕', 
-            N'确认送货地点', 
-            N'到达送货地点'
+            N'确认取货地点',  -- Confirm pickup location
+            N'到达取货地点',  -- Arrive at pickup location
+            N'装货完毕',      -- Loading completed
+            N'确认送货地点',  -- Confirm delivery location
+            N'到达送货地点'   -- Arrive at delivery location
         ));
     
     PRINT '  ✓ TransportStage 约束添加成功';
@@ -321,6 +334,7 @@ BEGIN
         IS_NULLABLE AS '可空'
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TransportationOrders'
+        AND TABLE_SCHEMA = 'dbo'
     ORDER BY ORDINAL_POSITION;
 END
 
