@@ -18,7 +18,26 @@
 -- 创建日期: 2026-01-12
 -- ==============================================================================
 
-USE RecyclingSystemDB;
+-- 检查数据库是否存在并使用
+-- Check if database exists and use it
+IF DB_ID('RecyclingSystemDB') IS NOT NULL
+BEGIN
+    USE RecyclingSystemDB;
+    PRINT 'Using database: RecyclingSystemDB';
+END
+ELSE IF DB_ID('RecyclingDB') IS NOT NULL
+BEGIN
+    USE RecyclingDB;
+    PRINT 'Using database: RecyclingDB';
+    PRINT 'Warning: RecyclingSystemDB not found, using RecyclingDB instead';
+END
+ELSE
+BEGIN
+    PRINT '❌ Error: Cannot find RecyclingSystemDB or RecyclingDB database!';
+    PRINT '❌ 错误: 找不到 RecyclingSystemDB 或 RecyclingDB 数据库！';
+    RAISERROR('Database not found', 16, 1);
+    RETURN;
+END
 GO
 
 PRINT '======================================================================';
