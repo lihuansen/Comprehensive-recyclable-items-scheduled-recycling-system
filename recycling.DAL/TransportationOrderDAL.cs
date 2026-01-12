@@ -650,7 +650,7 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 确认取货地点
+        /// 确认收货地点
         /// </summary>
         public bool ConfirmPickupLocation(int orderId)
         {
@@ -736,12 +736,12 @@ namespace recycling.DAL
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"ConfirmPickupLocation Error: {ex.Message}");
-                throw new Exception($"确认取货地点失败: {ex.Message}", ex);
+                throw new Exception($"确认收货地点失败: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// 到达取货地点
+        /// 到达收货地点
         /// </summary>
         public bool ArriveAtPickupLocation(int orderId)
         {
@@ -801,7 +801,7 @@ namespace recycling.DAL
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"ArriveAtPickupLocation Error: {ex.Message}");
-                throw new Exception($"到达取货地点失败: {ex.Message}", ex);
+                throw new Exception($"到达收货地点失败: {ex.Message}", ex);
             }
         }
 

@@ -226,7 +226,7 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 确认取货地点
+        /// 确认收货地点
         /// </summary>
         public bool ConfirmPickupLocation(int orderId)
         {
@@ -245,7 +245,7 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 到达取货地点
+        /// 到达收货地点
         /// </summary>
         public bool ArriveAtPickupLocation(int orderId)
         {
