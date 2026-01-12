@@ -582,7 +582,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += ", TransportStage = N'确认取货地点'";
+                                updateOrderSql += ", TransportStage = N'确认收货地点'";
                             }
                             
                             if (hasPickupConfirmedDate)
