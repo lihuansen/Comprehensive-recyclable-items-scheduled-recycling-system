@@ -96,7 +96,6 @@
     <Compile Include="StoragePointDetail.cs" />
     <Compile Include="StoragePointSummary.cs" />
     <Compile Include="SuperAdmins.cs" />
-    <Compile Include="TransportationOrders.cs" />
     <Compile Include="TransportationOrdrers.cs" />
     <Compile Include="TransporterProfileViewModel.cs" />
     <Compile Include="Transporters.cs" />
