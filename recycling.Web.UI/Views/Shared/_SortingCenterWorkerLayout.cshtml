@@ -17,7 +17,7 @@
         .navbar.navbar-inverse {
             padding-top: 25px;
             min-height: 100px;
-            background-color: #222;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .navbar-nav {
@@ -38,11 +38,11 @@
             transform: rotate(45deg);
             width: 90px;
             height: 90px;
-            background-color: #222;
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a3d92 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #9d9d9d;
+            border: 2px solid rgba(255, 255, 255, 0.8);
             margin: 0 25px;
             position: relative;
             top: -8px;
@@ -50,7 +50,7 @@
 
         .diamond-text {
             transform: rotate(-45deg);
-            color: #9d9d9d;
+            color: rgba(255, 255, 255, 0.95);
             font-weight: bold;
             font-size: 22px;
             text-decoration: none;
@@ -71,8 +71,9 @@
             }
 
         .diamond-nav:hover {
-            background-color: #333;
+            background: linear-gradient(135deg, #4e5fc8 0%, #5a2d82 100%);
             border-color: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
 
             .diamond-nav:hover .diamond-text {
@@ -83,12 +84,13 @@
             font-size: 18px;
             padding: 12px 18px;
             font-weight: bold;
-            color: #9d9d9d !important;
+            color: rgba(255, 255, 255, 0.9) !important;
         }
 
             .normal-nav a:hover {
                 color: white !important;
-                background-color: transparent !important;
+                background-color: rgba(255, 255, 255, 0.1) !important;
+                border-radius: 8px;
             }
 
         .normal-nav {
@@ -135,16 +137,16 @@
             right: 15px;
             top: 15px;
             z-index: 1001;
-            color: #9d9d9d;
+            color: rgba(255, 255, 255, 0.9);
         }
 
             .navbar-user-info a {
-                color: #9d9d9d !important;
+                color: rgba(255, 255, 255, 0.9) !important;
                 text-decoration: none;
                 font-size: 14px;
                 padding: 5px 10px;
                 margin-left: 10px;
-                border: 1px solid #9d9d9d;
+                border: 1px solid rgba(255, 255, 255, 0.7);
                 border-radius: 3px;
                 transition: all 0.3s;
             }
@@ -152,6 +154,7 @@
                 .navbar-user-info a:hover {
                     color: white !important;
                     border-color: white;
+                    background-color: rgba(255, 255, 255, 0.1);
                 }
 
         @@media (max-width: 992px) {
