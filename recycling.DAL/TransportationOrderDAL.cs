@@ -14,6 +14,11 @@ namespace recycling.DAL
     public class TransportationOrderDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
+        
+        // Cache for column existence checks to avoid repeated database queries
+        // Using a static dictionary to share cache across all instances
+        private static readonly Dictionary<string, bool> _columnExistsCache = new Dictionary<string, bool>();
+        private static readonly object _cacheLock = new object();
 
         /// <summary>
         /// 安全地检查列是否存在于DataReader中
@@ -57,6 +62,103 @@ namespace recycling.DAL
             
             var value = reader[columnName];
             return value == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(value);
+        }
+
+        /// <summary>
+        /// 检查数据库表中是否存在指定列
+        /// Check if a column exists in the database table
+        /// Results are cached to improve performance
+        /// </summary>
+        private bool ColumnExistsInTable(SqlConnection conn, string tableName, string columnName)
+        {
+            string cacheKey = $"{tableName}.{columnName}";
+            
+            lock (_cacheLock)
+            {
+                if (_columnExistsCache.ContainsKey(cacheKey))
+                {
+                    return _columnExistsCache[cacheKey];
+                }
+            }
+            
+            try
+            {
+                string sql = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = @TableName 
+                    AND COLUMN_NAME = @ColumnName";
+                
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TableName", tableName);
+                    cmd.Parameters.AddWithValue("@ColumnName", columnName);
+                    
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                    bool exists = count > 0;
+                    
+                    lock (_cacheLock)
+                    {
+                        _columnExistsCache[cacheKey] = exists;
+                    }
+                    
+                    return exists;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ColumnExistsInTable Error: {ex.Message}");
+                // If we can't check, assume column doesn't exist to avoid errors
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 检查数据库表中是否存在指定列（带事务支持）
+        /// Check if a column exists in the database table with transaction support
+        /// </summary>
+        private bool ColumnExistsInTable(SqlConnection conn, SqlTransaction transaction, string tableName, string columnName)
+        {
+            string cacheKey = $"{tableName}.{columnName}";
+            
+            lock (_cacheLock)
+            {
+                if (_columnExistsCache.ContainsKey(cacheKey))
+                {
+                    return _columnExistsCache[cacheKey];
+                }
+            }
+            
+            try
+            {
+                string sql = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = @TableName 
+                    AND COLUMN_NAME = @ColumnName";
+                
+                using (SqlCommand cmd = new SqlCommand(sql, conn, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@TableName", tableName);
+                    cmd.Parameters.AddWithValue("@ColumnName", columnName);
+                    
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                    bool exists = count > 0;
+                    
+                    lock (_cacheLock)
+                    {
+                        _columnExistsCache[cacheKey] = exists;
+                    }
+                    
+                    return exists;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ColumnExistsInTable Error: {ex.Message}");
+                // If we can't check, assume column doesn't exist to avoid errors
+                return false;
+            }
         }
 
         /// <summary>
@@ -505,15 +607,24 @@ namespace recycling.DAL
                                 recyclerID = Convert.ToInt32(result);
                             }
                             
-                            // 2. Update transport order status to "运输中"
-                            string updateOrderSql = @"
-                                UPDATE TransportationOrders 
-                                SET Status = '运输中',
-                                    PickupDate = @PickupDate,
-                                    TransportStage = N'确认取货地点',
-                                    PickupConfirmedDate = @PickupDate
-                                WHERE TransportOrderID = @OrderID
-                                AND Status = '已接单'";
+                            // 2. Check which columns exist
+                            bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
+                            bool hasPickupConfirmedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupConfirmedDate");
+                            
+                            // 3. Build dynamic UPDATE SQL based on available columns
+                            string updateOrderSql = "UPDATE TransportationOrders SET Status = '运输中', PickupDate = @PickupDate";
+                            
+                            if (hasTransportStage)
+                            {
+                                updateOrderSql += ", TransportStage = N'确认取货地点'";
+                            }
+                            
+                            if (hasPickupConfirmedDate)
+                            {
+                                updateOrderSql += ", PickupConfirmedDate = @PickupDate";
+                            }
+                            
+                            updateOrderSql += " WHERE TransportOrderID = @OrderID AND Status = '已接单'";
 
                             int rowsAffected;
                             using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
@@ -529,7 +640,7 @@ namespace recycling.DAL
                                 return false;
                             }
                             
-                            // 3. Move inventory from StoragePoint to InTransit
+                            // 4. Move inventory from StoragePoint to InTransit
                             // This ensures goods are not visible in storage point during transport
                             string moveInventorySql = @"
                                 UPDATE Inventory 
@@ -571,6 +682,7 @@ namespace recycling.DAL
                 throw new Exception($"开始运输失败: {ex.Message}", ex);
             }
         }
+        }
 
         /// <summary>
         /// 确认取货地点
@@ -606,20 +718,35 @@ namespace recycling.DAL
                                 recyclerID = Convert.ToInt32(result);
                             }
                             
-                            // 2. Update transport order to "运输中" with stage "确认取货地点"
-                            string updateOrderSql = @"
-                                UPDATE TransportationOrders 
-                                SET Status = N'运输中',
-                                    TransportStage = N'确认取货地点',
-                                    PickupConfirmedDate = @ConfirmedDate
-                                WHERE TransportOrderID = @OrderID
-                                AND Status = N'已接单'";
+                            // 2. Check which columns exist
+                            bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
+                            bool hasPickupConfirmedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupConfirmedDate");
+                            
+                            // 3. Build dynamic UPDATE SQL based on available columns
+                            string updateOrderSql = "UPDATE TransportationOrders SET Status = N'运输中'";
+                            
+                            if (hasTransportStage)
+                            {
+                                updateOrderSql += ", TransportStage = N'确认取货地点'";
+                            }
+                            
+                            if (hasPickupConfirmedDate)
+                            {
+                                updateOrderSql += ", PickupConfirmedDate = @ConfirmedDate";
+                            }
+                            
+                            updateOrderSql += " WHERE TransportOrderID = @OrderID AND Status = N'已接单'";
 
                             int rowsAffected;
                             using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@OrderID", orderId);
-                                cmd.Parameters.AddWithValue("@ConfirmedDate", DateTime.Now);
+                                
+                                if (hasPickupConfirmedDate)
+                                {
+                                    cmd.Parameters.AddWithValue("@ConfirmedDate", DateTime.Now);
+                                }
+                                
                                 rowsAffected = cmd.ExecuteNonQuery();
                             }
                             
@@ -658,18 +785,48 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"
-                        UPDATE TransportationOrders 
-                        SET TransportStage = N'到达取货地点',
-                            ArrivedAtPickupDate = @ArrivedDate
-                        WHERE TransportOrderID = @OrderID
-                        AND Status = N'运输中'
-                        AND TransportStage = N'确认取货地点'";
+                    
+                    // Check which columns exist
+                    bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
+                    bool hasArrivedAtPickupDate = ColumnExistsInTable(conn, null, "TransportationOrders", "ArrivedAtPickupDate");
+                    
+                    // Build dynamic UPDATE SQL based on available columns
+                    string sql = "UPDATE TransportationOrders SET ";
+                    List<string> setClauses = new List<string>();
+                    
+                    if (hasTransportStage)
+                    {
+                        setClauses.Add("TransportStage = N'到达取货地点'");
+                    }
+                    
+                    if (hasArrivedAtPickupDate)
+                    {
+                        setClauses.Add("ArrivedAtPickupDate = @ArrivedDate");
+                    }
+                    
+                    // If no columns to update, just return success (backward compatibility)
+                    if (setClauses.Count == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("ArriveAtPickupLocation: No transport stage columns available, skipping update");
+                        return true;
+                    }
+                    
+                    sql += string.Join(", ", setClauses);
+                    sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
+                    
+                    if (hasTransportStage)
+                    {
+                        sql += " AND TransportStage = N'确认取货地点'";
+                    }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@OrderID", orderId);
-                        cmd.Parameters.AddWithValue("@ArrivedDate", DateTime.Now);
+                        
+                        if (hasArrivedAtPickupDate)
+                        {
+                            cmd.Parameters.AddWithValue("@ArrivedDate", DateTime.Now);
+                        }
 
                         int rowsAffected = cmd.ExecuteNonQuery();
                         return rowsAffected > 0;
@@ -717,21 +874,65 @@ namespace recycling.DAL
                                 recyclerID = Convert.ToInt32(result);
                             }
                             
-                            // 2. Update transport stage to "装货完毕"
-                            string updateOrderSql = @"
-                                UPDATE TransportationOrders 
-                                SET TransportStage = N'装货完毕',
-                                    LoadingCompletedDate = @CompletedDate
-                                WHERE TransportOrderID = @OrderID
-                                AND Status = N'运输中'
-                                AND TransportStage = N'到达取货地点'";
-
-                            int rowsAffected;
-                            using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
+                            // 2. Check which columns exist
+                            bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
+                            bool hasLoadingCompletedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "LoadingCompletedDate");
+                            
+                            // 3. Build dynamic UPDATE SQL based on available columns
+                            string updateOrderSql = "UPDATE TransportationOrders SET ";
+                            List<string> setClauses = new List<string>();
+                            
+                            if (hasTransportStage)
                             {
-                                cmd.Parameters.AddWithValue("@OrderID", orderId);
-                                cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
-                                rowsAffected = cmd.ExecuteNonQuery();
+                                setClauses.Add("TransportStage = N'装货完毕'");
+                            }
+                            
+                            if (hasLoadingCompletedDate)
+                            {
+                                setClauses.Add("LoadingCompletedDate = @CompletedDate");
+                            }
+                            
+                            // If no columns to update, just validate status
+                            if (setClauses.Count == 0)
+                            {
+                                updateOrderSql = "SELECT 1 FROM TransportationOrders";
+                            }
+                            else
+                            {
+                                updateOrderSql += string.Join(", ", setClauses);
+                            }
+                            
+                            updateOrderSql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
+                            
+                            if (hasTransportStage)
+                            {
+                                updateOrderSql += " AND TransportStage = N'到达取货地点'";
+                            }
+
+                            int rowsAffected = 0;
+                            if (setClauses.Count > 0)
+                            {
+                                using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@OrderID", orderId);
+                                    
+                                    if (hasLoadingCompletedDate)
+                                    {
+                                        cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
+                                    }
+                                    
+                                    rowsAffected = cmd.ExecuteNonQuery();
+                                }
+                            }
+                            else
+                            {
+                                // For backward compatibility, if no stage columns exist, just check order exists and is in transit
+                                using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@OrderID", orderId);
+                                    var result = cmd.ExecuteScalar();
+                                    rowsAffected = result != null ? 1 : 0;
+                                }
                             }
                             
                             if (rowsAffected == 0)
@@ -740,7 +941,7 @@ namespace recycling.DAL
                                 return false;
                             }
                             
-                            // 3. Move inventory from StoragePoint to InTransit
+                            // 4. Move inventory from StoragePoint to InTransit
                             // This ensures goods are not visible in storage point during transport
                             string moveInventorySql = @"
                                 UPDATE Inventory 
@@ -791,18 +992,48 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"
-                        UPDATE TransportationOrders 
-                        SET TransportStage = N'确认送货地点',
-                            DeliveryConfirmedDate = @ConfirmedDate
-                        WHERE TransportOrderID = @OrderID
-                        AND Status = N'运输中'
-                        AND TransportStage = N'装货完毕'";
+                    
+                    // Check which columns exist
+                    bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
+                    bool hasDeliveryConfirmedDate = ColumnExistsInTable(conn, null, "TransportationOrders", "DeliveryConfirmedDate");
+                    
+                    // Build dynamic UPDATE SQL based on available columns
+                    string sql = "UPDATE TransportationOrders SET ";
+                    List<string> setClauses = new List<string>();
+                    
+                    if (hasTransportStage)
+                    {
+                        setClauses.Add("TransportStage = N'确认送货地点'");
+                    }
+                    
+                    if (hasDeliveryConfirmedDate)
+                    {
+                        setClauses.Add("DeliveryConfirmedDate = @ConfirmedDate");
+                    }
+                    
+                    // If no columns to update, just return success (backward compatibility)
+                    if (setClauses.Count == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("ConfirmDeliveryLocation: No transport stage columns available, skipping update");
+                        return true;
+                    }
+                    
+                    sql += string.Join(", ", setClauses);
+                    sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
+                    
+                    if (hasTransportStage)
+                    {
+                        sql += " AND TransportStage = N'装货完毕'";
+                    }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@OrderID", orderId);
-                        cmd.Parameters.AddWithValue("@ConfirmedDate", DateTime.Now);
+                        
+                        if (hasDeliveryConfirmedDate)
+                        {
+                            cmd.Parameters.AddWithValue("@ConfirmedDate", DateTime.Now);
+                        }
 
                         int rowsAffected = cmd.ExecuteNonQuery();
                         return rowsAffected > 0;
@@ -826,18 +1057,48 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"
-                        UPDATE TransportationOrders 
-                        SET TransportStage = N'到达送货地点',
-                            ArrivedAtDeliveryDate = @ArrivedDate
-                        WHERE TransportOrderID = @OrderID
-                        AND Status = N'运输中'
-                        AND TransportStage = N'确认送货地点'";
+                    
+                    // Check which columns exist
+                    bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
+                    bool hasArrivedAtDeliveryDate = ColumnExistsInTable(conn, null, "TransportationOrders", "ArrivedAtDeliveryDate");
+                    
+                    // Build dynamic UPDATE SQL based on available columns
+                    string sql = "UPDATE TransportationOrders SET ";
+                    List<string> setClauses = new List<string>();
+                    
+                    if (hasTransportStage)
+                    {
+                        setClauses.Add("TransportStage = N'到达送货地点'");
+                    }
+                    
+                    if (hasArrivedAtDeliveryDate)
+                    {
+                        setClauses.Add("ArrivedAtDeliveryDate = @ArrivedDate");
+                    }
+                    
+                    // If no columns to update, just return success (backward compatibility)
+                    if (setClauses.Count == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("ArriveAtDeliveryLocation: No transport stage columns available, skipping update");
+                        return true;
+                    }
+                    
+                    sql += string.Join(", ", setClauses);
+                    sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
+                    
+                    if (hasTransportStage)
+                    {
+                        sql += " AND TransportStage = N'确认送货地点'";
+                    }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@OrderID", orderId);
-                        cmd.Parameters.AddWithValue("@ArrivedDate", DateTime.Now);
+                        
+                        if (hasArrivedAtDeliveryDate)
+                        {
+                            cmd.Parameters.AddWithValue("@ArrivedDate", DateTime.Now);
+                        }
 
                         int rowsAffected = cmd.ExecuteNonQuery();
                         return rowsAffected > 0;
@@ -862,33 +1123,27 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // 根据是否提供了实际重量来决定SQL语句
-                    // 支持旧订单（TransportStage 为 NULL）的向后兼容
-                    string sql;
+                    // Check if TransportStage column exists
+                    bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
+                    
+                    // Build dynamic UPDATE SQL based on available columns
+                    string sql = "UPDATE TransportationOrders SET Status = N'已完成', DeliveryDate = @DeliveryDate, CompletedDate = @CompletedDate";
+                    
                     if (actualWeight.HasValue)
                     {
-                        sql = @"
-                            UPDATE TransportationOrders 
-                            SET Status = N'已完成',
-                                DeliveryDate = @DeliveryDate,
-                                CompletedDate = @CompletedDate,
-                                ActualWeight = @ActualWeight,
-                                TransportStage = NULL
-                            WHERE TransportOrderID = @OrderID
-                            AND Status = N'运输中'
-                            AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
+                        sql += ", ActualWeight = @ActualWeight";
                     }
-                    else
+                    
+                    if (hasTransportStage)
                     {
-                        sql = @"
-                            UPDATE TransportationOrders 
-                            SET Status = N'已完成',
-                                DeliveryDate = @DeliveryDate,
-                                CompletedDate = @CompletedDate,
-                                TransportStage = NULL
-                            WHERE TransportOrderID = @OrderID
-                            AND Status = N'运输中'
-                            AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
+                        sql += ", TransportStage = NULL";
+                    }
+                    
+                    sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
+                    
+                    if (hasTransportStage)
+                    {
+                        sql += " AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
                     }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
