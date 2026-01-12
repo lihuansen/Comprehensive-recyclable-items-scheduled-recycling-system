@@ -502,7 +502,8 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Check if TransportStage column exists
+                    // Check if TransportStage column exists for backward compatibility
+                    // If the column exists, set initial stage to '接单'; otherwise just update status
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     
                     // Build dynamic UPDATE SQL based on available columns
