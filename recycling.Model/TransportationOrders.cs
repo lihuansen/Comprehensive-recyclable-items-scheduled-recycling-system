@@ -86,6 +86,21 @@ namespace recycling.Model
         public decimal? ItemTotalValue { get; set; }
 
         [StringLength(50)]
-        public string Stage { get; set; }
+        public string TransportStage { get; set; }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? PickupConfirmedDate { get; set; }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? ArrivedAtPickupDate { get; set; }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? LoadingCompletedDate { get; set; }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? DeliveryConfirmedDate { get; set; }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? ArrivedAtDeliveryDate { get; set; }
     }
 }
