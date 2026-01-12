@@ -501,12 +501,24 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
+                    
+                    // Check if TransportStage column exists
+                    bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
+                    
+                    // Build dynamic UPDATE SQL based on available columns
                     string sql = @"
                         UPDATE TransportationOrders 
-                        SET Status = '已接单',
-                            AcceptedDate = @AcceptedDate
+                        SET Status = N'已接单',
+                            AcceptedDate = @AcceptedDate";
+                    
+                    if (hasTransportStage)
+                    {
+                        sql += ", TransportStage = N'接单'";
+                    }
+                    
+                    sql += @"
                         WHERE TransportOrderID = @OrderID
-                        AND Status = '待接单'";
+                        AND Status = N'待接单'";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
@@ -680,7 +692,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += ", TransportStage = N'确认取货地点'";
+                                updateOrderSql += ", TransportStage = N'确认收货地点'";
                             }
                             
                             if (hasPickupConfirmedDate)
@@ -749,7 +761,7 @@ namespace recycling.DAL
                     
                     if (hasTransportStage)
                     {
-                        setClauses.Add("TransportStage = N'到达取货地点'");
+                        setClauses.Add("TransportStage = N'到达收货地点'");
                     }
                     
                     if (hasArrivedAtPickupDate)
@@ -769,7 +781,7 @@ namespace recycling.DAL
                     
                     if (hasTransportStage)
                     {
-                        sql += " AND TransportStage = N'确认取货地点'";
+                        sql += " AND TransportStage = N'确认收货地点'";
                     }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -859,7 +871,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += " AND TransportStage = N'到达取货地点'";
+                                updateOrderSql += " AND TransportStage = N'到达收货地点'";
                             }
 
                             int rowsAffected = 0;

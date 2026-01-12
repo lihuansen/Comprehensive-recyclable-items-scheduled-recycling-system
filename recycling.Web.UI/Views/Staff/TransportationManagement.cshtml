@@ -578,16 +578,24 @@
                 <i class="fas fa-hand-point-right"></i> 接单
             </button>`;
         } else if (order.Status === '已接单') {
-            actions = `<button class="btn-action btn-start" onclick="confirmPickupLocation(${order.TransportOrderID})">
-                <i class="fas fa-map-marker-alt"></i> 确认取货地点
-            </button>`;
+            // 已接单状态下，根据运输阶段显示按钮
+            if (order.TransportStage === '接单') {
+                actions = `<button class="btn-action btn-start" onclick="confirmPickupLocation(${order.TransportOrderID})">
+                    <i class="fas fa-map-marker-alt"></i> 确认收货地点
+                </button>`;
+            } else {
+                // 向后兼容：如果没有运输阶段，默认显示确认取货地点按钮
+                actions = `<button class="btn-action btn-start" onclick="confirmPickupLocation(${order.TransportOrderID})">
+                    <i class="fas fa-map-marker-alt"></i> 确认收货地点
+                </button>`;
+            }
         } else if (order.Status === '运输中') {
             // 根据运输阶段显示不同的按钮
-            if (order.TransportStage === '确认取货地点') {
+            if (order.TransportStage === '确认收货地点') {
                 actions = `<button class="btn-action btn-start" onclick="arriveAtPickupLocation(${order.TransportOrderID})">
-                    <i class="fas fa-location-arrow"></i> 到达取货地点
+                    <i class="fas fa-location-arrow"></i> 到达收货地点
                 </button>`;
-            } else if (order.TransportStage === '到达取货地点') {
+            } else if (order.TransportStage === '到达收货地点') {
                 actions = `<button class="btn-action btn-start" onclick="completeLoading(${order.TransportOrderID})">
                     <i class="fas fa-box"></i> 装货完毕
                 </button>`;

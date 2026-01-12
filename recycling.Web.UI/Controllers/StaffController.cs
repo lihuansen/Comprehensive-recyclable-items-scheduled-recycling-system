@@ -789,7 +789,7 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // 验证运输阶段
-                if (validation.order.TransportStage != "确认取货地点")
+                if (validation.order.TransportStage != "确认收货地点")
                 {
                     return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
                 }
@@ -799,7 +799,7 @@ namespace recycling.Web.UI.Controllers
 
                 if (result)
                 {
-                    return Json(new { success = true, message = "已到达取货地点" });
+                    return Json(new { success = true, message = "已到达收货地点" });
                 }
                 else
                 {
@@ -836,7 +836,7 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // 验证运输阶段
-                if (validation.order.TransportStage != "到达取货地点")
+                if (validation.order.TransportStage != "到达收货地点")
                 {
                     return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage ?? "未知"}" });
                 }
