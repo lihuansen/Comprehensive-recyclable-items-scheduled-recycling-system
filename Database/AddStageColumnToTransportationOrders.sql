@@ -22,6 +22,8 @@
 
 -- 检查数据库是否存在并使用
 -- Check if database exists and use it
+-- Note: The system supports two database names for backward compatibility
+-- RecyclingSystemDB is the newer standard, RecyclingDB is the legacy name
 IF DB_ID('RecyclingSystemDB') IS NOT NULL
 BEGIN
     USE RecyclingSystemDB;
@@ -88,6 +90,8 @@ PRINT '';
 PRINT '检查 Stage 约束...';
 -- Note: Using Chinese values as they are required by the application business logic
 -- The Stage column uses the same values as TransportStage for consistency
+-- Both standardized and legacy terms are supported for backward compatibility with existing data
+-- New records should use standardized terms, but legacy terms are accepted to avoid breaking existing workflows
 IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_TransportationOrders_Stage')
 BEGIN
     ALTER TABLE [dbo].[TransportationOrders]

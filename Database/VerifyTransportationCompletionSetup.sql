@@ -18,6 +18,8 @@
 -- ==============================================================================
 
 -- 检查数据库是否存在并使用
+-- Note: The system supports two database names for backward compatibility
+-- RecyclingSystemDB is the newer standard, RecyclingDB is the legacy name
 IF DB_ID('RecyclingSystemDB') IS NOT NULL
 BEGIN
     USE RecyclingSystemDB;
@@ -146,8 +148,11 @@ BEGIN
     SELECT FieldName AS '缺失字段', Description AS '说明' FROM @MissingFields;
     PRINT '';
     PRINT '建议执行以下脚本添加可选字段:';
-    PRINT '1. Database/EnsureTransportStageColumns.sql - 添加TransportStage字段';
-    PRINT '2. Database/AddStageColumnToTransportationOrders.sql - 添加Stage字段';
+    PRINT '1. Database/EnsureTransportStageColumns.sql - 添加TransportStage字段 (如果已存在此文件)';
+    PRINT '2. Database/AddStageColumnToTransportationOrders.sql - 添加Stage字段 (此PR中包含)';
+    PRINT '';
+    PRINT 'Note: The Stage column script is included in this changeset.';
+    PRINT 'The EnsureTransportStageColumns.sql script may already exist in your database setup.';
 END
 ELSE
 BEGIN
