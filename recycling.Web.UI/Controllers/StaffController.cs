@@ -552,9 +552,9 @@ namespace recycling.Web.UI.Controllers
                         o.ItemCategories,
                         o.SpecialInstructions,
                         o.Status,
-                        // Prefer TransportStage when present; fall back to legacy Stage for older databases
-                        TransportStage = string.IsNullOrEmpty(o.TransportStage) ? o.Stage : o.TransportStage,
-                        o.Stage,
+                        // Prefer Stage when present; fall back to TransportStage for backward compatibility
+                        // Use Stage if it has a value, otherwise use TransportStage
+                        Stage = !string.IsNullOrEmpty(o.Stage) ? o.Stage : o.TransportStage,
                         CreatedDate = o.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
                         AcceptedDate = o.AcceptedDate?.ToString("yyyy-MM-dd HH:mm"),
                         PickupDate = o.PickupDate?.ToString("yyyy-MM-dd HH:mm"),
@@ -595,6 +595,15 @@ namespace recycling.Web.UI.Controllers
             }
 
             return (true, null, order);
+        }
+
+        /// <summary>
+        /// 获取有效的运输阶段（优先使用Stage列，回退到TransportStage列）
+        /// </summary>
+        private string GetEffectiveTransportStage(TransportationOrders order)
+        {
+            // Prefer Stage column, fall back to TransportStage for backward compatibility
+            return !string.IsNullOrEmpty(order.Stage) ? order.Stage : order.TransportStage;
         }
 
         /// <summary>
@@ -703,9 +712,10 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // 验证运输阶段必须是"到达送货地点"（或 NULL 以支持旧订单）
-                if (validation.order.TransportStage != "到达送货地点" && validation.order.TransportStage != null)
+                string currentStage = GetEffectiveTransportStage(validation.order);
+                if (currentStage != "到达送货地点" && currentStage != null)
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}，必须先完成前面的步骤" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{currentStage}，必须先完成前面的步骤" });
                 }
 
                 // 完成运输
@@ -790,12 +800,13 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
-                if (validation.order.TransportStage != null && 
-                    validation.order.TransportStage != "确认取货地点" &&
-                    validation.order.TransportStage != "确认收货地点")
+                // 验证运输阶段（如果Stage为null，说明数据库没有此列，跳过验证以保持向后兼容）
+                string currentStage = GetEffectiveTransportStage(validation.order);
+                if (currentStage != null && 
+                    currentStage != "确认取货地点" &&
+                    currentStage != "确认收货地点")
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{currentStage}" });
                 }
 
                 // 到达收货地点
@@ -839,12 +850,13 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
-                if (validation.order.TransportStage != null && 
-                    validation.order.TransportStage != "到达取货地点" &&
-                    validation.order.TransportStage != "到达收货地点")
+                // 验证运输阶段（如果Stage为null，说明数据库没有此列，跳过验证以保持向后兼容）
+                string currentStage = GetEffectiveTransportStage(validation.order);
+                if (currentStage != null && 
+                    currentStage != "到达取货地点" &&
+                    currentStage != "到达收货地点")
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{currentStage}" });
                 }
 
                 // 装货完毕
@@ -888,13 +900,14 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
+                // 验证运输阶段（如果Stage为null，说明数据库没有此列，跳过验证以保持向后兼容）
                 // 接受"装货完成"（新）和"装货完毕"（旧）两种说法
-                if (validation.order.TransportStage != null && 
-                    validation.order.TransportStage != "装货完成" && 
-                    validation.order.TransportStage != "装货完毕")
+                string currentStage = GetEffectiveTransportStage(validation.order);
+                if (currentStage != null && 
+                    currentStage != "装货完成" && 
+                    currentStage != "装货完毕")
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{currentStage}" });
                 }
 
                 // 确认送货地点
@@ -938,10 +951,11 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = validation.message });
                 }
 
-                // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
-                if (validation.order.TransportStage != null && validation.order.TransportStage != "确认送货地点")
+                // 验证运输阶段（如果Stage为null，说明数据库没有此列，跳过验证以保持向后兼容）
+                string currentStage = GetEffectiveTransportStage(validation.order);
+                if (currentStage != null && currentStage != "确认送货地点")
                 {
-                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
+                    return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{currentStage}" });
                 }
 
                 // 到达送货地点
