@@ -180,11 +180,9 @@
     margin-top: 40px;
 }
 
-.login-buttons-vertical .btn-login {
-    margin-right: 0;
-}
-
+.login-buttons-vertical .btn-login,
 .login-buttons-vertical .btn-cancel {
+    margin-right: 0;
     margin-left: 0;
 }
 
