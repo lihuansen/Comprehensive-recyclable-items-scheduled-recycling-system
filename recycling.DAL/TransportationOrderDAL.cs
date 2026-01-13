@@ -773,6 +773,8 @@ namespace recycling.DAL
                     }
                     
                     // Update Stage column to reflect current stage
+                    // Uses '到达收货地点' (arrive at receiving location) which is the standardized terminology
+                    // for the transporter arriving at the pickup location
                     if (hasStage)
                     {
                         setClauses.Add("Stage = N'到达收货地点'");
