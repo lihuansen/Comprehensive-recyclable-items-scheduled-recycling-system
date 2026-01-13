@@ -512,9 +512,9 @@
         return map[stage] || stage;
     }
 
-    // Use TransportStage when available, otherwise fall back to legacy Stage values and normalize wording
+    // Get current stage from the order's Stage property
     function getEffectiveStage(order) {
-        return normalizeStage(order.TransportStage || order.Stage);
+        return normalizeStage(order.Stage);
     }
 
     function loadOrders() {

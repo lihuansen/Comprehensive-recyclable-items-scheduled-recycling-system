@@ -681,6 +681,7 @@ namespace recycling.DAL
                             // 2. Check which columns exist
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasPickupConfirmedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupConfirmedDate");
+                            bool hasStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "Stage");
                             
                             // 3. Build dynamic UPDATE SQL based on available columns
                             string updateOrderSql = "UPDATE TransportationOrders SET Status = N'运输中'";
@@ -688,6 +689,12 @@ namespace recycling.DAL
                             if (hasTransportStage)
                             {
                                 updateOrderSql += ", TransportStage = N'确认收货地点'";
+                            }
+                            
+                            // Update Stage column to reflect current stage
+                            if (hasStage)
+                            {
+                                updateOrderSql += ", Stage = N'确认收货地点'";
                             }
                             
                             if (hasPickupConfirmedDate)
@@ -765,10 +772,9 @@ namespace recycling.DAL
                         setClauses.Add("ArrivedAtPickupDate = @ArrivedDate");
                     }
                     
+                    // Update Stage column to reflect current stage
                     if (hasStage)
                     {
-                        // Note: Stage uses "到达收货地点" (arrive at receiving location) while TransportStage uses "到达取货地点" (arrive at pickup location)
-                        // This is intentional - Stage represents the perspective of the base receiving goods, while TransportStage represents the transporter's perspective
                         setClauses.Add("Stage = N'到达收货地点'");
                     }
                     
@@ -782,7 +788,12 @@ namespace recycling.DAL
                     sql += string.Join(", ", setClauses);
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
-                    if (hasTransportStage)
+                    // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    if (hasStage)
+                    {
+                        sql += " AND (Stage = N'确认收货地点' OR Stage = N'确认取货地点')";
+                    }
+                    else if (hasTransportStage)
                     {
                         sql += " AND (TransportStage = N'确认收货地点' OR TransportStage = N'确认取货地点')";
                     }
@@ -845,6 +856,7 @@ namespace recycling.DAL
                             // 2. Check which columns exist
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasLoadingCompletedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "LoadingCompletedDate");
+                            bool hasStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "Stage");
                             
                             // 3. Build dynamic UPDATE SQL based on available columns
                             string updateOrderSql = "UPDATE TransportationOrders SET ";
@@ -853,6 +865,12 @@ namespace recycling.DAL
                             if (hasTransportStage)
                             {
                                 setClauses.Add("TransportStage = N'装货完成'");
+                            }
+                            
+                            // Update Stage column to reflect current stage
+                            if (hasStage)
+                            {
+                                setClauses.Add("Stage = N'装货完成'");
                             }
                             
                             if (hasLoadingCompletedDate)
@@ -872,7 +890,12 @@ namespace recycling.DAL
                             
                             updateOrderSql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                             
-                            if (hasTransportStage)
+                            // Validate stage progression using Stage column if available, otherwise use TransportStage
+                            if (hasStage)
+                            {
+                                updateOrderSql += " AND (Stage = N'到达收货地点' OR Stage = N'到达取货地点')";
+                            }
+                            else if (hasTransportStage)
                             {
                                 updateOrderSql += " AND (TransportStage = N'到达收货地点' OR TransportStage = N'到达取货地点')";
                             }
@@ -964,6 +987,7 @@ namespace recycling.DAL
                     // Check which columns exist
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     bool hasDeliveryConfirmedDate = ColumnExistsInTable(conn, null, "TransportationOrders", "DeliveryConfirmedDate");
+                    bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
                     
                     // Build dynamic UPDATE SQL based on available columns
                     string sql = "UPDATE TransportationOrders SET ";
@@ -972,6 +996,12 @@ namespace recycling.DAL
                     if (hasTransportStage)
                     {
                         setClauses.Add("TransportStage = N'确认送货地点'");
+                    }
+                    
+                    // Update Stage column to reflect current stage
+                    if (hasStage)
+                    {
+                        setClauses.Add("Stage = N'确认送货地点'");
                     }
                     
                     if (hasDeliveryConfirmedDate)
@@ -989,9 +1019,14 @@ namespace recycling.DAL
                     sql += string.Join(", ", setClauses);
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
-                    if (hasTransportStage)
+                    // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    // Accept both "装货完成" (new) and "装货完毕" (old) for backward compatibility
+                    if (hasStage)
                     {
-                        // Accept both "装货完成" (new) and "装货完毕" (old) for backward compatibility
+                        sql += " AND (Stage = N'装货完成' OR Stage = N'装货完毕')";
+                    }
+                    else if (hasTransportStage)
+                    {
                         sql += " AND (TransportStage = N'装货完成' OR TransportStage = N'装货完毕')";
                     }
 
@@ -1030,6 +1065,7 @@ namespace recycling.DAL
                     // Check which columns exist
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     bool hasArrivedAtDeliveryDate = ColumnExistsInTable(conn, null, "TransportationOrders", "ArrivedAtDeliveryDate");
+                    bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
                     
                     // Build dynamic UPDATE SQL based on available columns
                     string sql = "UPDATE TransportationOrders SET ";
@@ -1038,6 +1074,12 @@ namespace recycling.DAL
                     if (hasTransportStage)
                     {
                         setClauses.Add("TransportStage = N'到达送货地点'");
+                    }
+                    
+                    // Update Stage column to reflect current stage
+                    if (hasStage)
+                    {
+                        setClauses.Add("Stage = N'到达送货地点'");
                     }
                     
                     if (hasArrivedAtDeliveryDate)
@@ -1055,7 +1097,12 @@ namespace recycling.DAL
                     sql += string.Join(", ", setClauses);
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
-                    if (hasTransportStage)
+                    // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    if (hasStage)
+                    {
+                        sql += " AND Stage = N'确认送货地点'";
+                    }
+                    else if (hasTransportStage)
                     {
                         sql += " AND TransportStage = N'确认送货地点'";
                     }
@@ -1092,8 +1139,9 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Check if TransportStage column exists
+                    // Check if TransportStage and Stage columns exist
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
+                    bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
                     
                     // Build dynamic UPDATE SQL based on available columns
                     string sql = "UPDATE TransportationOrders SET Status = N'已完成', DeliveryDate = @DeliveryDate, CompletedDate = @CompletedDate";
@@ -1108,9 +1156,20 @@ namespace recycling.DAL
                         sql += ", TransportStage = NULL";
                     }
                     
+                    // Clear Stage column when completing transportation
+                    if (hasStage)
+                    {
+                        sql += ", Stage = NULL";
+                    }
+                    
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
-                    if (hasTransportStage)
+                    // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    if (hasStage)
+                    {
+                        sql += " AND (Stage = N'到达送货地点' OR Stage IS NULL)";
+                    }
+                    else if (hasTransportStage)
                     {
                         sql += " AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
                     }
