@@ -552,7 +552,9 @@ namespace recycling.Web.UI.Controllers
                         o.ItemCategories,
                         o.SpecialInstructions,
                         o.Status,
-                        o.TransportStage,
+                        // Prefer TransportStage when present; fall back to legacy Stage for older databases
+                        TransportStage = string.IsNullOrEmpty(o.TransportStage) ? o.Stage : o.TransportStage,
+                        o.Stage,
                         CreatedDate = o.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
                         AcceptedDate = o.AcceptedDate?.ToString("yyyy-MM-dd HH:mm"),
                         PickupDate = o.PickupDate?.ToString("yyyy-MM-dd HH:mm"),
@@ -789,7 +791,9 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
-                if (validation.order.TransportStage != null && validation.order.TransportStage != "确认取货地点")
+                if (validation.order.TransportStage != null && 
+                    validation.order.TransportStage != "确认取货地点" &&
+                    validation.order.TransportStage != "确认收货地点")
                 {
                     return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
                 }
@@ -836,7 +840,9 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // 验证运输阶段（如果TransportStage为null，说明数据库没有此列，跳过验证以保持向后兼容）
-                if (validation.order.TransportStage != null && validation.order.TransportStage != "到达取货地点")
+                if (validation.order.TransportStage != null && 
+                    validation.order.TransportStage != "到达取货地点" &&
+                    validation.order.TransportStage != "到达收货地点")
                 {
                     return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{validation.order.TransportStage}" });
                 }
