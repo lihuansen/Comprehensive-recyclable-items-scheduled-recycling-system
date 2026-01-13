@@ -463,6 +463,10 @@ select.unified-form-control {
     grid-template-columns: repeat(4, 1fr);
 }
 
+.unified-grid-5 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
 /* ========== 模态框样式 ========== */
 .unified-modal {
     display: none;
@@ -544,6 +548,20 @@ select.unified-form-control {
 .unified-mb-4 { margin-bottom: var(--spacing-lg); }
 .unified-mb-5 { margin-bottom: var(--spacing-xl); }
 
+.unified-ml-0 { margin-left: 0; }
+.unified-ml-1 { margin-left: var(--spacing-xs); }
+.unified-ml-2 { margin-left: var(--spacing-sm); }
+.unified-ml-3 { margin-left: var(--spacing-md); }
+.unified-ml-4 { margin-left: var(--spacing-lg); }
+.unified-ml-5 { margin-left: var(--spacing-xl); }
+
+.unified-mr-0 { margin-right: 0; }
+.unified-mr-1 { margin-right: var(--spacing-xs); }
+.unified-mr-2 { margin-right: var(--spacing-sm); }
+.unified-mr-3 { margin-right: var(--spacing-md); }
+.unified-mr-4 { margin-right: var(--spacing-lg); }
+.unified-mr-5 { margin-right: var(--spacing-xl); }
+
 .unified-p-0 { padding: 0; }
 .unified-p-1 { padding: var(--spacing-xs); }
 .unified-p-2 { padding: var(--spacing-sm); }
@@ -580,7 +598,8 @@ select.unified-form-control {
 /* ========== 响应式设计 ========== */
 @media (max-width: 992px) {
     .unified-grid-3,
-    .unified-grid-4 {
+    .unified-grid-4,
+    .unified-grid-5 {
         grid-template-columns: repeat(2, 1fr);
     }
 }
@@ -606,7 +625,8 @@ select.unified-form-control {
     
     .unified-grid-2,
     .unified-grid-3,
-    .unified-grid-4 {
+    .unified-grid-4,
+    .unified-grid-5 {
         grid-template-columns: 1fr;
     }
     
