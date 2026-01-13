@@ -173,6 +173,15 @@
     transform: translateY(-2px);
 }
 
+/* 垂直按钮组样式 - 移除水平边距 */
+.login-buttons-vertical .btn-login {
+    margin-right: 0;
+}
+
+.login-buttons-vertical .btn-cancel {
+    margin-left: 0;
+}
+
 .login-form {
     display: none;
 }
