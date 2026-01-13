@@ -577,7 +577,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += ", TransportStage = N'确认取货地点'";
+                                updateOrderSql += ", TransportStage = N'确认收货地点'";
                             }
                             
                             if (hasPickupConfirmedDate)
@@ -687,7 +687,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += ", TransportStage = N'确认取货地点'";
+                                updateOrderSql += ", TransportStage = N'确认收货地点'";
                             }
                             
                             if (hasPickupConfirmedDate)
@@ -757,7 +757,7 @@ namespace recycling.DAL
                     
                     if (hasTransportStage)
                     {
-                        setClauses.Add("TransportStage = N'到达取货地点'");
+                        setClauses.Add("TransportStage = N'到达收货地点'");
                     }
                     
                     if (hasArrivedAtPickupDate)
@@ -784,7 +784,7 @@ namespace recycling.DAL
                     
                     if (hasTransportStage)
                     {
-                        sql += " AND TransportStage = N'确认取货地点'";
+                        sql += " AND (TransportStage = N'确认收货地点' OR TransportStage = N'确认取货地点')";
                     }
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -874,7 +874,7 @@ namespace recycling.DAL
                             
                             if (hasTransportStage)
                             {
-                                updateOrderSql += " AND TransportStage = N'到达取货地点'";
+                                updateOrderSql += " AND (TransportStage = N'到达收货地点' OR TransportStage = N'到达取货地点')";
                             }
 
                             int rowsAffected = 0;
