@@ -460,7 +460,7 @@ namespace recycling.DAL
                                     ActualWeight = reader["ActualWeight"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["ActualWeight"]),
                                     ItemTotalValue = reader["ItemTotalValue"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["ItemTotalValue"]),
                                     ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
-                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
+                                    SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
                                     TransportStage = SafeGetString(reader, "TransportStage"),
                                     Stage = SafeGetString(reader, "Stage"),
@@ -767,6 +767,8 @@ namespace recycling.DAL
                     
                     if (hasStage)
                     {
+                        // Note: Stage uses "到达收货地点" (arrive at receiving location) while TransportStage uses "到达取货地点" (arrive at pickup location)
+                        // This is intentional - Stage represents the perspective of the base receiving goods, while TransportStage represents the transporter's perspective
                         setClauses.Add("Stage = N'到达收货地点'");
                     }
                     
