@@ -102,5 +102,8 @@ namespace recycling.Model
 
         [Column(TypeName = "datetime2")]
         public DateTime? ArrivedAtDeliveryDate { get; set; }
+
+        [StringLength(50)]
+        public string Stage { get; set; }
     }
 }
