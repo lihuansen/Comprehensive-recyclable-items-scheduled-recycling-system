@@ -264,6 +264,7 @@ namespace recycling.DAL
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
                                     TransportStage = SafeGetString(reader, "TransportStage"),
+                                    Stage = SafeGetString(reader, "Stage"),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
                                     PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
@@ -335,6 +336,7 @@ namespace recycling.DAL
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
                                     TransportStage = SafeGetString(reader, "TransportStage"),
+                                    Stage = SafeGetString(reader, "Stage"),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
                                     PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
@@ -461,6 +463,7 @@ namespace recycling.DAL
                                     SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? null : reader["SpecialInstructions"].ToString(),
                                     Status = reader["Status"].ToString(),
                                     TransportStage = SafeGetString(reader, "TransportStage"),
+                                    Stage = SafeGetString(reader, "Stage"),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
                                     PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
@@ -746,6 +749,7 @@ namespace recycling.DAL
                     // Check which columns exist
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     bool hasArrivedAtPickupDate = ColumnExistsInTable(conn, null, "TransportationOrders", "ArrivedAtPickupDate");
+                    bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
                     
                     // Build dynamic UPDATE SQL based on available columns
                     string sql = "UPDATE TransportationOrders SET ";
@@ -759,6 +763,13 @@ namespace recycling.DAL
                     if (hasArrivedAtPickupDate)
                     {
                         setClauses.Add("ArrivedAtPickupDate = @ArrivedDate");
+                    }
+                    
+                    if (hasStage)
+                    {
+                        // Note: Stage uses "到达收货地点" (arrive at receiving location) while TransportStage uses "到达取货地点" (arrive at pickup location)
+                        // This is intentional - Stage represents the perspective of the base receiving goods, while TransportStage represents the transporter's perspective
+                        setClauses.Add("Stage = N'到达收货地点'");
                     }
                     
                     // If no columns to update, just return success (backward compatibility)
