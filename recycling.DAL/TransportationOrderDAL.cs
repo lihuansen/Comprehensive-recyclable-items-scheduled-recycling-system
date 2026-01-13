@@ -789,6 +789,7 @@ namespace recycling.DAL
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
                     // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    // Accept both '确认收货地点' (correct) and '确认取货地点' (legacy) for backward compatibility
                     if (hasStage)
                     {
                         sql += " AND (Stage = N'确认收货地点' OR Stage = N'确认取货地点')";
@@ -891,6 +892,7 @@ namespace recycling.DAL
                             updateOrderSql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                             
                             // Validate stage progression using Stage column if available, otherwise use TransportStage
+                            // Accept both '到达收货地点' (correct) and '到达取货地点' (legacy) for backward compatibility
                             if (hasStage)
                             {
                                 updateOrderSql += " AND (Stage = N'到达收货地点' OR Stage = N'到达取货地点')";

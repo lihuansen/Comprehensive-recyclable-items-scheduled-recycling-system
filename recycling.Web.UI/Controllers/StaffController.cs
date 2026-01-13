@@ -553,7 +553,8 @@ namespace recycling.Web.UI.Controllers
                         o.SpecialInstructions,
                         o.Status,
                         // Prefer Stage when present; fall back to TransportStage for backward compatibility
-                        Stage = string.IsNullOrEmpty(o.Stage) ? o.TransportStage : o.Stage,
+                        // Use Stage if it has a value, otherwise use TransportStage
+                        Stage = !string.IsNullOrEmpty(o.Stage) ? o.Stage : o.TransportStage,
                         CreatedDate = o.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
                         AcceptedDate = o.AcceptedDate?.ToString("yyyy-MM-dd HH:mm"),
                         PickupDate = o.PickupDate?.ToString("yyyy-MM-dd HH:mm"),
@@ -703,7 +704,7 @@ namespace recycling.Web.UI.Controllers
 
                 // 验证运输阶段必须是"到达送货地点"（或 NULL 以支持旧订单）
                 // Prefer Stage column, fall back to TransportStage
-                string currentStage = string.IsNullOrEmpty(validation.order.Stage) ? validation.order.TransportStage : validation.order.Stage;
+                string currentStage = !string.IsNullOrEmpty(validation.order.Stage) ? validation.order.Stage : validation.order.TransportStage;
                 if (currentStage != "到达送货地点" && currentStage != null)
                 {
                     return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{currentStage}，必须先完成前面的步骤" });
@@ -793,7 +794,7 @@ namespace recycling.Web.UI.Controllers
 
                 // 验证运输阶段（如果Stage为null，说明数据库没有此列，跳过验证以保持向后兼容）
                 // Prefer Stage column, fall back to TransportStage
-                string currentStage = string.IsNullOrEmpty(validation.order.Stage) ? validation.order.TransportStage : validation.order.Stage;
+                string currentStage = !string.IsNullOrEmpty(validation.order.Stage) ? validation.order.Stage : validation.order.TransportStage;
                 if (currentStage != null && 
                     currentStage != "确认取货地点" &&
                     currentStage != "确认收货地点")
@@ -844,7 +845,7 @@ namespace recycling.Web.UI.Controllers
 
                 // 验证运输阶段（如果Stage为null，说明数据库没有此列，跳过验证以保持向后兼容）
                 // Prefer Stage column, fall back to TransportStage
-                string currentStage = string.IsNullOrEmpty(validation.order.Stage) ? validation.order.TransportStage : validation.order.Stage;
+                string currentStage = !string.IsNullOrEmpty(validation.order.Stage) ? validation.order.Stage : validation.order.TransportStage;
                 if (currentStage != null && 
                     currentStage != "到达取货地点" &&
                     currentStage != "到达收货地点")
@@ -896,7 +897,7 @@ namespace recycling.Web.UI.Controllers
                 // 验证运输阶段（如果Stage为null，说明数据库没有此列，跳过验证以保持向后兼容）
                 // 接受"装货完成"（新）和"装货完毕"（旧）两种说法
                 // Prefer Stage column, fall back to TransportStage
-                string currentStage = string.IsNullOrEmpty(validation.order.Stage) ? validation.order.TransportStage : validation.order.Stage;
+                string currentStage = !string.IsNullOrEmpty(validation.order.Stage) ? validation.order.Stage : validation.order.TransportStage;
                 if (currentStage != null && 
                     currentStage != "装货完成" && 
                     currentStage != "装货完毕")
@@ -947,7 +948,7 @@ namespace recycling.Web.UI.Controllers
 
                 // 验证运输阶段（如果Stage为null，说明数据库没有此列，跳过验证以保持向后兼容）
                 // Prefer Stage column, fall back to TransportStage
-                string currentStage = string.IsNullOrEmpty(validation.order.Stage) ? validation.order.TransportStage : validation.order.Stage;
+                string currentStage = !string.IsNullOrEmpty(validation.order.Stage) ? validation.order.Stage : validation.order.TransportStage;
                 if (currentStage != null && currentStage != "确认送货地点")
                 {
                     return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{currentStage}" });
