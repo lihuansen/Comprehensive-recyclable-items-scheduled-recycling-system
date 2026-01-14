@@ -1243,5 +1243,15 @@
         loadCompletedTransportOrders();  // 加载待入库运输单
         loadWarehouseReceipts();         // 加载入库记录
         loadInventorySummary();          // 加载库存汇总（会自动触发库存明细加载）
+        
+        // 如果服务器端已经加载了库存数据，则直接显示库存明细（无需等待AJAX）
+        // If server-side has already loaded inventory data, show details immediately (no need to wait for AJAX)
+        @if (Model != null && Model.InventorySummary != null && Model.InventorySummary.Any())
+        {
+            <text>
+            // 服务器端已有库存数据，立即加载库存明细
+            loadInventoryDetail();
+            </text>
+        }
     });
 </script>
