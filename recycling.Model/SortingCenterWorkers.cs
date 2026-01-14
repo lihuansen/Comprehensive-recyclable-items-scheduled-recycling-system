@@ -78,10 +78,6 @@ namespace recycling.Model
         [StringLength(500)]
         public string Notes { get; set; }
 
-        public int? LastViewedTransportCount { get; set; }
-
-        public int? LastViewedWarehouseCount { get; set; }
-
         public decimal? money { get; set; }
     }
 }

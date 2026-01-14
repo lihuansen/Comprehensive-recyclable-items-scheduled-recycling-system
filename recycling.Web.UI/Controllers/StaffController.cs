@@ -4583,17 +4583,6 @@ namespace recycling.Web.UI.Controllers
             ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
 
-            // 从Session加载已查看数量（Session在登录时从数据库加载）
-            // 这些值在用户访问相应管理页面时会更新到数据库
-            if (Session["LastViewedTransportCount"] == null)
-            {
-                Session["LastViewedTransportCount"] = worker.LastViewedTransportCount;
-            }
-            if (Session["LastViewedWarehouseCount"] == null)
-            {
-                Session["LastViewedWarehouseCount"] = worker.LastViewedWarehouseCount;
-            }
-
             return View();
         }
 
@@ -4609,23 +4598,6 @@ namespace recycling.Web.UI.Controllers
             ViewBag.StaffName = worker.Username;
             ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
-
-            try
-            {
-                // 标记运输通知为已查看（将当前运输中订单数量存储到数据库和Session）
-                var currentCount = _warehouseReceiptBLL.GetInTransitOrders()?.Count() ?? 0;
-                
-                // 更新到数据库（持久化）
-                _staffBLL.UpdateSortingCenterWorkerTransportViewCount(worker.WorkerID, currentCount);
-                
-                // 同时更新Session（避免重复查询数据库）
-                Session["LastViewedTransportCount"] = currentCount;
-            }
-            catch (Exception ex)
-            {
-                // 记录错误但不中断页面加载
-                System.Diagnostics.Debug.WriteLine($"更新运输查看记录失败：{ex.Message}");
-            }
 
             return View();
         }
@@ -4650,96 +4622,6 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 return JsonContent(new { success = false, message = $"获取运输中订单失败：{ex.Message}" });
-            }
-        }
-
-        /// <summary>
-        /// 获取运输更新数量（用于显示通知徽章）
-        /// 只显示未查看的新运输订单数量
-        /// 注意：此方法为GET请求且仅读取数据，不修改任何状态，因此不需要CSRF保护
-        /// </summary>
-        [HttpGet]
-        public ContentResult GetTransportUpdateCount()
-        {
-            try
-            {
-                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
-                {
-                    return JsonContent(new { success = false, count = 0 });
-                }
-
-                var orders = _warehouseReceiptBLL.GetInTransitOrders();
-                var currentCount = orders?.Count() ?? 0;
-                
-                // 获取上次查看时的数量
-                int lastViewedCount = 0;
-                if (Session["LastViewedTransportCount"] != null)
-                {
-                    lastViewedCount = (int)Session["LastViewedTransportCount"];
-                }
-                
-                // 只显示新增的订单数量（新订单数 = 当前总数 - 上次查看时的总数）
-                // Math.Max 确保结果不会是负数（处理订单被取消或完成的情况）
-                // 如果有订单被移除，我们简单地不显示徽章，而不是显示负数
-                var newCount = Math.Max(0, currentCount - lastViewedCount);
-                
-                // 记录异常情况：当前订单数少于上次查看数（说明有订单被取消或完成）
-                if (currentCount < lastViewedCount)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"Transport order count decreased: was {lastViewedCount}, now {currentCount}. " +
-                        $"Orders may have been cancelled or completed.");
-                }
-                
-                return JsonContent(new { success = true, count = newCount });
-            }
-            catch (Exception ex)
-            {
-                return JsonContent(new { success = false, count = 0, message = $"获取更新数量失败：{ex.Message}" });
-            }
-        }
-
-        /// <summary>
-        /// 获取仓库更新数量（用于显示通知徽章）
-        /// 只显示未查看的新已完成运输单数量
-        /// 注意：此方法为GET请求且仅读取数据，不修改任何状态，因此不需要CSRF保护
-        /// </summary>
-        [HttpGet]
-        public ContentResult GetWarehouseUpdateCount()
-        {
-            try
-            {
-                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
-                {
-                    return JsonContent(new { success = false, count = 0 });
-                }
-
-                var orders = _warehouseReceiptBLL.GetCompletedTransportOrders();
-                var currentCount = orders?.Count() ?? 0;
-                
-                // 获取上次查看时的数量
-                int lastViewedCount = 0;
-                if (Session["LastViewedWarehouseCount"] != null)
-                {
-                    lastViewedCount = (int)Session["LastViewedWarehouseCount"];
-                }
-                
-                // 只显示新增的订单数量（新订单数 = 当前总数 - 上次查看时的总数）
-                var newCount = Math.Max(0, currentCount - lastViewedCount);
-                
-                // 记录异常情况：当前订单数少于上次查看数（说明有订单被处理）
-                if (currentCount < lastViewedCount)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"Warehouse order count decreased: was {lastViewedCount}, now {currentCount}. " +
-                        $"Orders may have been processed.");
-                }
-                
-                return JsonContent(new { success = true, count = newCount });
-            }
-            catch (Exception ex)
-            {
-                return JsonContent(new { success = false, count = 0, message = $"获取更新数量失败：{ex.Message}" });
             }
         }
 
@@ -4791,15 +4673,6 @@ namespace recycling.Web.UI.Controllers
                 // 加载入库记录
                 var receipts = _warehouseReceiptBLL.GetWarehouseReceipts(1, 50, null, null);
                 viewModel.WarehouseReceipts = receipts?.ToList() ?? new List<WarehouseReceiptViewModel>();
-
-                // 标记仓库通知为已查看（将当前已完成运输单数量存储到数据库和Session）
-                var currentCount = viewModel.CompletedTransportOrders.Count;
-                
-                // 更新到数据库（持久化）
-                _staffBLL.UpdateSortingCenterWorkerWarehouseViewCount(worker.WorkerID, currentCount);
-                
-                // 同时更新Session（避免重复查询数据库）
-                Session["LastViewedWarehouseCount"] = currentCount;
             }
             catch (Exception ex)
             {
