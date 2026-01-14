@@ -448,14 +448,13 @@
                     
                     // 使用 HTML 编码防止 XSS
                     var encodedCategoryKey = Html.AttributeEncode(categoryKey);
-                    var jsEncodedCategoryKey = Html.JavaScriptStringEncode(categoryKey);
-                    var jsEncodedCategoryName = Html.JavaScriptStringEncode(categoryName);
+                    var encodedCategoryName = Html.AttributeEncode(categoryName);
                     
                     <div class="inventory-card" 
-                         data-category="@encodedCategoryKey" 
-                         onclick="filterInventoryByCategory('@jsEncodedCategoryKey', '@jsEncodedCategoryName')">
+                         data-category="@encodedCategoryKey"
+                         data-category-name="@encodedCategoryName">
                         <div class="inventory-card-icon">
-                            <i class="fas" id="icon-@encodedCategoryKey"></i>
+                            <i class="fas"></i>
                         </div>
                         <div class="inventory-card-category">@categoryName</div>
                         <div class="inventory-card-weight">@totalWeight.ToString("F1") kg</div>
@@ -1050,10 +1049,12 @@
             
             // 清理类别键用于 data 属性
             var safeCategoryKey = escapeHtml(item.categoryKey);
+            var safeCategoryName = escapeHtml(item.categoryName);
 
             var card = $('<div>')
                 .addClass('inventory-card')
                 .attr('data-category', safeCategoryKey)
+                .attr('data-category-name', safeCategoryName)
                 .css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + InventoryManager.adjustColor(color, -20) + ' 100%)');
             
             // Safely create card content with validated icon class
@@ -1062,10 +1063,9 @@
             var weightDiv = $('<div>').addClass('inventory-card-weight').text(item.totalWeight.toFixed(1) + ' kg');
             var priceDiv = $('<div>').addClass('inventory-card-price').text('价值: ¥' + item.totalPrice.toFixed(2));
             
-            card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv)
-                .on('click', function () {
-                    filterInventoryByCategory(safeCategoryKey, item.categoryName);
-                });
+            card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv);
+            // 注意：不再使用内联 onclick，而是使用事件委托（见 document.ready）
+            // Note: No longer using inline onclick, using event delegation instead (see document.ready)
 
             container.append(card);
         });
@@ -1242,6 +1242,18 @@
                 // 设置背景渐变色
                 var gradientColor = InventoryManager.adjustColor(color, -20);
                 card.css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + gradientColor + ' 100%)');
+            }
+        });
+        
+        // 使用事件委托为库存卡片添加点击处理
+        // Use event delegation for inventory card click handling
+        $(document).on('click', '.inventory-card', function() {
+            var card = $(this);
+            var categoryKey = card.data('category');
+            var categoryName = card.data('category-name');
+            
+            if (categoryKey && categoryName) {
+                filterInventoryByCategory(categoryKey, categoryName);
             }
         });
         
