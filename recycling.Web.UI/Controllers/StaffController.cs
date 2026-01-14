@@ -4673,6 +4673,20 @@ namespace recycling.Web.UI.Controllers
                 // 加载入库记录
                 var receipts = _warehouseReceiptBLL.GetWarehouseReceipts(1, 50, null, null);
                 viewModel.WarehouseReceipts = receipts?.ToList() ?? new List<WarehouseReceiptViewModel>();
+
+                // 加载当前库存汇总信息
+                var inventoryBll = new InventoryBLL();
+                var inventorySummary = inventoryBll.GetInventorySummary(null, "Warehouse");
+                if (inventorySummary != null && inventorySummary.Any())
+                {
+                    viewModel.InventorySummary = inventorySummary.Select(s => new InventorySummaryViewModel
+                    {
+                        CategoryKey = s.CategoryKey,
+                        CategoryName = s.CategoryName,
+                        TotalWeight = s.TotalWeight,
+                        TotalPrice = s.TotalPrice
+                    }).ToList();
+                }
             }
             catch (Exception ex)
             {
