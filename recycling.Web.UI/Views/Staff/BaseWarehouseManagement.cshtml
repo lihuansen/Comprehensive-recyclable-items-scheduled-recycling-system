@@ -456,7 +456,7 @@
                         <div class="inventory-card-icon">
                             <i class="fas"></i>
                         </div>
-                        <div class="inventory-card-category">@categoryName</div>
+                        <div class="inventory-card-category">@Html.Encode(categoryName)</div>
                         <div class="inventory-card-weight">@totalWeight.ToString("F1") kg</div>
                         <div class="inventory-card-price">价值: ¥@totalPrice.ToString("F2")</div>
                     </div>
