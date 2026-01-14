@@ -435,12 +435,37 @@
             <p>加载中...</p>
         </div>
 
-        <!-- 库存汇总卡片 -->
-        <div id="inventorySummaryCards" class="inventory-summary-grid" style="display: none;">
-            <!-- Cards will be inserted here by JavaScript -->
+        <!-- 库存汇总卡片 - Server-side rendered -->
+        <div id="inventorySummaryCards" class="inventory-summary-grid">
+            @if (Model != null && Model.InventorySummary != null && Model.InventorySummary.Any())
+            {
+                foreach (var item in Model.InventorySummary)
+                {
+                    var categoryKey = item.CategoryKey ?? "";
+                    var categoryName = item.CategoryName ?? "";
+                    var totalWeight = item.TotalWeight;
+                    var totalPrice = item.TotalPrice;
+                    
+                    // 使用 HTML 编码防止 XSS
+                    var encodedCategoryKey = Html.AttributeEncode(categoryKey);
+                    var encodedCategoryName = Html.AttributeEncode(categoryName);
+                    
+                    <div class="inventory-card" 
+                         data-category="@encodedCategoryKey"
+                         data-category-name="@encodedCategoryName">
+                        <div class="inventory-card-icon">
+                            <i class="fas"></i>
+                        </div>
+                        <div class="inventory-card-category">@Html.Encode(categoryName)</div>
+                        <div class="inventory-card-weight">@totalWeight.ToString("F1") kg</div>
+                        <div class="inventory-card-price">价值: ¥@totalPrice.ToString("F2")</div>
+                    </div>
+                }
+            }
         </div>
 
-        <div id="inventoryEmptyState" class="empty-state" style="display: none;">
+        <!-- 空状态提示 - 用于初始加载和AJAX刷新 -->
+        <div id="inventoryEmptyState" class="empty-state" style="@(Model != null && Model.InventorySummary != null && Model.InventorySummary.Any() ? "display: none;" : "")">
             <i class="fas fa-box-open"></i>
             <p>暂无库存数据</p>
         </div>
@@ -1024,10 +1049,12 @@
             
             // 清理类别键用于 data 属性
             var safeCategoryKey = escapeHtml(item.categoryKey);
+            var safeCategoryName = escapeHtml(item.categoryName);
 
             var card = $('<div>')
                 .addClass('inventory-card')
                 .attr('data-category', safeCategoryKey)
+                .attr('data-category-name', safeCategoryName)
                 .css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + InventoryManager.adjustColor(color, -20) + ' 100%)');
             
             // Safely create card content with validated icon class
@@ -1036,10 +1063,9 @@
             var weightDiv = $('<div>').addClass('inventory-card-weight').text(item.totalWeight.toFixed(1) + ' kg');
             var priceDiv = $('<div>').addClass('inventory-card-price').text('价值: ¥' + item.totalPrice.toFixed(2));
             
-            card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv)
-                .on('click', function () {
-                    filterInventoryByCategory(safeCategoryKey, item.categoryName);
-                });
+            card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv);
+            // 注意：不再使用内联 onclick，而是使用事件委托（见 document.ready）
+            // Note: No longer using inline onclick, using event delegation instead (see document.ready)
 
             container.append(card);
         });
@@ -1197,8 +1223,43 @@
         return $('<div>').text(text).html();
     }
 
-    // 页面加载时自动加载库存信息
+    // 页面加载时初始化库存卡片样式（服务器端已渲染数据）
+    // Initialize inventory card styles on page load (data already rendered server-side)
     $(document).ready(function () {
-        loadInventorySummary();
+        // 为服务器端渲染的库存卡片应用图标和颜色
+        // Apply icons and colors to server-side rendered inventory cards
+        $('.inventory-card').each(function() {
+            var card = $(this);
+            var categoryKey = card.data('category');
+            
+            if (categoryKey && InventoryManager.isValidCategoryKey(categoryKey)) {
+                var icon = InventoryManager.categoryIcons[categoryKey] || 'fa-box';
+                var color = InventoryManager.categoryColors[categoryKey] || '#3498db';
+                
+                // 设置图标
+                card.find('.inventory-card-icon i').addClass(icon);
+                
+                // 设置背景渐变色
+                var gradientColor = InventoryManager.adjustColor(color, -20);
+                card.css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + gradientColor + ' 100%)');
+            }
+        });
+        
+        // 使用事件委托为库存卡片添加点击处理
+        // Use event delegation for inventory card click handling
+        $(document).on('click', '.inventory-card', function() {
+            var card = $(this);
+            var categoryKey = card.data('category');
+            var categoryName = card.data('category-name');
+            
+            if (categoryKey && categoryName) {
+                filterInventoryByCategory(categoryKey, categoryName);
+            }
+        });
+        
+        // 注意：不再自动调用 loadInventorySummary()，因为数据已通过服务器端渲染
+        // Note: No longer calling loadInventorySummary() automatically as data is server-side rendered
+        // 刷新按钮仍然可以调用 AJAX 更新数据
+        // Refresh button can still call AJAX to update data
     });
 </script>

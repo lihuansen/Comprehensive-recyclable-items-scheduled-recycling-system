@@ -71,6 +71,7 @@
     <Compile Include="HomepageCarousel.cs" />
     <Compile Include="Inventory.cs" />
     <Compile Include="InventoryDetailViewModel.cs" />
+    <Compile Include="InventorySummaryViewModel.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="Messages.cs" />
     <Compile Include="Model1.cs" />

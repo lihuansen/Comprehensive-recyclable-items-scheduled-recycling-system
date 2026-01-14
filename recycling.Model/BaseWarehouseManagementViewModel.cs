@@ -21,12 +21,19 @@ namespace recycling.Model
         public List<WarehouseReceiptViewModel> WarehouseReceipts { get; set; }
 
         /// <summary>
+        /// 当前库存汇总信息
+        /// Current inventory summary information
+        /// </summary>
+        public List<InventorySummaryViewModel> InventorySummary { get; set; }
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         public BaseWarehouseManagementViewModel()
         {
             CompletedTransportOrders = new List<TransportNotificationViewModel>();
             WarehouseReceipts = new List<WarehouseReceiptViewModel>();
+            InventorySummary = new List<InventorySummaryViewModel>();
         }
     }
 }
