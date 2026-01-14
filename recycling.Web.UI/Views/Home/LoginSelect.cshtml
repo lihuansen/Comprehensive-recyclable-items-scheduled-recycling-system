@@ -11,19 +11,19 @@
 
     <div class="unified-btn-group" style="flex-direction: column; margin-top: 40px;">
         <!-- 用户登录按钮 -->
-        <a href="@Url.Action("Login", "User")" class="unified-btn unified-btn-primary unified-btn-full">
+        <button type="button" onclick="window.location.href='@Url.Action("Login", "User")'" class="unified-btn unified-btn-primary unified-btn-full">
             用户登录
-        </a>
+        </button>
 
         <!-- 工作人员登录按钮 -->
-        <a href="@Url.Action("Login", "Staff")" class="unified-btn unified-btn-staff unified-btn-full">
+        <button type="button" onclick="window.location.href='@Url.Action("Login", "Staff")'" class="unified-btn unified-btn-staff unified-btn-full">
             工作人员登录
-        </a>
+        </button>
 
         <!-- 取消按钮（返回首页） -->
-        <a href="@Url.Action("Index", "Home")" class="unified-btn unified-btn-danger unified-btn-full">
+        <button type="button" onclick="window.location.href='@Url.Action("Index", "Home")'" class="unified-btn unified-btn-danger unified-btn-full">
             取消
-        </a>
+        </button>
     </div>
 </div>
 
