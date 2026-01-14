@@ -4,23 +4,24 @@
 
 <!-- 引用现有登录页样式，保持UI一致性 -->
 <link href="~/Content/login.css" rel="stylesheet" />
+<link href="~/Content/unified-style.css" rel="stylesheet" />
 
 <div class="login-container">
     <h2 class="login-title">请选择登录类型</h2>
 
-    <div class="login-buttons unified-btn-group" style="flex-direction: column; margin-top: 40px;">
+    <div class="unified-btn-group" style="flex-direction: column; margin-top: 40px;">
         <!-- 用户登录按钮 -->
-        <a href="@Url.Action("Login", "User")" class="btn btn-login unified-btn-full">
+        <a href="@Url.Action("Login", "User")" class="unified-btn unified-btn-primary unified-btn-full">
             用户登录
         </a>
 
         <!-- 工作人员登录按钮 -->
-        <a href="@Url.Action("Login", "Staff")" class="btn btn-login unified-btn-full" style="background: linear-gradient(135deg, #337ab7 0%, #2e6da4 100%);">
+        <a href="@Url.Action("Login", "Staff")" class="unified-btn unified-btn-staff unified-btn-full">
             工作人员登录
         </a>
 
         <!-- 取消按钮（返回首页） -->
-        <a href="@Url.Action("Index", "Home")" class="btn btn-cancel unified-btn-full">
+        <a href="@Url.Action("Index", "Home")" class="unified-btn unified-btn-danger unified-btn-full">
             取消
         </a>
     </div>

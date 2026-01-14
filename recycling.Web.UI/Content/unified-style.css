@@ -154,6 +154,17 @@
     background-color: var(--danger-hover);
 }
 
+.unified-btn-staff {
+    background: linear-gradient(135deg, #337ab7 0%, #2e6da4 100%);
+    color: white;
+}
+
+.unified-btn-staff:hover {
+    background: linear-gradient(135deg, #2e6da4 0%, #23527c 100%);
+    box-shadow: 0 5px 15px rgba(51, 122, 183, 0.3);
+    transform: translateY(-2px);
+}
+
 .unified-btn-outline {
     background: transparent;
     border: 2px solid var(--primary-color);
