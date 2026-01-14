@@ -4791,12 +4791,6 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 获取仓库库存汇总 - 基地工作人员端（AJAX）
-        /// Get warehouse inventory summary for base staff
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        /// <summary>
         /// 获取基地仓库库存汇总信息（AJAX）
         /// Get warehouse inventory summary for base staff
         /// </summary>
