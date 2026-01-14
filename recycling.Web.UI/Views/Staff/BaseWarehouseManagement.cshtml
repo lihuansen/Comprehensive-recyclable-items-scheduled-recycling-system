@@ -624,14 +624,14 @@
         UNKNOWN_CATEGORY: '未知类别'
     };
 
-    // 注意：页面加载时数据已通过服务器端渲染直接显示，无需自动调用 AJAX
-    // Note: Data is rendered server-side on page load, no need to call AJAX automatically
+    // 注意：页面加载时通过 AJAX 自动获取最新实时数据
+    // Note: Data is automatically loaded via AJAX on page load for real-time display
     // 
-    // 下面的 AJAX 函数仅在用户手动点击"刷新"按钮时调用
-    // The AJAX functions below are only called when user clicks the "Refresh" buttons
+    // 下面的 AJAX 函数在页面加载时自动调用，也可在用户点击"刷新"按钮时手动调用
+    // The AJAX functions below are called automatically on page load and when user clicks "Refresh" buttons
 
-    // 加载已完成的运输单（仅用于手动刷新）
-    // Load completed transport orders (only for manual refresh)
+    // 加载已完成的运输单（自动加载+手动刷新）
+    // Load completed transport orders (auto-load + manual refresh)
     function loadCompletedTransportOrders() {
         $('#transitOrdersLoading').show();
         $('#transitOrdersList').hide().html('');
@@ -842,8 +842,8 @@
         });
     }
 
-    // 加载入库记录（仅用于手动刷新）
-    // Load warehouse receipts (only for manual refresh)
+    // 加载入库记录（自动加载+手动刷新）
+    // Load warehouse receipts (auto-load + manual refresh)
     function loadWarehouseReceipts() {
         $('#receiptsLoading').show();
         $('#receiptsTableContainer').hide();
@@ -1223,28 +1223,9 @@
         return $('<div>').text(text).html();
     }
 
-    // 页面加载时初始化库存卡片样式（服务器端已渲染数据）
-    // Initialize inventory card styles on page load (data already rendered server-side)
+    // 页面加载时自动加载所有实时数据
+    // Automatically load all real-time data on page load
     $(document).ready(function () {
-        // 为服务器端渲染的库存卡片应用图标和颜色
-        // Apply icons and colors to server-side rendered inventory cards
-        $('.inventory-card').each(function() {
-            var card = $(this);
-            var categoryKey = card.data('category');
-            
-            if (categoryKey && InventoryManager.isValidCategoryKey(categoryKey)) {
-                var icon = InventoryManager.categoryIcons[categoryKey] || 'fa-box';
-                var color = InventoryManager.categoryColors[categoryKey] || '#3498db';
-                
-                // 设置图标
-                card.find('.inventory-card-icon i').addClass(icon);
-                
-                // 设置背景渐变色
-                var gradientColor = InventoryManager.adjustColor(color, -20);
-                card.css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + gradientColor + ' 100%)');
-            }
-        });
-        
         // 使用事件委托为库存卡片添加点击处理
         // Use event delegation for inventory card click handling
         $(document).on('click', '.inventory-card', function() {
@@ -1257,9 +1238,10 @@
             }
         });
         
-        // 注意：不再自动调用 loadInventorySummary()，因为数据已通过服务器端渲染
-        // Note: No longer calling loadInventorySummary() automatically as data is server-side rendered
-        // 刷新按钮仍然可以调用 AJAX 更新数据
-        // Refresh button can still call AJAX to update data
+        // 自动加载所有实时数据（与点击刷新按钮效果一致）
+        // Automatically load all real-time data (same effect as clicking refresh buttons)
+        loadCompletedTransportOrders();  // 加载待入库运输单
+        loadWarehouseReceipts();         // 加载入库记录
+        loadInventorySummary();          // 加载库存汇总（会自动触发库存明细加载）
     });
 </script>
