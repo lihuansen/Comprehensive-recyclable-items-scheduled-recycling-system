@@ -446,11 +446,16 @@
                     var totalWeight = item.TotalWeight;
                     var totalPrice = item.TotalPrice;
                     
+                    // 使用 HTML 编码防止 XSS
+                    var encodedCategoryKey = Html.AttributeEncode(categoryKey);
+                    var jsEncodedCategoryKey = Html.JavaScriptStringEncode(categoryKey);
+                    var jsEncodedCategoryName = Html.JavaScriptStringEncode(categoryName);
+                    
                     <div class="inventory-card" 
-                         data-category="@categoryKey" 
-                         onclick="filterInventoryByCategory('@categoryKey', '@categoryName')">
+                         data-category="@encodedCategoryKey" 
+                         onclick="filterInventoryByCategory('@jsEncodedCategoryKey', '@jsEncodedCategoryName')">
                         <div class="inventory-card-icon">
-                            <i class="fas" id="icon-@categoryKey"></i>
+                            <i class="fas" id="icon-@encodedCategoryKey"></i>
                         </div>
                         <div class="inventory-card-category">@categoryName</div>
                         <div class="inventory-card-weight">@totalWeight.ToString("F1") kg</div>
@@ -458,16 +463,10 @@
                     </div>
                 }
             }
-            else
-            {
-                <div id="inventoryEmptyState" class="empty-state">
-                    <i class="fas fa-box-open"></i>
-                    <p>暂无库存数据</p>
-                </div>
-            }
         </div>
 
-        <div id="inventoryEmptyState" class="empty-state" style="display: none;">
+        <!-- 空状态提示 - 用于初始加载和AJAX刷新 -->
+        <div id="inventoryEmptyState" class="empty-state" style="@(Model != null && Model.InventorySummary != null && Model.InventorySummary.Any() ? "display: none;" : "")">
             <i class="fas fa-box-open"></i>
             <p>暂无库存数据</p>
         </div>
