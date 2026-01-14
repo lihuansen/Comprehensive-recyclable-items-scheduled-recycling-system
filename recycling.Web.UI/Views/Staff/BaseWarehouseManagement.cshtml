@@ -624,14 +624,14 @@
         UNKNOWN_CATEGORY: '未知类别'
     };
 
-    // 注意：页面加载时数据已通过服务器端渲染直接显示，无需自动调用 AJAX
-    // Note: Data is rendered server-side on page load, no need to call AJAX automatically
+    // 注意：页面加载时通过 AJAX 自动获取最新实时数据
+    // Note: Data is automatically loaded via AJAX on page load for real-time display
     // 
-    // 下面的 AJAX 函数仅在用户手动点击"刷新"按钮时调用
-    // The AJAX functions below are only called when user clicks the "Refresh" buttons
+    // 下面的 AJAX 函数在页面加载时自动调用，也可在用户点击"刷新"按钮时手动调用
+    // The AJAX functions below are called automatically on page load and when user clicks "Refresh" buttons
 
-    // 加载已完成的运输单（仅用于手动刷新）
-    // Load completed transport orders (only for manual refresh)
+    // 加载已完成的运输单（自动加载+手动刷新）
+    // Load completed transport orders (auto-load + manual refresh)
     function loadCompletedTransportOrders() {
         $('#transitOrdersLoading').show();
         $('#transitOrdersList').hide().html('');
@@ -842,8 +842,8 @@
         });
     }
 
-    // 加载入库记录（仅用于手动刷新）
-    // Load warehouse receipts (only for manual refresh)
+    // 加载入库记录（自动加载+手动刷新）
+    // Load warehouse receipts (auto-load + manual refresh)
     function loadWarehouseReceipts() {
         $('#receiptsLoading').show();
         $('#receiptsTableContainer').hide();
