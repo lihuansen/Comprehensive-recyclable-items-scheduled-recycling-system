@@ -180,7 +180,6 @@
     <div class="management-grid">
         <!-- 运输管理卡片 -->
         <a href="@Url.Action("BaseTransportationManagement", "Staff")" class="management-card transportation-card">
-            <span id="transportCardBadge" class="card-notification-badge">0</span>
             <div class="card-icon">
                 <i class="fas fa-truck-moving"></i>
             </div>
@@ -212,7 +211,6 @@
 
         <!-- 仓库管理卡片 -->
         <a href="@Url.Action("BaseWarehouseManagement", "Staff")" class="management-card warehouse-card">
-            <span id="warehouseCardBadge" class="card-notification-badge">0</span>
             <div class="card-icon">
                 <i class="fas fa-box-open"></i>
             </div>
@@ -243,52 +241,3 @@
         </a>
     </div>
 </div>
-
-<script>
-    // 检查运输更新通知
-    function checkTransportUpdates() {
-        $.ajax({
-            url: '@Url.Action("GetTransportUpdateCount", "Staff")',
-            type: 'GET',
-            success: function (response) {
-                if (response.success && response.count > 0) {
-                    $('#transportCardBadge').text(response.count).css('display', 'flex');
-                } else {
-                    $('#transportCardBadge').hide();
-                }
-            },
-            error: function () {
-                // 静默失败，不影响用户体验
-            }
-        });
-    }
-
-    // 检查仓库更新通知
-    function checkWarehouseUpdates() {
-        $.ajax({
-            url: '@Url.Action("GetWarehouseUpdateCount", "Staff")',
-            type: 'GET',
-            success: function (response) {
-                if (response.success && response.count > 0) {
-                    $('#warehouseCardBadge').text(response.count).css('display', 'flex');
-                } else {
-                    $('#warehouseCardBadge').hide();
-                }
-            },
-            error: function () {
-                // 静默失败，不影响用户体验
-            }
-        });
-    }
-
-    // 页面加载时检查
-    $(document).ready(function () {
-        checkTransportUpdates();
-        checkWarehouseUpdates();
-        // 每30秒检查一次
-        setInterval(function() {
-            checkTransportUpdates();
-            checkWarehouseUpdates();
-        }, 30000);
-    });
-</script>
