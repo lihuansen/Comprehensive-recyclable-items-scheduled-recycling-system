@@ -26,6 +26,10 @@
     <LangVersion>9.0</LangVersion>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <DisableLinkTracking>true</DisableLinkTracking>
+    <MvcBuildViews>false</MvcBuildViews>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
