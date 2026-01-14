@@ -19,16 +19,16 @@ warning MSB3026: 无法将"recycling.DAL.dll"复制到"bin\recycling.DAL.dll"。
 
 ```xml
 <DisableLinkTracking>true</DisableLinkTracking>
-<MvcBuildViews>false</MvcBuildViews>
 <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
 <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
 ```
 
 **说明：**
 - `DisableLinkTracking`: 禁用链接跟踪，提高构建性能并减少文件锁定
-- `MvcBuildViews`: 设置为 false，避免视图编译期间的文件锁定
 - `CopyBuildOutputToOutputDirectory`: 确保构建输出正确复制
 - `CopyOutputSymbolsToOutputDirectory`: 确保调试符号正确复制
+
+**注意：** 项目文件中原本已经存在 `<MvcBuildViews>false</MvcBuildViews>` 设置，该设置保持不变。
 
 ### 2. Web.config 修改
 
