@@ -4796,6 +4796,12 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
+        /// <summary>
+        /// 获取基地仓库库存汇总信息（AJAX）
+        /// Get warehouse inventory summary for base staff
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetBaseWarehouseInventorySummary()
         {
             try
