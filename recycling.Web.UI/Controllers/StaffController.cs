@@ -4603,6 +4603,22 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 基地工作人员 - 消息中心页面
+        /// </summary>
+        public ActionResult SortingCenterWorkerMessageCenter()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                return RedirectToAction("Login", "Staff");
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            ViewBag.StaffName = worker.Username;
+            ViewBag.DisplayName = "基地工作人员";
+            ViewBag.StaffRole = "sortingcenterworker";
+
+            return View();
+        }
+
+        /// <summary>
         /// 获取运输中的订单列表（AJAX）
         /// </summary>
         [HttpPost]
