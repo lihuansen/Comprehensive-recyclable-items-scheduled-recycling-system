@@ -5,6 +5,8 @@
     Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <style>
     .notification-card {
         background: white;
@@ -240,6 +242,16 @@
 
 @section scripts {
     <script>
+        // 获取防伪令牌
+        var antiForgeryToken = $('input[name="__RequestVerificationToken"]').val();
+        
+        // 辅助函数：添加防伪令牌到POST请求
+        function postWithToken(url, data, successCallback) {
+            var requestData = data || {};
+            requestData.__RequestVerificationToken = antiForgeryToken;
+            return $.post(url, requestData, successCallback);
+        }
+        
         $(document).ready(function () {
             var updateInterval;
             
@@ -264,7 +276,7 @@
             $('#markAllReadBtn').click(function () {
                 if (!confirm('确定要将所有消息标记为已读吗？')) return;
                 
-                $.post('@Url.Action("MarkAllBaseStaffNotificationsAsRead", "Staff")', function (data) {
+                postWithToken('@Url.Action("MarkAllBaseStaffNotificationsAsRead", "Staff")', {}, function (data) {
                     if (data.success) {
                         location.reload();
                     } else {
@@ -288,7 +300,7 @@
         });
 
         function markAsRead(notificationId) {
-            $.post('@Url.Action("MarkBaseStaffNotificationAsRead", "Staff")', 
+            postWithToken('@Url.Action("MarkBaseStaffNotificationAsRead", "Staff")', 
                 { notificationId: notificationId }, 
                 function (data) {
                     if (data.success) {
@@ -312,7 +324,7 @@
         function deleteNotification(notificationId) {
             if (!confirm('确定要删除这条消息吗？')) return;
             
-            $.post('@Url.Action("DeleteBaseStaffNotification", "Staff")', 
+            postWithToken('@Url.Action("DeleteBaseStaffNotification", "Staff")', 
                 { notificationId: notificationId }, 
                 function (data) {
                     if (data.success) {
@@ -351,7 +363,7 @@
         }
 
         function updateUnreadCount() {
-            $.post('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', function (data) {
+            postWithToken('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', {}, function (data) {
                 if (data.success && typeof window.updateMessageBadge === 'function') {
                     window.updateMessageBadge(data.count);
                 }

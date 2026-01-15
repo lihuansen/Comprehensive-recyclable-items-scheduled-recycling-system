@@ -275,6 +275,7 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    @Html.AntiForgeryToken()
     <script>
         // 更新消息徽章
         function updateMessageBadge(count) {
@@ -289,9 +290,17 @@
             }
         }
 
+        // 辅助函数：添加防伪令牌到POST请求
+        function postWithTokenInLayout(url, data, successCallback) {
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            var requestData = data || {};
+            requestData.__RequestVerificationToken = token;
+            return $.post(url, requestData, successCallback);
+        }
+
         // 页面加载时获取未读消息数量
         $(document).ready(function () {
-            $.post('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', function (data) {
+            postWithTokenInLayout('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', {}, function (data) {
                 if (data.success) {
                     updateMessageBadge(data.count);
                 }
@@ -299,7 +308,7 @@
 
             // 每30秒更新一次
             setInterval(function () {
-                $.post('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', function (data) {
+                postWithTokenInLayout('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', {}, function (data) {
                     if (data.success) {
                         updateMessageBadge(data.count);
                     }

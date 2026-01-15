@@ -4633,6 +4633,7 @@ namespace recycling.Web.UI.Controllers
         /// 获取基地工作人员未读通知数量（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult GetBaseStaffUnreadNotificationCount()
         {
             try
@@ -4659,6 +4660,7 @@ namespace recycling.Web.UI.Controllers
         /// 标记基地工作人员通知为已读（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult MarkBaseStaffNotificationAsRead(int notificationId)
         {
             try
@@ -4692,6 +4694,7 @@ namespace recycling.Web.UI.Controllers
         /// 标记所有基地工作人员通知为已读（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult MarkAllBaseStaffNotificationsAsRead()
         {
             try
@@ -4725,6 +4728,7 @@ namespace recycling.Web.UI.Controllers
         /// 删除基地工作人员通知（AJAX）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult DeleteBaseStaffNotification(int notificationId)
         {
             try
