@@ -4615,7 +4615,143 @@ namespace recycling.Web.UI.Controllers
             ViewBag.DisplayName = "基地工作人员";
             ViewBag.StaffRole = "sortingcenterworker";
 
-            return View();
+            // 加载通知
+            try
+            {
+                var notificationBLL = new BaseStaffNotificationBLL();
+                var notifications = notificationBLL.GetWorkerNotifications(worker.WorkerID, 1, 50);
+                return View(notifications);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"加载通知失败: {ex.Message}");
+                return View(new List<BaseStaffNotifications>());
+            }
+        }
+
+        /// <summary>
+        /// 获取基地工作人员未读通知数量（AJAX）
+        /// </summary>
+        [HttpPost]
+        public ContentResult GetBaseStaffUnreadNotificationCount()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                var notificationBLL = new BaseStaffNotificationBLL();
+                int unreadCount = notificationBLL.GetUnreadCount(worker.WorkerID);
+
+                return JsonContent(new { success = true, count = unreadCount });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取未读通知数量失败: {ex.Message}");
+                return JsonContent(new { success = false, message = $"获取未读通知数量失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 标记基地工作人员通知为已读（AJAX）
+        /// </summary>
+        [HttpPost]
+        public ContentResult MarkBaseStaffNotificationAsRead(int notificationId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                var notificationBLL = new BaseStaffNotificationBLL();
+                bool result = notificationBLL.MarkAsRead(notificationId, worker.WorkerID);
+
+                if (result)
+                {
+                    return JsonContent(new { success = true, message = "已标记为已读" });
+                }
+                else
+                {
+                    return JsonContent(new { success = false, message = "标记失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"标记通知为已读失败: {ex.Message}");
+                return JsonContent(new { success = false, message = $"标记通知为已读失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 标记所有基地工作人员通知为已读（AJAX）
+        /// </summary>
+        [HttpPost]
+        public ContentResult MarkAllBaseStaffNotificationsAsRead()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                var notificationBLL = new BaseStaffNotificationBLL();
+                bool result = notificationBLL.MarkAllAsRead(worker.WorkerID);
+
+                if (result)
+                {
+                    return JsonContent(new { success = true, message = "所有通知已标记为已读" });
+                }
+                else
+                {
+                    return JsonContent(new { success = false, message = "标记失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"标记所有通知为已读失败: {ex.Message}");
+                return JsonContent(new { success = false, message = $"标记所有通知为已读失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 删除基地工作人员通知（AJAX）
+        /// </summary>
+        [HttpPost]
+        public ContentResult DeleteBaseStaffNotification(int notificationId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                var notificationBLL = new BaseStaffNotificationBLL();
+                bool result = notificationBLL.DeleteNotification(notificationId, worker.WorkerID);
+
+                if (result)
+                {
+                    return JsonContent(new { success = true, message = "通知已删除" });
+                }
+                else
+                {
+                    return JsonContent(new { success = false, message = "删除失败" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"删除通知失败: {ex.Message}");
+                return JsonContent(new { success = false, message = $"删除通知失败: {ex.Message}" });
+            }
         }
 
         /// <summary>

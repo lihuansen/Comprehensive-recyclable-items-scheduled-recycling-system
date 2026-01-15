@@ -14,6 +14,7 @@ namespace recycling.BLL
         private readonly WarehouseReceiptDAL _dal = new WarehouseReceiptDAL();
         private readonly TransportationOrderDAL _transportDAL = new TransportationOrderDAL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
+        private readonly BaseStaffNotificationBLL _baseStaffNotificationBLL = new BaseStaffNotificationBLL();
 
         /// <summary>
         /// 创建入库单（并清零暂存点重量）
@@ -80,6 +81,38 @@ namespace recycling.BLL
                 {
                     // 通知失败不影响入库操作
                     System.Diagnostics.Debug.WriteLine($"发送入库通知失败: {notifyEx.Message}");
+                }
+
+                // 6. 发送入库单创建通知给基地工作人员
+                try
+                {
+                    _baseStaffNotificationBLL.SendWarehouseReceiptCreatedNotification(
+                        receiptId,
+                        receiptNumber,
+                        transportOrderId,
+                        transportOrder.OrderNumber,
+                        totalWeight,
+                        workerId);
+                }
+                catch (Exception notifyEx)
+                {
+                    // 通知失败不影响入库操作
+                    System.Diagnostics.Debug.WriteLine($"发送基地工作人员入库通知失败: {notifyEx.Message}");
+                }
+
+                // 7. 发送仓库库存写入通知给基地工作人员
+                try
+                {
+                    _baseStaffNotificationBLL.SendWarehouseInventoryWrittenNotification(
+                        receiptId,
+                        receiptNumber,
+                        itemCategories ?? "未分类",
+                        totalWeight);
+                }
+                catch (Exception notifyEx)
+                {
+                    // 通知失败不影响入库操作
+                    System.Diagnostics.Debug.WriteLine($"发送仓库库存写入通知失败: {notifyEx.Message}");
                 }
 
                 return (true, "入库成功", receiptId, receiptNumber);

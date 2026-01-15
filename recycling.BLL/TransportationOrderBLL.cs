@@ -12,6 +12,8 @@ namespace recycling.BLL
     public class TransportationOrderBLL
     {
         private readonly TransportationOrderDAL _dal = new TransportationOrderDAL();
+        private readonly BaseStaffNotificationBLL _notificationBLL = new BaseStaffNotificationBLL();
+        private readonly RecyclerDAL _recyclerDAL = new RecyclerDAL();
 
         /// <summary>
         /// 创建运输单
@@ -38,7 +40,34 @@ namespace recycling.BLL
                     throw new ArgumentException("预估重量必须大于0");
 
                 // 调用DAL创建运输单
-                return _dal.CreateTransportationOrder(order);
+                var (orderId, orderNumber) = _dal.CreateTransportationOrder(order);
+
+                // 发送通知给基地工作人员
+                if (orderId > 0)
+                {
+                    try
+                    {
+                        // 获取回收员名字
+                        var recycler = _recyclerDAL.GetRecyclerById(order.RecyclerID);
+                        string recyclerName = recycler != null && !string.IsNullOrWhiteSpace(recycler.FullName) 
+                            ? recycler.FullName 
+                            : (recycler != null ? recycler.Username : "未知回收员");
+
+                        _notificationBLL.SendTransportOrderCreatedNotification(
+                            orderId,
+                            orderNumber,
+                            recyclerName,
+                            order.PickupAddress,
+                            order.EstimatedWeight);
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        // 通知失败不影响订单创建
+                        System.Diagnostics.Debug.WriteLine($"发送运输单创建通知失败: {notifyEx.Message}");
+                    }
+                }
+
+                return (orderId, orderNumber);
             }
             catch (Exception ex)
             {
@@ -387,7 +416,48 @@ namespace recycling.BLL
                 if (actualWeight.HasValue && actualWeight.Value < 0)
                     throw new ArgumentException("实际重量不能为负数");
 
-                return _dal.CompleteTransportation(orderId, actualWeight);
+                bool result = _dal.CompleteTransportation(orderId, actualWeight);
+
+                // 发送通知给基地工作人员
+                if (result)
+                {
+                    try
+                    {
+                        // 获取运输单详情
+                        var order = _dal.GetTransportationOrderById(orderId);
+                        if (order != null)
+                        {
+                            // 获取运输人员名字（需要添加TransporterDAL）
+                            string transporterName = "运输人员";
+                            try
+                            {
+                                var transporterDAL = new TransporterDAL();
+                                var transporter = transporterDAL.GetTransporterById(order.TransporterID);
+                                if (transporter != null && !string.IsNullOrWhiteSpace(transporter.FullName))
+                                {
+                                    transporterName = transporter.FullName;
+                                }
+                            }
+                            catch
+                            {
+                                // 如果获取失败，使用默认名称
+                            }
+
+                            _notificationBLL.SendTransportOrderCompletedNotification(
+                                orderId,
+                                order.OrderNumber,
+                                transporterName,
+                                actualWeight ?? order.EstimatedWeight);
+                        }
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        // 通知失败不影响运输完成
+                        System.Diagnostics.Debug.WriteLine($"发送运输单完成通知失败: {notifyEx.Message}");
+                    }
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
