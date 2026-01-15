@@ -253,7 +253,12 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav">@Html.ActionLink("消息中心", "SortingCenterWorkerMessageCenter", "Staff")</li>
+                        <li class="normal-nav">
+                            <a href="@Url.Action("SortingCenterWorkerMessageCenter", "Staff")" style="position: relative;">
+                                消息中心
+                                <span id="messageBadge" class="badge" style="display: none; position: absolute; top: -5px; right: -10px; background-color: #d9534f; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold;"></span>
+                            </a>
+                        </li>
                         <li class="normal-nav">@Html.ActionLink("账号管理", "SortingCenterWorkerProfile", "Staff")</li>
                     </ul>
                 </div>
@@ -270,6 +275,41 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script>
+        // 更新消息徽章
+        function updateMessageBadge(count) {
+            var badge = document.getElementById('messageBadge');
+            if (badge) {
+                if (count && count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        // 页面加载时获取未读消息数量
+        $(document).ready(function () {
+            $.post('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', function (data) {
+                if (data.success) {
+                    updateMessageBadge(data.count);
+                }
+            });
+
+            // 每30秒更新一次
+            setInterval(function () {
+                $.post('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', function (data) {
+                    if (data.success) {
+                        updateMessageBadge(data.count);
+                    }
+                });
+            }, 30000);
+        });
+
+        // 将函数暴露到全局作用域，以便其他页面调用
+        window.updateMessageBadge = updateMessageBadge;
+    </script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

@@ -13,7 +13,7 @@ namespace recycling.BLL
     {
         private readonly TransportationOrderDAL _dal = new TransportationOrderDAL();
         private readonly BaseStaffNotificationBLL _notificationBLL = new BaseStaffNotificationBLL();
-        private readonly RecyclerDAL _recyclerDAL = new RecyclerDAL();
+        private readonly StaffDAL _staffDAL = new StaffDAL();
 
         /// <summary>
         /// 创建运输单
@@ -48,7 +48,7 @@ namespace recycling.BLL
                     try
                     {
                         // 获取回收员名字
-                        var recycler = _recyclerDAL.GetRecyclerById(order.RecyclerID);
+                        var recycler = _staffDAL.GetRecyclerById(order.RecyclerID);
                         string recyclerName = recycler != null && !string.IsNullOrWhiteSpace(recycler.FullName) 
                             ? recycler.FullName 
                             : (recycler != null ? recycler.Username : "未知回收员");
@@ -427,12 +427,12 @@ namespace recycling.BLL
                         var order = _dal.GetTransportationOrderById(orderId);
                         if (order != null)
                         {
-                            // 获取运输人员名字（需要添加TransporterDAL）
+                            // 获取运输人员名字
                             string transporterName = "运输人员";
                             try
                             {
-                                var transporterDAL = new TransporterDAL();
-                                var transporter = transporterDAL.GetTransporterById(order.TransporterID);
+                                var staffDAL = new StaffDAL();
+                                var transporter = staffDAL.GetTransporterById(order.TransporterID);
                                 if (transporter != null && !string.IsNullOrWhiteSpace(transporter.FullName))
                                 {
                                     transporterName = transporter.FullName;
