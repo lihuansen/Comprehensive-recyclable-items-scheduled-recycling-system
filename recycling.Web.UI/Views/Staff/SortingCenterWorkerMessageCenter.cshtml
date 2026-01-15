@@ -1,39 +1,373 @@
+@model List<recycling.Model.BaseStaffNotifications>
+
 @{
     ViewBag.Title = "消息中心";
     Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <style>
-    .message-center-placeholder {
-        text-align: center;
-        padding: 100px 20px;
-        background-color: #f8f9fa;
+    .notification-card {
+        background: white;
         border-radius: 8px;
-        margin: 20px 0;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
     }
 
-    .message-center-placeholder h2 {
-        color: #667eea;
+    .notification-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+
+    .notification-card.unread {
+        background-color: #f8f9ff;
+        border-left-color: #667eea;
+        border-left-width: 6px;
+    }
+
+    .notification-card.read {
+        background-color: #fafafa;
+        border-left-color: #ccc;
+        opacity: 0.85;
+    }
+
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .notification-title {
+        font-weight: bold;
+        font-size: 16px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .notification-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .notification-content {
+        color: #555;
+        margin-bottom: 10px;
+        line-height: 1.6;
+    }
+
+    .notification-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: #999;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .notification-actions button {
+        padding: 4px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-mark-read {
+        background-color: #667eea;
+        color: white;
+    }
+
+    .btn-mark-read:hover {
+        background-color: #5568d3;
+    }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333;
+    }
+
+    .notification-icon {
+        font-size: 20px;
+        margin-right: 8px;
+    }
+
+    .header-actions {
         margin-bottom: 20px;
-        font-size: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    .message-center-placeholder p {
-        color: #6c757d;
-        font-size: 18px;
-        margin-top: 10px;
+    .mark-all-btn {
+        background-color: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
     }
 
-    .message-center-placeholder i {
-        font-size: 80px;
-        color: #667eea;
+    .mark-all-btn:hover {
+        background-color: #5568d3;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 60px;
+        margin-bottom: 20px;
         opacity: 0.5;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
         margin-bottom: 20px;
+    }
+
+    .filter-tab {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-tab.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
     }
 </style>
 
-<div class="message-center-placeholder">
-    <i class="glyphicon glyphicon-envelope"></i>
-    <h2>消息中心</h2>
-    <p>此功能正在开发中，敬请期待...</p>
+<div class="container-fluid">
+    <h2 style="color: #667eea; margin-bottom: 20px;">
+        <i class="glyphicon glyphicon-envelope"></i> 消息中心
+    </h2>
+
+    <div class="header-actions">
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">全部 <span id="count-all">(@(Model?.Count ?? 0))</span></button>
+            <button class="filter-tab" data-filter="unread">未读 <span id="count-unread">(@(Model?.Count(n => !n.IsRead) ?? 0))</span></button>
+            <button class="filter-tab" data-filter="read">已读 <span id="count-read">(@(Model?.Count(n => n.IsRead) ?? 0))</span></button>
+        </div>
+        <button class="mark-all-btn" id="markAllReadBtn">
+            <i class="glyphicon glyphicon-ok"></i> 全部标记为已读
+        </button>
+    </div>
+
+    <div id="notificationList">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="glyphicon glyphicon-inbox"></i>
+                <h3>暂无消息</h3>
+                <p>您的消息中心目前没有任何消息</p>
+            </div>
+        }
+        else
+        {
+            foreach (var notification in Model.OrderByDescending(n => n.CreatedDate))
+            {
+                var typeColor = recycling.Model.BaseStaffNotificationTypes.GetColor(notification.NotificationType);
+                var typeIcon = recycling.Model.BaseStaffNotificationTypes.GetIcon(notification.NotificationType);
+                var typeName = recycling.Model.BaseStaffNotificationTypes.GetDisplayName(notification.NotificationType);
+                
+                <div class="notification-card @(notification.IsRead ? "read" : "unread")" 
+                     data-notification-id="@notification.NotificationID"
+                     data-is-read="@notification.IsRead.ToString().ToLower()">
+                    <div class="notification-header">
+                        <div class="notification-title">
+                            <i class="fa @typeIcon notification-icon" style="color: @typeColor"></i>
+                            @notification.Title
+                            @if (!notification.IsRead)
+                            {
+                                <span class="notification-badge" style="background-color: @typeColor">新</span>
+                            }
+                        </div>
+                        <span class="notification-badge" style="background-color: @typeColor">@typeName</span>
+                    </div>
+                    <div class="notification-content">
+                        @notification.Content
+                    </div>
+                    <div class="notification-meta">
+                        <span>
+                            <i class="glyphicon glyphicon-time"></i>
+                            @notification.CreatedDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                        </span>
+                        <div class="notification-actions">
+                            @if (!notification.IsRead)
+                            {
+                                <button class="btn-mark-read" onclick="markAsRead(@notification.NotificationID)">
+                                    <i class="glyphicon glyphicon-ok"></i> 标记已读
+                                </button>
+                            }
+                            <button class="btn-delete" onclick="deleteNotification(@notification.NotificationID)">
+                                <i class="glyphicon glyphicon-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
 </div>
+
+@section scripts {
+    <script>
+        // 获取防伪令牌
+        var antiForgeryToken = $('input[name="__RequestVerificationToken"]').val();
+        
+        // 辅助函数：添加防伪令牌到POST请求
+        function postWithToken(url, data, successCallback) {
+            var requestData = data || {};
+            requestData.__RequestVerificationToken = antiForgeryToken;
+            return $.post(url, requestData, successCallback);
+        }
+        
+        $(document).ready(function () {
+            var updateInterval;
+            
+            // 过滤器
+            $('.filter-tab').click(function () {
+                $('.filter-tab').removeClass('active');
+                $(this).addClass('active');
+                
+                var filter = $(this).data('filter');
+                if (filter === 'all') {
+                    $('.notification-card').show();
+                } else if (filter === 'unread') {
+                    $('.notification-card').hide();
+                    $('.notification-card[data-is-read="false"]').show();
+                } else if (filter === 'read') {
+                    $('.notification-card').hide();
+                    $('.notification-card[data-is-read="true"]').show();
+                }
+            });
+
+            // 全部标记为已读
+            $('#markAllReadBtn').click(function () {
+                if (!confirm('确定要将所有消息标记为已读吗？')) return;
+                
+                postWithToken('@Url.Action("MarkAllBaseStaffNotificationsAsRead", "Staff")', {}, function (data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('操作失败：' + (data.message || ''));
+                    }
+                }).fail(function () {
+                    alert('操作失败，请重试');
+                });
+            });
+
+            // 自动更新未读数量（用于导航栏徽章）
+            updateUnreadCount();
+            updateInterval = setInterval(updateUnreadCount, 30000); // 每30秒更新一次
+            
+            // 清理定时器
+            $(window).on('beforeunload', function() {
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                }
+            });
+        });
+
+        function markAsRead(notificationId) {
+            postWithToken('@Url.Action("MarkBaseStaffNotificationAsRead", "Staff")', 
+                { notificationId: notificationId }, 
+                function (data) {
+                    if (data.success) {
+                        var card = $('[data-notification-id="' + notificationId + '"]');
+                        card.removeClass('unread').addClass('read');
+                        card.attr('data-is-read', 'true');
+                        card.find('.btn-mark-read').remove();
+                        card.find('.notification-badge:contains("新")').remove();
+                        
+                        // 更新计数
+                        updateCounts();
+                        updateUnreadCount();
+                    } else {
+                        alert('操作失败：' + (data.message || ''));
+                    }
+                }).fail(function () {
+                    alert('操作失败，请重试');
+                });
+        }
+
+        function deleteNotification(notificationId) {
+            if (!confirm('确定要删除这条消息吗？')) return;
+            
+            postWithToken('@Url.Action("DeleteBaseStaffNotification", "Staff")', 
+                { notificationId: notificationId }, 
+                function (data) {
+                    if (data.success) {
+                        $('[data-notification-id="' + notificationId + '"]').fadeOut(300, function () {
+                            $(this).remove();
+                            updateCounts();
+                            
+                            // 如果没有消息了，显示空状态
+                            if ($('.notification-card').length === 0) {
+                                $('#notificationList').html(
+                                    '<div class="empty-state">' +
+                                    '<i class="glyphicon glyphicon-inbox"></i>' +
+                                    '<h3>暂无消息</h3>' +
+                                    '<p>您的消息中心目前没有任何消息</p>' +
+                                    '</div>'
+                                );
+                            }
+                        });
+                        updateUnreadCount();
+                    } else {
+                        alert('操作失败：' + (data.message || ''));
+                    }
+                }).fail(function () {
+                    alert('操作失败，请重试');
+                });
+        }
+
+        function updateCounts() {
+            var total = $('.notification-card').length;
+            var unread = $('.notification-card[data-is-read="false"]').length;
+            var read = $('.notification-card[data-is-read="true"]').length;
+            
+            $('#count-all').text('(' + total + ')');
+            $('#count-unread').text('(' + unread + ')');
+            $('#count-read').text('(' + read + ')');
+        }
+
+        function updateUnreadCount() {
+            postWithToken('@Url.Action("GetBaseStaffUnreadNotificationCount", "Staff")', {}, function (data) {
+                if (data.success && typeof window.updateMessageBadge === 'function') {
+                    window.updateMessageBadge(data.count);
+                }
+            });
+        }
+    </script>
+}
