@@ -49,9 +49,7 @@ namespace recycling.BLL
                     {
                         // 获取回收员名字
                         var recycler = _staffDAL.GetRecyclerById(order.RecyclerID);
-                        string recyclerName = recycler != null && !string.IsNullOrWhiteSpace(recycler.FullName) 
-                            ? recycler.FullName 
-                            : (recycler != null ? recycler.Username : "未知回收员");
+                        string recyclerName = GetRecyclerName(recycler);
 
                         _notificationBLL.SendTransportOrderCreatedNotification(
                             orderId,
@@ -464,6 +462,24 @@ namespace recycling.BLL
                 System.Diagnostics.Debug.WriteLine($"CompleteTransportation BLL Error: {ex.Message}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// 获取回收员名称（辅助方法）
+        /// </summary>
+        private string GetRecyclerName(Recyclers recycler)
+        {
+            if (recycler == null)
+            {
+                return "未知回收员";
+            }
+
+            if (!string.IsNullOrWhiteSpace(recycler.FullName))
+            {
+                return recycler.FullName;
+            }
+
+            return recycler.Username ?? "未知回收员";
         }
     }
 }

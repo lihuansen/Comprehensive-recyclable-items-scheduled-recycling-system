@@ -204,7 +204,7 @@
                     <div class="notification-header">
                         <div class="notification-title">
                             <i class="fa @typeIcon notification-icon" style="color: @typeColor"></i>
-                            @Html.Raw(HttpUtility.HtmlEncode(notification.Title ?? ""))
+                            @notification.Title
                             @if (!notification.IsRead)
                             {
                                 <span class="notification-badge" style="background-color: @typeColor">新</span>
@@ -213,7 +213,7 @@
                         <span class="notification-badge" style="background-color: @typeColor">@typeName</span>
                     </div>
                     <div class="notification-content">
-                        @Html.Raw(HttpUtility.HtmlEncode(notification.Content ?? ""))
+                        @notification.Content
                     </div>
                     <div class="notification-meta">
                         <span>
@@ -241,6 +241,8 @@
 @section scripts {
     <script>
         $(document).ready(function () {
+            var updateInterval;
+            
             // 过滤器
             $('.filter-tab').click(function () {
                 $('.filter-tab').removeClass('active');
@@ -275,7 +277,14 @@
 
             // 自动更新未读数量（用于导航栏徽章）
             updateUnreadCount();
-            setInterval(updateUnreadCount, 30000); // 每30秒更新一次
+            updateInterval = setInterval(updateUnreadCount, 30000); // 每30秒更新一次
+            
+            // 清理定时器
+            $(window).on('beforeunload', function() {
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                }
+            });
         });
 
         function markAsRead(notificationId) {
@@ -286,7 +295,7 @@
                         var card = $('[data-notification-id="' + notificationId + '"]');
                         card.removeClass('unread').addClass('read');
                         card.attr('data-is-read', 'true');
-                        card.find('.btn-mark-read').parent().find('.btn-mark-read').remove();
+                        card.find('.btn-mark-read').remove();
                         card.find('.notification-badge:contains("新")').remove();
                         
                         // 更新计数

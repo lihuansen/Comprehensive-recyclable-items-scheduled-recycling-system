@@ -233,8 +233,8 @@ namespace recycling.DAL
                         cmd.Parameters.AddWithValue("@WorkerID", workerId);
                         cmd.Parameters.AddWithValue("@ReadDate", DateTime.Now);
 
-                        cmd.ExecuteNonQuery();
-                        return true;
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
                     }
                 }
             }
