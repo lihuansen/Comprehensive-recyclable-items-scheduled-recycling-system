@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="AdminBLL.cs" />
     <Compile Include="AppointmentBLL.cs" />
+    <Compile Include="BaseStaffNotificationBLL.cs" />
     <Compile Include="ConversationBLL.cs" />
     <Compile Include="FeedbackBLL.cs" />
     <Compile Include="HomepageCarouselBLL.cs" />
