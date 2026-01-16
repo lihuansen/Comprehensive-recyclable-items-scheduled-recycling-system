@@ -228,7 +228,29 @@ namespace recycling.DAL
                                 {
                                     string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                     string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
-                                    decimal weight = category.ContainsKey("weight") ? Convert.ToDecimal(category["weight"]) : 0;
+                                    
+                                    // Improved weight extraction with better type handling
+                                    decimal weight = 0;
+                                    if (category.ContainsKey("weight") && category["weight"] != null)
+                                    {
+                                        try
+                                        {
+                                            // Handle both string and numeric types in JSON
+                                            var weightValue = category["weight"];
+                                            if (weightValue is string weightStr)
+                                            {
+                                                decimal.TryParse(weightStr, out weight);
+                                            }
+                                            else
+                                            {
+                                                weight = Convert.ToDecimal(weightValue);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            System.Diagnostics.Debug.WriteLine($"Failed to parse weight for category {categoryKey}: {ex.Message}. Value: {category["weight"]}");
+                                        }
+                                    }
 
                                     if (string.IsNullOrEmpty(categoryKey) || weight <= 0)
                                         continue;
@@ -693,7 +715,29 @@ namespace recycling.DAL
                                         {
                                             string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                             string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
-                                            decimal weight = category.ContainsKey("weight") ? Convert.ToDecimal(category["weight"]) : 0;
+                                            
+                                            // Improved weight extraction with better type handling
+                                            decimal weight = 0;
+                                            if (category.ContainsKey("weight") && category["weight"] != null)
+                                            {
+                                                try
+                                                {
+                                                    // Handle both string and numeric types in JSON
+                                                    var weightValue = category["weight"];
+                                                    if (weightValue is string weightStr)
+                                                    {
+                                                        decimal.TryParse(weightStr, out weight);
+                                                    }
+                                                    else
+                                                    {
+                                                        weight = Convert.ToDecimal(weightValue);
+                                                    }
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    System.Diagnostics.Debug.WriteLine($"Failed to parse weight for category {categoryKey} in summary: {ex.Message}. Value: {category["weight"]}");
+                                                }
+                                            }
 
                                             if (!string.IsNullOrEmpty(categoryKey) && weight > 0)
                                             {
@@ -814,7 +858,29 @@ namespace recycling.DAL
                                         {
                                             string catKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                             string catName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
-                                            decimal weight = category.ContainsKey("weight") ? Convert.ToDecimal(category["weight"]) : 0;
+                                            
+                                            // Improved weight extraction with better type handling
+                                            decimal weight = 0;
+                                            if (category.ContainsKey("weight") && category["weight"] != null)
+                                            {
+                                                try
+                                                {
+                                                    // Handle both string and numeric types in JSON
+                                                    var weightValue = category["weight"];
+                                                    if (weightValue is string weightStr)
+                                                    {
+                                                        decimal.TryParse(weightStr, out weight);
+                                                    }
+                                                    else
+                                                    {
+                                                        weight = Convert.ToDecimal(weightValue);
+                                                    }
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    System.Diagnostics.Debug.WriteLine($"Failed to parse weight for category {catKey} in detail view: {ex.Message}. Value: {category["weight"]}");
+                                                }
+                                            }
 
                                             // 如果指定了类别筛选，则只包含匹配的类别
                                             if (!string.IsNullOrEmpty(categoryKey) && catKey != categoryKey)
