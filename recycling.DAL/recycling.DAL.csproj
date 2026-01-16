@@ -73,6 +73,7 @@
     <Compile Include="StaffDAL.cs" />
     <Compile Include="StoragePointDAL.cs" />
     <Compile Include="SuperAdminDAL.cs" />
+    <Compile Include="TransportationOrderCategoriesDAL.cs" />
     <Compile Include="TransportationOrderDAL.cs" />
     <Compile Include="UserAddressDAL.cs" />
     <Compile Include="UserDAL.cs" />
