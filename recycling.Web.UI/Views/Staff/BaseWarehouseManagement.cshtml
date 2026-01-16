@@ -155,6 +155,32 @@
         color: #155724;
     }
 
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .btn-warehouse {
+        background: #27ae60;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-warehouse:hover {
+        background: #229954;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .btn-warehouse i {
+        margin-right: 5px;
+    }
+
     .empty-state {
         text-align: center;
         padding: 40px 20px;
@@ -368,7 +394,7 @@
         <!-- 右侧：入库单列表 -->
         <div class="section-card">
             <div class="section-header">
-                <h2 class="section-title">入库记录</h2>
+                <h2 class="section-title">入库单</h2>
                 <button class="btn-secondary" onclick="loadWarehouseReceipts()">
                     <i class="fas fa-sync-alt"></i> 刷新
                 </button>
@@ -391,18 +417,31 @@
                                 <th>重量(kg)</th>
                                 <th>入库时间</th>
                                 <th>状态</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="receiptsTableBody">
                             @foreach (var receipt in Model.WarehouseReceipts)
                             {
-                                <tr>
+                                <tr data-receipt-id="@receipt.ReceiptID">
                                     <td>@receipt.ReceiptNumber</td>
                                     <td>@(receipt.TransportOrderNumber ?? "-")</td>
                                     <td>@(receipt.RecyclerName ?? "-")</td>
                                     <td>@receipt.TotalWeight.ToString("F2")</td>
                                     <td>@receipt.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
-                                    <td><span class="status-badge status-completed">@receipt.Status</span></td>
+                                    <td><span class="status-badge @(receipt.Status == "待入库" ? "status-pending" : "status-completed")">@receipt.Status</span></td>
+                                    <td>
+                                        @if (receipt.Status == "待入库")
+                                        {
+                                            <button class="btn-warehouse" onclick="processWarehouse(@receipt.ReceiptID)">
+                                                <i class="fas fa-warehouse"></i> 入库
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: #999;">-</span>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -412,7 +451,7 @@
                 {
                     <div id="receiptsEmptyState" class="empty-state">
                         <i class="fas fa-inbox"></i>
-                        <p>暂无入库记录</p>
+                        <p>暂无入库单</p>
                     </div>
                 }
             </div>
@@ -828,10 +867,38 @@
             },
             success: function (response) {
                 if (response.success) {
-                    alert('入库成功！入库单号：' + response.receiptNumber);
+                    alert('入库单创建成功！入库单号：' + response.receiptNumber + '\n请在入库单列表中点击"入库"按钮完成入库操作。');
                     cancelSelection();
                     loadCompletedTransportOrders();
                     loadWarehouseReceipts();
+                } else {
+                    alert('创建失败：' + response.message);
+                }
+            },
+            error: function () {
+                alert('网络错误，请稍后重试');
+            }
+        });
+    }
+
+    // 处理入库单入库
+    function processWarehouse(receiptId) {
+        if (!confirm('确认要将该入库单入库吗？入库后将写入库存记录。')) {
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("ProcessWarehouseReceipt", "Staff")',
+            type: 'POST',
+            data: {
+                receiptId: receiptId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert('入库成功！库存已更新。');
+                    loadWarehouseReceipts();
+                    loadInventorySummary(); // 刷新库存信息
                 } else {
                     alert('入库失败：' + response.message);
                 }
@@ -876,20 +943,30 @@
         });
     }
 
-    // 显示入库记录
+    // 显示入库单
     function displayReceipts(receipts) {
         if (receipts && receipts.length > 0) {
             var tbody = $('#receiptsTableBody');
             tbody.empty();
 
             receipts.forEach(function (receipt) {
-                var row = '<tr>' +
+                var statusClass = receipt.Status === '待入库' ? 'status-pending' : 'status-completed';
+                var actionButton = '';
+                
+                if (receipt.Status === '待入库') {
+                    actionButton = '<button class="btn-warehouse" onclick="processWarehouse(' + receipt.ReceiptID + ')"><i class="fas fa-warehouse"></i> 入库</button>';
+                } else {
+                    actionButton = '<span style="color: #999;">-</span>';
+                }
+
+                var row = '<tr data-receipt-id="' + receipt.ReceiptID + '">' +
                     '<td>' + receipt.ReceiptNumber + '</td>' +
                     '<td>' + (receipt.TransportOrderNumber || '-') + '</td>' +
                     '<td>' + (receipt.RecyclerName || '-') + '</td>' +
                     '<td>' + receipt.TotalWeight.toFixed(2) + '</td>' +
                     '<td>' + formatDateTime(receipt.CreatedDate) + '</td>' +
-                    '<td><span class="status-badge status-completed">' + receipt.Status + '</span></td>' +
+                    '<td><span class="status-badge ' + statusClass + '">' + receipt.Status + '</span></td>' +
+                    '<td>' + actionButton + '</td>' +
                     '</tr>';
                 tbody.append(row);
             });

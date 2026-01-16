@@ -90,7 +90,8 @@ namespace recycling.DAL
         }
 
         /// <summary>
-        /// 创建入库单并清零暂存点重量
+        /// 创建入库单（状态为"待入库"，不写入库存）
+        /// Create warehouse receipt with "Pending" status, without writing to inventory
         /// </summary>
         public (int receiptId, string receiptNumber) CreateWarehouseReceipt(WarehouseReceipts receipt)
         {
@@ -107,7 +108,7 @@ namespace recycling.DAL
                             // 1. 生成入库单号
                             receipt.ReceiptNumber = GenerateReceiptNumber();
                             receipt.CreatedDate = DateTime.Now;
-                            receipt.Status = "已入库";
+                            receipt.Status = "待入库"; // Changed from "已入库" to "待入库"
 
                             // 2. 插入入库单记录
                             string insertSql = @"
@@ -136,37 +137,7 @@ namespace recycling.DAL
                                 receiptId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
 
-                            // 3. 将运输中的库存转移到仓库（更新InventoryType从InTransit到Warehouse）
-                            // Transfer in-transit inventory to warehouse (update InventoryType from InTransit to Warehouse)
-                            // Note: CreatedDate is preserved to maintain original creation timestamp
-                            // This happens when goods arrive at base after transportation is complete
-                            string transferInventorySql = @"
-                                UPDATE Inventory 
-                                SET InventoryType = N'Warehouse'
-                                WHERE RecyclerID = @RecyclerID 
-                                  AND InventoryType = N'InTransit'";
-
-                            int transferredRows;
-                            using (SqlCommand cmd = new SqlCommand(transferInventorySql, conn, transaction))
-                            {
-                                cmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
-                                transferredRows = cmd.ExecuteNonQuery();
-                                System.Diagnostics.Debug.WriteLine($"Transferred {transferredRows} inventory items from InTransit to Warehouse for recycler {receipt.RecyclerID}");
-                            }
-                            
-                            // Validate that inventory was transferred
-                            // If no inventory was transferred, it could indicate:
-                            // 1. Inventory was already warehoused (duplicate receipt)
-                            // 2. Transport was started but no goods were in transit
-                            // 3. Data inconsistency
-                            if (transferredRows == 0)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Warning: No inventory items transferred for recycler {receipt.RecyclerID}. All inventory may already be warehoused or transport had no goods in transit.");
-                            }
-
-                            // Note: Do NOT update Appointment status here
-                            // Appointment status should remain "已完成" (Completed)
-                            // Only WarehouseReceipts.Status should be "已入库" (Warehoused)
+                            // Note: Inventory is NOT written here. It will be written when ProcessWarehouseReceipt is called.
 
                             transaction.Commit();
                             return (receiptId, receipt.ReceiptNumber);
@@ -183,6 +154,191 @@ namespace recycling.DAL
             {
                 System.Diagnostics.Debug.WriteLine($"CreateWarehouseReceipt Error: {ex.Message}");
                 throw new Exception($"创建入库单失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// 处理入库单入库（将状态更新为"已入库"并写入库存，按类别累加）
+        /// Process warehouse receipt (update status to "Warehoused" and write to inventory, accumulate by category)
+        /// </summary>
+        public bool ProcessWarehouseReceipt(int receiptId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    
+                    using (SqlTransaction transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. 获取入库单信息
+                            string getReceiptSql = @"
+                                SELECT ReceiptID, ReceiptNumber, TransportOrderID, RecyclerID, WorkerID, 
+                                       TotalWeight, ItemCategories, Status, Notes, CreatedDate, CreatedBy
+                                FROM WarehouseReceipts
+                                WHERE ReceiptID = @ReceiptID";
+
+                            WarehouseReceipts receipt = null;
+                            using (SqlCommand cmd = new SqlCommand(getReceiptSql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@ReceiptID", receiptId);
+                                using (SqlDataReader reader = cmd.ExecuteReader())
+                                {
+                                    if (reader.Read())
+                                    {
+                                        receipt = new WarehouseReceipts
+                                        {
+                                            ReceiptID = Convert.ToInt32(reader["ReceiptID"]),
+                                            ReceiptNumber = reader["ReceiptNumber"].ToString(),
+                                            TransportOrderID = Convert.ToInt32(reader["TransportOrderID"]),
+                                            RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
+                                            WorkerID = Convert.ToInt32(reader["WorkerID"]),
+                                            TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
+                                            ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                            Status = reader["Status"].ToString(),
+                                            Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
+                                            CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                                            CreatedBy = Convert.ToInt32(reader["CreatedBy"])
+                                        };
+                                    }
+                                }
+                            }
+
+                            if (receipt == null)
+                            {
+                                throw new Exception("入库单不存在");
+                            }
+
+                            if (receipt.Status != "待入库")
+                            {
+                                throw new Exception($"入库单状态不正确，当前状态：{receipt.Status}");
+                            }
+
+                            // 2. 解析ItemCategories JSON并写入库存（按类别累加）
+                            if (!string.IsNullOrEmpty(receipt.ItemCategories))
+                            {
+                                var categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(receipt.ItemCategories);
+                                
+                                // 预加载价格
+                                var categoryPrices = LoadCategoryPrices(conn);
+
+                                foreach (var category in categories)
+                                {
+                                    string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
+                                    string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
+                                    decimal weight = category.ContainsKey("weight") ? Convert.ToDecimal(category["weight"]) : 0;
+
+                                    if (string.IsNullOrEmpty(categoryKey) || weight <= 0)
+                                        continue;
+
+                                    // 计算价格
+                                    decimal? price = null;
+                                    if (categoryPrices.ContainsKey(categoryKey))
+                                    {
+                                        price = weight * categoryPrices[categoryKey];
+                                    }
+
+                                    // 检查是否已存在该类别的库存记录（同一入库单号）
+                                    string checkExistingSql = @"
+                                        SELECT InventoryID, Weight, Price
+                                        FROM Inventory
+                                        WHERE OrderID = @ReceiptID 
+                                          AND CategoryKey = @CategoryKey
+                                          AND InventoryType = N'Warehouse'";
+
+                                    bool existingRecordFound = false;
+                                    int existingInventoryId = 0;
+                                    decimal existingWeight = 0;
+                                    decimal existingPrice = 0;
+
+                                    using (SqlCommand checkCmd = new SqlCommand(checkExistingSql, conn, transaction))
+                                    {
+                                        checkCmd.Parameters.AddWithValue("@ReceiptID", receiptId);
+                                        checkCmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
+                                        
+                                        using (SqlDataReader reader = checkCmd.ExecuteReader())
+                                        {
+                                            if (reader.Read())
+                                            {
+                                                existingRecordFound = true;
+                                                existingInventoryId = Convert.ToInt32(reader["InventoryID"]);
+                                                existingWeight = Convert.ToDecimal(reader["Weight"]);
+                                                existingPrice = reader["Price"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Price"]);
+                                            }
+                                        }
+                                    }
+
+                                    if (existingRecordFound)
+                                    {
+                                        // 更新现有记录，累加重量和价格
+                                        string updateInventorySql = @"
+                                            UPDATE Inventory
+                                            SET Weight = @Weight,
+                                                Price = @Price
+                                            WHERE InventoryID = @InventoryID";
+
+                                        using (SqlCommand updateCmd = new SqlCommand(updateInventorySql, conn, transaction))
+                                        {
+                                            updateCmd.Parameters.AddWithValue("@Weight", existingWeight + weight);
+                                            updateCmd.Parameters.AddWithValue("@Price", (object)(existingPrice + (price ?? 0)) ?? DBNull.Value);
+                                            updateCmd.Parameters.AddWithValue("@InventoryID", existingInventoryId);
+                                            updateCmd.ExecuteNonQuery();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // 插入新库存记录
+                                        string insertInventorySql = @"
+                                            INSERT INTO Inventory 
+                                            (OrderID, CategoryKey, CategoryName, Weight, RecyclerID, CreatedDate, Price, InventoryType)
+                                            VALUES 
+                                            (@OrderID, @CategoryKey, @CategoryName, @Weight, @RecyclerID, @CreatedDate, @Price, @InventoryType)";
+
+                                        using (SqlCommand insertCmd = new SqlCommand(insertInventorySql, conn, transaction))
+                                        {
+                                            insertCmd.Parameters.AddWithValue("@OrderID", receiptId);
+                                            insertCmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
+                                            insertCmd.Parameters.AddWithValue("@CategoryName", categoryName);
+                                            insertCmd.Parameters.AddWithValue("@Weight", weight);
+                                            insertCmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
+                                            insertCmd.Parameters.AddWithValue("@CreatedDate", receipt.CreatedDate);
+                                            insertCmd.Parameters.AddWithValue("@Price", (object)price ?? DBNull.Value);
+                                            insertCmd.Parameters.AddWithValue("@InventoryType", "Warehouse");
+                                            insertCmd.ExecuteNonQuery();
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 3. 更新入库单状态为"已入库"
+                            string updateStatusSql = @"
+                                UPDATE WarehouseReceipts
+                                SET Status = N'已入库'
+                                WHERE ReceiptID = @ReceiptID";
+
+                            using (SqlCommand cmd = new SqlCommand(updateStatusSql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@ReceiptID", receiptId);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            transaction.Commit();
+                            return true;
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ProcessWarehouseReceipt Error: {ex.Message}");
+                throw new Exception($"处理入库单失败: {ex.Message}", ex);
             }
         }
 
@@ -272,6 +428,58 @@ namespace recycling.DAL
             }
 
             return receipts;
+        }
+
+        /// <summary>
+        /// 根据ID获取入库单
+        /// Get warehouse receipt by ID
+        /// </summary>
+        public WarehouseReceipts GetWarehouseReceiptById(int receiptId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    
+                    string sql = @"
+                        SELECT * FROM WarehouseReceipts 
+                        WHERE ReceiptID = @ReceiptID";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ReceiptID", receiptId);
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new WarehouseReceipts
+                                {
+                                    ReceiptID = Convert.ToInt32(reader["ReceiptID"]),
+                                    ReceiptNumber = reader["ReceiptNumber"].ToString(),
+                                    TransportOrderID = Convert.ToInt32(reader["TransportOrderID"]),
+                                    RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
+                                    WorkerID = Convert.ToInt32(reader["WorkerID"]),
+                                    TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
+                                    ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                    Status = reader["Status"].ToString(),
+                                    Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
+                                    CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                                    CreatedBy = Convert.ToInt32(reader["CreatedBy"])
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetWarehouseReceiptById Error: {ex.Message}");
+                throw new Exception($"获取入库单失败: {ex.Message}", ex);
+            }
+
+            return null;
         }
 
         /// <summary>

@@ -4947,6 +4947,30 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 处理入库单入库（AJAX）
+        /// Process warehouse receipt warehousing
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult ProcessWarehouseReceipt(int receiptId)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var (success, message) = _warehouseReceiptBLL.ProcessWarehouseReceipt(receiptId);
+                return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"处理入库单失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// 获取基地仓库库存汇总信息（AJAX）
         /// Get warehouse inventory summary for base staff
         /// </summary>
