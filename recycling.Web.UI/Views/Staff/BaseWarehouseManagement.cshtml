@@ -867,7 +867,7 @@
             },
             success: function (response) {
                 if (response.success) {
-                    alert('入库单创建成功！入库单号：' + response.receiptNumber + '\n请在入库单列表中点击"入库"按钮完成入库操作。');
+                    alert('入库单创建成功！\n\n入库单号：' + response.receiptNumber + '\n\n提示：请在入库单列表中点击"入库"按钮完成入库操作。');
                     cancelSelection();
                     loadCompletedTransportOrders();
                     loadWarehouseReceipts();

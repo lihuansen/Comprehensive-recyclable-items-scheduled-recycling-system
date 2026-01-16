@@ -240,7 +240,9 @@ namespace recycling.DAL
                                         price = weight * categoryPrices[categoryKey];
                                     }
 
-                                    // 检查是否已存在该类别的库存记录（同一入库单号）
+                                    // 检查是否已存在该类别的库存记录（同一入库单的同一类别）
+                                    // Check if an inventory record already exists for this category in the same receipt
+                                    // Note: OrderID in Inventory table stores the ReceiptID
                                     string checkExistingSql = @"
                                         SELECT InventoryID, Weight, Price
                                         FROM Inventory
@@ -273,6 +275,9 @@ namespace recycling.DAL
                                     if (existingRecordFound)
                                     {
                                         // 更新现有记录，累加重量和价格
+                                        decimal newWeight = existingWeight + weight;
+                                        decimal newPrice = existingPrice + (price ?? 0);
+                                        
                                         string updateInventorySql = @"
                                             UPDATE Inventory
                                             SET Weight = @Weight,
@@ -281,8 +286,8 @@ namespace recycling.DAL
 
                                         using (SqlCommand updateCmd = new SqlCommand(updateInventorySql, conn, transaction))
                                         {
-                                            updateCmd.Parameters.AddWithValue("@Weight", existingWeight + weight);
-                                            updateCmd.Parameters.AddWithValue("@Price", (object)(existingPrice + (price ?? 0)) ?? DBNull.Value);
+                                            updateCmd.Parameters.AddWithValue("@Weight", newWeight);
+                                            updateCmd.Parameters.AddWithValue("@Price", (object)newPrice ?? DBNull.Value);
                                             updateCmd.Parameters.AddWithValue("@InventoryID", existingInventoryId);
                                             updateCmd.ExecuteNonQuery();
                                         }
