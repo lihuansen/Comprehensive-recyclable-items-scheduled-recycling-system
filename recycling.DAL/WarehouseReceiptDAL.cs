@@ -261,107 +261,138 @@ namespace recycling.DAL
                                 throw new Exception($"入库单状态不正确，当前状态：{receipt.Status}");
                             }
 
-                            // 2. 解析ItemCategories JSON并写入库存（按类别累加）
-                            if (!string.IsNullOrEmpty(receipt.ItemCategories))
+                            // 2. 验证并解析ItemCategories JSON
+                            if (string.IsNullOrEmpty(receipt.ItemCategories))
                             {
-                                var categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(receipt.ItemCategories);
+                                throw new Exception("入库单缺少物品类别信息，无法入库");
+                            }
+                            
+                            List<Dictionary<string, object>> categories = null;
+                            
+                            try
+                            {
+                                categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(receipt.ItemCategories);
+                            }
+                            catch (JsonException)
+                            {
+                                // 不暴露内部异常详情，只提供用户友好的错误信息
+                                throw new Exception("物品类别数据格式错误，请检查数据格式是否正确");
+                            }
+                            
+                            if (categories == null || categories.Count == 0)
+                            {
+                                throw new Exception("物品类别数据为空，无法入库");
+                            }
+                            
+                            // 预加载价格
+                            var categoryPrices = LoadCategoryPrices(conn);
+                            
+                            // 用于跟踪是否成功写入至少一条库存记录
+                            bool hasValidCategory = false;
+
+                            foreach (var category in categories)
+                            {
+                                string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
+                                string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
                                 
-                                // 预加载价格
-                                var categoryPrices = LoadCategoryPrices(conn);
+                                // Extract weight using helper method
+                                decimal weight = ExtractWeightFromJson(category, categoryKey, "ProcessWarehouseReceipt");
 
-                                foreach (var category in categories)
+                                if (string.IsNullOrEmpty(categoryKey) || weight <= 0)
                                 {
-                                    string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
-                                    string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
+                                    System.Diagnostics.Debug.WriteLine($"跳过无效类别: categoryKey={categoryKey}, weight={weight}");
+                                    continue;
+                                }
+                                
+                                hasValidCategory = true;
+
+                                // 计算价格
+                                decimal? price = null;
+                                if (categoryPrices.ContainsKey(categoryKey))
+                                {
+                                    price = weight * categoryPrices[categoryKey];
+                                }
+
+                                // 检查是否已存在该类别的库存记录（同一入库单的同一类别）
+                                // Check if an inventory record already exists for this category in the same receipt
+                                // Note: OrderID in Inventory table stores the ReceiptID
+                                string checkExistingSql = @"
+                                    SELECT InventoryID, Weight, Price
+                                    FROM Inventory
+                                    WHERE OrderID = @ReceiptID 
+                                      AND CategoryKey = @CategoryKey
+                                      AND InventoryType = N'Warehouse'";
+
+                                bool existingRecordFound = false;
+                                int existingInventoryId = 0;
+                                decimal existingWeight = 0;
+                                decimal existingPrice = 0;
+
+                                using (SqlCommand checkCmd = new SqlCommand(checkExistingSql, conn, transaction))
+                                {
+                                    checkCmd.Parameters.AddWithValue("@ReceiptID", receiptId);
+                                    checkCmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
                                     
-                                    // Extract weight using helper method
-                                    decimal weight = ExtractWeightFromJson(category, categoryKey, "ProcessWarehouseReceipt");
-
-                                    if (string.IsNullOrEmpty(categoryKey) || weight <= 0)
-                                        continue;
-
-                                    // 计算价格
-                                    decimal? price = null;
-                                    if (categoryPrices.ContainsKey(categoryKey))
+                                    using (SqlDataReader reader = checkCmd.ExecuteReader())
                                     {
-                                        price = weight * categoryPrices[categoryKey];
-                                    }
-
-                                    // 检查是否已存在该类别的库存记录（同一入库单的同一类别）
-                                    // Check if an inventory record already exists for this category in the same receipt
-                                    // Note: OrderID in Inventory table stores the ReceiptID
-                                    string checkExistingSql = @"
-                                        SELECT InventoryID, Weight, Price
-                                        FROM Inventory
-                                        WHERE OrderID = @ReceiptID 
-                                          AND CategoryKey = @CategoryKey
-                                          AND InventoryType = N'Warehouse'";
-
-                                    bool existingRecordFound = false;
-                                    int existingInventoryId = 0;
-                                    decimal existingWeight = 0;
-                                    decimal existingPrice = 0;
-
-                                    using (SqlCommand checkCmd = new SqlCommand(checkExistingSql, conn, transaction))
-                                    {
-                                        checkCmd.Parameters.AddWithValue("@ReceiptID", receiptId);
-                                        checkCmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
-                                        
-                                        using (SqlDataReader reader = checkCmd.ExecuteReader())
+                                        if (reader.Read())
                                         {
-                                            if (reader.Read())
-                                            {
-                                                existingRecordFound = true;
-                                                existingInventoryId = Convert.ToInt32(reader["InventoryID"]);
-                                                existingWeight = Convert.ToDecimal(reader["Weight"]);
-                                                existingPrice = reader["Price"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Price"]);
-                                            }
-                                        }
-                                    }
-
-                                    if (existingRecordFound)
-                                    {
-                                        // 更新现有记录，累加重量和价格
-                                        decimal newWeight = existingWeight + weight;
-                                        decimal newPrice = existingPrice + (price ?? 0);
-                                        
-                                        string updateInventorySql = @"
-                                            UPDATE Inventory
-                                            SET Weight = @Weight,
-                                                Price = @Price
-                                            WHERE InventoryID = @InventoryID";
-
-                                        using (SqlCommand updateCmd = new SqlCommand(updateInventorySql, conn, transaction))
-                                        {
-                                            updateCmd.Parameters.AddWithValue("@Weight", newWeight);
-                                            updateCmd.Parameters.AddWithValue("@Price", (object)newPrice ?? DBNull.Value);
-                                            updateCmd.Parameters.AddWithValue("@InventoryID", existingInventoryId);
-                                            updateCmd.ExecuteNonQuery();
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // 插入新库存记录
-                                        string insertInventorySql = @"
-                                            INSERT INTO Inventory 
-                                            (OrderID, CategoryKey, CategoryName, Weight, RecyclerID, CreatedDate, Price, InventoryType)
-                                            VALUES 
-                                            (@OrderID, @CategoryKey, @CategoryName, @Weight, @RecyclerID, @CreatedDate, @Price, @InventoryType)";
-
-                                        using (SqlCommand insertCmd = new SqlCommand(insertInventorySql, conn, transaction))
-                                        {
-                                            insertCmd.Parameters.AddWithValue("@OrderID", receiptId);
-                                            insertCmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
-                                            insertCmd.Parameters.AddWithValue("@CategoryName", categoryName);
-                                            insertCmd.Parameters.AddWithValue("@Weight", weight);
-                                            insertCmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
-                                            insertCmd.Parameters.AddWithValue("@CreatedDate", receipt.CreatedDate);
-                                            insertCmd.Parameters.AddWithValue("@Price", (object)price ?? DBNull.Value);
-                                            insertCmd.Parameters.AddWithValue("@InventoryType", "Warehouse");
-                                            insertCmd.ExecuteNonQuery();
+                                            existingRecordFound = true;
+                                            existingInventoryId = Convert.ToInt32(reader["InventoryID"]);
+                                            existingWeight = Convert.ToDecimal(reader["Weight"]);
+                                            existingPrice = reader["Price"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Price"]);
                                         }
                                     }
                                 }
+
+                                if (existingRecordFound)
+                                {
+                                    // 更新现有记录，累加重量和价格
+                                    decimal newWeight = existingWeight + weight;
+                                    decimal newPrice = existingPrice + (price ?? 0);
+                                    
+                                    string updateInventorySql = @"
+                                        UPDATE Inventory
+                                        SET Weight = @Weight,
+                                            Price = @Price
+                                        WHERE InventoryID = @InventoryID";
+
+                                    using (SqlCommand updateCmd = new SqlCommand(updateInventorySql, conn, transaction))
+                                    {
+                                        updateCmd.Parameters.AddWithValue("@Weight", newWeight);
+                                        updateCmd.Parameters.AddWithValue("@Price", (object)newPrice ?? DBNull.Value);
+                                        updateCmd.Parameters.AddWithValue("@InventoryID", existingInventoryId);
+                                        updateCmd.ExecuteNonQuery();
+                                    }
+                                }
+                                else
+                                {
+                                    // 插入新库存记录
+                                    string insertInventorySql = @"
+                                        INSERT INTO Inventory 
+                                        (OrderID, CategoryKey, CategoryName, Weight, RecyclerID, CreatedDate, Price, InventoryType)
+                                        VALUES 
+                                        (@OrderID, @CategoryKey, @CategoryName, @Weight, @RecyclerID, @CreatedDate, @Price, @InventoryType)";
+
+                                    using (SqlCommand insertCmd = new SqlCommand(insertInventorySql, conn, transaction))
+                                    {
+                                        insertCmd.Parameters.AddWithValue("@OrderID", receiptId);
+                                        insertCmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
+                                        insertCmd.Parameters.AddWithValue("@CategoryName", categoryName);
+                                        insertCmd.Parameters.AddWithValue("@Weight", weight);
+                                        insertCmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
+                                        insertCmd.Parameters.AddWithValue("@CreatedDate", receipt.CreatedDate);
+                                        insertCmd.Parameters.AddWithValue("@Price", (object)price ?? DBNull.Value);
+                                        insertCmd.Parameters.AddWithValue("@InventoryType", "Warehouse");
+                                        insertCmd.ExecuteNonQuery();
+                                    }
+                                }
+                            }
+                            
+                            // 确保至少写入了一条有效的库存记录
+                            if (!hasValidCategory)
+                            {
+                                throw new Exception("入库单中没有有效的物品类别数据，无法入库");
                             }
 
                             // 3. 更新入库单状态为"已入库"
