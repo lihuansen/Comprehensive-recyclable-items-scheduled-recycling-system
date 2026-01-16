@@ -640,6 +640,8 @@
         totalWeight: 0,
         totalValue: 0,
         itemCategories: '',
+        itemCategoriesJson: '',
+        categoryDetailsList: [],
         pickupAddress: ''
     };
 
@@ -747,6 +749,8 @@
                 totalWeight: 0,
                 totalValue: 0,
                 itemCategories: '',
+                itemCategoriesJson: '',
+                categoryDetailsList: [],
                 pickupAddress: ''
             };
             return;
@@ -755,11 +759,22 @@
         var totalWeight = 0;
         var totalValue = 0;
         var categoryList = [];
+        var categoryDetailsList = []; // 新增：存储结构化的品类详细信息
 
         data.forEach(function (item) {
             totalWeight += item.totalWeight;
             totalValue += item.totalPrice || 0;
             categoryList.push(item.categoryName + ': ' + item.totalWeight.toFixed(2) + ' kg');
+            
+            // 新增：构建结构化的品类详细信息
+            var pricePerKg = item.totalWeight > 0 ? (item.totalPrice || 0) / item.totalWeight : 0;
+            categoryDetailsList.push({
+                categoryKey: item.categoryKey,
+                categoryName: item.categoryName,
+                weight: item.totalWeight,
+                pricePerKg: pricePerKg,
+                totalAmount: item.totalPrice || 0
+            });
 
             var card = $('<div class="summary-card"></div>');
             card.html(
@@ -777,7 +792,9 @@
         storagePointData = {
             totalWeight: totalWeight,
             totalValue: totalValue,
-            itemCategories: categoryList.join('; '),
+            itemCategories: categoryList.join('; '), // 保留旧格式用于向后兼容
+            itemCategoriesJson: JSON.stringify(categoryDetailsList), // 新增：JSON格式的品类详细信息
+            categoryDetailsList: categoryDetailsList, // 新增：JavaScript对象数组
             pickupAddress: '@ViewBag.Region' + '暂存点' // 使用回收员的区域生成暂存点地址
         };
 
@@ -1031,7 +1048,13 @@
         $('#destinationAddress').val('深圳基地'); // 固定值
         $('#estimatedWeight').val(storagePointData.totalWeight.toFixed(2));
         $('#itemTotalValue').val(storagePointData.totalValue.toFixed(2));
-        $('#itemCategories').val(storagePointData.itemCategories);
+        
+        // 优先使用结构化的JSON格式数据，如果不存在则使用旧格式
+        if (storagePointData.itemCategoriesJson) {
+            $('#itemCategories').val(storagePointData.itemCategoriesJson);
+        } else {
+            $('#itemCategories').val(storagePointData.itemCategories);
+        }
         
         // 清空可编辑字段
         $('#baseContactPerson').val('');

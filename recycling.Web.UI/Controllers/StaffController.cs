@@ -2074,9 +2074,56 @@ namespace recycling.Web.UI.Controllers
                     SpecialInstructions = specialInstructions
                 };
 
+                // 解析品类详细信息（如果提供的是JSON格式）
+                List<TransportationOrderCategories> categoryDetails = null;
+                try
+                {
+                    // 尝试解析 JSON 格式的品类数据
+                    if (!string.IsNullOrWhiteSpace(itemCategories))
+                    {
+                        // 检查是否是JSON数组格式
+                        if (itemCategories.Trim().StartsWith("["))
+                        {
+                            var categoryList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategories);
+                            if (categoryList != null && categoryList.Count > 0)
+                            {
+                                categoryDetails = new List<TransportationOrderCategories>();
+                                foreach (var cat in categoryList)
+                                {
+                                    var categoryDetail = new TransportationOrderCategories
+                                    {
+                                        CategoryKey = cat.ContainsKey("categoryKey") ? cat["categoryKey"]?.ToString() : "",
+                                        CategoryName = cat.ContainsKey("categoryName") ? cat["categoryName"]?.ToString() : "",
+                                        Weight = cat.ContainsKey("weight") ? Convert.ToDecimal(cat["weight"]) : 0,
+                                        PricePerKg = cat.ContainsKey("pricePerKg") ? Convert.ToDecimal(cat["pricePerKg"]) : 0,
+                                        TotalAmount = cat.ContainsKey("totalAmount") ? Convert.ToDecimal(cat["totalAmount"]) : 0,
+                                        CreatedDate = DateTime.Now
+                                    };
+                                    
+                                    // 如果没有提供totalAmount，根据weight和pricePerKg计算
+                                    if (categoryDetail.TotalAmount == 0 && categoryDetail.Weight > 0 && categoryDetail.PricePerKg > 0)
+                                    {
+                                        categoryDetail.TotalAmount = categoryDetail.Weight * categoryDetail.PricePerKg;
+                                    }
+                                    
+                                    categoryDetails.Add(categoryDetail);
+                                }
+                                
+                                System.Diagnostics.Debug.WriteLine($"成功解析 {categoryDetails.Count} 条品类详细信息");
+                            }
+                        }
+                    }
+                }
+                catch (Exception parseEx)
+                {
+                    // 解析失败不影响运输单创建，只是不会保存详细的品类信息
+                    System.Diagnostics.Debug.WriteLine($"解析品类详细信息失败: {parseEx.Message}");
+                    categoryDetails = null;
+                }
+
                 // 调用BLL创建运输单
                 var transportOrderBLL = new TransportationOrderBLL();
-                var (orderId, orderNumber) = transportOrderBLL.CreateTransportationOrder(order);
+                var (orderId, orderNumber) = transportOrderBLL.CreateTransportationOrder(order, categoryDetails);
 
                 if (orderId > 0)
                 {
