@@ -18,6 +18,51 @@ namespace recycling.DAL
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         /// <summary>
+        /// 从JSON字典中安全地提取weight值
+        /// Safely extract weight value from JSON dictionary
+        /// </summary>
+        /// <param name="category">Category dictionary from JSON</param>
+        /// <param name="categoryKey">Category key for logging purposes</param>
+        /// <param name="context">Context description for logging</param>
+        /// <returns>Extracted weight value, or 0 if extraction fails</returns>
+        private decimal ExtractWeightFromJson(Dictionary<string, object> category, string categoryKey, string context)
+        {
+            decimal weight = 0;
+            
+            if (!category.ContainsKey("weight") || category["weight"] == null)
+            {
+                return weight;
+            }
+
+            try
+            {
+                var weightValue = category["weight"];
+                
+                // Handle string types (e.g., "1.5")
+                if (weightValue is string weightStr)
+                {
+                    if (!decimal.TryParse(weightStr, out weight))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to parse weight string '{weightStr}' for category {categoryKey} in {context}");
+                        weight = 0;
+                    }
+                }
+                // Handle numeric types (int, long, double, decimal, etc.)
+                else
+                {
+                    weight = Convert.ToDecimal(weightValue);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception parsing weight for category {categoryKey} in {context}: {ex.Message}. Value: {category["weight"]}");
+                weight = 0;
+            }
+
+            return weight;
+        }
+
+        /// <summary>
         /// 预加载所有活动的类别价格
         /// Preload all active category prices to avoid N+1 queries
         /// </summary>
@@ -228,7 +273,9 @@ namespace recycling.DAL
                                 {
                                     string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                     string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
-                                    decimal weight = category.ContainsKey("weight") ? Convert.ToDecimal(category["weight"]) : 0;
+                                    
+                                    // Extract weight using helper method
+                                    decimal weight = ExtractWeightFromJson(category, categoryKey, "ProcessWarehouseReceipt");
 
                                     if (string.IsNullOrEmpty(categoryKey) || weight <= 0)
                                         continue;
@@ -693,7 +740,9 @@ namespace recycling.DAL
                                         {
                                             string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                             string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
-                                            decimal weight = category.ContainsKey("weight") ? Convert.ToDecimal(category["weight"]) : 0;
+                                            
+                                            // Extract weight using helper method
+                                            decimal weight = ExtractWeightFromJson(category, categoryKey, "GetWarehouseSummary");
 
                                             if (!string.IsNullOrEmpty(categoryKey) && weight > 0)
                                             {
@@ -814,7 +863,9 @@ namespace recycling.DAL
                                         {
                                             string catKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                             string catName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
-                                            decimal weight = category.ContainsKey("weight") ? Convert.ToDecimal(category["weight"]) : 0;
+                                            
+                                            // Extract weight using helper method
+                                            decimal weight = ExtractWeightFromJson(category, catKey, "GetWarehouseDetailWithRecycler");
 
                                             // 如果指定了类别筛选，则只包含匹配的类别
                                             if (!string.IsNullOrEmpty(categoryKey) && catKey != categoryKey)
