@@ -686,6 +686,25 @@
         UNKNOWN_CATEGORY: '未知类别'
     };
 
+    // 辅助函数：从AJAX错误响应中提取错误信息
+    // Helper function: Extract error message from AJAX error response
+    function extractErrorMessage(xhr) {
+        var errorMsg = '网络错误，请稍后重试';
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+            errorMsg = xhr.responseJSON.message;
+        } else if (xhr.responseText) {
+            try {
+                var response = JSON.parse(xhr.responseText);
+                if (response.message) {
+                    errorMsg = response.message;
+                }
+            } catch (e) {
+                // 保持默认错误消息
+            }
+        }
+        return errorMsg;
+    }
+
     // 注意：页面加载时通过 AJAX 自动获取最新实时数据
     // Note: Data is automatically loaded via AJAX on page load for real-time display
     // 
@@ -942,20 +961,7 @@
                 }
             },
             error: function (xhr, status, error) {
-                var errorMsg = '网络错误，请稍后重试';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMsg = xhr.responseJSON.message;
-                } else if (xhr.responseText) {
-                    try {
-                        var response = JSON.parse(xhr.responseText);
-                        if (response.message) {
-                            errorMsg = response.message;
-                        }
-                    } catch (e) {
-                        // 保持默认错误消息
-                    }
-                }
-                alert('创建入库单失败：' + errorMsg);
+                alert('创建入库单失败：' + extractErrorMessage(xhr));
             }
         });
     }
@@ -983,20 +989,7 @@
                 }
             },
             error: function (xhr, status, error) {
-                var errorMsg = '网络错误，请稍后重试';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMsg = xhr.responseJSON.message;
-                } else if (xhr.responseText) {
-                    try {
-                        var response = JSON.parse(xhr.responseText);
-                        if (response.message) {
-                            errorMsg = response.message;
-                        }
-                    } catch (e) {
-                        // 保持默认错误消息
-                    }
-                }
-                alert('入库失败：' + errorMsg);
+                alert('入库失败：' + extractErrorMessage(xhr));
                 console.error('入库错误详情:', error, xhr.responseText);
             }
         });

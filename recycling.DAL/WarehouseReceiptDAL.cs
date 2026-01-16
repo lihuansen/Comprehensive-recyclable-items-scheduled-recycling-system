@@ -273,9 +273,10 @@ namespace recycling.DAL
                             {
                                 categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(receipt.ItemCategories);
                             }
-                            catch (JsonException jsonEx)
+                            catch (JsonException)
                             {
-                                throw new Exception($"物品类别数据格式错误，无法解析JSON: {jsonEx.Message}");
+                                // 不暴露内部异常详情，只提供用户友好的错误信息
+                                throw new Exception("物品类别数据格式错误，请检查数据格式是否正确");
                             }
                             
                             if (categories == null || categories.Count == 0)
