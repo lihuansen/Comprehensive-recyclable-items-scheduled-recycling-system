@@ -54,21 +54,59 @@ namespace recycling.BLL
                     return (false, "入库重量必须大于0", 0, null);
                 }
 
-                // 4. 创建入库单（状态为"待入库"）
+                // 4. 获取品类详细信息（优先使用TransportationOrderCategories表中的结构化数据）
+                string finalItemCategories = itemCategories;
+                try
+                {
+                    var categoriesDAL = new TransportationOrderCategoriesDAL();
+                    if (categoriesDAL.TableExists())
+                    {
+                        var categoryDetails = categoriesDAL.GetCategoriesByTransportOrderId(transportOrderId);
+                        if (categoryDetails != null && categoryDetails.Count > 0)
+                        {
+                            // 构建JSON格式的品类信息，确保数据对齐
+                            var categoryList = new List<Dictionary<string, object>>();
+                            foreach (var cat in categoryDetails)
+                            {
+                                categoryList.Add(new Dictionary<string, object>
+                                {
+                                    { "categoryKey", cat.CategoryKey },
+                                    { "categoryName", cat.CategoryName },
+                                    { "weight", cat.Weight },
+                                    { "pricePerKg", cat.PricePerKg },
+                                    { "totalAmount", cat.TotalAmount }
+                                });
+                            }
+                            finalItemCategories = Newtonsoft.Json.JsonConvert.SerializeObject(categoryList);
+                            System.Diagnostics.Debug.WriteLine($"从TransportationOrderCategories表获取了 {categoryDetails.Count} 条品类详细信息");
+                        }
+                        else if (string.IsNullOrEmpty(finalItemCategories))
+                        {
+                            // 如果没有结构化数据，也没有传入的itemCategories，尝试从运输单的ItemCategories字段获取
+                            finalItemCategories = transportOrder.ItemCategories;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"获取品类详细信息失败: {ex.Message}，使用传入的itemCategories");
+                }
+
+                // 5. 创建入库单（状态为"待入库"）
                 var receipt = new WarehouseReceipts
                 {
                     TransportOrderID = transportOrderId,
                     RecyclerID = transportOrder.RecyclerID,
                     WorkerID = workerId,
                     TotalWeight = totalWeight,
-                    ItemCategories = itemCategories,
+                    ItemCategories = finalItemCategories,
                     Notes = notes,
                     CreatedBy = workerId
                 };
 
                 var (receiptId, receiptNumber) = _dal.CreateWarehouseReceipt(receipt);
 
-                // 5. 发送入库单创建通知给基地工作人员
+                // 6. 发送入库单创建通知给基地工作人员
                 try
                 {
                     _baseStaffNotificationBLL.SendWarehouseReceiptCreatedNotification(
