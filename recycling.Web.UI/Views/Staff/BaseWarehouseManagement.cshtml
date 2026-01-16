@@ -364,13 +364,36 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">物品类别明细</label>
-                        <div id="categoriesPreview" style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px; min-height: 50px;">
-                            <small style="color: #666;">从运输单自动获取</small>
+                        <label class="form-label">物品类别明细<span style="color: red;">*</span></label>
+                        <input type="hidden" id="itemCategories" />
+                        <div id="categoriesTable" style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #ddd;">
+                                        <th style="padding: 8px; text-align: left; font-weight: 600; color: #2c3e50;">品类名称</th>
+                                        <th style="padding: 8px; text-align: right; font-weight: 600; color: #2c3e50;">重量（kg）</th>
+                                        <th style="padding: 8px; text-align: right; font-weight: 600; color: #2c3e50;">价值（元）</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categoriesTableBody">
+                                    <tr>
+                                        <td colspan="3" style="padding: 20px; text-align: center; color: #999;">
+                                            <i class="fas fa-info-circle"></i> 选择运输单后将自动显示
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot id="categoriesTableFooter" style="display: none;">
+                                    <tr style="border-top: 2px solid #27ae60; font-weight: bold;">
+                                        <td style="padding: 10px; color: #27ae60;">总计</td>
+                                        <td id="totalWeightDisplay" style="padding: 10px; text-align: right; color: #27ae60;">0.00</td>
+                                        <td id="totalPriceDisplay" style="padding: 10px; text-align: right; color: #27ae60;">¥0.00</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
-                        <textarea class="form-control" id="itemCategories" rows="4" 
-                                  placeholder='JSON格式：[{"categoryKey":"paper","categoryName":"纸类","weight":20.5,"price":41.0}]'></textarea>
-                        <small style="color: #666;">提示：系统已自动填充，如需调整请修改上方JSON数据</small>
+                        <small style="color: #666; display: block; margin-top: 8px;">
+                            <i class="fas fa-lock"></i> 物品类别从运输单自动获取，不可修改
+                        </small>
                     </div>
 
                     <div class="form-group">
@@ -785,50 +808,68 @@
         });
     }
 
-    // 显示物品类别预览
+    // 显示物品类别表格
     function displayCategoriesPreview(categoriesJson) {
-        var preview = $('#categoriesPreview');
+        var tableBody = $('#categoriesTableBody');
+        var tableFooter = $('#categoriesTableFooter');
+        
+        // 清空表格
+        tableBody.empty();
         
         if (!categoriesJson || categoriesJson.trim() === '') {
-            preview.html('<small style="color: #999;">无类别信息</small>');
+            tableBody.html(
+                '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #999;">' +
+                '<i class="fas fa-info-circle"></i> 无类别信息</td></tr>'
+            );
+            tableFooter.hide();
             return;
         }
         
         try {
             var categories = JSON.parse(categoriesJson);
             if (!Array.isArray(categories) || categories.length === 0) {
-                preview.html('<small style="color: #999;">无类别信息</small>');
+                tableBody.html(
+                    '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #999;">' +
+                    '<i class="fas fa-info-circle"></i> 无类别信息</td></tr>'
+                );
+                tableFooter.hide();
                 return;
             }
             
             var totalWeight = 0;
-            var rows = [];
+            var totalPrice = 0;
             
+            // 为每个类别创建一行
             categories.forEach(function(cat, index) {
                 var weight = parseFloat(cat.weight || 0);
+                var price = parseFloat(cat.price || 0);
+                
                 totalWeight += weight;
+                totalPrice += price;
                 
                 // Escape HTML to prevent XSS
                 var categoryName = $('<div>').text(cat.categoryName || FALLBACK_TEXT.UNKNOWN_CATEGORY).html();
-                var priceText = '';
                 
-                if (cat.price) {
-                    priceText = ' (价值: ¥' + parseFloat(cat.price).toFixed(2) + ')';
-                }
+                var row = '<tr style="border-bottom: 1px solid #e0e0e0;">' +
+                    '<td style="padding: 10px; color: #2c3e50;"><i class="fas fa-box" style="margin-right: 5px; color: #27ae60;"></i>' + categoryName + '</td>' +
+                    '<td style="padding: 10px; text-align: right; color: #555; font-weight: 500;">' + weight.toFixed(2) + '</td>' +
+                    '<td style="padding: 10px; text-align: right; color: #555; font-weight: 500;">¥' + price.toFixed(2) + '</td>' +
+                    '</tr>';
                 
-                rows.push(
-                    '<div style="padding: 5px 0; border-bottom: 1px solid #e0e0e0;">' +
-                    '<strong>' + categoryName + '</strong>: ' +
-                    weight.toFixed(2) + ' kg' + priceText +
-                    '</div>'
-                );
+                tableBody.append(row);
             });
             
-            rows.push('<div style="padding: 8px 0; font-weight: bold; color: #27ae60;">总重量: ' + totalWeight.toFixed(2) + ' kg</div>');
+            // 显示总计
+            $('#totalWeightDisplay').text(totalWeight.toFixed(2));
+            $('#totalPriceDisplay').text('¥' + totalPrice.toFixed(2));
+            tableFooter.show();
             
-            preview.html('<div style="font-size: 13px;">' + rows.join('') + '</div>');
         } catch (e) {
-            preview.html('<small style="color: #e74c3c;">类别数据格式错误，请检查JSON格式是否正确</small>');
+            tableBody.html(
+                '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #e74c3c;">' +
+                '<i class="fas fa-exclamation-triangle"></i> 类别数据格式错误</td></tr>'
+            );
+            tableFooter.hide();
             console.error('解析类别数据失败:', e);
         }
     }
@@ -840,7 +881,13 @@
         $('#transitOrdersList').show();
         $('.transit-order-item').removeClass('selected');
         $('#createReceiptForm')[0].reset();
-        $('#categoriesPreview').html('<small style="color: #666;">从运输单自动获取</small>');
+        
+        // 重置品类表格
+        $('#categoriesTableBody').html(
+            '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #999;">' +
+            '<i class="fas fa-info-circle"></i> 选择运输单后将自动显示</td></tr>'
+        );
+        $('#categoriesTableFooter').hide();
     }
 
     // 创建入库单
@@ -850,8 +897,27 @@
         var categories = $('#itemCategories').val();
         var notes = $('#notes').val();
 
+        // 验证必填项
         if (!orderId || !weight || weight <= 0) {
-            alert('请填写完整信息');
+            alert('请填写完整信息：运输单和重量为必填项');
+            return;
+        }
+
+        // 验证品类数据
+        if (!categories || categories.trim() === '') {
+            alert('品类数据不能为空，请确保选择的运输单包含品类信息');
+            return;
+        }
+
+        // 验证品类数据是否为有效的JSON
+        try {
+            var categoriesData = JSON.parse(categories);
+            if (!Array.isArray(categoriesData) || categoriesData.length === 0) {
+                alert('品类数据无效，请重新选择运输单');
+                return;
+            }
+        } catch (e) {
+            alert('品类数据格式错误，请重新选择运输单');
             return;
         }
 
@@ -875,8 +941,21 @@
                     alert('创建失败：' + response.message);
                 }
             },
-            error: function () {
-                alert('网络错误，请稍后重试');
+            error: function (xhr, status, error) {
+                var errorMsg = '网络错误，请稍后重试';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.message) {
+                            errorMsg = response.message;
+                        }
+                    } catch (e) {
+                        // 保持默认错误消息
+                    }
+                }
+                alert('创建入库单失败：' + errorMsg);
             }
         });
     }
@@ -903,8 +982,22 @@
                     alert('入库失败：' + response.message);
                 }
             },
-            error: function () {
-                alert('网络错误，请稍后重试');
+            error: function (xhr, status, error) {
+                var errorMsg = '网络错误，请稍后重试';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.message) {
+                            errorMsg = response.message;
+                        }
+                    } catch (e) {
+                        // 保持默认错误消息
+                    }
+                }
+                alert('入库失败：' + errorMsg);
+                console.error('入库错误详情:', error, xhr.responseText);
             }
         });
     }
