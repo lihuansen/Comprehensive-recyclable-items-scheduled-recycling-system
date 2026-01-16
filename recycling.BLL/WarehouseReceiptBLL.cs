@@ -17,7 +17,8 @@ namespace recycling.BLL
         private readonly BaseStaffNotificationBLL _baseStaffNotificationBLL = new BaseStaffNotificationBLL();
 
         /// <summary>
-        /// 创建入库单（并清零暂存点重量）
+        /// 创建入库单（状态为"待入库"，不写入库存）
+        /// Create warehouse receipt with "Pending" status, without writing to inventory
         /// </summary>
         public (bool success, string message, int receiptId, string receiptNumber) CreateWarehouseReceipt(
             int transportOrderId, 
@@ -53,7 +54,7 @@ namespace recycling.BLL
                     return (false, "入库重量必须大于0", 0, null);
                 }
 
-                // 4. 创建入库单
+                // 4. 创建入库单（状态为"待入库"）
                 var receipt = new WarehouseReceipts
                 {
                     TransportOrderID = transportOrderId,
@@ -67,23 +68,7 @@ namespace recycling.BLL
 
                 var (receiptId, receiptNumber) = _dal.CreateWarehouseReceipt(receipt);
 
-                // 5. 发送通知给回收员
-                try
-                {
-                    _notificationBLL.SendNotification(
-                        transportOrder.RecyclerID,
-                        "入库完成",
-                        $"您的运输单 {transportOrder.OrderNumber} 已成功入库至基地，入库单号：{receiptNumber}，总重量：{totalWeight}kg",
-                        "WarehouseReceipt",
-                        receiptId);
-                }
-                catch (Exception notifyEx)
-                {
-                    // 通知失败不影响入库操作
-                    System.Diagnostics.Debug.WriteLine($"发送入库通知失败: {notifyEx.Message}");
-                }
-
-                // 6. 发送入库单创建通知给基地工作人员
+                // 5. 发送入库单创建通知给基地工作人员
                 try
                 {
                     _baseStaffNotificationBLL.SendWarehouseReceiptCreatedNotification(
@@ -97,30 +82,88 @@ namespace recycling.BLL
                 catch (Exception notifyEx)
                 {
                     // 通知失败不影响入库操作
-                    System.Diagnostics.Debug.WriteLine($"发送基地工作人员入库通知失败: {notifyEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"发送基地工作人员入库单创建通知失败: {notifyEx.Message}");
                 }
 
-                // 7. 发送仓库库存写入通知给基地工作人员
-                try
-                {
-                    _baseStaffNotificationBLL.SendWarehouseInventoryWrittenNotification(
-                        receiptId,
-                        receiptNumber,
-                        itemCategories ?? "未分类",
-                        totalWeight);
-                }
-                catch (Exception notifyEx)
-                {
-                    // 通知失败不影响入库操作
-                    System.Diagnostics.Debug.WriteLine($"发送仓库库存写入通知失败: {notifyEx.Message}");
-                }
-
-                return (true, "入库成功", receiptId, receiptNumber);
+                return (true, "入库单创建成功", receiptId, receiptNumber);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"CreateWarehouseReceipt BLL Error: {ex.Message}");
                 return (false, $"创建入库单失败: {ex.Message}", 0, null);
+            }
+        }
+
+        /// <summary>
+        /// 处理入库单入库（将状态更新为"已入库"并写入库存）
+        /// Process warehouse receipt (update status to "Warehoused" and write to inventory)
+        /// </summary>
+        public (bool success, string message) ProcessWarehouseReceipt(int receiptId)
+        {
+            try
+            {
+                // 1. 获取入库单信息
+                var receipt = _dal.GetWarehouseReceiptById(receiptId);
+                if (receipt == null)
+                {
+                    return (false, "入库单不存在");
+                }
+
+                if (receipt.Status != "待入库")
+                {
+                    return (false, $"入库单状态不正确，当前状态：{receipt.Status}");
+                }
+
+                // 2. 处理入库（写入库存并更新状态）
+                bool result = _dal.ProcessWarehouseReceipt(receiptId);
+
+                if (result)
+                {
+                    // 3. 获取运输单信息用于通知
+                    var transportOrder = _transportDAL.GetTransportationOrderById(receipt.TransportOrderID);
+
+                    // 4. 发送入库完成通知给回收员
+                    try
+                    {
+                        _notificationBLL.SendNotification(
+                            receipt.RecyclerID,
+                            "入库完成",
+                            $"您的运输单 {transportOrder?.OrderNumber ?? ""} 已成功入库至基地，入库单号：{receipt.ReceiptNumber}，总重量：{receipt.TotalWeight}kg",
+                            "WarehouseReceipt",
+                            receiptId);
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        // 通知失败不影响入库操作
+                        System.Diagnostics.Debug.WriteLine($"发送入库通知失败: {notifyEx.Message}");
+                    }
+
+                    // 5. 发送仓库库存写入通知给基地工作人员
+                    try
+                    {
+                        _baseStaffNotificationBLL.SendWarehouseInventoryWrittenNotification(
+                            receiptId,
+                            receipt.ReceiptNumber,
+                            receipt.ItemCategories ?? "未分类",
+                            receipt.TotalWeight);
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        // 通知失败不影响入库操作
+                        System.Diagnostics.Debug.WriteLine($"发送仓库库存写入通知失败: {notifyEx.Message}");
+                    }
+
+                    return (true, "入库成功");
+                }
+                else
+                {
+                    return (false, "入库处理失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ProcessWarehouseReceipt BLL Error: {ex.Message}");
+                return (false, $"处理入库单失败: {ex.Message}");
             }
         }
 
