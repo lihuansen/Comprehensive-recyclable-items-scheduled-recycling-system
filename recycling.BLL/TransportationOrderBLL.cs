@@ -19,8 +19,9 @@ namespace recycling.BLL
         /// 创建运输单
         /// </summary>
         /// <param name="order">运输单信息</param>
+        /// <param name="categories">品类明细列表（可选）</param>
         /// <returns>Tuple containing order ID and order number, (0, null) if failed</returns>
-        public (int orderId, string orderNumber) CreateTransportationOrder(TransportationOrders order)
+        public (int orderId, string orderNumber) CreateTransportationOrder(TransportationOrders order, List<TransportationOrderCategories> categories = null)
         {
             try
             {
@@ -40,7 +41,7 @@ namespace recycling.BLL
                     throw new ArgumentException("预估重量必须大于0");
 
                 // 调用DAL创建运输单
-                var (orderId, orderNumber) = _dal.CreateTransportationOrder(order);
+                var (orderId, orderNumber) = _dal.CreateTransportationOrder(order, categories);
 
                 // 发送通知给基地工作人员
                 if (orderId > 0)

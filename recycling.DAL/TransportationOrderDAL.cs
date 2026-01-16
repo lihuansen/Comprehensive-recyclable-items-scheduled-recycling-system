@@ -158,8 +158,10 @@ namespace recycling.DAL
         /// <summary>
         /// 创建运输单
         /// </summary>
+        /// <param name="order">运输单信息</param>
+        /// <param name="categories">品类明细列表（可选）</param>
         /// <returns>Tuple containing order ID and order number</returns>
-        public (int orderId, string orderNumber) CreateTransportationOrder(TransportationOrders order)
+        public (int orderId, string orderNumber) CreateTransportationOrder(TransportationOrders order, List<TransportationOrderCategories> categories = null)
         {
             try
             {
@@ -167,44 +169,75 @@ namespace recycling.DAL
                 {
                     conn.Open();
 
-                    // Generate order number
-                    order.OrderNumber = GenerateOrderNumber();
-                    order.CreatedDate = DateTime.Now;
-                    order.Status = "待接单";
-
-                    string sql = @"
-                        INSERT INTO TransportationOrders 
-                        (OrderNumber, RecyclerID, TransporterID, PickupAddress, DestinationAddress,
-                         ContactPerson, ContactPhone, BaseContactPerson, BaseContactPhone, 
-                         EstimatedWeight, ItemTotalValue, ItemCategories, 
-                         SpecialInstructions, Status, CreatedDate)
-                        VALUES 
-                        (@OrderNumber, @RecyclerID, @TransporterID, @PickupAddress, @DestinationAddress,
-                         @ContactPerson, @ContactPhone, @BaseContactPerson, @BaseContactPhone,
-                         @EstimatedWeight, @ItemTotalValue, @ItemCategories, 
-                         @SpecialInstructions, @Status, @CreatedDate);
-                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (SqlTransaction transaction = conn.BeginTransaction())
                     {
-                        cmd.Parameters.AddWithValue("@OrderNumber", order.OrderNumber);
-                        cmd.Parameters.AddWithValue("@RecyclerID", order.RecyclerID);
-                        cmd.Parameters.AddWithValue("@TransporterID", order.TransporterID);
-                        cmd.Parameters.AddWithValue("@PickupAddress", order.PickupAddress);
-                        cmd.Parameters.AddWithValue("@DestinationAddress", order.DestinationAddress);
-                        cmd.Parameters.AddWithValue("@ContactPerson", (object)order.ContactPerson ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@ContactPhone", (object)order.ContactPhone ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@BaseContactPerson", (object)order.BaseContactPerson ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@BaseContactPhone", (object)order.BaseContactPhone ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@EstimatedWeight", order.EstimatedWeight);
-                        cmd.Parameters.AddWithValue("@ItemTotalValue", order.ItemTotalValue);
-                        cmd.Parameters.AddWithValue("@ItemCategories", (object)order.ItemCategories ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@SpecialInstructions", (object)order.SpecialInstructions ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Status", order.Status);
-                        cmd.Parameters.AddWithValue("@CreatedDate", order.CreatedDate);
+                        try
+                        {
+                            // Generate order number
+                            order.OrderNumber = GenerateOrderNumber();
+                            order.CreatedDate = DateTime.Now;
+                            order.Status = "待接单";
 
-                        int orderId = Convert.ToInt32(cmd.ExecuteScalar());
-                        return (orderId, order.OrderNumber);
+                            string sql = @"
+                                INSERT INTO TransportationOrders 
+                                (OrderNumber, RecyclerID, TransporterID, PickupAddress, DestinationAddress,
+                                 ContactPerson, ContactPhone, BaseContactPerson, BaseContactPhone, 
+                                 EstimatedWeight, ItemTotalValue, ItemCategories, 
+                                 SpecialInstructions, Status, CreatedDate)
+                                VALUES 
+                                (@OrderNumber, @RecyclerID, @TransporterID, @PickupAddress, @DestinationAddress,
+                                 @ContactPerson, @ContactPhone, @BaseContactPerson, @BaseContactPhone,
+                                 @EstimatedWeight, @ItemTotalValue, @ItemCategories, 
+                                 @SpecialInstructions, @Status, @CreatedDate);
+                                SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                            int orderId;
+                            using (SqlCommand cmd = new SqlCommand(sql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@OrderNumber", order.OrderNumber);
+                                cmd.Parameters.AddWithValue("@RecyclerID", order.RecyclerID);
+                                cmd.Parameters.AddWithValue("@TransporterID", order.TransporterID);
+                                cmd.Parameters.AddWithValue("@PickupAddress", order.PickupAddress);
+                                cmd.Parameters.AddWithValue("@DestinationAddress", order.DestinationAddress);
+                                cmd.Parameters.AddWithValue("@ContactPerson", (object)order.ContactPerson ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@ContactPhone", (object)order.ContactPhone ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@BaseContactPerson", (object)order.BaseContactPerson ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@BaseContactPhone", (object)order.BaseContactPhone ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@EstimatedWeight", order.EstimatedWeight);
+                                cmd.Parameters.AddWithValue("@ItemTotalValue", order.ItemTotalValue);
+                                cmd.Parameters.AddWithValue("@ItemCategories", (object)order.ItemCategories ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@SpecialInstructions", (object)order.SpecialInstructions ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@Status", order.Status);
+                                cmd.Parameters.AddWithValue("@CreatedDate", order.CreatedDate);
+
+                                orderId = Convert.ToInt32(cmd.ExecuteScalar());
+                            }
+
+                            // 如果提供了品类明细列表，则保存到 TransportationOrderCategories 表
+                            if (categories != null && categories.Count > 0)
+                            {
+                                var categoriesDAL = new TransportationOrderCategoriesDAL();
+                                // 检查表是否存在
+                                if (categoriesDAL.TableExists())
+                                {
+                                    categoriesDAL.BatchInsertCategories(conn, transaction, orderId, categories);
+                                    System.Diagnostics.Debug.WriteLine($"保存了 {categories.Count} 条品类明细记录到 TransportationOrderCategories 表");
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine("TransportationOrderCategories 表不存在，跳过品类明细保存");
+                                }
+                            }
+
+                            transaction.Commit();
+                            return (orderId, order.OrderNumber);
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            System.Diagnostics.Debug.WriteLine($"Transaction rollback in CreateTransportationOrder: {ex.Message}");
+                            throw;
+                        }
                     }
                 }
             }
