@@ -767,7 +767,10 @@
             categoryList.push(item.categoryName + ': ' + item.totalWeight.toFixed(2) + ' kg');
             
             // 新增：构建结构化的品类详细信息
-            var pricePerKg = item.totalWeight > 0 ? (item.totalPrice || 0) / item.totalWeight : 0;
+            var pricePerKg = 0;
+            if (item.totalWeight > 0 && item.totalPrice > 0) {
+                pricePerKg = Math.round((item.totalPrice / item.totalWeight) * 100) / 100; // 四舍五入到2位小数
+            }
             categoryDetailsList.push({
                 categoryKey: item.categoryKey,
                 categoryName: item.categoryName,

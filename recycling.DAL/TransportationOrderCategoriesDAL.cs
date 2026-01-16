@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Linq;
 using recycling.Model;
 
 namespace recycling.DAL
@@ -18,6 +19,7 @@ namespace recycling.DAL
         /// <summary>
         /// 批量插入运输单品类明细
         /// Batch insert transportation order category details
+        /// Uses a single command with multiple value sets for better performance
         /// </summary>
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
@@ -31,24 +33,46 @@ namespace recycling.DAL
                 return;
             }
 
-            string sql = @"
-                INSERT INTO TransportationOrderCategories 
-                (TransportOrderID, CategoryKey, CategoryName, Weight, PricePerKg, TotalAmount, CreatedDate)
-                VALUES 
-                (@TransportOrderID, @CategoryKey, @CategoryName, @Weight, @PricePerKg, @TotalAmount, @CreatedDate)";
-
-            foreach (var category in categories)
+            // Use bulk insert pattern for better performance
+            // Build the SQL with multiple value sets
+            const int batchSize = 100; // Process 100 records at a time
+            
+            for (int i = 0; i < categories.Count; i += batchSize)
             {
-                using (SqlCommand cmd = new SqlCommand(sql, conn, transaction))
-                {
-                    cmd.Parameters.AddWithValue("@TransportOrderID", transportOrderId);
-                    cmd.Parameters.AddWithValue("@CategoryKey", category.CategoryKey);
-                    cmd.Parameters.AddWithValue("@CategoryName", category.CategoryName);
-                    cmd.Parameters.AddWithValue("@Weight", category.Weight);
-                    cmd.Parameters.AddWithValue("@PricePerKg", category.PricePerKg);
-                    cmd.Parameters.AddWithValue("@TotalAmount", category.TotalAmount);
-                    cmd.Parameters.AddWithValue("@CreatedDate", category.CreatedDate);
+                var batchCategories = categories.Skip(i).Take(batchSize).ToList();
+                
+                var sql = new System.Text.StringBuilder();
+                sql.Append(@"INSERT INTO TransportationOrderCategories 
+                    (TransportOrderID, CategoryKey, CategoryName, Weight, PricePerKg, TotalAmount, CreatedDate)
+                    VALUES ");
 
+                using (SqlCommand cmd = new SqlCommand())
+                {
+                    cmd.Connection = conn;
+                    cmd.Transaction = transaction;
+
+                    for (int j = 0; j < batchCategories.Count; j++)
+                    {
+                        if (j > 0)
+                        {
+                            sql.Append(", ");
+                        }
+
+                        string paramPrefix = $"@{j}_";
+                        sql.Append($"(@TransportOrderID, {paramPrefix}CategoryKey, {paramPrefix}CategoryName, " +
+                                 $"{paramPrefix}Weight, {paramPrefix}PricePerKg, {paramPrefix}TotalAmount, {paramPrefix}CreatedDate)");
+
+                        var category = batchCategories[j];
+                        cmd.Parameters.AddWithValue($"{paramPrefix}CategoryKey", category.CategoryKey);
+                        cmd.Parameters.AddWithValue($"{paramPrefix}CategoryName", category.CategoryName);
+                        cmd.Parameters.AddWithValue($"{paramPrefix}Weight", category.Weight);
+                        cmd.Parameters.AddWithValue($"{paramPrefix}PricePerKg", category.PricePerKg);
+                        cmd.Parameters.AddWithValue($"{paramPrefix}TotalAmount", category.TotalAmount);
+                        cmd.Parameters.AddWithValue($"{paramPrefix}CreatedDate", category.CreatedDate);
+                    }
+
+                    cmd.Parameters.AddWithValue("@TransportOrderID", transportOrderId);
+                    cmd.CommandText = sql.ToString();
                     cmd.ExecuteNonQuery();
                 }
             }
