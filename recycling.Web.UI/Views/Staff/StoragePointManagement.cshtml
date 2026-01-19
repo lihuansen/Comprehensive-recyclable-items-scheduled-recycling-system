@@ -1057,12 +1057,16 @@
         if (storagePointData.categoryDetailsList && storagePointData.categoryDetailsList.length > 0) {
             var categoryLines = [];
             storagePointData.categoryDetailsList.forEach(function(cat) {
-                // 格式：品类名称 重量kg 单价¥X.XX/kg 金额¥X.XX
-                var line = cat.categoryName + ' ' + 
-                          cat.weight.toFixed(2) + 'kg ' + 
-                          '单价¥' + cat.pricePerKg.toFixed(2) + '/kg ' +
-                          '金额¥' + cat.totalAmount.toFixed(2);
-                categoryLines.push(line);
+                // 验证必要字段存在
+                if (cat && cat.categoryName && typeof cat.weight === 'number' && 
+                    typeof cat.pricePerKg === 'number' && typeof cat.totalAmount === 'number') {
+                    // 格式：品类名称 重量kg 单价¥X.XX/kg 金额¥X.XX
+                    var line = cat.categoryName + ' ' + 
+                              cat.weight.toFixed(2) + 'kg ' + 
+                              '单价¥' + cat.pricePerKg.toFixed(2) + '/kg ' +
+                              '金额¥' + cat.totalAmount.toFixed(2);
+                    categoryLines.push(line);
+                }
             });
             formattedCategories = categoryLines.join('\n');
         } else if (storagePointData.itemCategories) {

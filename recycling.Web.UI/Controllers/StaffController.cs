@@ -2112,7 +2112,11 @@ namespace recycling.Web.UI.Controllers
                                     categoryDetails.Add(categoryDetail);
                                     
                                     // 构建可读格式：品类名称 重量kg 单价¥X.XX/kg 金额¥X.XX
-                                    var line = $"{categoryDetail.CategoryName} {categoryDetail.Weight:F2}kg 单价¥{categoryDetail.PricePerKg:F2}/kg 金额¥{categoryDetail.TotalAmount:F2}";
+                                    // 处理可能为null的CategoryName
+                                    var categoryName = string.IsNullOrWhiteSpace(categoryDetail.CategoryName) 
+                                        ? "未知品类" 
+                                        : categoryDetail.CategoryName;
+                                    var line = $"{categoryName} {categoryDetail.Weight:F2}kg 单价¥{categoryDetail.PricePerKg:F2}/kg 金额¥{categoryDetail.TotalAmount:F2}";
                                     categoryLines.Add(line);
                                 }
                                 
