@@ -233,6 +233,12 @@ namespace recycling.DAL
                                 {
                                     if (reader.Read())
                                     {
+                                        // Read raw ItemCategories from database
+                                        string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
+                                        
+                                        // Validate and normalize to ensure valid JSON format
+                                        string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
+                                        
                                         receipt = new WarehouseReceipts
                                         {
                                             ReceiptID = Convert.ToInt32(reader["ReceiptID"]),
@@ -241,7 +247,7 @@ namespace recycling.DAL
                                             RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                                             WorkerID = Convert.ToInt32(reader["WorkerID"]),
                                             TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
-                                            ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                            ItemCategories = validatedItemCategories,
                                             Status = reader["Status"].ToString(),
                                             Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                             CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
@@ -485,6 +491,12 @@ namespace recycling.DAL
                         {
                             while (reader.Read())
                             {
+                                // Read raw ItemCategories from database
+                                string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
+                                
+                                // Validate and normalize to ensure valid JSON format
+                                string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
+                                
                                 receipts.Add(new WarehouseReceiptViewModel
                                 {
                                     ReceiptID = Convert.ToInt32(reader["ReceiptID"]),
@@ -492,7 +504,7 @@ namespace recycling.DAL
                                     TransportOrderID = Convert.ToInt32(reader["TransportOrderID"]),
                                     TransportOrderNumber = reader["TransportOrderNumber"] == DBNull.Value ? null : reader["TransportOrderNumber"].ToString(),
                                     TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
-                                    ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                    ItemCategories = validatedItemCategories,
                                     Status = reader["Status"].ToString(),
                                     Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
@@ -537,6 +549,12 @@ namespace recycling.DAL
                         {
                             if (reader.Read())
                             {
+                                // Read raw ItemCategories from database
+                                string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
+                                
+                                // Validate and normalize to ensure valid JSON format
+                                string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
+                                
                                 return new WarehouseReceipts
                                 {
                                     ReceiptID = Convert.ToInt32(reader["ReceiptID"]),
@@ -545,7 +563,7 @@ namespace recycling.DAL
                                     RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                                     WorkerID = Convert.ToInt32(reader["WorkerID"]),
                                     TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
-                                    ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                    ItemCategories = validatedItemCategories,
                                     Status = reader["Status"].ToString(),
                                     Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
@@ -566,7 +584,57 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 验证并标准化ItemCategories JSON字符串
+        /// Validates and normalizes ItemCategories JSON string
+        /// </summary>
+        /// <param name="rawItemCategories">Raw ItemCategories string from database</param>
+        /// <returns>Valid JSON string (empty array "[]" if invalid or null)</returns>
+        private string ValidateAndNormalizeItemCategories(string rawItemCategories)
+        {
+            // Return empty JSON array for null or empty values
+            if (string.IsNullOrWhiteSpace(rawItemCategories))
+            {
+                return "[]";
+            }
+
+            try
+            {
+                // Attempt to parse as JSON to validate format
+                var parsed = JsonConvert.DeserializeObject(rawItemCategories);
+                
+                // If it's already a valid JSON array, return it as-is
+                if (parsed is Newtonsoft.Json.Linq.JArray)
+                {
+                    return rawItemCategories;
+                }
+                
+                // If it's a valid JSON object but not an array, wrap it in an array
+                // Use JsonConvert.SerializeObject to ensure proper formatting
+                if (parsed is Newtonsoft.Json.Linq.JObject)
+                {
+                    return JsonConvert.SerializeObject(new[] { parsed });
+                }
+                
+                // For other valid JSON types (string, number, etc.), log warning and return empty array
+                System.Diagnostics.Debug.WriteLine($"ItemCategories is valid JSON but unexpected type: {parsed.GetType().Name}");
+                return "[]";
+            }
+            catch (JsonException ex)
+            {
+                // JSON parsing failed - this is the root cause of "类别数据格式错误"
+                // At this point, rawItemCategories is guaranteed to be non-null (checked on line 595)
+                int previewLength = Math.Min(100, rawItemCategories.Length);
+                string preview = rawItemCategories.Substring(0, previewLength);
+                System.Diagnostics.Debug.WriteLine($"Invalid ItemCategories JSON format: {ex.Message}. Raw value: {preview}");
+                
+                // Return empty array to prevent frontend errors
+                return "[]";
+            }
+        }
+
+        /// <summary>
         /// 获取已完成的运输单列表（用于入库）
+        /// Get completed transport orders list (for warehousing)
         /// </summary>
         public List<TransportNotificationViewModel> GetCompletedTransportOrders()
         {
@@ -596,12 +664,19 @@ namespace recycling.DAL
                         {
                             while (reader.Read())
                             {
+                                // Read raw ItemCategories from database
+                                string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
+                                
+                                // Validate and normalize to ensure valid JSON format
+                                // This prevents "类别数据格式错误" (category data format error) in frontend
+                                string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
+                                
                                 orders.Add(new TransportNotificationViewModel
                                 {
                                     TransportOrderID = Convert.ToInt32(reader["TransportOrderID"]),
                                     OrderNumber = reader["OrderNumber"].ToString(),
                                     EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
-                                    ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                    ItemCategories = validatedItemCategories,
                                     PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
                                     Status = reader["Status"].ToString(),
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
@@ -652,12 +727,18 @@ namespace recycling.DAL
                         {
                             while (reader.Read())
                             {
+                                // Read raw ItemCategories from database
+                                string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
+                                
+                                // Validate and normalize to ensure valid JSON format
+                                string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
+                                
                                 orders.Add(new TransportNotificationViewModel
                                 {
                                     TransportOrderID = Convert.ToInt32(reader["TransportOrderID"]),
                                     OrderNumber = reader["OrderNumber"].ToString(),
                                     EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
-                                    ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                    ItemCategories = validatedItemCategories,
                                     PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
                                     Status = reader["Status"].ToString(),
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
@@ -700,6 +781,12 @@ namespace recycling.DAL
                         {
                             if (reader.Read())
                             {
+                                // Read raw ItemCategories from database
+                                string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
+                                
+                                // Validate and normalize to ensure valid JSON format
+                                string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
+                                
                                 return new WarehouseReceipts
                                 {
                                     ReceiptID = Convert.ToInt32(reader["ReceiptID"]),
@@ -708,7 +795,7 @@ namespace recycling.DAL
                                     RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                                     WorkerID = Convert.ToInt32(reader["WorkerID"]),
                                     TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
-                                    ItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString(),
+                                    ItemCategories = validatedItemCategories,
                                     Status = reader["Status"].ToString(),
                                     Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
