@@ -681,12 +681,12 @@
      * 运输单数据缓存
      * Cache for transport order data to avoid storing JSON in HTML attributes
      * 
-     * @type {Object.<number, Object>}
-     * @description Stores complete transport order data indexed by TransportOrderID.
+     * @@type {Object.<number, Object>}
+     * @@description Stores complete transport order data indexed by TransportOrderID.
      *              This cache is populated on page load and refreshed via AJAX.
      *              Avoids HTML attribute encoding issues with JSON data.
      * 
-     * @example
+     * @@example
      * transportOrdersCache[123] = {
      *     TransportOrderID: 123,
      *     OrderNumber: "TO20260119001",
@@ -697,7 +697,7 @@
      *     PickupDate: "2026-01-19 10:30"
      * }
      * 
-     * @lifecycle 
+     * @@lifecycle 
      * - Initialized on page load from Model data
      * - Updated when AJAX loads new transport orders
      * - Cleared and repopulated when refresh button is clicked
