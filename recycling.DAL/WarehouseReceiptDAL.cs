@@ -609,20 +609,22 @@ namespace recycling.DAL
                 }
                 
                 // If it's a valid JSON object but not an array, wrap it in an array
+                // Use JsonConvert.SerializeObject to ensure proper formatting
                 if (parsed is Newtonsoft.Json.Linq.JObject)
                 {
-                    return "[" + rawItemCategories + "]";
+                    return JsonConvert.SerializeObject(new[] { parsed });
                 }
                 
                 // For other valid JSON types (string, number, etc.), log warning and return empty array
-                System.Diagnostics.Debug.WriteLine($"ItemCategories is valid JSON but unexpected type: {parsed?.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"ItemCategories is valid JSON but unexpected type: {parsed.GetType().Name}");
                 return "[]";
             }
             catch (JsonException ex)
             {
                 // JSON parsing failed - this is the root cause of "类别数据格式错误"
-                int previewLength = rawItemCategories != null ? Math.Min(100, rawItemCategories.Length) : 0;
-                string preview = rawItemCategories != null ? rawItemCategories.Substring(0, previewLength) : "null";
+                // At this point, rawItemCategories is guaranteed to be non-null (checked on line 595)
+                int previewLength = Math.Min(100, rawItemCategories.Length);
+                string preview = rawItemCategories.Substring(0, previewLength);
                 System.Diagnostics.Debug.WriteLine($"Invalid ItemCategories JSON format: {ex.Message}. Raw value: {preview}");
                 
                 // Return empty array to prevent frontend errors
