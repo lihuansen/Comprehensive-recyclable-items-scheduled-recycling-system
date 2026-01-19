@@ -2070,7 +2070,7 @@ namespace recycling.Web.UI.Controllers
                     BaseContactPhone = baseContactPhone, // 基地联系电话（可编辑）
                     EstimatedWeight = estimatedWeight,
                     ItemTotalValue = itemTotalValue,
-                    ItemCategories = itemCategories, // 暂时保持原值，后续会更新为可读格式
+                    ItemCategories = null, // 将在解析品类信息后设置为格式化文本
                     SpecialInstructions = specialInstructions
                 };
 
@@ -2131,11 +2131,10 @@ namespace recycling.Web.UI.Controllers
                     categoryDetails = null;
                 }
 
-                // 如果成功格式化了品类信息，则使用格式化的文本替换ItemCategories字段
-                if (!string.IsNullOrWhiteSpace(formattedCategories))
-                {
-                    order.ItemCategories = formattedCategories;
-                }
+                // 如果成功格式化了品类信息，则使用格式化的文本；否则保留原始JSON
+                order.ItemCategories = !string.IsNullOrWhiteSpace(formattedCategories) 
+                    ? formattedCategories 
+                    : itemCategories;
 
                 // 调用BLL创建运输单
                 var transportOrderBLL = new TransportationOrderBLL();

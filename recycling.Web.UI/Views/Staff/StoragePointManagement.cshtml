@@ -1210,7 +1210,7 @@
         }
 
         // 准备要发送的品类数据（使用JSON格式以便服务器解析）
-        var itemCategoriesJson = storagePointData.itemCategoriesJson || itemCategories;
+        var itemCategoriesJson = storagePointData.itemCategoriesJson || '[]';
 
         // 发送创建请求
         $.ajax({
