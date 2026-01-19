@@ -1052,12 +1052,28 @@
         $('#estimatedWeight').val(storagePointData.totalWeight.toFixed(2));
         $('#itemTotalValue').val(storagePointData.totalValue.toFixed(2));
         
-        // 优先使用结构化的JSON格式数据，如果不存在则使用旧格式
-        if (storagePointData.itemCategoriesJson) {
-            $('#itemCategories').val(storagePointData.itemCategoriesJson);
-        } else {
-            $('#itemCategories').val(storagePointData.itemCategories);
+        // 格式化品类信息为可读文本：品类名称 + 重量 + 金额
+        var formattedCategories = '';
+        if (storagePointData.categoryDetailsList && storagePointData.categoryDetailsList.length > 0) {
+            var categoryLines = [];
+            storagePointData.categoryDetailsList.forEach(function(cat) {
+                // 验证必要字段存在
+                if (cat && cat.categoryName && typeof cat.weight === 'number' && 
+                    typeof cat.pricePerKg === 'number' && typeof cat.totalAmount === 'number') {
+                    // 格式：品类名称 重量kg 单价¥X.XX/kg 金额¥X.XX
+                    var line = cat.categoryName + ' ' + 
+                              cat.weight.toFixed(2) + 'kg ' + 
+                              '单价¥' + cat.pricePerKg.toFixed(2) + '/kg ' +
+                              '金额¥' + cat.totalAmount.toFixed(2);
+                    categoryLines.push(line);
+                }
+            });
+            formattedCategories = categoryLines.join('\n');
+        } else if (storagePointData.itemCategories) {
+            // 向后兼容：如果没有详细列表，使用旧格式
+            formattedCategories = storagePointData.itemCategories;
         }
+        $('#itemCategories').val(formattedCategories);
         
         // 清空可编辑字段
         $('#baseContactPerson').val('');
@@ -1197,6 +1213,9 @@
             return;
         }
 
+        // 准备要发送的品类数据（使用JSON格式以便服务器解析）
+        var itemCategoriesJson = storagePointData.itemCategoriesJson || '[]';
+
         // 发送创建请求
         $.ajax({
             url: '@Url.Action("CreateTransportationOrder", "Staff")',
@@ -1207,7 +1226,7 @@
                 pickupAddress: pickupAddress,
                 estimatedWeight: estimatedWeight,
                 itemTotalValue: itemTotalValue,
-                itemCategories: itemCategories,
+                itemCategories: itemCategoriesJson,
                 baseContactPerson: baseContactPerson,
                 baseContactPhone: baseContactPhone,
                 specialInstructions: specialInstructions
