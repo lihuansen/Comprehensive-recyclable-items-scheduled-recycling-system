@@ -676,7 +676,33 @@
 
 <script>
     var selectedOrderId = null;
-    var transportOrdersCache = {}; // 缓存运输单数据，避免JSON在HTML属性中传递
+    
+    /**
+     * 运输单数据缓存
+     * Cache for transport order data to avoid storing JSON in HTML attributes
+     * 
+     * @type {Object.<number, Object>}
+     * @description Stores complete transport order data indexed by TransportOrderID.
+     *              This cache is populated on page load and refreshed via AJAX.
+     *              Avoids HTML attribute encoding issues with JSON data.
+     * 
+     * @example
+     * transportOrdersCache[123] = {
+     *     TransportOrderID: 123,
+     *     OrderNumber: "TO20260119001",
+     *     EstimatedWeight: 35.8,
+     *     ItemCategories: '[{"categoryKey":"paper",...}]',
+     *     RecyclerName: "张三",
+     *     TransporterName: "李四",
+     *     PickupDate: "2026-01-19 10:30"
+     * }
+     * 
+     * @lifecycle 
+     * - Initialized on page load from Model data
+     * - Updated when AJAX loads new transport orders
+     * - Cleared and repopulated when refresh button is clicked
+     */
+    var transportOrdersCache = {};
     
     // 常量定义 - Constants for fallback text
     var FALLBACK_TEXT = {
@@ -746,7 +772,10 @@
             // 清空并重新填充缓存
             transportOrdersCache = {};
             
-            orders.forEach(function (order) {
+            // 使用for循环优化性能（比forEach快）
+            for (var i = 0; i < orders.length; i++) {
+                var order = orders[i];
+                
                 // 将完整订单数据存入缓存，按订单ID索引
                 transportOrdersCache[order.TransportOrderID] = order;
                 
@@ -771,7 +800,7 @@
                 }
                 
                 html += '</div>';
-            });
+            }
             $('#transitOrdersList').html(html).show();
         } else {
             $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无可入库的运输单</p></div>').show();
@@ -1428,11 +1457,13 @@
                     }
                 }
             ];
-            // 填充缓存（检查数组非空）
+            // 填充缓存（批量操作优化）
+            // Populate cache in bulk (performance optimized)
             if (initialOrders.length > 0) {
-                initialOrders.forEach(function(order) {
+                for (var i = 0; i < initialOrders.length; i++) {
+                    var order = initialOrders[i];
                     transportOrdersCache[order.TransportOrderID] = order;
-                });
+                }
             }
             </text>
         }
