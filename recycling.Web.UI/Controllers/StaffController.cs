@@ -2070,12 +2070,13 @@ namespace recycling.Web.UI.Controllers
                     BaseContactPhone = baseContactPhone, // 基地联系电话（可编辑）
                     EstimatedWeight = estimatedWeight,
                     ItemTotalValue = itemTotalValue,
-                    ItemCategories = itemCategories,
+                    ItemCategories = itemCategories, // 暂时保持原值，后续会更新为可读格式
                     SpecialInstructions = specialInstructions
                 };
 
                 // 解析品类详细信息（如果提供的是JSON格式）
                 List<TransportationOrderCategories> categoryDetails = null;
+                string formattedCategories = null; // 存储格式化的品类文本
                 try
                 {
                     // 尝试解析 JSON 格式的品类数据
@@ -2088,6 +2089,8 @@ namespace recycling.Web.UI.Controllers
                             if (categoryList != null && categoryList.Count > 0)
                             {
                                 categoryDetails = new List<TransportationOrderCategories>();
+                                var categoryLines = new List<string>();
+                                
                                 foreach (var cat in categoryList)
                                 {
                                     var categoryDetail = new TransportationOrderCategories
@@ -2107,7 +2110,14 @@ namespace recycling.Web.UI.Controllers
                                     }
                                     
                                     categoryDetails.Add(categoryDetail);
+                                    
+                                    // 构建可读格式：品类名称 重量kg 单价¥X.XX/kg 金额¥X.XX
+                                    var line = $"{categoryDetail.CategoryName} {categoryDetail.Weight:F2}kg 单价¥{categoryDetail.PricePerKg:F2}/kg 金额¥{categoryDetail.TotalAmount:F2}";
+                                    categoryLines.Add(line);
                                 }
+                                
+                                // 将格式化的品类文本用换行符连接
+                                formattedCategories = string.Join("\n", categoryLines);
                                 
                                 System.Diagnostics.Debug.WriteLine($"成功解析 {categoryDetails.Count} 条品类详细信息");
                             }
@@ -2119,6 +2129,12 @@ namespace recycling.Web.UI.Controllers
                     // 解析失败不影响运输单创建，只是不会保存详细的品类信息
                     System.Diagnostics.Debug.WriteLine($"解析品类详细信息失败: {parseEx.Message}");
                     categoryDetails = null;
+                }
+
+                // 如果成功格式化了品类信息，则使用格式化的文本替换ItemCategories字段
+                if (!string.IsNullOrWhiteSpace(formattedCategories))
+                {
+                    order.ItemCategories = formattedCategories;
                 }
 
                 // 调用BLL创建运输单
