@@ -1404,13 +1404,19 @@
     $(document).ready(function () {
         // 初始化缓存：将服务器端渲染的订单数据加载到缓存中
         // Initialize cache: Load server-side rendered order data into cache
+        // Note: Data is validated and sanitized at the server level (BLL/DAL) before being passed to the view
+        // Json.Encode() provides additional XSS protection by properly escaping special characters
         @if (Model != null && Model.CompletedTransportOrders != null && Model.CompletedTransportOrders.Any())
         {
             <text>
             var initialOrders = [
-                @foreach (var order in Model.CompletedTransportOrders)
-                {
-                    <text>{
+                @{
+                    var ordersList = Model.CompletedTransportOrders.ToList();
+                    for (int i = 0; i < ordersList.Count; i++)
+                    {
+                        var order = ordersList[i];
+                        var isLast = (i == ordersList.Count - 1);
+                        <text>{
                         TransportOrderID: @order.TransportOrderID,
                         OrderNumber: '@Html.Raw(Json.Encode(order.OrderNumber))',
                         EstimatedWeight: @order.EstimatedWeight,
@@ -1418,13 +1424,16 @@
                         RecyclerName: '@Html.Raw(Json.Encode(order.RecyclerName ?? ""))',
                         TransporterName: '@Html.Raw(Json.Encode(order.TransporterName ?? ""))',
                         PickupDate: '@(order.PickupDate?.ToString("yyyy-MM-dd HH:mm") ?? "")'
-                    },</text>
+                    }@(isLast ? "" : ",")</text>
+                    }
                 }
             ];
-            // 填充缓存
-            initialOrders.forEach(function(order) {
-                transportOrdersCache[order.TransportOrderID] = order;
-            });
+            // 填充缓存（检查数组非空）
+            if (initialOrders.length > 0) {
+                initialOrders.forEach(function(order) {
+                    transportOrdersCache[order.TransportOrderID] = order;
+                });
+            }
             </text>
         }
         
