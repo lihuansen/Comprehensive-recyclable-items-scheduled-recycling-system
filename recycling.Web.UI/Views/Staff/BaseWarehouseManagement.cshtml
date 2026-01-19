@@ -297,7 +297,6 @@
                              data-order-id="@order.TransportOrderID" 
                              data-order-number="@order.OrderNumber" 
                              data-estimated-weight="@order.EstimatedWeight" 
-                             data-item-categories="@(order.ItemCategories ?? "")" 
                              data-recycler-name="@(order.RecyclerName ?? "")"
                              data-transporter-name="@(order.TransporterName ?? "")"
                              data-pickup-date="@(order.PickupDate?.ToString("yyyy-MM-dd HH:mm") ?? "")"
@@ -677,6 +676,7 @@
 
 <script>
     var selectedOrderId = null;
+    var transportOrdersCache = {}; // 缓存运输单数据，避免JSON在HTML属性中传递
     
     // 常量定义 - Constants for fallback text
     var FALLBACK_TEXT = {
@@ -743,11 +743,16 @@
     function displayTransitOrders(orders) {
         if (orders && orders.length > 0) {
             var html = '';
+            // 清空并重新填充缓存
+            transportOrdersCache = {};
+            
             orders.forEach(function (order) {
+                // 将完整订单数据存入缓存，按订单ID索引
+                transportOrdersCache[order.TransportOrderID] = order;
+                
                 html += '<div class="transit-order-item" data-order-id="' + order.TransportOrderID + '" ' +
                     'data-order-number="' + order.OrderNumber + '" ' +
                     'data-estimated-weight="' + order.EstimatedWeight + '" ' +
-                    'data-item-categories="' + (order.ItemCategories || '') + '" ' +
                     'data-recycler-name="' + (order.RecyclerName || '') + '" ' +
                     'data-transporter-name="' + (order.TransporterName || '') + '" ' +
                     'data-pickup-date="' + (order.PickupDate || '') + '" ' +
@@ -792,6 +797,13 @@
                         return;
                     }
                     
+                    // 从缓存中获取完整的订单数据
+                    var orderData = transportOrdersCache[orderId];
+                    if (!orderData) {
+                        alert('无法获取运输单数据，请刷新页面后重试');
+                        return;
+                    }
+                    
                     // 未创建入库单，可以继续
                     $('.transit-order-item').removeClass('selected');
                     $(element).addClass('selected');
@@ -800,16 +812,17 @@
                     
                     // 填充表单数据（自动从运输单获取）
                     $('#selectedTransportOrderId').val(orderId);
-                    $('#orderNumberDisplay').val($(element).data('order-number'));
-                    $('#recyclerNameDisplay').val($(element).data('recycler-name') || FALLBACK_TEXT.UNKNOWN_RECYCLER);
-                    $('#transporterNameDisplay').val($(element).data('transporter-name') || FALLBACK_TEXT.UNKNOWN_TRANSPORTER);
-                    $('#pickupDateDisplay').val($(element).data('pickup-date') || FALLBACK_TEXT.NO_PICKUP_DATE);
+                    $('#orderNumberDisplay').val(orderData.OrderNumber || '');
+                    $('#recyclerNameDisplay').val(orderData.RecyclerName || FALLBACK_TEXT.UNKNOWN_RECYCLER);
+                    $('#transporterNameDisplay').val(orderData.TransporterName || FALLBACK_TEXT.UNKNOWN_TRANSPORTER);
+                    $('#pickupDateDisplay').val(orderData.PickupDate || FALLBACK_TEXT.NO_PICKUP_DATE);
                     
-                    var estimatedWeight = $(element).data('estimated-weight');
+                    var estimatedWeight = orderData.EstimatedWeight || 0;
                     $('#estimatedWeightDisplay').val(estimatedWeight);
                     $('#totalWeight').val(estimatedWeight); // 默认使用预估重量，可修改
                     
-                    var itemCategories = $(element).data('item-categories') || '';
+                    // 从缓存中获取ItemCategories（避免HTML属性编码问题）
+                    var itemCategories = orderData.ItemCategories || '';
                     $('#itemCategories').val(itemCategories);
                     
                     // 解析并显示类别预览
@@ -1389,6 +1402,32 @@
     // 页面加载时自动加载所有实时数据
     // Automatically load all real-time data on page load
     $(document).ready(function () {
+        // 初始化缓存：将服务器端渲染的订单数据加载到缓存中
+        // Initialize cache: Load server-side rendered order data into cache
+        @if (Model != null && Model.CompletedTransportOrders != null && Model.CompletedTransportOrders.Any())
+        {
+            <text>
+            var initialOrders = [
+                @foreach (var order in Model.CompletedTransportOrders)
+                {
+                    <text>{
+                        TransportOrderID: @order.TransportOrderID,
+                        OrderNumber: '@Html.Raw(Json.Encode(order.OrderNumber))',
+                        EstimatedWeight: @order.EstimatedWeight,
+                        ItemCategories: '@Html.Raw(Json.Encode(order.ItemCategories ?? ""))',
+                        RecyclerName: '@Html.Raw(Json.Encode(order.RecyclerName ?? ""))',
+                        TransporterName: '@Html.Raw(Json.Encode(order.TransporterName ?? ""))',
+                        PickupDate: '@(order.PickupDate?.ToString("yyyy-MM-dd HH:mm") ?? "")'
+                    },</text>
+                }
+            ];
+            // 填充缓存
+            initialOrders.forEach(function(order) {
+                transportOrdersCache[order.TransportOrderID] = order;
+            });
+            </text>
+        }
+        
         // 使用事件委托为库存卡片添加点击处理
         // Use event delegation for inventory card click handling
         $(document).on('click', '.inventory-card', function() {
