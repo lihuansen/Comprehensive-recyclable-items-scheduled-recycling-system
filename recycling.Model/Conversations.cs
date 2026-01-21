@@ -17,23 +17,19 @@ namespace recycling.Model
 
         public int? RecyclerID { get; set; }
 
-        [StringLength(20)]
+        [StringLength(50)]
         public string Status { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? CreatedTime { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? EndedTime { get; set; }
 
         public bool? UserEnded { get; set; }
 
         public bool? RecyclerEnded { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? UserEndedTime { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? RecyclerEndedTime { get; set; }
     }
 }

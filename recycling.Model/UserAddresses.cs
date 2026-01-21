@@ -11,46 +11,36 @@ namespace recycling.Model
         [Key]
         public int AddressID { get; set; }
 
-        public int UserID { get; set; }
+        public int? UserID { get; set; }
 
-        [Required]
         [StringLength(50)]
-        public string Province { get; set; } = "ï¿½ã¶«Ê¡";
+        public string Province { get; set; }
 
-        [Required]
         [StringLength(50)]
-        public string City { get; set; } = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+        public string City { get; set; }
 
-        [Required]
         [StringLength(50)]
-        public string District { get; set; } = "ï¿½Şºï¿½ï¿½ï¿½";
+        public string District { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string Street { get; set; }
 
-        [Required]
-        [StringLength(200)]
         public string DetailAddress { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string ContactName { get; set; }
 
-        [Required]
-        [StringLength(20)]
+        [StringLength(50)]
         public string ContactPhone { get; set; }
 
-        public bool IsDefault { get; set; }
+        public bool? IsDefault { get; set; }
 
-        [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? UpdatedDate { get; set; }
 
         /// <summary>
-        /// å®Œæ•´åœ°å€ (ç»„åˆçœä»½ã€åŸå¸‚ã€åŒºåŸŸã€è¡—é“å’Œè¯¦ç»†åœ°å€)
+        /// ÍêÕûµØÖ· (×éºÏÊ¡·İ¡¢³ÇÊĞ¡¢ÇøÓò¡¢½ÖµÀºÍÏêÏ¸µØÖ·)
         /// </summary>
         [NotMapped]
         public string FullAddress

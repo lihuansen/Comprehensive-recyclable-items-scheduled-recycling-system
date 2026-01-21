@@ -4,86 +4,79 @@ namespace recycling.Model
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
+    using System.Data.Entity.Spatial;
 
-    /// <summary>
-    /// åŸºåœ°å·¥ä½œäººå‘˜é€šçŸ¥è¡¨
-    /// </summary>
     public partial class BaseStaffNotifications
     {
         [Key]
         public int NotificationID { get; set; }
 
-        public int WorkerID { get; set; }
+        public int? WorkerID { get; set; }
 
         [StringLength(50)]
         public string NotificationType { get; set; }
 
-        [StringLength(200)]
         public string Title { get; set; }
 
-        [StringLength(1000)]
         public string Content { get; set; }
 
         public int? RelatedTransportOrderID { get; set; }
 
-        public int? RelatedWarehouseReceiptID { get; set; }
+        public int? RelatedWarehouseReceipt { get; set; }
 
-        [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
-        public bool IsRead { get; set; }
+        public bool? IsRead { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? ReadDate { get; set; }
     }
-
-    /// <summary>
-    /// åŸºåœ°å·¥ä½œäººå‘˜é€šçŸ¥ç±»å‹æšä¸¾
+    // <summary>
+    /// »ùµØ¹¤×÷ÈËÔ±Í¨ÖªÀàĞÍÃ¶¾Ù
     /// </summary>
     public static class BaseStaffNotificationTypes
     {
         /// <summary>
-        /// è¿è¾“å•å·²åˆ›å»ºï¼ˆå›æ”¶å‘˜è”ç³»è¿è¾“äººå‘˜åï¼‰
+        /// ÔËÊäµ¥ÒÑ´´½¨£¨»ØÊÕÔ±ÁªÏµÔËÊäÈËÔ±ºó£©
         /// </summary>
         public const string TransportOrderCreated = "TransportOrderCreated";
 
         /// <summary>
-        /// è¿è¾“å•å·²å®Œæˆ
+        /// ÔËÊäµ¥ÒÑÍê³É
         /// </summary>
         public const string TransportOrderCompleted = "TransportOrderCompleted";
 
         /// <summary>
-        /// å…¥åº“å•å·²åˆ›å»º
+        /// Èë¿âµ¥ÒÑ´´½¨
         /// </summary>
         public const string WarehouseReceiptCreated = "WarehouseReceiptCreated";
 
         /// <summary>
-        /// ä»“åº“åº“å­˜å·²å†™å…¥
+        /// ²Ö¿â¿â´æÒÑĞ´Èë
         /// </summary>
         public const string WarehouseInventoryWritten = "WarehouseInventoryWritten";
 
         /// <summary>
-        /// è·å–é€šçŸ¥ç±»å‹çš„æ˜¾ç¤ºåç§°
+        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÏÔÊ¾Ãû³Æ
         /// </summary>
         public static string GetDisplayName(string type)
         {
             switch (type)
             {
                 case TransportOrderCreated:
-                    return "è¿è¾“å•åˆ›å»º";
+                    return "ÔËÊäµ¥´´½¨";
                 case TransportOrderCompleted:
-                    return "è¿è¾“å•å®Œæˆ";
+                    return "ÔËÊäµ¥Íê³É";
                 case WarehouseReceiptCreated:
-                    return "å…¥åº“å•åˆ›å»º";
+                    return "Èë¿âµ¥´´½¨";
                 case WarehouseInventoryWritten:
-                    return "ä»“åº“å†™å…¥";
+                    return "²Ö¿âĞ´Èë";
                 default:
-                    return "ç³»ç»Ÿé€šçŸ¥";
+                    return "ÏµÍ³Í¨Öª";
             }
         }
 
         /// <summary>
-        /// è·å–é€šçŸ¥ç±»å‹çš„å›¾æ ‡
+        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÍ¼±ê
         /// </summary>
         public static string GetIcon(string type)
         {
@@ -103,7 +96,7 @@ namespace recycling.Model
         }
 
         /// <summary>
-        /// è·å–é€šçŸ¥ç±»å‹çš„é¢œè‰²
+        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÑÕÉ«
         /// </summary>
         public static string GetColor(string type)
         {

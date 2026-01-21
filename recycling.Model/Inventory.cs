@@ -11,27 +11,23 @@ namespace recycling.Model
     {
         public int InventoryID { get; set; }
 
-        public int OrderID { get; set; }
+        public int? OrderID { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string CategoryKey { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string CategoryName { get; set; }
 
-        public decimal Weight { get; set; }
+        public decimal? Weight { get; set; }
 
-        public int RecyclerID { get; set; }
+        public int? RecyclerID { get; set; }
 
-        [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
         public decimal? Price { get; set; }
 
-        [Required]
-        [StringLength(20)]
+        [StringLength(50)]
         public string InventoryType { get; set; } = "StoragePoint";
     }
 }

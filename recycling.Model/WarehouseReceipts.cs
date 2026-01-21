@@ -11,37 +11,27 @@ namespace recycling.Model
         [Key]
         public int ReceiptID { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string ReceiptNumber { get; set; }
 
-        [Required]
-        public int TransportOrderID { get; set; }
+        public int? TransportOrderID { get; set; }
 
-        [Required]
-        public int RecyclerID { get; set; }
+        public int? RecyclerID { get; set; }
 
-        [Required]
-        public int WorkerID { get; set; }
+        public int? WorkerID { get; set; }
 
-        [Required]
-        public decimal TotalWeight { get; set; }
+        public decimal? TotalWeight { get; set; }
 
         public string ItemCategories { get; set; }
 
-        [Required]
-        [StringLength(20)]
+        [StringLength(50)]
         public string Status { get; set; }
 
-        [StringLength(500)]
         public string Notes { get; set; }
 
-        [Required]
-        [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
-        [Required]
-        public int CreatedBy { get; set; }
+        public int? CreatedBy { get; set; }
 
         public decimal? price { get; set; }
     }

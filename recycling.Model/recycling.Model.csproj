@@ -75,7 +75,6 @@
     <Compile Include="InventorySummaryViewModel.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="Messages.cs" />
-    <Compile Include="Model1.cs" />
     <Compile Include="OperationResult.cs" />
     <Compile Include="OrderDetailModel.cs" />
     <Compile Include="OrderFilterModel.cs" />

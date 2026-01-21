@@ -12,34 +12,24 @@ namespace recycling.Model
         [Key]
         public int FeedbackID { get; set; }
 
-        public int UserID { get; set; }
+        public int? UserID { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string FeedbackType { get; set; }
 
-        [Required]
-        [StringLength(200)]
         public string Subject { get; set; }
 
-        [Required]
-        [StringLength(2000)]
         public string Description { get; set; }
 
-        [StringLength(100)]
         public string ContactEmail { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string Status { get; set; }
 
-        [StringLength(1000)]
         public string AdminReply { get; set; }
 
-        [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? UpdatedDate { get; set; }
     }
 }

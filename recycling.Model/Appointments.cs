@@ -11,49 +11,38 @@ namespace recycling.Model
         [Key]
         public int AppointmentID { get; set; }
 
-        public int UserID { get; set; }
+        public int? UserID { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string AppointmentType { get; set; }
 
-        [Column(TypeName = "date")]
-        public DateTime AppointmentDate { get; set; }
+        public DateTime? AppointmentDate { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string TimeSlot { get; set; }
 
-        public decimal EstimatedWeight { get; set; }
+        public decimal? EstimatedWeight { get; set; }
 
-        public bool IsUrgent { get; set; }
+        public bool? IsUrgent { get; set; }
 
-        [Required]
-        [StringLength(200)]
         public string Address { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string ContactName { get; set; }
 
-        [Required]
-        [StringLength(20)]
+        [StringLength(50)]
         public string ContactPhone { get; set; }
 
-        [StringLength(500)]
-        public string SpecialInstructions { get; set; }
+        public string Speciallnstructions { get; set; }
 
         public decimal? EstimatedPrice { get; set; }
 
-        [Required]
-        [StringLength(20)]
+        [StringLength(50)]
         public string Status { get; set; }
 
-        [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
-        [Column(TypeName = "datetime2")]
-        public DateTime UpdatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
 
         public int? RecyclerID { get; set; }
     }

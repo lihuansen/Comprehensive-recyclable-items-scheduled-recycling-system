@@ -11,112 +11,108 @@ namespace recycling.Model
         [Key]
         public int NotificationID { get; set; }
 
-        public int UserID { get; set; }
+        public int? UserID { get; set; }
 
         [StringLength(50)]
         public string NotificationType { get; set; }
 
-        [StringLength(200)]
         public string Title { get; set; }
 
-        [StringLength(1000)]
         public string Content { get; set; }
 
         public int? RelatedOrderID { get; set; }
 
         public int? RelatedFeedbackID { get; set; }
 
-        [Column(TypeName = "datetime2")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
-        public bool IsRead { get; set; }
+        public bool? IsRead { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? ReadDate { get; set; }
     }
     /// <summary>
-    /// é€šçŸ¥ç±»å‹æšä¸¾
+    /// Í¨ÖªÀàĞÍÃ¶¾Ù
     /// </summary>
     public static class NotificationTypes
     {
         /// <summary>
-        /// è®¢å•å·²åˆ›å»º
+        /// ¶©µ¥ÒÑ´´½¨
         /// </summary>
         public const string OrderCreated = "OrderCreated";
 
         /// <summary>
-        /// å›æ”¶å‘˜å·²æ¥å•
+        /// »ØÊÕÔ±ÒÑ½Óµ¥
         /// </summary>
         public const string OrderAccepted = "OrderAccepted";
 
         /// <summary>
-        /// è®¢å•å·²å®Œæˆ
+        /// ¶©µ¥ÒÑÍê³É
         /// </summary>
         public const string OrderCompleted = "OrderCompleted";
 
         /// <summary>
-        /// è¯„ä»·æé†’
+        /// ÆÀ¼ÛÌáĞÑ
         /// </summary>
         public const string ReviewReminder = "ReviewReminder";
 
         /// <summary>
-        /// è®¢å•å·²å–æ¶ˆ
+        /// ¶©µ¥ÒÑÈ¡Ïû
         /// </summary>
         public const string OrderCancelled = "OrderCancelled";
 
         /// <summary>
-        /// è½®æ’­å›¾æ›´æ–°
+        /// ÂÖ²¥Í¼¸üĞÂ
         /// </summary>
         public const string CarouselUpdated = "CarouselUpdated";
 
         /// <summary>
-        /// åé¦ˆå·²å›å¤
+        /// ·´À¡ÒÑ»Ø¸´
         /// </summary>
         public const string FeedbackReplied = "FeedbackReplied";
 
 
         /// <summary>
-        /// å›æ”¶å‘˜å‘é€æ¶ˆæ¯
+        /// »ØÊÕÔ±·¢ËÍÏûÏ¢
         /// </summary>
         public const string RecyclerMessageReceived = "RecyclerMessageReceived";
 
         /// <summary>
-        /// å›æ”¶å‘˜å›é€€è®¢å•
+        /// »ØÊÕÔ±»ØÍË¶©µ¥
         /// </summary>
         public const string OrderRolledBack = "OrderRolledBack";
 
         /// <summary>
-        /// è·å–é€šçŸ¥ç±»å‹çš„æ˜¾ç¤ºåç§°
+        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÏÔÊ¾Ãû³Æ
         /// </summary>
         public static string GetDisplayName(string type)
         {
             switch (type)
             {
                 case OrderCreated:
-                    return "ä¸‹å•é€šçŸ¥";
+                    return "ÏÂµ¥Í¨Öª";
                 case OrderAccepted:
-                    return "æ¥å•é€šçŸ¥";
+                    return "½Óµ¥Í¨Öª";
                 case OrderCompleted:
-                    return "å®Œæˆé€šçŸ¥";
+                    return "Íê³ÉÍ¨Öª";
                 case ReviewReminder:
-                    return "è¯„ä»·æé†’";
+                    return "ÆÀ¼ÛÌáĞÑ";
                 case OrderCancelled:
-                    return "å–æ¶ˆé€šçŸ¥";
+                    return "È¡ÏûÍ¨Öª";
                 case CarouselUpdated:
-                    return "ç³»ç»Ÿå…¬å‘Š";
+                    return "ÏµÍ³¹«¸æ";
                 case FeedbackReplied:
-                    return "åé¦ˆå›å¤";
+                    return "·´À¡»Ø¸´";
                 case RecyclerMessageReceived:
-                    return "å›æ”¶å‘˜æ¶ˆæ¯";
+                    return "»ØÊÕÔ±ÏûÏ¢";
                 case OrderRolledBack:
-                    return "è®¢å•å›é€€";
+                    return "¶©µ¥»ØÍË";
                 default:
-                    return "ç³»ç»Ÿé€šçŸ¥";
+                    return "ÏµÍ³Í¨Öª";
             }
         }
 
         /// <summary>
-        /// è·å–é€šçŸ¥ç±»å‹çš„å›¾æ ‡
+        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÍ¼±ê
         /// </summary>
         public static string GetIcon(string type)
         {
@@ -146,7 +142,7 @@ namespace recycling.Model
         }
 
         /// <summary>
-        /// è·å–é€šçŸ¥ç±»å‹çš„é¢œè‰²
+        /// »ñÈ¡Í¨ÖªÀàĞÍµÄÑÕÉ«
         /// </summary>
         public static string GetColor(string type)
         {

@@ -9,27 +9,23 @@ namespace recycling.Model
     public partial class RecyclableItems
     {
         [Key]
-        public int ItemId { get; set; }
+        public int ItemID { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string Name { get; set; }
 
-        [Required]
-        [StringLength(20)]
+        [StringLength(50)]
         public string Category { get; set; }
 
-        [Required]
-        [StringLength(20)]
+        [StringLength(50)]
         public string CategoryName { get; set; }
 
-        public decimal PricePerKg { get; set; }
+        public decimal? PricePerKg { get; set; }
 
-        [StringLength(200)]
         public string Description { get; set; }
 
-        public int SortOrder { get; set; }
+        public int? SortOrder { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool? IsActive { get; set; } = true;
     }
 }

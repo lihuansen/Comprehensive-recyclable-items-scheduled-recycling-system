@@ -13,15 +13,13 @@ namespace recycling.Model
 
         public int? OrderID { get; set; }
 
-        [StringLength(20)]
+        [StringLength(50)]
         public string SenderType { get; set; }
 
         public int? SenderID { get; set; }
 
-        [StringLength(1000)]
         public string Content { get; set; }
 
-        [Column(TypeName = "datetime2")]
         public DateTime? SentTime { get; set; }
 
         public bool? IsRead { get; set; }
