@@ -22,7 +22,7 @@ namespace recycling.Model
 
         public int? RelatedTransportOrderID { get; set; }
 
-        public int? RelatedWarehouseReceipt { get; set; }
+        public int? RelatedWarehouseReceiptID { get; set; }
 
         public DateTime? CreatedDate { get; set; }
 
@@ -31,52 +31,52 @@ namespace recycling.Model
         public DateTime? ReadDate { get; set; }
     }
     // <summary>
-    /// »ùµØ¹¤×÷ÈËÔ±Í¨ÖªÀàÐÍÃ¶¾Ù
+    /// ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ï¿½Ô±Í¨Öªï¿½ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½
     /// </summary>
     public static class BaseStaffNotificationTypes
     {
         /// <summary>
-        /// ÔËÊäµ¥ÒÑ´´½¨£¨»ØÊÕÔ±ÁªÏµÔËÊäÈËÔ±ºó£©
+        /// ï¿½ï¿½ï¿½äµ¥ï¿½Ñ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½
         /// </summary>
         public const string TransportOrderCreated = "TransportOrderCreated";
 
         /// <summary>
-        /// ÔËÊäµ¥ÒÑÍê³É
+        /// ï¿½ï¿½ï¿½äµ¥ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public const string TransportOrderCompleted = "TransportOrderCompleted";
 
         /// <summary>
-        /// Èë¿âµ¥ÒÑ´´½¨
+        /// ï¿½ï¿½âµ¥ï¿½Ñ´ï¿½ï¿½ï¿½
         /// </summary>
         public const string WarehouseReceiptCreated = "WarehouseReceiptCreated";
 
         /// <summary>
-        /// ²Ö¿â¿â´æÒÑÐ´Èë
+        /// ï¿½Ö¿ï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½
         /// </summary>
         public const string WarehouseInventoryWritten = "WarehouseInventoryWritten";
 
         /// <summary>
-        /// »ñÈ¡Í¨ÖªÀàÐÍµÄÏÔÊ¾Ãû³Æ
+        /// ï¿½ï¿½È¡Í¨Öªï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public static string GetDisplayName(string type)
         {
             switch (type)
             {
                 case TransportOrderCreated:
-                    return "ÔËÊäµ¥´´½¨";
+                    return "ï¿½ï¿½ï¿½äµ¥ï¿½ï¿½ï¿½ï¿½";
                 case TransportOrderCompleted:
-                    return "ÔËÊäµ¥Íê³É";
+                    return "ï¿½ï¿½ï¿½äµ¥ï¿½ï¿½ï¿½";
                 case WarehouseReceiptCreated:
-                    return "Èë¿âµ¥´´½¨";
+                    return "ï¿½ï¿½âµ¥ï¿½ï¿½ï¿½ï¿½";
                 case WarehouseInventoryWritten:
-                    return "²Ö¿âÐ´Èë";
+                    return "ï¿½Ö¿ï¿½Ð´ï¿½ï¿½";
                 default:
                     return "ÏµÍ³Í¨Öª";
             }
         }
 
         /// <summary>
-        /// »ñÈ¡Í¨ÖªÀàÐÍµÄÍ¼±ê
+        /// ï¿½ï¿½È¡Í¨Öªï¿½ï¿½ï¿½Íµï¿½Í¼ï¿½ï¿½
         /// </summary>
         public static string GetIcon(string type)
         {
@@ -96,7 +96,7 @@ namespace recycling.Model
         }
 
         /// <summary>
-        /// »ñÈ¡Í¨ÖªÀàÐÍµÄÑÕÉ«
+        /// ï¿½ï¿½È¡Í¨Öªï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½É«
         /// </summary>
         public static string GetColor(string type)
         {

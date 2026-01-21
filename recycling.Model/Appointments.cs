@@ -33,7 +33,7 @@ namespace recycling.Model
         [StringLength(50)]
         public string ContactPhone { get; set; }
 
-        public string Speciallnstructions { get; set; }
+        public string SpecialInstructions { get; set; }
 
         public decimal? EstimatedPrice { get; set; }
 
