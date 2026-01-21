@@ -55,5 +55,9 @@ namespace recycling.Model
         public string LicenseNumber { get; set; }
 
         public int? TotalTrips { get; set; }
+
+        public string AvatarURL { get; set; }
+
+        public string Notes { get; set; }
     }
 }
