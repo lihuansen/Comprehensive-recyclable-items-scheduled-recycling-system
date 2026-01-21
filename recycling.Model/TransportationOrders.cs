@@ -67,6 +67,7 @@ namespace recycling.Model
 
         public DateTime? CancelledDate { get; set; }
 
+        [StringLength(200)]
         public string CancelReason { get; set; }
 
         public int? RecyclerRating { get; set; }
