@@ -363,8 +363,8 @@ namespace recycling.DAL
                                 Region = reader["Region"].ToString(),
                                 Available = Convert.ToBoolean(reader["Available"]),
                                 CurrentStatus = reader["CurrentStatus"].ToString(),
-                                TotalTrips = Convert.ToInt32(reader["TotalTrips"]),
-                                TotalWeight = Convert.ToDecimal(reader["TotalWeight"]),
+                                TotalTrips = reader["TotalTrips"] != DBNull.Value ? Convert.ToInt32(reader["TotalTrips"]) : (int?)null,
+                                TotalWeight = reader["TotalWeight"] != DBNull.Value ? Convert.ToDecimal(reader["TotalWeight"]) : (decimal?)null,
                                 Rating = reader["Rating"] != DBNull.Value 
                                     ? Convert.ToDecimal(reader["Rating"]) 
                                     : (decimal?)null,
@@ -511,8 +511,6 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        
         #endregion
 
         // 在StaffDAL类中添加
@@ -594,8 +592,8 @@ namespace recycling.DAL
                             ShiftType = reader["ShiftType"].ToString(),
                             Available = Convert.ToBoolean(reader["Available"]),
                             CurrentStatus = reader["CurrentStatus"].ToString(),
-                            TotalItemsProcessed = Convert.ToInt32(reader["TotalItemsProcessed"]),
-                            TotalWeightProcessed = Convert.ToDecimal(reader["TotalWeightProcessed"]),
+                            TotalItemsProcessed = reader["TotalItemsProcessed"] != DBNull.Value ? Convert.ToInt32(reader["TotalItemsProcessed"]) : (int?)null,
+                            TotalWeightProcessed = reader["TotalWeightProcessed"] != DBNull.Value ? Convert.ToDecimal(reader["TotalWeightProcessed"]) : (decimal?)null,
                             AccuracyRate = reader["AccuracyRate"] != DBNull.Value ? Convert.ToDecimal(reader["AccuracyRate"]) : (decimal?)null,
                             Rating = reader["Rating"] != DBNull.Value ? Convert.ToDecimal(reader["Rating"]) : (decimal?)null,
                             HireDate = reader["HireDate"] != DBNull.Value ? Convert.ToDateTime(reader["HireDate"]) : (DateTime?)null,
