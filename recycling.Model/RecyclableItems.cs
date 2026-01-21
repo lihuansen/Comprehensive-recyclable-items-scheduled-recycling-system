@@ -9,7 +9,7 @@ namespace recycling.Model
     public partial class RecyclableItems
     {
         [Key]
-        public int ItemID { get; set; }
+        public int ItemId { get; set; }
 
         [StringLength(50)]
         public string Name { get; set; }

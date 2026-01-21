@@ -33,6 +33,6 @@ namespace recycling.Model
 
         public int? CreatedBy { get; set; }
 
-        public decimal? price { get; set; }
+        public decimal? Price { get; set; }
     }
 }
