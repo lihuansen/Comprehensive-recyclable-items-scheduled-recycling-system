@@ -118,7 +118,7 @@ namespace recycling.DAL
                                 PhoneNumber = reader["PhoneNumber"].ToString(),
                                 Email = reader["Email"].ToString(),
                                 RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
-                                url = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
+                                URL = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
                             };
                         }
                     }
@@ -231,7 +231,7 @@ namespace recycling.DAL
                             PhoneNumber = reader["PhoneNumber"].ToString(),
                             Email = reader["Email"].ToString(),
                             RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
-                            url = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
+                            URL = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
                         };
                     }
                 }
@@ -270,7 +270,7 @@ namespace recycling.DAL
                                 Email = reader["Email"].ToString(),
                                 RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
-                                url = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
+                                URL = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
                             };
                         }
                     }
@@ -376,7 +376,7 @@ namespace recycling.DAL
                             RegistrationDate = Convert.ToDateTime(reader["RegistrationDate"]),
                             LastLoginDate = reader["LastLoginDate"] != DBNull.Value ?
                                           Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
-                            url = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
+                            URL = reader["url"] != DBNull.Value ? reader["url"].ToString() : null
                         };
                     }
                 }
