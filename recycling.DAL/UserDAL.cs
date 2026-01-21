@@ -422,7 +422,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
                 cmd.Parameters.AddWithValue("@Email", user.Email);
                 cmd.Parameters.AddWithValue("@money", (object)user.money ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@url", (object)user.url ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@url", (object)user.URL ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@UserID", user.UserID);
 
                 conn.Open();
