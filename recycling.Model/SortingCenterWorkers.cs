@@ -50,5 +50,24 @@ namespace recycling.Model
         public int? LastViewedWarehouseCount { get; set; }
 
         public decimal? money { get; set; }
+
+        [StringLength(100)]
+        public string Position { get; set; }
+
+        [StringLength(100)]
+        public string WorkStation { get; set; }
+
+        [StringLength(50)]
+        public string ShiftType { get; set; }
+
+        public string Specialization { get; set; }
+
+        public DateTime? HireDate { get; set; }
+
+        public decimal? AccuracyRate { get; set; }
+
+        public string Notes { get; set; }
+
+        public string AvatarURL { get; set; }
     }
 }

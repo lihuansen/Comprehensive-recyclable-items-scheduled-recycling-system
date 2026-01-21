@@ -55,5 +55,33 @@ namespace recycling.Model
 
         [StringLength(50)]
         public string Stage { get; set; }
+
+        [StringLength(50)]
+        public string TransportStage { get; set; }
+
+        public DateTime? PickupDate { get; set; }
+
+        public DateTime? DeliveryDate { get; set; }
+
+        public DateTime? CompletedDate { get; set; }
+
+        public DateTime? CancelledDate { get; set; }
+
+        [StringLength(200)]
+        public string CancelReason { get; set; }
+
+        public int? RecyclerRating { get; set; }
+
+        public string RecyclerReview { get; set; }
+
+        public DateTime? PickupConfirmedDate { get; set; }
+
+        public DateTime? ArrivedAtPickupDate { get; set; }
+
+        public DateTime? LoadingCompletedDate { get; set; }
+
+        public DateTime? DeliveryConfirmedDate { get; set; }
+
+        public DateTime? ArrivedAtDeliveryDate { get; set; }
     }
 }

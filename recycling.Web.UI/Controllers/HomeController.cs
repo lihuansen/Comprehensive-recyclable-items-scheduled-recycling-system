@@ -1135,7 +1135,7 @@ namespace recycling.Web.UI.Controllers
                 if (success)
                 {
                     // 更新Session中的用户信息
-                    user.url = avatarUrl;
+                    user.URL = avatarUrl;
                     Session["LoginUser"] = user;
 
                     return Json(new { success = true, message = "头像上传成功", avatarUrl = avatarUrl });
@@ -1186,7 +1186,7 @@ namespace recycling.Web.UI.Controllers
                 if (success)
                 {
                     // 更新Session中的用户信息
-                    user.url = avatarUrl;
+                    user.URL = avatarUrl;
                     Session["LoginUser"] = user;
 
                     return Json(new { success = true, message = "默认头像设置成功", avatarUrl = avatarUrl });

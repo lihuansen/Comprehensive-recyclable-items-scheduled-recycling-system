@@ -488,9 +488,9 @@ namespace recycling.BLL
         public string GetUserAvatarUrl(int userId)
         {
             var user = _userDAL.GetUserById(userId);
-            if (user != null && !string.IsNullOrEmpty(user.url))
+            if (user != null && !string.IsNullOrEmpty(user.URL))
             {
-                return user.url;
+                return user.URL;
             }
             // 返回默认头像
             return "/Uploads/Avatars/Default/avatar1.svg";

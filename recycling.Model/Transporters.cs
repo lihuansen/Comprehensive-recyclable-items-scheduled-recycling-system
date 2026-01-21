@@ -42,5 +42,22 @@ namespace recycling.Model
         public bool? IsActive { get; set; }
 
         public decimal? money { get; set; }
+
+        [StringLength(50)]
+        public string VehicleType { get; set; }
+
+        [StringLength(50)]
+        public string VehiclePlateNumber { get; set; }
+
+        public decimal? VehicleCapacity { get; set; }
+
+        [StringLength(50)]
+        public string LicenseNumber { get; set; }
+
+        public int? TotalTrips { get; set; }
+
+        public string AvatarURL { get; set; }
+
+        public string Notes { get; set; }
     }
 }
