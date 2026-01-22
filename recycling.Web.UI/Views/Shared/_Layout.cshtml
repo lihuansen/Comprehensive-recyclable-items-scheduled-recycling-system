@@ -260,9 +260,9 @@
                     // 用户已登录状态
                     var user = (recycling.Model.Users)Session["LoginUser"];
                     <div style="display: inline-flex; align-items: center; gap: 10px;">
-                        @if (!string.IsNullOrEmpty(user.url))
+                        @if (!string.IsNullOrEmpty(user.URL))
                         {
-                            <img src="@user.url" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid white;" />
+                            <img src="@user.URL" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid white;" />
                         }
                         else
                         {
