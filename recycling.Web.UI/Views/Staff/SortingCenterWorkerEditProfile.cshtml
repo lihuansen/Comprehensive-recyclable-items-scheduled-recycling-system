@@ -141,14 +141,6 @@
 
         <div class="form-group">
             <label class="form-label">
-                <i class="fas fa-briefcase field-icon"></i> 职位
-            </label>
-            @Html.TextBoxFor(m => m.Position, new { @class = "form-control", placeholder = "请输入职位" })
-            @Html.ValidationMessageFor(m => m.Position, "", new { @class = "text-danger" })
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">
                 <i class="fas fa-warehouse field-icon"></i> 工作站
             </label>
             @Html.TextBoxFor(m => m.WorkStation, new { @class = "form-control", placeholder = "请输入工作站" })

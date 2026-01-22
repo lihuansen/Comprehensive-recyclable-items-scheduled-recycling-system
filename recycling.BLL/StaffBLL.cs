@@ -355,7 +355,6 @@ namespace recycling.BLL
                 worker.FullName = model.FullName;
                 worker.PhoneNumber = model.PhoneNumber;
                 worker.IDNumber = model.IDNumber;
-                worker.Position = model.Position;
                 worker.WorkStation = model.WorkStation;
                 worker.Specialization = model.Specialization;
                 worker.ShiftType = model.ShiftType;

@@ -1776,7 +1776,7 @@ namespace recycling.DAL
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR SortingCenterName LIKE @SearchTerm OR Position LIKE @SearchTerm)";
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR SortingCenterName LIKE @SearchTerm)";
                 }
                 if (isActive.HasValue)
                 {
@@ -1853,8 +1853,8 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, Position, WorkStation, Specialization, ShiftType, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
-                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @Position, @WorkStation, @Specialization, @ShiftType, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, WorkStation, Specialization, ShiftType, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @WorkStation, @Specialization, @ShiftType, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", worker.Username);
@@ -1864,7 +1864,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
                 cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Position", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Specialization", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
@@ -1891,7 +1890,6 @@ namespace recycling.DAL
                     IDNumber = @IDNumber,
                     SortingCenterID = @SortingCenterID,
                     SortingCenterName = @SortingCenterName,
-                    Position = @Position,
                     WorkStation = @WorkStation,
                     Specialization = @Specialization,
                     ShiftType = @ShiftType,
@@ -1908,7 +1906,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
                 cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Position", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Specialization", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
@@ -1987,7 +1984,7 @@ namespace recycling.DAL
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR SortingCenterName LIKE @SearchTerm OR Position LIKE @SearchTerm)";
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR SortingCenterName LIKE @SearchTerm)";
                 }
                 if (isActive.HasValue)
                 {
@@ -2093,7 +2090,6 @@ namespace recycling.DAL
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
                 SortingCenterID = reader.GetInt32(reader.GetOrdinal("SortingCenterID")),
                 SortingCenterName = reader.IsDBNull(reader.GetOrdinal("SortingCenterName")) ? null : reader.GetString(reader.GetOrdinal("SortingCenterName")),
-                Position = reader.IsDBNull(reader.GetOrdinal("Position")) ? null : reader.GetString(reader.GetOrdinal("Position")),
                 WorkStation = reader.IsDBNull(reader.GetOrdinal("WorkStation")) ? null : reader.GetString(reader.GetOrdinal("WorkStation")),
                 Specialization = reader.IsDBNull(reader.GetOrdinal("Specialization")) ? null : reader.GetString(reader.GetOrdinal("Specialization")),
                 ShiftType = reader.GetString(reader.GetOrdinal("ShiftType")),

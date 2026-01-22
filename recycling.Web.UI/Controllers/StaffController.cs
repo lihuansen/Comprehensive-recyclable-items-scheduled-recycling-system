@@ -1976,7 +1976,7 @@ namespace recycling.Web.UI.Controllers
                 using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString))
                 {
                     conn.Open();
-                    string sql = @"SELECT WorkerID, FullName, PhoneNumber, Position 
+                    string sql = @"SELECT WorkerID, FullName, PhoneNumber 
                            FROM SortingCenterWorkers 
                            WHERE IsActive = 1 
                            ORDER BY FullName";
@@ -1992,8 +1992,7 @@ namespace recycling.Web.UI.Controllers
                             {
                                 workerId = reader.GetInt32(0),
                                 fullName = reader.IsDBNull(1) ? "" : reader.GetString(1),
-                                phoneNumber = reader.IsDBNull(2) ? "" : reader.GetString(2),
-                                position = reader.IsDBNull(3) ? "" : reader.GetString(3)
+                                phoneNumber = reader.IsDBNull(2) ? "" : reader.GetString(2)
                             });
                         }
                     }
@@ -4537,7 +4536,6 @@ namespace recycling.Web.UI.Controllers
                 FullName = worker.FullName,
                 PhoneNumber = worker.PhoneNumber,
                 IDNumber = worker.IDNumber,
-                Position = worker.Position,
                 WorkStation = worker.WorkStation,
                 Specialization = worker.Specialization,
                 ShiftType = worker.ShiftType
