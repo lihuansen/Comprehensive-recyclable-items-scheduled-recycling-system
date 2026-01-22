@@ -547,7 +547,7 @@
                                 addressOptions.Add(new SelectListItem
                                 {
                                     Value = addr.AddressID.ToString(),
-                                    Text = $"{addr.ContactName} {addr.ContactPhone} - {formattedAddress}" + (addr.IsDefault ? " [默认]" : ""),
+                                    Text = $"{addr.ContactName} {addr.ContactPhone} - {formattedAddress}" + (addr.IsDefault == true ? " [默认]" : ""),
                                     Selected = Model.SelectedAddressID.HasValue && Model.SelectedAddressID.Value == addr.AddressID
                                 });
                             }
