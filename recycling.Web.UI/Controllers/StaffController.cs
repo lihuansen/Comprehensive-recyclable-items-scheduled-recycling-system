@@ -555,7 +555,7 @@ namespace recycling.Web.UI.Controllers
                         // Prefer Stage when present; fall back to TransportStage for backward compatibility
                         // Use Stage if it has a value, otherwise use TransportStage
                         Stage = !string.IsNullOrEmpty(o.Stage) ? o.Stage : o.TransportStage,
-                        CreatedDate = o.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
+                        CreatedDate = o.CreatedDate?.ToString("yyyy-MM-dd HH:mm") ?? "",
                         AcceptedDate = o.AcceptedDate?.ToString("yyyy-MM-dd HH:mm"),
                         PickupDate = o.PickupDate?.ToString("yyyy-MM-dd HH:mm"),
                         CompletedDate = o.CompletedDate?.ToString("yyyy-MM-dd HH:mm")
@@ -2230,7 +2230,7 @@ namespace recycling.Web.UI.Controllers
                     userId = r.UserID,
                     starRating = r.StarRating,
                     reviewText = r.ReviewText,
-                    createdDate = r.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                    createdDate = r.CreatedDate?.ToString("yyyy-MM-dd HH:mm") ?? ""
                 }).ToList();
 
                 return JsonContent(new
@@ -2579,8 +2579,8 @@ namespace recycling.Web.UI.Controllers
                 {
                     // Get completed orders count
                     var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recycler.RecyclerID);
-                    var availableStatus = recycler.Available ? "可接单" : "不可接单";
-                    var activeStatus = recycler.IsActive ? "激活" : "禁用";
+                    var availableStatus = (recycler.Available ?? false) ? "可接单" : "不可接单";
+                    var activeStatus = (recycler.IsActive ?? false) ? "激活" : "禁用";
                     var createdDate = recycler.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
 
                     csv.AppendLine($"{recycler.RecyclerID},{EscapeCsvField(recycler.Username)},{EscapeCsvField(recycler.FullName ?? "-")},{EscapeCsvField(recycler.PhoneNumber)},{EscapeCsvField(recycler.Region)},{EscapeCsvField(recycler.Rating?.ToString("F1") ?? "0.0")},{completedOrders},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
@@ -3145,7 +3145,7 @@ namespace recycling.Web.UI.Controllers
                 {
                     var createdDate = superAdmin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
                     var lastLoginDate = superAdmin.LastLoginDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "从未登录";
-                    var activeStatus = superAdmin.IsActive ? "激活" : "禁用";
+                    var activeStatus = (superAdmin.IsActive ?? false) ? "激活" : "禁用";
 
                     csv.AppendLine($"{superAdmin.SuperAdminID},{EscapeCsvField(superAdmin.Username)},{EscapeCsvField(superAdmin.FullName)},{EscapeCsvField(createdDate)},{EscapeCsvField(lastLoginDate)},{EscapeCsvField(activeStatus)}");
                 }
@@ -3970,7 +3970,7 @@ namespace recycling.Web.UI.Controllers
                     var operationDisplay = OperationLogBLL.GetOperationTypeDisplayName(log.OperationType);
                     var resultDisplay = log.Result == "Success" ? "成功" : "失败";
 
-                    csv.AppendLine($"{log.LogID},{EscapeCsvField(log.OperationTime.ToString("yyyy-MM-dd HH:mm:ss"))},{log.AdminID},{EscapeCsvField(log.AdminUsername)},{EscapeCsvField(moduleDisplay)},{EscapeCsvField(operationDisplay)},{EscapeCsvField(log.Description)},{log.TargetID},{EscapeCsvField(log.TargetName)},{EscapeCsvField(log.IPAddress)},{EscapeCsvField(resultDisplay)}");
+                    csv.AppendLine($"{log.LogID},{EscapeCsvField(log.OperationTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "")},{log.AdminID},{EscapeCsvField(log.AdminUsername)},{EscapeCsvField(moduleDisplay)},{EscapeCsvField(operationDisplay)},{EscapeCsvField(log.Description)},{log.TargetID},{EscapeCsvField(log.TargetName)},{EscapeCsvField(log.IPAddress)},{EscapeCsvField(resultDisplay)}");
                 }
 
                 // Generate file
@@ -4157,9 +4157,9 @@ namespace recycling.Web.UI.Controllers
 
                 foreach (var t in transporters)
                 {
-                    var availableStatus = t.Available ? "可接单" : "不可接单";
-                    var activeStatus = t.IsActive ? "激活" : "禁用";
-                    var createdDate = t.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    var availableStatus = (t.Available ?? false) ? "可接单" : "不可接单";
+                    var activeStatus = (t.IsActive ?? false) ? "激活" : "禁用";
+                    var createdDate = t.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
 
                     csv.AppendLine($"{t.TransporterID},{EscapeCsvField(t.Username)},{EscapeCsvField(t.FullName ?? "-")},{EscapeCsvField(t.PhoneNumber)},{EscapeCsvField(t.VehiclePlateNumber)},{EscapeCsvField(t.Region)},{EscapeCsvField(t.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
@@ -4346,9 +4346,9 @@ namespace recycling.Web.UI.Controllers
 
                 foreach (var w in workers)
                 {
-                    var availableStatus = w.Available ? "可用" : "不可用";
-                    var activeStatus = w.IsActive ? "激活" : "禁用";
-                    var createdDate = w.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    var availableStatus = (w.Available ?? false) ? "可用" : "不可用";
+                    var activeStatus = (w.IsActive ?? false) ? "激活" : "禁用";
+                    var createdDate = w.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
 
                     csv.AppendLine($"{w.WorkerID},{EscapeCsvField(w.Username)},{EscapeCsvField(w.FullName ?? "-")},{EscapeCsvField(w.PhoneNumber)},{EscapeCsvField(w.ShiftType)},{EscapeCsvField(w.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
