@@ -386,8 +386,8 @@
         {
             foreach (var address in Model)
             {
-                <div class="address-card @(address.IsDefault ? "default" : "")" data-address-id="@address.AddressID">
-                    @if (address.IsDefault)
+                <div class="address-card @(address.IsDefault == true ? "default" : "")" data-address-id="@address.AddressID">
+                    @if (address.IsDefault == true)
                     {
                         <div class="default-badge"><i class="fas fa-star"></i> 默认地址</div>
                     }
@@ -409,7 +409,7 @@
                         <button class="btn-action btn-delete" onclick="deleteAddress(@address.AddressID)">
                             <i class="fas fa-trash"></i> 删除
                         </button>
-                        @if (!address.IsDefault)
+                        @if (address.IsDefault != true)
                         {
                             <button class="btn-action btn-set-default" onclick="setDefaultAddress(@address.AddressID)">
                                 <i class="fas fa-star"></i> 设为默认
