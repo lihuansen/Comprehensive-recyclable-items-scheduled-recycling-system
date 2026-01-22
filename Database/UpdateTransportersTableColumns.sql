@@ -49,7 +49,7 @@ IF NOT EXISTS (
 )
 BEGIN
     ALTER TABLE [dbo].[Transporters]
-    ADD [TotalTrips] INT NOT NULL DEFAULT 0;
+    ADD [TotalTrips] INT NULL;
     PRINT '✓ 已添加 TotalTrips 字段';
 END
 ELSE
@@ -154,27 +154,6 @@ END
 ELSE
 BEGIN
     PRINT '✓ VehiclePlateNumber 字段已是可空或不存在';
-END
-GO
-
--- ==============================================================================
--- 确保 TotalTrips 字段可为空（根据实体类定义）
--- ==============================================================================
-IF EXISTS (
-    SELECT * FROM sys.columns 
-    WHERE object_id = OBJECT_ID(N'[dbo].[Transporters]') 
-    AND name = 'TotalTrips'
-    AND is_nullable = 0
-)
-BEGIN
-    -- 修改 TotalTrips 为可空字段
-    ALTER TABLE [dbo].[Transporters]
-    ALTER COLUMN [TotalTrips] INT NULL;
-    PRINT '✓ 已将 TotalTrips 字段改为可空';
-END
-ELSE
-BEGIN
-    PRINT '✓ TotalTrips 字段已是可空或不存在';
 END
 GO
 

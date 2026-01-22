@@ -50,14 +50,34 @@ set /p DB_NAME="请输入数据库名称 (直接回车使用 RecyclingDB): "
 if "%DB_NAME%"=="" set DB_NAME=RecyclingDB
 
 echo.
+echo 请选择身份验证方式:
+echo Please select authentication method:
+echo   1. Windows 身份验证 (Windows Authentication)
+echo   2. SQL Server 身份验证 (SQL Server Authentication)
+echo.
+set /p AUTH_TYPE="请输入 1 或 2 (直接回车使用 Windows 身份验证): "
+if "%AUTH_TYPE%"=="" set AUTH_TYPE=1
+
+if "%AUTH_TYPE%"=="2" (
+    set /p SQL_USER="请输入SQL Server用户名: "
+    set /p SQL_PASS="请输入SQL Server密码: "
+)
+
+echo.
 echo ========================================================================
 echo 开始执行更新脚本...
 echo Starting script execution...
 echo ========================================================================
 echo.
 
-REM 执行SQL脚本 (使用Windows身份验证)
-sqlcmd -S %SERVER_NAME% -d %DB_NAME% -E -i "%SQL_FILE%"
+REM 执行SQL脚本
+if "%AUTH_TYPE%"=="2" (
+    REM 使用SQL Server身份验证
+    sqlcmd -S %SERVER_NAME% -d %DB_NAME% -U %SQL_USER% -P %SQL_PASS% -i "%SQL_FILE%"
+) else (
+    REM 使用Windows身份验证
+    sqlcmd -S %SERVER_NAME% -d %DB_NAME% -E -i "%SQL_FILE%"
+)
 
 if %ERRORLEVEL% EQU 0 (
     echo.

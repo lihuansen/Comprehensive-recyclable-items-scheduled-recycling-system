@@ -54,21 +54,38 @@ echo ""
 
 echo ""
 echo "========================================================================"
+echo "验证数据库连接..."
+echo "Verifying database connection..."
+echo "========================================================================"
+echo ""
+
+# 测试连接
+if command -v sqlcmd &> /dev/null; then
+    # 尝试连接数据库
+    sqlcmd -S "$SERVER_NAME" -d "$DB_NAME" -U "$DB_USER" -P "$DB_PASSWORD" -Q "SELECT 1" &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo "[错误] 无法连接到数据库。请检查连接信息。"
+        echo "[ERROR] Cannot connect to database. Please check connection information."
+        exit 1
+    fi
+    echo "[成功] 数据库连接验证通过"
+    echo "[SUCCESS] Database connection verified"
+else
+    echo "[错误] 未找到 sqlcmd 命令。请安装 SQL Server 命令行工具。"
+    echo "[ERROR] sqlcmd command not found. Please install SQL Server command line tools."
+    exit 1
+fi
+
+echo ""
+echo "========================================================================"
 echo "开始执行更新脚本..."
 echo "Starting script execution..."
 echo "========================================================================"
 echo ""
 
 # 执行SQL脚本
-if command -v sqlcmd &> /dev/null; then
-    # 使用 sqlcmd (Microsoft SQL Server)
-    sqlcmd -S "$SERVER_NAME" -d "$DB_NAME" -U "$DB_USER" -P "$DB_PASSWORD" -i "$SQL_FILE"
-    EXIT_CODE=$?
-else
-    echo "[错误] 未找到 sqlcmd 命令。请安装 SQL Server 命令行工具。"
-    echo "[ERROR] sqlcmd command not found. Please install SQL Server command line tools."
-    exit 1
-fi
+sqlcmd -S "$SERVER_NAME" -d "$DB_NAME" -U "$DB_USER" -P "$DB_PASSWORD" -i "$SQL_FILE"
+EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
     echo ""
