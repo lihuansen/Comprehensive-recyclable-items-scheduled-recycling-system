@@ -403,7 +403,7 @@
                         <div class="feedback-meta">
                             <div class="meta-item">
                                 <i class="fas fa-calendar-alt"></i>
-                                提交时间：@feedback.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                                提交时间：@(feedback.CreatedDate.HasValue ? feedback.CreatedDate.Value.ToString("yyyy-MM-dd HH:mm") : "未知")
                             </div>
                             @if (feedback.UpdatedDate.HasValue)
                             {
