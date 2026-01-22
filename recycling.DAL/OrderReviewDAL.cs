@@ -35,9 +35,9 @@ namespace recycling.DAL
                     int rows = cmd.ExecuteNonQuery();
                     
                     // Update recycler's average rating after adding review
-                    if (rows > 0)
+                    if (rows > 0 && review.RecyclerID.HasValue)
                     {
-                        UpdateRecyclerRating(review.RecyclerID, conn);
+                        UpdateRecyclerRating(review.RecyclerID.Value, conn);
                     }
                     
                     return rows > 0;

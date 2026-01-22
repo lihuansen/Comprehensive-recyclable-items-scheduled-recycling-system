@@ -35,6 +35,14 @@ namespace recycling.Model
 
         public string Speciallnstructions { get; set; }
 
+        // Alias property for DAL compatibility
+        [NotMapped]
+        public string SpecialInstructions
+        {
+            get { return Speciallnstructions; }
+            set { Speciallnstructions = value; }
+        }
+
         public decimal? EstimatedPrice { get; set; }
 
         [StringLength(50)]

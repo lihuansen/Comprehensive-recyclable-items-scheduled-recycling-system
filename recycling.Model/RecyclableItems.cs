@@ -11,6 +11,14 @@ namespace recycling.Model
         [Key]
         public int ItemID { get; set; }
 
+        // Alias property for DAL compatibility
+        [NotMapped]
+        public int ItemId
+        {
+            get { return ItemID; }
+            set { ItemID = value; }
+        }
+
         [StringLength(50)]
         public string Name { get; set; }
 
