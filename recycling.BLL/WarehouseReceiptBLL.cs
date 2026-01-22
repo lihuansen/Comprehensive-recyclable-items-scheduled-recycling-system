@@ -158,17 +158,22 @@ namespace recycling.BLL
                 if (result)
                 {
                     // 3. 获取运输单信息用于通知
-                    var transportOrder = _transportDAL.GetTransportationOrderById(receipt.TransportOrderID);
+                    var transportOrder = receipt.TransportOrderID.HasValue 
+                        ? _transportDAL.GetTransportationOrderById(receipt.TransportOrderID.Value) 
+                        : null;
 
                     // 4. 发送入库完成通知给回收员
                     try
                     {
-                        _notificationBLL.SendNotification(
-                            receipt.RecyclerID.Value,
-                            "入库完成",
-                            $"您的运输单 {transportOrder?.OrderNumber ?? ""} 已成功入库至基地，入库单号：{receipt.ReceiptNumber}，总重量：{receipt.TotalWeight}kg",
-                            "WarehouseReceipt",
-                            receiptId);
+                        if (receipt.RecyclerID.HasValue)
+                        {
+                            _notificationBLL.SendNotification(
+                                receipt.RecyclerID.Value,
+                                "入库完成",
+                                $"您的运输单 {transportOrder?.OrderNumber ?? ""} 已成功入库至基地，入库单号：{receipt.ReceiptNumber}，总重量：{receipt.TotalWeight}kg",
+                                "WarehouseReceipt",
+                                receiptId);
+                        }
                     }
                     catch (Exception notifyEx)
                     {
