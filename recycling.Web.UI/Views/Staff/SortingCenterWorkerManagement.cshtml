@@ -166,15 +166,6 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>工位</label>
-                                <input type="text" class="form-control" id="workStation" placeholder="如：A区1号">
-                            </div>
-                        </div>
-                    </div>
-                    <input type="hidden" id="sortingCenterId" value="1">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
                                 <label>班次类型 *</label>
                                 <select class="form-control" id="shiftType" required>
                                     <option value="">请选择班次</option>
@@ -185,6 +176,9 @@
                                 </select>
                             </div>
                         </div>
+                    </div>
+                    <input type="hidden" id="sortingCenterId" value="1">
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>当前状态</label>
@@ -195,10 +189,8 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
+                        <div class="col-md-6">
+                            <div class="form-group" style="padding-top: 25px;">
                                 <label><input type="checkbox" id="available" checked> 可用状态</label>
                                 &nbsp;&nbsp;&nbsp;
                                 <label><input type="checkbox" id="isActive" checked> 激活状态</label>
@@ -331,7 +323,6 @@ function editWorker(worker) {
     $('#phoneNumber').val(worker.PhoneNumber);
     $('#idNumber').val(worker.IDNumber);
     $('#sortingCenterId').val(1);
-    $('#workStation').val(worker.WorkStation);
     $('#shiftType').val(worker.ShiftType);
     $('#currentStatus').val(worker.CurrentStatus);
     $('#available').prop('checked', worker.Available);
@@ -350,8 +341,6 @@ function saveWorker() {
         IDNumber: $('#idNumber').val(),
         SortingCenterID: 1,
         SortingCenterName: null,
-        WorkStation: $('#workStation').val(),
-        Specialization: null,
         ShiftType: $('#shiftType').val(),
         CurrentStatus: $('#currentStatus').val(),
         Available: $('#available').is(':checked'),

@@ -141,22 +141,6 @@
 
         <div class="form-group">
             <label class="form-label">
-                <i class="fas fa-warehouse field-icon"></i> 工作站
-            </label>
-            @Html.TextBoxFor(m => m.WorkStation, new { @class = "form-control", placeholder = "请输入工作站" })
-            @Html.ValidationMessageFor(m => m.WorkStation, "", new { @class = "text-danger" })
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-star field-icon"></i> 专业特长
-            </label>
-            @Html.TextBoxFor(m => m.Specialization, new { @class = "form-control", placeholder = "请输入专业特长" })
-            @Html.ValidationMessageFor(m => m.Specialization, "", new { @class = "text-danger" })
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">
                 <i class="fas fa-clock field-icon"></i> 班次类型 *
             </label>
             @Html.DropDownListFor(m => m.ShiftType, new SelectList(new[] {

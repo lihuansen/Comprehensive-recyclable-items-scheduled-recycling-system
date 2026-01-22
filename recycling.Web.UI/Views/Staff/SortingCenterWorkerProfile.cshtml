@@ -231,24 +231,12 @@
             <span class="info-value">@(Model.SortingCenterName ?? "-")</span>
         </div>
         <div class="info-item">
-            <span class="info-label">工作站</span>
-            <span class="info-value">@(Model.WorkStation ?? "-")</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">专业特长</span>
-            <span class="info-value">@(Model.Specialization ?? "-")</span>
-        </div>
-        <div class="info-item">
             <span class="info-label">班次类型</span>
             <span class="info-value">@Model.ShiftType</span>
         </div>
         <div class="info-item">
             <span class="info-label">当前状态</span>
             <span class="info-value">@Model.CurrentStatus</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">入职日期</span>
-            <span class="info-value">@(Model.HireDate.HasValue ? Model.HireDate.Value.ToString("yyyy-MM-dd") : "-")</span>
         </div>
         <div class="info-item">
             <span class="info-label">工作人员ID</span>
