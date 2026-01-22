@@ -42,6 +42,7 @@ BEGIN
         [IsActive] BIT NOT NULL DEFAULT 1,               -- 是否激活（1=激活，0=禁用）
         [AvatarURL] NVARCHAR(255) NULL,                  -- 头像URL
         [Notes] NVARCHAR(500) NULL,                      -- 备注信息
+        [money] DECIMAL(18, 2) NULL DEFAULT 0,           -- 账户余额
         
         -- 约束
         CONSTRAINT CK_Transporters_Rating CHECK ([Rating] IS NULL OR ([Rating] >= 0 AND [Rating] <= 5)),
@@ -89,6 +90,7 @@ GO
 -- IsActive           : 账号是否处于激活状态
 -- AvatarURL          : 用户头像图片地址
 -- Notes              : 其他备注信息
+-- money              : 运输人员账户余额
 -- ==============================================================================
 
 -- ==============================================================================
