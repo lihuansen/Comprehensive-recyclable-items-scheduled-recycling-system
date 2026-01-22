@@ -2226,7 +2226,7 @@ namespace recycling.Web.UI.Controllers
                 var result = reviews.Select(r => new
                 {
                     orderId = r.OrderID,
-                    orderNumber = "AP" + r.OrderID.ToString("D6"),
+                    orderNumber = "AP" + r.OrderID.GetValueOrDefault().ToString("D6"),
                     userId = r.UserID,
                     starRating = r.StarRating,
                     reviewText = r.ReviewText,
