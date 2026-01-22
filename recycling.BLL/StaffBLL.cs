@@ -68,7 +68,7 @@ namespace recycling.BLL
                     return ("密码错误", null);
 
                 // 检查账号是否被禁用
-                if (!recycler.IsActive)
+                if (recycler.IsActive != true)
                     return ("账号已被禁用，无法登录", null);
 
                 // 登录成功，更新最后登录时间
@@ -145,7 +145,7 @@ namespace recycling.BLL
                     return ("密码错误", null);
 
                 // 检查账号是否被禁用
-                if (!transporter.IsActive)
+                if (transporter.IsActive != true)
                     return ("账号已被禁用，无法登录", null);
 
                 // 登录成功，更新最后登录时间
@@ -174,7 +174,7 @@ namespace recycling.BLL
                     return ("密码错误", null);
 
                 // 检查账号是否被禁用
-                if (!worker.IsActive)
+                if (worker.IsActive != true)
                     return ("账号已被禁用，无法登录", null);
 
                 // 登录成功，更新最后登录时间

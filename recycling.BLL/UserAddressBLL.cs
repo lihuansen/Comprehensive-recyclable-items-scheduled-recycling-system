@@ -45,7 +45,7 @@ namespace recycling.BLL
             try
             {
                 // 验证地址数量限制
-                int currentCount = _addressDAL.GetAddressCount(address.UserID);
+                int currentCount = _addressDAL.GetAddressCount(address.UserID.Value);
                 if (currentCount >= MAX_ADDRESSES)
                 {
                     return (false, $"最多只能添加{MAX_ADDRESSES}个地址", 0);
@@ -91,9 +91,9 @@ namespace recycling.BLL
                 if (newId > 0)
                 {
                     // 如果设置为默认地址，需要取消其他默认
-                    if (address.IsDefault && currentCount > 0)
+                    if (address.IsDefault == true && currentCount > 0)
                     {
-                        _addressDAL.SetDefaultAddress(newId, address.UserID);
+                        _addressDAL.SetDefaultAddress(newId, address.UserID.Value);
                     }
                     return (true, "地址添加成功", newId);
                 }
@@ -113,7 +113,7 @@ namespace recycling.BLL
             try
             {
                 // 验证地址是否存在且属于该用户
-                var existingAddress = _addressDAL.GetAddressById(address.AddressID, address.UserID);
+                var existingAddress = _addressDAL.GetAddressById(address.AddressID, address.UserID.Value);
                 if (existingAddress == null)
                 {
                     return (false, "地址不存在或无权修改");
@@ -166,7 +166,7 @@ namespace recycling.BLL
                     return (false, "地址不存在或无权删除");
                 }
 
-                bool wasDefault = existingAddress.IsDefault;
+                bool wasDefault = existingAddress.IsDefault == true;
                 bool success = _addressDAL.DeleteAddress(addressId, userId);
                 
                 if (success)
@@ -205,7 +205,7 @@ namespace recycling.BLL
                 }
 
                 // 如果已经是默认地址
-                if (existingAddress.IsDefault)
+                if (existingAddress.IsDefault == true)
                 {
                     return (true, "该地址已经是默认地址");
                 }
