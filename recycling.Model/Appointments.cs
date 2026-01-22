@@ -33,15 +33,7 @@ namespace recycling.Model
         [StringLength(50)]
         public string ContactPhone { get; set; }
 
-        public string Speciallnstructions { get; set; }
-
-        // Alias property for DAL compatibility
-        [NotMapped]
-        public string SpecialInstructions
-        {
-            get { return Speciallnstructions; }
-            set { Speciallnstructions = value; }
-        }
+        public string SpecialInstructions { get; set; }
 
         public decimal? EstimatedPrice { get; set; }
 
