@@ -158,11 +158,9 @@ namespace recycling.BLL
                 if (result)
                 {
                     // 3. 获取运输单信息用于通知
-                    TransportationOrders transportOrder = null;
-                    if (receipt.TransportOrderID.HasValue)
-                    {
-                        transportOrder = _transportDAL.GetTransportationOrderById(receipt.TransportOrderID.Value);
-                    }
+                    var transportOrder = receipt.TransportOrderID.HasValue 
+                        ? _transportDAL.GetTransportationOrderById(receipt.TransportOrderID.Value) 
+                        : null;
 
                     // 4. 发送入库完成通知给回收员
                     try
