@@ -4407,7 +4407,6 @@ namespace recycling.Web.UI.Controllers
                 FullName = transporter.FullName,
                 PhoneNumber = transporter.PhoneNumber,
                 IDNumber = transporter.IDNumber,
-                LicenseNumber = transporter.LicenseNumber,
                 Region = transporter.Region
             };
 

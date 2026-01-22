@@ -157,14 +157,6 @@
 
         <div class="form-group">
             <label class="form-label">
-                <i class="fas fa-address-card field-icon"></i> 驾驶证号
-            </label>
-            @Html.TextBoxFor(m => m.LicenseNumber, new { @class = "form-control", placeholder = "请输入驾驶证号" })
-            @Html.ValidationMessageFor(m => m.LicenseNumber, "", new { @class = "text-danger" })
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">
                 <i class="fas fa-map-marker-alt field-icon"></i> 服务区域 *
             </label>
             @Html.DropDownListFor(m => m.Region, new SelectList(new[] {
