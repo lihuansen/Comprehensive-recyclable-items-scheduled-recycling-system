@@ -49,7 +49,7 @@ namespace recycling.BLL
                     try
                     {
                         // 获取回收员名字
-                        var recycler = _staffDAL.GetRecyclerById(order.RecyclerID);
+                        var recycler = _staffDAL.GetRecyclerById(order.RecyclerID.Value);
                         string recyclerName = GetRecyclerName(recycler);
 
                         _notificationBLL.SendTransportOrderCreatedNotification(
@@ -57,7 +57,7 @@ namespace recycling.BLL
                             orderNumber,
                             recyclerName,
                             order.PickupAddress,
-                            order.EstimatedWeight);
+                            order.EstimatedWeight ?? 0);
                     }
                     catch (Exception notifyEx)
                     {
@@ -221,7 +221,7 @@ namespace recycling.BLL
                         // 3.1 清空该回收员的暂存点物品
                         // 因为这些物品已经被运输到基地，所以暂存点应该清空
                         var storagePointBLL = new StoragePointBLL();
-                        storagePointBLL.ClearStoragePointForRecycler(order.RecyclerID);
+                        storagePointBLL.ClearStoragePointForRecycler(order.RecyclerID.Value);
                         System.Diagnostics.Debug.WriteLine($"运输单 {order.OrderNumber} 开始运输，回收员 {order.RecyclerID} 的暂存点物品已清空");
                     }
                     catch (Exception clearEx)
@@ -318,7 +318,7 @@ namespace recycling.BLL
                     {
                         // 清空该回收员的暂存点物品
                         var storagePointBLL = new StoragePointBLL();
-                        storagePointBLL.ClearStoragePointForRecycler(order.RecyclerID);
+                        storagePointBLL.ClearStoragePointForRecycler(order.RecyclerID.Value);
                         System.Diagnostics.Debug.WriteLine($"运输单 {order.OrderNumber} 装货完毕，回收员 {order.RecyclerID} 的暂存点物品已清空");
                     }
                     catch (Exception clearEx)
@@ -431,7 +431,7 @@ namespace recycling.BLL
                             try
                             {
                                 var staffDAL = new StaffDAL();
-                                var transporter = staffDAL.GetTransporterById(order.TransporterID);
+                                var transporter = staffDAL.GetTransporterById(order.TransporterID.Value);
                                 if (transporter != null && !string.IsNullOrWhiteSpace(transporter.FullName))
                                 {
                                     transporterName = transporter.FullName;
@@ -446,7 +446,7 @@ namespace recycling.BLL
                                 orderId,
                                 order.OrderNumber,
                                 transporterName,
-                                actualWeight ?? order.EstimatedWeight);
+                                actualWeight ?? order.EstimatedWeight ?? 0);
                         }
                     }
                     catch (Exception notifyEx)

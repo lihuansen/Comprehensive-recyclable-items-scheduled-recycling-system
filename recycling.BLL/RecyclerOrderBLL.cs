@@ -100,7 +100,7 @@ namespace recycling.BLL
                     return (false, "回收员不存在");
                 }
                 
-                if (!recycler.Available)
+                if (recycler.Available != true)
                 {
                     return (false, "当前状态不可接单");
                 }

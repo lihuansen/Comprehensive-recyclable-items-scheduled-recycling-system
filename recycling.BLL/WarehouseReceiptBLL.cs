@@ -164,7 +164,7 @@ namespace recycling.BLL
                     try
                     {
                         _notificationBLL.SendNotification(
-                            receipt.RecyclerID,
+                            receipt.RecyclerID.Value,
                             "入库完成",
                             $"您的运输单 {transportOrder?.OrderNumber ?? ""} 已成功入库至基地，入库单号：{receipt.ReceiptNumber}，总重量：{receipt.TotalWeight}kg",
                             "WarehouseReceipt",
@@ -183,7 +183,7 @@ namespace recycling.BLL
                             receiptId,
                             receipt.ReceiptNumber,
                             receipt.ItemCategories ?? "未分类",
-                            receipt.TotalWeight);
+                            receipt.TotalWeight ?? 0);
                     }
                     catch (Exception notifyEx)
                     {
