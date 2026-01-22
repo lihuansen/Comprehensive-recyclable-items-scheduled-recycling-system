@@ -355,8 +355,6 @@ namespace recycling.BLL
                 worker.FullName = model.FullName;
                 worker.PhoneNumber = model.PhoneNumber;
                 worker.IDNumber = model.IDNumber;
-                worker.WorkStation = model.WorkStation;
-                worker.Specialization = model.Specialization;
                 worker.ShiftType = model.ShiftType;
 
                 bool result = _staffDAL.UpdateSortingCenterWorker(worker);

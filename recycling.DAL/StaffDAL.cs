@@ -428,7 +428,7 @@ namespace recycling.DAL
                     conn.Open();
                     
                     string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, 
-                                      SortingCenterID, SortingCenterName, WorkStation,
+                                      SortingCenterID, SortingCenterName,
                                       ShiftType, Available, CurrentStatus, LastLoginDate, IsActive
                               FROM SortingCenterWorkers 
                               WHERE Username = @Username";
@@ -449,7 +449,6 @@ namespace recycling.DAL
                                 PhoneNumber = reader["PhoneNumber"].ToString(),
                                 SortingCenterID = Convert.ToInt32(reader["SortingCenterID"]),
                                 SortingCenterName = reader["SortingCenterName"] != DBNull.Value ? reader["SortingCenterName"].ToString() : null,
-                                WorkStation = reader["WorkStation"]?.ToString(),
                                 ShiftType = reader["ShiftType"].ToString(),
                                 Available = Convert.ToBoolean(reader["Available"]),
                                 CurrentStatus = reader["CurrentStatus"].ToString(),
@@ -547,9 +546,9 @@ namespace recycling.DAL
             using (var conn = new SqlConnection(_connectionString))
             {
                 string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, IDNumber, 
-                              SortingCenterID, SortingCenterName, WorkStation, Specialization, 
+                              SortingCenterID, SortingCenterName, 
                               ShiftType, Available, CurrentStatus, TotalItemsProcessed, TotalWeightProcessed, 
-                              AccuracyRate, Rating, HireDate, CreatedDate, LastLoginDate, IsActive, AvatarURL, Notes 
+                              Rating, CreatedDate, LastLoginDate, IsActive, AvatarURL 
                               FROM SortingCenterWorkers 
                               WHERE WorkerID = @WorkerID";
 
@@ -571,21 +570,16 @@ namespace recycling.DAL
                             IDNumber = reader["IDNumber"]?.ToString(),
                             SortingCenterID = Convert.ToInt32(reader["SortingCenterID"]),
                             SortingCenterName = reader["SortingCenterName"]?.ToString(),
-                            WorkStation = reader["WorkStation"]?.ToString(),
-                            Specialization = reader["Specialization"]?.ToString(),
                             ShiftType = reader["ShiftType"].ToString(),
                             Available = Convert.ToBoolean(reader["Available"]),
                             CurrentStatus = reader["CurrentStatus"].ToString(),
                             TotalItemsProcessed = reader["TotalItemsProcessed"] != DBNull.Value ? Convert.ToInt32(reader["TotalItemsProcessed"]) : (int?)null,
                             TotalWeightProcessed = reader["TotalWeightProcessed"] != DBNull.Value ? Convert.ToDecimal(reader["TotalWeightProcessed"]) : (decimal?)null,
-                            AccuracyRate = reader["AccuracyRate"] != DBNull.Value ? Convert.ToDecimal(reader["AccuracyRate"]) : (decimal?)null,
                             Rating = reader["Rating"] != DBNull.Value ? Convert.ToDecimal(reader["Rating"]) : (decimal?)null,
-                            HireDate = reader["HireDate"] != DBNull.Value ? Convert.ToDateTime(reader["HireDate"]) : (DateTime?)null,
                             CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                             LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
                             IsActive = Convert.ToBoolean(reader["IsActive"]),
-                            AvatarURL = reader["AvatarURL"]?.ToString(),
-                            Notes = reader["Notes"]?.ToString()
+                            AvatarURL = reader["AvatarURL"]?.ToString()
                         };
                     }
                 }
@@ -604,8 +598,6 @@ namespace recycling.DAL
                               SET FullName = @FullName, 
                                   PhoneNumber = @PhoneNumber, 
                                   IDNumber = @IDNumber, 
-                                  WorkStation = @WorkStation, 
-                                  Specialization = @Specialization, 
                                   ShiftType = @ShiftType,
                                   PasswordHash = @PasswordHash
                               WHERE WorkerID = @WorkerID";
@@ -615,8 +607,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", worker.FullName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Specialization", worker.Specialization ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
                 cmd.Parameters.AddWithValue("@PasswordHash", worker.PasswordHash);
 

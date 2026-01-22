@@ -1853,8 +1853,8 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, WorkStation, Specialization, ShiftType, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
-                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @WorkStation, @Specialization, @ShiftType, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, ShiftType, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @ShiftType, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", worker.Username);
@@ -1864,8 +1864,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
                 cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Specialization", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
@@ -1890,8 +1888,6 @@ namespace recycling.DAL
                     IDNumber = @IDNumber,
                     SortingCenterID = @SortingCenterID,
                     SortingCenterName = @SortingCenterName,
-                    WorkStation = @WorkStation,
-                    Specialization = @Specialization,
                     ShiftType = @ShiftType,
                     Available = @Available,
                     CurrentStatus = @CurrentStatus,
@@ -1906,8 +1902,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
                 cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@WorkStation", worker.WorkStation ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Specialization", (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
@@ -2090,21 +2084,16 @@ namespace recycling.DAL
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
                 SortingCenterID = reader.GetInt32(reader.GetOrdinal("SortingCenterID")),
                 SortingCenterName = reader.IsDBNull(reader.GetOrdinal("SortingCenterName")) ? null : reader.GetString(reader.GetOrdinal("SortingCenterName")),
-                WorkStation = reader.IsDBNull(reader.GetOrdinal("WorkStation")) ? null : reader.GetString(reader.GetOrdinal("WorkStation")),
-                Specialization = reader.IsDBNull(reader.GetOrdinal("Specialization")) ? null : reader.GetString(reader.GetOrdinal("Specialization")),
                 ShiftType = reader.GetString(reader.GetOrdinal("ShiftType")),
                 Available = reader.GetBoolean(reader.GetOrdinal("Available")),
                 CurrentStatus = reader.GetString(reader.GetOrdinal("CurrentStatus")),
                 TotalItemsProcessed = reader.GetInt32(reader.GetOrdinal("TotalItemsProcessed")),
                 TotalWeightProcessed = reader.GetDecimal(reader.GetOrdinal("TotalWeightProcessed")),
-                AccuracyRate = reader.IsDBNull(reader.GetOrdinal("AccuracyRate")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("AccuracyRate")),
                 Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("Rating")),
-                HireDate = reader.IsDBNull(reader.GetOrdinal("HireDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("HireDate")),
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL")),
-                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? null : reader.GetString(reader.GetOrdinal("Notes"))
+                AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL"))
             };
         }
 

@@ -4536,8 +4536,6 @@ namespace recycling.Web.UI.Controllers
                 FullName = worker.FullName,
                 PhoneNumber = worker.PhoneNumber,
                 IDNumber = worker.IDNumber,
-                WorkStation = worker.WorkStation,
-                Specialization = worker.Specialization,
                 ShiftType = worker.ShiftType
             };
 
