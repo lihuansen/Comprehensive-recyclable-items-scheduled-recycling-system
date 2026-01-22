@@ -34,7 +34,5 @@ namespace recycling.Model
         public bool? IsActive { get; set; }
 
         public string AvatarURL { get; set; }
-
-        public decimal? money { get; set; }
     }
 }

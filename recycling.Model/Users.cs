@@ -26,6 +26,7 @@ namespace recycling.Model
         public DateTime? LastLoginDate { get; set; }
 
         [StringLength(50)]
+        [Column("url")]
         public string URL { get; set; }
 
         public decimal? money { get; set; }

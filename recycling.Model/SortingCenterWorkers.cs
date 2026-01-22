@@ -45,12 +45,6 @@ namespace recycling.Model
 
         public bool? IsActive { get; set; }
 
-        public int? LastViewedTransportCount { get; set; }
-
-        public int? LastViewedWarehouseCount { get; set; }
-
-        public decimal? money { get; set; }
-
         [StringLength(100)]
         public string Position { get; set; }
 

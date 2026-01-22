@@ -41,8 +41,6 @@ namespace recycling.Model
 
         public bool? IsActive { get; set; }
 
-        public decimal? money { get; set; }
-
         [StringLength(50)]
         public string VehicleType { get; set; }
 
