@@ -331,7 +331,8 @@ namespace recycling.DAL
                 {
                     string sql = @"SELECT TransporterID, Username, PasswordHash, FullName, PhoneNumber, 
                                           IDNumber, LicenseNumber, Region, Available, CurrentStatus, TotalTrips,
-                                          TotalWeight, Rating, CreatedDate, LastLoginDate, IsActive, AvatarURL, Notes, money
+                                          TotalWeight, Rating, CreatedDate, LastLoginDate, IsActive, 
+                                          AvatarURL, Notes, money
                                   FROM Transporters 
                                   WHERE TransporterID = @TransporterID";
 
