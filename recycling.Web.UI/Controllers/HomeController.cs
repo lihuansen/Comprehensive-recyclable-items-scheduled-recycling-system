@@ -184,7 +184,7 @@ namespace recycling.Web.UI.Controllers
                         id = orderDetail.Appointment.AppointmentID,
                         number = $"AP{orderDetail.Appointment.AppointmentID:D6}",
                         type = GetAppointmentTypeDisplayName(orderDetail.Appointment.AppointmentType),
-                        date = orderDetail.Appointment.AppointmentDate.ToString("yyyy年MM月dd日"),
+                        date = orderDetail.Appointment.AppointmentDate?.ToString("yyyy年MM月dd日") ?? "",
                         timeSlot = GetTimeSlotDisplayName(orderDetail.Appointment.TimeSlot),
                         weight = orderDetail.Appointment.EstimatedWeight,
                         price = orderDetail.Appointment.EstimatedPrice?.ToString("F2") ?? "待评估",
@@ -194,8 +194,8 @@ namespace recycling.Web.UI.Controllers
                         address = orderDetail.Appointment.Address,
                         isUrgent = orderDetail.Appointment.IsUrgent,
                         specialInstructions = orderDetail.Appointment.SpecialInstructions,
-                        createdDate = orderDetail.Appointment.CreatedDate.ToString("yyyy年MM月dd日 HH:mm"),
-                        updatedDate = orderDetail.Appointment.UpdatedDate.ToString("yyyy年MM月dd日 HH:mm"),
+                        createdDate = orderDetail.Appointment.CreatedDate?.ToString("yyyy年MM月dd日 HH:mm") ?? "",
+                        updatedDate = orderDetail.Appointment.UpdatedDate?.ToString("yyyy年MM月dd日 HH:mm") ?? "",
                         recyclerID = orderDetail.Appointment.RecyclerID,
                         recyclerName = orderDetail.RecyclerName
                     },
@@ -1267,7 +1267,7 @@ namespace recycling.Web.UI.Controllers
                     content = n.Content,
                     relatedOrderId = n.RelatedOrderID,
                     relatedFeedbackId = n.RelatedFeedbackID,
-                    createdDate = n.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
+                    createdDate = n.CreatedDate?.ToString("yyyy-MM-dd HH:mm") ?? "",
                     isRead = n.IsRead,
                     readDate = n.ReadDate?.ToString("yyyy-MM-dd HH:mm")
                 }).ToList();
@@ -1466,7 +1466,7 @@ namespace recycling.Web.UI.Controllers
                     contactName = a.ContactName,
                     contactPhone = a.ContactPhone,
                     isDefault = a.IsDefault,
-                    createdDate = a.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                    createdDate = a.CreatedDate?.ToString("yyyy-MM-dd HH:mm") ?? ""
                 }).ToList();
 
                 return Json(new { success = true, addresses = result });

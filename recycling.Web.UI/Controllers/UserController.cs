@@ -456,7 +456,7 @@ namespace recycling.Web.UI.Controllers
             ViewBag.UserAddresses = userAddresses;
 
             // 获取默认地址ID
-            var defaultAddress = userAddresses.FirstOrDefault(a => a.IsDefault);
+            var defaultAddress = userAddresses.FirstOrDefault(a => a.IsDefault == true);
             if (defaultAddress != null)
             {
                 model.SelectedAddressID = defaultAddress.AddressID;
