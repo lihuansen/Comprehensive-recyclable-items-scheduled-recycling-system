@@ -420,11 +420,6 @@ namespace recycling.BLL
                 return (false, "手机号不能为空");
             }
 
-            if (string.IsNullOrEmpty(transporter.VehiclePlateNumber))
-            {
-                return (false, "车牌号不能为空");
-            }
-
             if (string.IsNullOrEmpty(transporter.Region))
             {
                 return (false, "区域不能为空");
@@ -456,11 +451,6 @@ namespace recycling.BLL
             if (string.IsNullOrEmpty(transporter.PhoneNumber))
             {
                 return (false, "手机号不能为空");
-            }
-
-            if (string.IsNullOrEmpty(transporter.VehiclePlateNumber))
-            {
-                return (false, "车牌号不能为空");
             }
 
             if (string.IsNullOrEmpty(transporter.Region))

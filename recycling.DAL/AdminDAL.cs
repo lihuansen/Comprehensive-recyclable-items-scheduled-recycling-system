@@ -1520,7 +1520,7 @@ namespace recycling.DAL
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR Region LIKE @SearchTerm OR VehiclePlateNumber LIKE @SearchTerm)";
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR Region LIKE @SearchTerm)";
                 }
                 if (isActive.HasValue)
                 {
@@ -1599,8 +1599,8 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = @"INSERT INTO Transporters (Username, PasswordHash, FullName, PhoneNumber, IDNumber, VehicleType, VehiclePlateNumber, VehicleCapacity, LicenseNumber, Region, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
-                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, NULL, @VehiclePlateNumber, NULL, @LicenseNumber, @Region, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+                string sql = @"INSERT INTO Transporters (Username, PasswordHash, FullName, PhoneNumber, IDNumber, LicenseNumber, Region, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @LicenseNumber, @Region, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", transporter.Username);
@@ -1608,7 +1608,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
                 cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@Available", transporter.Available);
@@ -1632,7 +1631,6 @@ namespace recycling.DAL
                     FullName = @FullName,
                     PhoneNumber = @PhoneNumber,
                     IDNumber = @IDNumber,
-                    VehiclePlateNumber = @VehiclePlateNumber,
                     LicenseNumber = @LicenseNumber,
                     Region = @Region,
                     Available = @Available,
@@ -1646,7 +1644,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@VehiclePlateNumber", transporter.VehiclePlateNumber);
                 cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@Available", transporter.Available);
@@ -1724,7 +1721,7 @@ namespace recycling.DAL
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR Region LIKE @SearchTerm OR VehiclePlateNumber LIKE @SearchTerm)";
+                    whereClause += " AND (Username LIKE @SearchTerm OR FullName LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm OR Region LIKE @SearchTerm)";
                 }
                 if (isActive.HasValue)
                 {
@@ -2076,9 +2073,6 @@ namespace recycling.DAL
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
                 PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
-                VehicleType = reader.IsDBNull(reader.GetOrdinal("VehicleType")) ? null : reader.GetString(reader.GetOrdinal("VehicleType")),
-                VehiclePlateNumber = reader.GetString(reader.GetOrdinal("VehiclePlateNumber")),
-                VehicleCapacity = reader.IsDBNull(reader.GetOrdinal("VehicleCapacity")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("VehicleCapacity")),
                 LicenseNumber = reader.IsDBNull(reader.GetOrdinal("LicenseNumber")) ? null : reader.GetString(reader.GetOrdinal("LicenseNumber")),
                 Region = reader.GetString(reader.GetOrdinal("Region")),
                 Available = reader.GetBoolean(reader.GetOrdinal("Available")),

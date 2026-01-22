@@ -262,7 +262,6 @@ namespace recycling.BLL
                 transporter.FullName = model.FullName;
                 transporter.PhoneNumber = model.PhoneNumber;
                 transporter.IDNumber = model.IDNumber;
-                transporter.VehiclePlateNumber = model.VehiclePlateNumber;
                 transporter.LicenseNumber = model.LicenseNumber;
                 transporter.Region = model.Region;
 

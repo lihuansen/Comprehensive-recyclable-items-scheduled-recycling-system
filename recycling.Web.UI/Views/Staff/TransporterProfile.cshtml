@@ -184,7 +184,7 @@
             </div>
             <div class="card-title">编辑个人信息</div>
             <div class="card-description">
-                修改您的姓名、手机号、车牌号等信息
+                修改您的姓名、手机号、驾驶证号等信息
             </div>
             <a href="@Url.Action("TransporterEditProfile", "Staff")" class="btn-action">
                 <i class="fas fa-edit"></i> 编辑信息
@@ -225,10 +225,6 @@
         <div class="info-item">
             <span class="info-label">身份证号</span>
             <span class="info-value">@(Model.IDNumber ?? "-")</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">车牌号</span>
-            <span class="info-value">@Model.VehiclePlateNumber</span>
         </div>
         <div class="info-item">
             <span class="info-label">驾驶证号</span>

@@ -157,14 +157,6 @@
 
         <div class="form-group">
             <label class="form-label">
-                <i class="fas fa-car field-icon"></i> 车牌号 *
-            </label>
-            @Html.TextBoxFor(m => m.VehiclePlateNumber, new { @class = "form-control", placeholder = "请输入车牌号" })
-            @Html.ValidationMessageFor(m => m.VehiclePlateNumber, "", new { @class = "text-danger" })
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">
                 <i class="fas fa-address-card field-icon"></i> 驾驶证号
             </label>
             @Html.TextBoxFor(m => m.LicenseNumber, new { @class = "form-control", placeholder = "请输入驾驶证号" })
