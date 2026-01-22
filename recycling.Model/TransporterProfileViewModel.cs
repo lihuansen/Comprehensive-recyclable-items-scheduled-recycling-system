@@ -5,7 +5,7 @@ namespace recycling.Model
 {
     /// <summary>
     /// 运输人员个人信息编辑视图模型
-    /// 根据需求移除了车辆类型和车辆载重字段
+    /// 根据需求移除了车辆类型、车辆载重和车牌号字段
     /// </summary>
     public class TransporterProfileViewModel
     {
@@ -22,11 +22,6 @@ namespace recycling.Model
         [StringLength(18, ErrorMessage = "身份证号长度不能超过18个字符")]
         [Display(Name = "身份证号")]
         public string IDNumber { get; set; }
-
-        [Required(ErrorMessage = "车牌号不能为空")]
-        [StringLength(20, ErrorMessage = "车牌号长度不能超过20个字符")]
-        [Display(Name = "车牌号")]
-        public string VehiclePlateNumber { get; set; }
 
         [StringLength(50, ErrorMessage = "驾驶证号长度不能超过50个字符")]
         [Display(Name = "驾驶证号")]
