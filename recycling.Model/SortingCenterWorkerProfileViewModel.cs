@@ -22,10 +22,6 @@ namespace recycling.Model
         [Display(Name = "身份证号")]
         public string IDNumber { get; set; }
 
-        [StringLength(50, ErrorMessage = "职位长度不能超过50个字符")]
-        [Display(Name = "职位")]
-        public string Position { get; set; }
-
         [StringLength(50, ErrorMessage = "工作站长度不能超过50个字符")]
         [Display(Name = "工作站")]
         public string WorkStation { get; set; }

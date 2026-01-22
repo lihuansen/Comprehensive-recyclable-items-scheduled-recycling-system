@@ -52,9 +52,6 @@ namespace recycling.Model
         public decimal? money { get; set; }
 
         [StringLength(100)]
-        public string Position { get; set; }
-
-        [StringLength(100)]
         public string WorkStation { get; set; }
 
         [StringLength(50)]

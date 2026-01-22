@@ -30,7 +30,6 @@ BEGIN
         [IDNumber] NVARCHAR(18) NULL,                    -- 身份证号
         [SortingCenterID] INT NOT NULL,                  -- 所属基地ID
         [SortingCenterName] NVARCHAR(100) NOT NULL,      -- 基地名称
-        [Position] NVARCHAR(50) NOT NULL DEFAULT N'分拣员', -- 职位（分拣员、质检员、组长、主管）
         [WorkStation] NVARCHAR(50) NULL,                 -- 工位编号
         [Specialization] NVARCHAR(100) NULL,             -- 专长品类（如：塑料、金属、纸类等）
         [ShiftType] NVARCHAR(20) NOT NULL DEFAULT N'白班', -- 班次类型（白班、夜班、轮班）
@@ -51,7 +50,6 @@ BEGIN
         CONSTRAINT CK_SortingCenterWorkers_Rating CHECK ([Rating] IS NULL OR ([Rating] >= 0 AND [Rating] <= 5)),
         CONSTRAINT CK_SortingCenterWorkers_AccuracyRate CHECK ([AccuracyRate] IS NULL OR ([AccuracyRate] >= 0 AND [AccuracyRate] <= 100)),
         CONSTRAINT CK_SortingCenterWorkers_CurrentStatus CHECK ([CurrentStatus] IN (N'待命', N'分拣中', N'休息', N'离岗', N'离线')),
-        CONSTRAINT CK_SortingCenterWorkers_Position CHECK ([Position] IN (N'分拣员', N'质检员', N'组长', N'主管', N'其他')),
         CONSTRAINT CK_SortingCenterWorkers_ShiftType CHECK ([ShiftType] IN (N'白班', N'夜班', N'轮班'))
     );
 
@@ -59,7 +57,6 @@ BEGIN
     CREATE UNIQUE INDEX IX_SortingCenterWorkers_Username ON [dbo].[SortingCenterWorkers]([Username]);
     CREATE INDEX IX_SortingCenterWorkers_PhoneNumber ON [dbo].[SortingCenterWorkers]([PhoneNumber]);
     CREATE INDEX IX_SortingCenterWorkers_SortingCenterID ON [dbo].[SortingCenterWorkers]([SortingCenterID]);
-    CREATE INDEX IX_SortingCenterWorkers_Position ON [dbo].[SortingCenterWorkers]([Position]);
     CREATE INDEX IX_SortingCenterWorkers_Available ON [dbo].[SortingCenterWorkers]([Available]);
     CREATE INDEX IX_SortingCenterWorkers_CurrentStatus ON [dbo].[SortingCenterWorkers]([CurrentStatus]);
     CREATE INDEX IX_SortingCenterWorkers_IsActive ON [dbo].[SortingCenterWorkers]([IsActive]);
@@ -84,7 +81,6 @@ GO
 -- IDNumber              : 身份证号码（用于实名认证）
 -- SortingCenterID       : 所属基地的ID
 -- SortingCenterName     : 所属基地的名称
--- Position              : 工作职位
 -- WorkStation           : 工作站/工位编号
 -- Specialization        : 专长的分拣品类
 -- ShiftType             : 工作班次
@@ -112,13 +108,8 @@ GO
 --    - 休息：休息时间
 --    - 离岗：暂时离开工位
 --    - 离线：不在线
--- 3. Position 职位层级：
---    - 分拣员：基础分拣工作
---    - 质检员：负责质量检查
---    - 组长：负责小组管理
---    - 主管：负责整体管理
--- 4. AccuracyRate 用于评估分拣质量
--- 5. ShiftType 用于排班管理
+-- 3. AccuracyRate 用于评估分拣质量
+-- 4. ShiftType 用于排班管理
 -- ==============================================================================
 
 -- ==============================================================================
@@ -126,10 +117,10 @@ GO
 -- ==============================================================================
 -- INSERT INTO [dbo].[SortingCenterWorkers] 
 --     (Username, PasswordHash, FullName, PhoneNumber, SortingCenterID, SortingCenterName,
---      Position, WorkStation, Specialization, ShiftType, Available, CurrentStatus, IsActive)
+--      WorkStation, Specialization, ShiftType, Available, CurrentStatus, IsActive)
 -- VALUES 
 --     (N'worker001', 
 --      '5e884898da28047d9166910d1887e12ce02eb84a8fc77f9a66d8b5e33917d8d6', -- password
 --      N'李四', N'13800138002', 1, N'罗湖基地',
---      N'分拣员', N'A-01', N'塑料,金属', N'白班', 1, N'待命', 1);
+--      N'A-01', N'塑料,金属', N'白班', 1, N'待命', 1);
 -- ==============================================================================
