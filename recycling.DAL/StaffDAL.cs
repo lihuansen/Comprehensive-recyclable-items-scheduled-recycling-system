@@ -330,9 +330,9 @@ namespace recycling.DAL
                 try
                 {
                     string sql = @"SELECT TransporterID, Username, PasswordHash, FullName, PhoneNumber, 
-                                          IDNumber, LicenseNumber, Region, Available, CurrentStatus, TotalTrips,
+                                          IDNumber, Region, Available, CurrentStatus,
                                           TotalWeight, Rating, CreatedDate, LastLoginDate, IsActive, 
-                                          AvatarURL, Notes, money
+                                          money
                                   FROM Transporters 
                                   WHERE TransporterID = @TransporterID";
 
@@ -352,11 +352,9 @@ namespace recycling.DAL
                                 FullName = reader["FullName"] != DBNull.Value ? reader["FullName"].ToString() : null,
                                 PhoneNumber = reader["PhoneNumber"].ToString(),
                                 IDNumber = reader["IDNumber"] != DBNull.Value ? reader["IDNumber"].ToString() : null,
-                                LicenseNumber = reader["LicenseNumber"] != DBNull.Value ? reader["LicenseNumber"].ToString() : null,
                                 Region = reader["Region"].ToString(),
                                 Available = Convert.ToBoolean(reader["Available"]),
                                 CurrentStatus = reader["CurrentStatus"].ToString(),
-                                TotalTrips = reader["TotalTrips"] != DBNull.Value ? Convert.ToInt32(reader["TotalTrips"]) : (int?)null,
                                 TotalWeight = reader["TotalWeight"] != DBNull.Value ? Convert.ToDecimal(reader["TotalWeight"]) : (decimal?)null,
                                 Rating = reader["Rating"] != DBNull.Value 
                                     ? Convert.ToDecimal(reader["Rating"]) 
@@ -366,8 +364,6 @@ namespace recycling.DAL
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null,
                                 IsActive = Convert.ToBoolean(reader["IsActive"]),
-                                AvatarURL = reader["AvatarURL"] != DBNull.Value ? reader["AvatarURL"].ToString() : null,
-                                Notes = reader["Notes"] != DBNull.Value ? reader["Notes"].ToString() : null,
                                 money = reader["money"] != DBNull.Value ? Convert.ToDecimal(reader["money"]) : (decimal?)null
                             };
                         }
@@ -392,7 +388,6 @@ namespace recycling.DAL
                                SET FullName = @FullName,
                                    PhoneNumber = @PhoneNumber,
                                    IDNumber = @IDNumber,
-                                   LicenseNumber = @LicenseNumber,
                                    Region = @Region,
                                    PasswordHash = @PasswordHash
                                WHERE TransporterID = @TransporterID";
@@ -401,7 +396,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", (object)transporter.FullName ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", (object)transporter.IDNumber ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@LicenseNumber", (object)transporter.LicenseNumber ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@PasswordHash", transporter.PasswordHash);
                 cmd.Parameters.AddWithValue("@TransporterID", transporter.TransporterID);

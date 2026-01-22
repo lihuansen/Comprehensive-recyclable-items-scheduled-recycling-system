@@ -23,10 +23,6 @@ namespace recycling.Model
         [Display(Name = "身份证号")]
         public string IDNumber { get; set; }
 
-        [StringLength(50, ErrorMessage = "驾驶证号长度不能超过50个字符")]
-        [Display(Name = "驾驶证号")]
-        public string LicenseNumber { get; set; }
-
         [Required(ErrorMessage = "区域不能为空")]
         [StringLength(100, ErrorMessage = "区域长度不能超过100个字符")]
         [Display(Name = "区域")]

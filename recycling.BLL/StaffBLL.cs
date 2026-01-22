@@ -262,7 +262,6 @@ namespace recycling.BLL
                 transporter.FullName = model.FullName;
                 transporter.PhoneNumber = model.PhoneNumber;
                 transporter.IDNumber = model.IDNumber;
-                transporter.LicenseNumber = model.LicenseNumber;
                 transporter.Region = model.Region;
 
                 bool result = _staffDAL.UpdateTransporter(transporter);

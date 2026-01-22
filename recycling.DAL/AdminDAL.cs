@@ -1599,8 +1599,8 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = @"INSERT INTO Transporters (Username, PasswordHash, FullName, PhoneNumber, IDNumber, LicenseNumber, Region, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
-                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @LicenseNumber, @Region, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+                string sql = @"INSERT INTO Transporters (Username, PasswordHash, FullName, PhoneNumber, IDNumber, Region, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @Region, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", transporter.Username);
@@ -1608,7 +1608,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@Available", transporter.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", transporter.CurrentStatus ?? "空闲");
@@ -1631,7 +1630,6 @@ namespace recycling.DAL
                     FullName = @FullName,
                     PhoneNumber = @PhoneNumber,
                     IDNumber = @IDNumber,
-                    LicenseNumber = @LicenseNumber,
                     Region = @Region,
                     Available = @Available,
                     CurrentStatus = @CurrentStatus,
@@ -1644,7 +1642,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@FullName", transporter.FullName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PhoneNumber", transporter.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", transporter.IDNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@LicenseNumber", transporter.LicenseNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Region", transporter.Region);
                 cmd.Parameters.AddWithValue("@Available", transporter.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", transporter.CurrentStatus ?? "空闲");
@@ -2073,18 +2070,14 @@ namespace recycling.DAL
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
                 PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
-                LicenseNumber = reader.IsDBNull(reader.GetOrdinal("LicenseNumber")) ? null : reader.GetString(reader.GetOrdinal("LicenseNumber")),
                 Region = reader.GetString(reader.GetOrdinal("Region")),
                 Available = reader.GetBoolean(reader.GetOrdinal("Available")),
                 CurrentStatus = reader.GetString(reader.GetOrdinal("CurrentStatus")),
-                TotalTrips = reader.GetInt32(reader.GetOrdinal("TotalTrips")),
                 TotalWeight = reader.GetDecimal(reader.GetOrdinal("TotalWeight")),
                 Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("Rating")),
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL")),
-                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? null : reader.GetString(reader.GetOrdinal("Notes"))
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }
 

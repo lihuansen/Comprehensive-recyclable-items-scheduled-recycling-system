@@ -158,16 +158,10 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="form-group">
                                 <label>身份证号</label>
                                 <input type="text" class="form-control" id="idNumber">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>驾驶证号</label>
-                                <input type="text" class="form-control" id="licenseNumber">
                             </div>
                         </div>
                     </div>
@@ -334,7 +328,6 @@ function editTransporter(transporter) {
     $('#fullName').val(transporter.FullName);
     $('#phoneNumber').val(transporter.PhoneNumber);
     $('#idNumber').val(transporter.IDNumber);
-    $('#licenseNumber').val(transporter.LicenseNumber);
     $('#region').val(transporter.Region);
     $('#currentStatus').val(transporter.CurrentStatus);
     $('#available').prop('checked', transporter.Available);
@@ -351,7 +344,6 @@ function saveTransporter() {
         PhoneNumber: $('#phoneNumber').val(),
         FullName: $('#fullName').val(),
         IDNumber: $('#idNumber').val(),
-        LicenseNumber: $('#licenseNumber').val(),
         Region: $('#region').val(),
         CurrentStatus: $('#currentStatus').val(),
         Available: $('#available').is(':checked'),
