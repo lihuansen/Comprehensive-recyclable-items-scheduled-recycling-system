@@ -50,7 +50,5 @@ namespace recycling.Model
         public int? LastViewedWarehouseCount { get; set; }
 
         public decimal? money { get; set; }
-
-        public string AvatarURL { get; set; }
     }
 }

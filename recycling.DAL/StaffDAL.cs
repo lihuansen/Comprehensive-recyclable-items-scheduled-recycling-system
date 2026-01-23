@@ -547,7 +547,7 @@ namespace recycling.DAL
                 string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, IDNumber, 
                               SortingCenterID, SortingCenterName, 
                               Available, CurrentStatus, TotalItemsProcessed, TotalWeightProcessed, 
-                              Rating, CreatedDate, LastLoginDate, IsActive, AvatarURL 
+                              Rating, CreatedDate, LastLoginDate, IsActive 
                               FROM SortingCenterWorkers 
                               WHERE WorkerID = @WorkerID";
 
@@ -576,8 +576,7 @@ namespace recycling.DAL
                             Rating = reader["Rating"] != DBNull.Value ? Convert.ToDecimal(reader["Rating"]) : (decimal?)null,
                             CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                             LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
-                            IsActive = Convert.ToBoolean(reader["IsActive"]),
-                            AvatarURL = reader["AvatarURL"]?.ToString()
+                            IsActive = Convert.ToBoolean(reader["IsActive"])
                         };
                     }
                 }
