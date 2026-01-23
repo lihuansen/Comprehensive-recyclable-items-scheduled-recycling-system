@@ -242,7 +242,7 @@
                         <th>回收员</th>
                         <th>运输人员</th>
                         <th>预估重量</th>
-                        <th>取货时间</th>
+                        <th>创建时间</th>
                         <th>状态</th>
                     </tr>
                 </thead>
@@ -312,7 +312,7 @@
                     '<td>' + (order.RecyclerName || '-') + '</td>' +
                     '<td>' + (order.TransporterName || '-') + '</td>' +
                     '<td>' + order.EstimatedWeight.toFixed(2) + ' kg</td>' +
-                    '<td>' + (order.PickupDate ? formatDateTime(order.PickupDate) : '-') + '</td>' +
+                    '<td>' + (order.CreatedDate ? formatDateTime(order.CreatedDate) : '-') + '</td>' +
                     '<td><span class="status-badge status-in-transit">' + order.Status + '</span></td>' +
                     '</tr>';
                 tbody.append(row);

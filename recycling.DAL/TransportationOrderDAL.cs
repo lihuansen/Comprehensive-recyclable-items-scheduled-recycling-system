@@ -300,8 +300,8 @@ namespace recycling.DAL
                                     Stage = SafeGetString(reader, "Stage"),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
-                                    PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
-                                    DeliveryDate = reader["DeliveryDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["DeliveryDate"]),
+                                    PickupDate = SafeGetDateTime(reader, "PickupDate"),
+                                    DeliveryDate = SafeGetDateTime(reader, "DeliveryDate"),
                                     CompletedDate = reader["CompletedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CompletedDate"]),
                                     CancelledDate = reader["CancelledDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CancelledDate"]),
                                     CancelReason = reader["CancelReason"] == DBNull.Value ? null : reader["CancelReason"].ToString(),
@@ -372,8 +372,8 @@ namespace recycling.DAL
                                     Stage = SafeGetString(reader, "Stage"),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
-                                    PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
-                                    DeliveryDate = reader["DeliveryDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["DeliveryDate"]),
+                                    PickupDate = SafeGetDateTime(reader, "PickupDate"),
+                                    DeliveryDate = SafeGetDateTime(reader, "DeliveryDate"),
                                     CompletedDate = reader["CompletedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CompletedDate"]),
                                     CancelledDate = reader["CancelledDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CancelledDate"]),
                                     CancelReason = reader["CancelReason"] == DBNull.Value ? null : reader["CancelReason"].ToString(),
@@ -499,8 +499,8 @@ namespace recycling.DAL
                                     Stage = SafeGetString(reader, "Stage"),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     AcceptedDate = reader["AcceptedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["AcceptedDate"]),
-                                    PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"]),
-                                    DeliveryDate = reader["DeliveryDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["DeliveryDate"]),
+                                    PickupDate = SafeGetDateTime(reader, "PickupDate"),
+                                    DeliveryDate = SafeGetDateTime(reader, "DeliveryDate"),
                                     CompletedDate = reader["CompletedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CompletedDate"]),
                                     CancelledDate = reader["CancelledDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CancelledDate"]),
                                     CancelReason = reader["CancelReason"] == DBNull.Value ? null : reader["CancelReason"].ToString(),
@@ -604,9 +604,15 @@ namespace recycling.DAL
                             // 2. Check which columns exist
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasPickupConfirmedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupConfirmedDate");
+                            bool hasPickupDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupDate");
                             
                             // 3. Build dynamic UPDATE SQL based on available columns
-                            string updateOrderSql = "UPDATE TransportationOrders SET Status = '运输中', PickupDate = @PickupDate";
+                            string updateOrderSql = "UPDATE TransportationOrders SET Status = '运输中'";
+                            
+                            if (hasPickupDate)
+                            {
+                                updateOrderSql += ", PickupDate = @PickupDate";
+                            }
                             
                             if (hasTransportStage)
                             {
@@ -624,7 +630,10 @@ namespace recycling.DAL
                             using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@OrderID", orderId);
-                                cmd.Parameters.AddWithValue("@PickupDate", DateTime.Now);
+                                if (hasPickupDate || hasPickupConfirmedDate)
+                                {
+                                    cmd.Parameters.AddWithValue("@PickupDate", DateTime.Now);
+                                }
                                 rowsAffected = cmd.ExecuteNonQuery();
                             }
                             
