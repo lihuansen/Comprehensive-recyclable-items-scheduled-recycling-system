@@ -649,7 +649,7 @@ namespace recycling.DAL
                     string sql = @"
                         SELECT 
                             t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, 
-                            t.ItemCategories, t.Status, t.CreatedDate,
+                            t.ItemCategories, t.Status, t.CreatedDate, t.PickupDate,
                             r.FullName AS RecyclerName,
                             tr.FullName AS TransporterName
                         FROM TransportationOrders t
@@ -680,7 +680,8 @@ namespace recycling.DAL
                                     CreatedDate = reader["CreatedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CreatedDate"]),
                                     Status = reader["Status"].ToString(),
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
-                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString()
+                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString(),
+                                    PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"])
                                 });
                             }
                         }
@@ -712,7 +713,7 @@ namespace recycling.DAL
                     string sql = @"
                         SELECT 
                             t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, 
-                            t.ItemCategories, t.Status, t.CreatedDate,
+                            t.ItemCategories, t.Status, t.CreatedDate, t.PickupDate,
                             r.FullName AS RecyclerName,
                             tr.FullName AS TransporterName
                         FROM TransportationOrders t
@@ -742,7 +743,8 @@ namespace recycling.DAL
                                     CreatedDate = reader["CreatedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CreatedDate"]),
                                     Status = reader["Status"].ToString(),
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
-                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString()
+                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString(),
+                                    PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"])
                                 });
                             }
                         }
