@@ -175,8 +175,8 @@
     <div class="header-actions">
         <div class="filter-tabs">
             <button class="filter-tab active" data-filter="all">全部 <span id="count-all">(@(Model?.Count ?? 0))</span></button>
-            <button class="filter-tab" data-filter="unread">未读 <span id="count-unread">(@(Model?.Count(n => !n.IsRead) ?? 0))</span></button>
-            <button class="filter-tab" data-filter="read">已读 <span id="count-read">(@(Model?.Count(n => n.IsRead) ?? 0))</span></button>
+            <button class="filter-tab" data-filter="unread">未读 <span id="count-unread">(@(Model?.Count(n => n.IsRead != true) ?? 0))</span></button>
+            <button class="filter-tab" data-filter="read">已读 <span id="count-read">(@(Model?.Count(n => n.IsRead == true) ?? 0))</span></button>
         </div>
         <button class="mark-all-btn" id="markAllReadBtn">
             <i class="glyphicon glyphicon-ok"></i> 全部标记为已读
@@ -200,14 +200,14 @@
                 var typeIcon = recycling.Model.BaseStaffNotificationTypes.GetIcon(notification.NotificationType);
                 var typeName = recycling.Model.BaseStaffNotificationTypes.GetDisplayName(notification.NotificationType);
                 
-                <div class="notification-card @(notification.IsRead ? "read" : "unread")" 
+                <div class="notification-card @(notification.IsRead == true ? "read" : "unread")" 
                      data-notification-id="@notification.NotificationID"
-                     data-is-read="@notification.IsRead.ToString().ToLower()">
+                     data-is-read="@((notification.IsRead == true).ToString().ToLower())">
                     <div class="notification-header">
                         <div class="notification-title">
                             <i class="fa @typeIcon notification-icon" style="color: @typeColor"></i>
                             @notification.Title
-                            @if (!notification.IsRead)
+                            @if (notification.IsRead != true)
                             {
                                 <span class="notification-badge" style="background-color: @typeColor">新</span>
                             }
@@ -223,7 +223,7 @@
                             @notification.CreatedDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
                         </span>
                         <div class="notification-actions">
-                            @if (!notification.IsRead)
+                            @if (notification.IsRead != true)
                             {
                                 <button class="btn-mark-read" onclick="markAsRead(@notification.NotificationID)">
                                     <i class="glyphicon glyphicon-ok"></i> 标记已读
