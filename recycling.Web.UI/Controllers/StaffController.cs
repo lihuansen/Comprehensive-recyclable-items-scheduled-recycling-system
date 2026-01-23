@@ -4340,7 +4340,7 @@ namespace recycling.Web.UI.Controllers
 
                 var csv = new System.Text.StringBuilder();
                 csv.Append("\uFEFF");
-                csv.AppendLine("人员ID,用户名,姓名,手机号,班次,评分,是否可用,账号状态,注册日期");
+                csv.AppendLine("人员ID,用户名,姓名,手机号,评分,是否可用,账号状态,注册日期");
 
                 foreach (var w in workers)
                 {
@@ -4348,7 +4348,7 @@ namespace recycling.Web.UI.Controllers
                     var activeStatus = (w.IsActive ?? false) ? "激活" : "禁用";
                     var createdDate = w.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
 
-                    csv.AppendLine($"{w.WorkerID},{EscapeCsvField(w.Username)},{EscapeCsvField(w.FullName ?? "-")},{EscapeCsvField(w.PhoneNumber)},{EscapeCsvField(w.ShiftType)},{EscapeCsvField(w.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
+                    csv.AppendLine($"{w.WorkerID},{EscapeCsvField(w.Username)},{EscapeCsvField(w.FullName ?? "-")},{EscapeCsvField(w.PhoneNumber)},{EscapeCsvField(w.Rating?.ToString("F1") ?? "0.0")},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
 
                 var fileName = $"基地人员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
@@ -4535,8 +4535,7 @@ namespace recycling.Web.UI.Controllers
             {
                 FullName = worker.FullName,
                 PhoneNumber = worker.PhoneNumber,
-                IDNumber = worker.IDNumber,
-                ShiftType = worker.ShiftType
+                IDNumber = worker.IDNumber
             };
 
             return View(model);

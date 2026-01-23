@@ -355,7 +355,6 @@ namespace recycling.BLL
                 worker.FullName = model.FullName;
                 worker.PhoneNumber = model.PhoneNumber;
                 worker.IDNumber = model.IDNumber;
-                worker.ShiftType = model.ShiftType;
 
                 bool result = _staffDAL.UpdateSortingCenterWorker(worker);
                 return result ? (true, "个人信息更新成功") : (false, "更新失败，请重试");

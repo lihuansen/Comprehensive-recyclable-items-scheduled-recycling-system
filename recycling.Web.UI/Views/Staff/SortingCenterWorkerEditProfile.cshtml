@@ -139,21 +139,6 @@
             @Html.ValidationMessageFor(m => m.IDNumber, "", new { @class = "text-danger" })
         </div>
 
-        <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-clock field-icon"></i> 班次类型 *
-            </label>
-            @Html.DropDownListFor(m => m.ShiftType, new SelectList(new[] {
-                "白班",
-                "夜班",
-                "早班",
-                "中班",
-                "晚班",
-                "轮班"
-            }), "请选择班次类型", new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.ShiftType, "", new { @class = "text-danger" })
-        </div>
-
         <button type="submit" class="btn-submit">
             <i class="fas fa-save"></i> 保存修改
         </button>

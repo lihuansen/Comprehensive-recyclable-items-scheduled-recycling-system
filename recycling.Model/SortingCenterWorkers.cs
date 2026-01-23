@@ -51,9 +51,6 @@ namespace recycling.Model
 
         public decimal? money { get; set; }
 
-        [StringLength(50)]
-        public string ShiftType { get; set; }
-
         public string AvatarURL { get; set; }
     }
 }

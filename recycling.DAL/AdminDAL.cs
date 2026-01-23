@@ -1853,8 +1853,8 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, ShiftType, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
-                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @ShiftType, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", worker.Username);
@@ -1864,7 +1864,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
                 cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
                 cmd.Parameters.AddWithValue("@IsActive", worker.IsActive);
@@ -1888,7 +1887,6 @@ namespace recycling.DAL
                     IDNumber = @IDNumber,
                     SortingCenterID = @SortingCenterID,
                     SortingCenterName = @SortingCenterName,
-                    ShiftType = @ShiftType,
                     Available = @Available,
                     CurrentStatus = @CurrentStatus,
                     IsActive = @IsActive
@@ -1902,7 +1900,6 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
                 cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@ShiftType", worker.ShiftType);
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
                 cmd.Parameters.AddWithValue("@IsActive", worker.IsActive);
@@ -2084,7 +2081,6 @@ namespace recycling.DAL
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
                 SortingCenterID = reader.GetInt32(reader.GetOrdinal("SortingCenterID")),
                 SortingCenterName = reader.IsDBNull(reader.GetOrdinal("SortingCenterName")) ? null : reader.GetString(reader.GetOrdinal("SortingCenterName")),
-                ShiftType = reader.GetString(reader.GetOrdinal("ShiftType")),
                 Available = reader.GetBoolean(reader.GetOrdinal("Available")),
                 CurrentStatus = reader.GetString(reader.GetOrdinal("CurrentStatus")),
                 TotalItemsProcessed = reader.GetInt32(reader.GetOrdinal("TotalItemsProcessed")),
