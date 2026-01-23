@@ -649,14 +649,14 @@ namespace recycling.DAL
                     string sql = @"
                         SELECT 
                             t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, 
-                            t.ItemCategories, t.Status, t.CreatedDate, t.PickupDate,
+                            t.ItemCategories, t.Status, t.CreatedDate,
                             r.FullName AS RecyclerName,
                             tr.FullName AS TransporterName
                         FROM TransportationOrders t
                         LEFT JOIN Recyclers r ON t.RecyclerID = r.RecyclerID
                         LEFT JOIN Transporters tr ON t.TransporterID = tr.TransporterID
                         WHERE t.Status = N'已完成'
-                        ORDER BY t.CompletedDate DESC";
+                        ORDER BY t.CreatedDate DESC";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
@@ -680,8 +680,7 @@ namespace recycling.DAL
                                     CreatedDate = reader["CreatedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CreatedDate"]),
                                     Status = reader["Status"].ToString(),
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
-                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString(),
-                                    PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"])
+                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString()
                                 });
                             }
                         }
@@ -713,7 +712,7 @@ namespace recycling.DAL
                     string sql = @"
                         SELECT 
                             t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, 
-                            t.ItemCategories, t.Status, t.CreatedDate, t.PickupDate,
+                            t.ItemCategories, t.Status, t.CreatedDate,
                             r.FullName AS RecyclerName,
                             tr.FullName AS TransporterName
                         FROM TransportationOrders t
@@ -743,8 +742,7 @@ namespace recycling.DAL
                                     CreatedDate = reader["CreatedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CreatedDate"]),
                                     Status = reader["Status"].ToString(),
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
-                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString(),
-                                    PickupDate = reader["PickupDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["PickupDate"])
+                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString()
                                 });
                             }
                         }

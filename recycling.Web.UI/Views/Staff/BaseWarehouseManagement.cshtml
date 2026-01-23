@@ -299,7 +299,6 @@
                              data-estimated-weight="@order.EstimatedWeight" 
                              data-recycler-name="@(order.RecyclerName ?? "")"
                              data-transporter-name="@(order.TransporterName ?? "")"
-                             data-pickup-date="@(order.PickupDate?.ToString("yyyy-MM-dd HH:mm") ?? "")"
                              onclick="selectOrder(this)">
                             <div class="order-info">
                                 <span class="order-number">@order.OrderNumber</span>
@@ -308,12 +307,6 @@
                             <div class="order-details">
                                 回收员：@(order.RecyclerName ?? "-") | 运输人员：@(order.TransporterName ?? "-")
                             </div>
-                            @if (order.PickupDate.HasValue)
-                            {
-                                <div style="font-size: 12px; color: #777; margin-top: 5px;">
-                                    取货时间：@order.PickupDate.Value.ToString("yyyy-MM-dd HH:mm")
-                                </div>
-                            }
                         </div>
                     }
                 }
@@ -343,11 +336,6 @@
                     <div class="form-group">
                         <label class="form-label">运输人员</label>
                         <input type="text" class="form-control" id="transporterNameDisplay" readonly style="background-color: #f5f5f5;" />
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">取货时间</label>
-                        <input type="text" class="form-control" id="pickupDateDisplay" readonly style="background-color: #f5f5f5;" />
                     </div>
 
                     <div class="form-group">
@@ -693,8 +681,7 @@
      *     EstimatedWeight: 35.8,
      *     ItemCategories: '[{"categoryKey":"paper",...}]',
      *     RecyclerName: "张三",
-     *     TransporterName: "李四",
-     *     PickupDate: "2026-01-19 10:30"
+     *     TransporterName: "李四"
      * }
      * 
      * @@lifecycle 
@@ -708,7 +695,6 @@
     var FALLBACK_TEXT = {
         UNKNOWN_RECYCLER: '未知',
         UNKNOWN_TRANSPORTER: '未知',
-        NO_PICKUP_DATE: '未记录',
         UNKNOWN_CATEGORY: '未知类别'
     };
 
@@ -784,7 +770,6 @@
                     'data-estimated-weight="' + order.EstimatedWeight + '" ' +
                     'data-recycler-name="' + (order.RecyclerName || '') + '" ' +
                     'data-transporter-name="' + (order.TransporterName || '') + '" ' +
-                    'data-pickup-date="' + (order.PickupDate || '') + '" ' +
                     'onclick="selectOrder(this)">' +
                     '<div class="order-info">' +
                     '<span class="order-number">' + order.OrderNumber + '</span>' +
@@ -794,10 +779,6 @@
                     '回收员：' + (order.RecyclerName || '-') + ' | ' +
                     '运输人员：' + (order.TransporterName || '-') +
                     '</div>';
-                
-                if (order.PickupDate) {
-                    html += '<div style="font-size: 12px; color: #777; margin-top: 5px;">取货时间：' + order.PickupDate + '</div>';
-                }
                 
                 html += '</div>';
             }
@@ -844,7 +825,6 @@
                     $('#orderNumberDisplay').val(orderData.OrderNumber || '');
                     $('#recyclerNameDisplay').val(orderData.RecyclerName || FALLBACK_TEXT.UNKNOWN_RECYCLER);
                     $('#transporterNameDisplay').val(orderData.TransporterName || FALLBACK_TEXT.UNKNOWN_TRANSPORTER);
-                    $('#pickupDateDisplay').val(orderData.PickupDate || FALLBACK_TEXT.NO_PICKUP_DATE);
                     
                     var estimatedWeight = orderData.EstimatedWeight || 0;
                     $('#estimatedWeightDisplay').val(estimatedWeight);
@@ -1451,8 +1431,7 @@
                         EstimatedWeight: @order.EstimatedWeight,
                         ItemCategories: '@Html.Raw(Json.Encode(order.ItemCategories ?? ""))',
                         RecyclerName: '@Html.Raw(Json.Encode(order.RecyclerName ?? ""))',
-                        TransporterName: '@Html.Raw(Json.Encode(order.TransporterName ?? ""))',
-                        PickupDate: '@(order.PickupDate?.ToString("yyyy-MM-dd HH:mm") ?? "")'
+                        TransporterName: '@Html.Raw(Json.Encode(order.TransporterName ?? ""))'
                     }@(isLast ? "" : ",")</text>
                     }
                 }

@@ -120,11 +120,5 @@ namespace recycling.Model
         /// 状态
         /// </summary>
         public string Status { get; set; }
-
-        /// <summary>
-        /// 取货时间
-        /// Pickup Date
-        /// </summary>
-        public DateTime? PickupDate { get; set; }
     }
 }
