@@ -166,7 +166,7 @@
         </div>
         <div class="welcome-text">欢迎回来，@Model.Username！</div>
         <div class="member-info">
-            <i class="fas fa-calendar-alt"></i> 注册时间：@Model.CreatedDate.ToString("yyyy-MM-dd")
+            <i class="fas fa-calendar-alt"></i> 注册时间：@(Model.CreatedDate.HasValue ? Model.CreatedDate.Value.ToString("yyyy-MM-dd") : "-")
             @if (Model.LastLoginDate.HasValue)
             {
                 <span style="margin-left: 20px;">
@@ -240,7 +240,7 @@
         </div>
         <div class="info-item">
             <span class="info-label">注册时间</span>
-            <span class="info-value">@Model.CreatedDate.ToString("yyyy-MM-dd HH:mm")</span>
+            <span class="info-value">@(Model.CreatedDate.HasValue ? Model.CreatedDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</span>
         </div>
         @if (Model.LastLoginDate.HasValue)
         {
