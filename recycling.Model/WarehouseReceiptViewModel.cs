@@ -112,9 +112,9 @@ namespace recycling.Model
         public string ItemCategories { get; set; }
 
         /// <summary>
-        /// 取货时间
+        /// 创建时间
         /// </summary>
-        public DateTime? PickupDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
         /// <summary>
         /// 状态
