@@ -2028,8 +2028,7 @@ namespace recycling.DAL
                 Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("Rating")),
                 CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL"))
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }
 
@@ -2088,8 +2087,7 @@ namespace recycling.DAL
                 Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("Rating")),
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL"))
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }
 
