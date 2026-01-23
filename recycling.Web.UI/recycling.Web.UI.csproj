@@ -260,6 +260,7 @@
     <Content Include="Views\Staff\SortingCenterWorkerProfile.cshtml" />
     <Content Include="Views\Staff\SortingCenterWorkerEditProfile.cshtml" />
     <Content Include="Views\Staff\SortingCenterWorkerChangePassword.cshtml" />
+    <Content Include="Views\Staff\SortingCenterWorkerMessageCenter.cshtml" />
     <Content Include="Views\Staff\SuperAdminAccountManagement.cshtml" />
     <Content Include="Views\Staff\AccountSelfManagement.cshtml" />
   </ItemGroup>
