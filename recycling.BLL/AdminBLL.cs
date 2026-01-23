@@ -551,11 +551,6 @@ namespace recycling.BLL
                 return (false, "手机号不能为空");
             }
 
-            if (string.IsNullOrEmpty(worker.ShiftType))
-            {
-                return (false, "班次类型不能为空");
-            }
-
             worker.PasswordHash = HashPassword(password);
             worker.IsActive = true;
             worker.Available = true;
@@ -582,11 +577,6 @@ namespace recycling.BLL
             if (string.IsNullOrEmpty(worker.PhoneNumber))
             {
                 return (false, "手机号不能为空");
-            }
-
-            if (string.IsNullOrEmpty(worker.ShiftType))
-            {
-                return (false, "班次类型不能为空");
             }
 
             bool result = _adminDAL.UpdateSortingCenterWorker(worker);

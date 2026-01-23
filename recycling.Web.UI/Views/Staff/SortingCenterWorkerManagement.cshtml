@@ -93,7 +93,6 @@
                     <th>用户名</th>
                     <th>姓名</th>
                     <th>手机号</th>
-                    <th>班次</th>
                     <th>评分</th>
                     <th>状态</th>
                     <th>操作</th>
@@ -101,7 +100,7 @@
             </thead>
             <tbody id="tableBody">
                 <tr>
-                    <td colspan="8" class="text-center">
+                    <td colspan="7" class="text-center">
                         <i class="fas fa-spinner fa-spin"></i> 加载中...
                     </td>
                 </tr>
@@ -166,21 +165,6 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>班次类型 *</label>
-                                <select class="form-control" id="shiftType" required>
-                                    <option value="">请选择班次</option>
-                                    <option value="早班">早班 (06:00-14:00)</option>
-                                    <option value="中班">中班 (14:00-22:00)</option>
-                                    <option value="晚班">晚班 (22:00-06:00)</option>
-                                    <option value="常白班">常白班 (08:00-17:00)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <input type="hidden" id="sortingCenterId" value="1">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
                                 <label>当前状态</label>
                                 <select class="form-control" id="currentStatus">
                                     <option value="空闲">空闲</option>
@@ -189,6 +173,9 @@
                                 </select>
                             </div>
                         </div>
+                    </div>
+                    <input type="hidden" id="sortingCenterId" value="1">
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group" style="padding-top: 25px;">
                                 <label><input type="checkbox" id="available" checked> 可用状态</label>
@@ -255,7 +242,7 @@ function renderWorkers(data) {
     var tbody = $('#tableBody');
     tbody.empty();
     if (data.Items.length === 0) {
-        tbody.append('<tr><td colspan="8" class="text-center">没有找到基地人员</td></tr>');
+        tbody.append('<tr><td colspan="7" class="text-center">没有找到基地人员</td></tr>');
         return;
     }
     data.Items.forEach(function (w) {
@@ -264,7 +251,6 @@ function renderWorkers(data) {
             '<td>' + escapeHtml(w.Username) + '</td>' +
             '<td>' + escapeHtml(w.FullName || '-') + '</td>' +
             '<td>' + escapeHtml(w.PhoneNumber) + '</td>' +
-            '<td>' + escapeHtml(w.ShiftType) + '</td>' +
             '<td>' + (w.Rating ? w.Rating.toFixed(1) : '0.0') + ' ⭐</td>' +
             '<td>' +
                 '<span class="badge ' + (w.IsActive ? 'badge-active' : 'badge-inactive') + '">' + (w.IsActive ? '激活' : '禁用') + '</span> ' +
@@ -323,7 +309,6 @@ function editWorker(worker) {
     $('#phoneNumber').val(worker.PhoneNumber);
     $('#idNumber').val(worker.IDNumber);
     $('#sortingCenterId').val(1);
-    $('#shiftType').val(worker.ShiftType);
     $('#currentStatus').val(worker.CurrentStatus);
     $('#available').prop('checked', worker.Available);
     $('#isActive').prop('checked', worker.IsActive);
@@ -341,7 +326,6 @@ function saveWorker() {
         IDNumber: $('#idNumber').val(),
         SortingCenterID: 1,
         SortingCenterName: null,
-        ShiftType: $('#shiftType').val(),
         CurrentStatus: $('#currentStatus').val(),
         Available: $('#available').is(':checked'),
         IsActive: $('#isActive').is(':checked')

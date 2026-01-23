@@ -21,9 +21,5 @@ namespace recycling.Model
         [StringLength(18, ErrorMessage = "身份证号长度不能超过18个字符")]
         [Display(Name = "身份证号")]
         public string IDNumber { get; set; }
-
-        [Required(ErrorMessage = "班次类型不能为空")]
-        [Display(Name = "班次类型")]
-        public string ShiftType { get; set; }
     }
 }
