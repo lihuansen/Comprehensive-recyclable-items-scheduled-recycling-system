@@ -198,16 +198,18 @@
         }
 
         .pagination a, .pagination span {
-            display: block;
-            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
             height: 40px;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 40px;
+            padding: 0 8px;
+            border-radius: 20px;
             text-decoration: none;
             color: #667eea;
             border: 1px solid #e9ecef;
             transition: all 0.3s;
+            white-space: nowrap;
         }
 
             .pagination a:hover {
