@@ -25,11 +25,22 @@ namespace recycling.BLL
         public void BatchInsertCategories(SqlConnection conn, SqlTransaction transaction, 
             int transportOrderId, List<TransportationOrderCategories> categories)
         {
+            if (conn == null)
+            {
+                throw new ArgumentNullException(nameof(conn), "数据库连接不能为空");
+            }
+
+            if (transaction == null)
+            {
+                throw new ArgumentNullException(nameof(transaction), "事务不能为空");
+            }
+
             if (transportOrderId <= 0)
             {
                 throw new ArgumentException("运输单ID无效");
             }
 
+            // categories can be null or empty - DAL handles this gracefully
             _dal.BatchInsertCategories(conn, transaction, transportOrderId, categories);
         }
 
@@ -58,6 +69,16 @@ namespace recycling.BLL
         /// <param name="transportOrderId">运输单ID</param>
         public void DeleteCategoriesByTransportOrderId(SqlConnection conn, SqlTransaction transaction, int transportOrderId)
         {
+            if (conn == null)
+            {
+                throw new ArgumentNullException(nameof(conn), "数据库连接不能为空");
+            }
+
+            if (transaction == null)
+            {
+                throw new ArgumentNullException(nameof(transaction), "事务不能为空");
+            }
+
             if (transportOrderId <= 0)
             {
                 throw new ArgumentException("运输单ID无效");
