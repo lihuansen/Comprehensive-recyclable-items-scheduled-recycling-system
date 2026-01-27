@@ -197,7 +197,8 @@ namespace recycling.Web.UI.Controllers
                         createdDate = orderDetail.Appointment.CreatedDate?.ToString("yyyy年MM月dd日 HH:mm") ?? "",
                         updatedDate = orderDetail.Appointment.UpdatedDate?.ToString("yyyy年MM月dd日 HH:mm") ?? "",
                         recyclerID = orderDetail.Appointment.RecyclerID,
-                        recyclerName = orderDetail.RecyclerName
+                        recyclerName = orderDetail.RecyclerName,
+                        rollbackReason = orderDetail.Appointment.RollbackReason
                     },
                     categories = orderDetail.Categories.Select(c => new
                     {

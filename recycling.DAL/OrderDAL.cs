@@ -155,7 +155,8 @@ ORDER BY ac.CategoryID";
                                     Status = reader["Status"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     UpdatedDate = Convert.ToDateTime(reader["UpdatedDate"]),
-                                    RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"])
+                                    RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"]),
+                                    RollbackReason = GetColumnValue<string>(reader, "RollbackReason")
                                 },
                                 RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
                                 Categories = categories
@@ -223,6 +224,69 @@ WHERE AppointmentID = @AppointmentID
                     conn.Open();
                     return cmd.ExecuteNonQuery() > 0;
                 }
+            }
+        }
+
+        /// <summary>
+        /// 更新订单状态并保存回退原因（用于回收员回退订单）
+        /// </summary>
+        public bool UpdateOrderStatusWithReason(int appointmentId, string newStatus, string rollbackReason)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "UPDATE Appointments SET Status = @Status, UpdatedDate = @UpdatedDate, RollbackReason = @RollbackReason WHERE AppointmentID = @AppointmentID";
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Status", newStatus);
+                    cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@RollbackReason", (object)rollbackReason ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 安全获取列值的辅助方法
+        /// </summary>
+        private T GetColumnValue<T>(SqlDataReader reader, string columnName)
+        {
+            try
+            {
+                int ordinal = reader.GetOrdinal(columnName);
+                if (reader.IsDBNull(ordinal))
+                {
+                    return default(T);
+                }
+                object value = reader.GetValue(ordinal);
+                
+                // 如果类型匹配，直接返回
+                if (value is T typedValue)
+                {
+                    return typedValue;
+                }
+                
+                // 尝试类型转换
+                Type targetType = typeof(T);
+                Type underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                
+                if (underlyingType == typeof(string))
+                {
+                    return (T)(object)value.ToString();
+                }
+                
+                return (T)Convert.ChangeType(value, underlyingType);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                // 列不存在时返回默认值
+                return default(T);
+            }
+            catch (InvalidCastException)
+            {
+                // 类型转换失败时返回默认值
+                return default(T);
             }
         }
     }

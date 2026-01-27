@@ -45,5 +45,11 @@ namespace recycling.Model
         public DateTime? UpdatedDate { get; set; }
 
         public int? RecyclerID { get; set; }
+
+        /// <summary>
+        /// 回收员回退订单的原因（当状态为"已取消-回收员回退"时有值）
+        /// </summary>
+        [StringLength(500)]
+        public string RollbackReason { get; set; }
     }
 }

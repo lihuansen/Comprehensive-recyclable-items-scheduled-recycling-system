@@ -220,9 +220,12 @@ namespace recycling.BLL
                     return (false, $"订单状态不正确，当前状态为：{orderDetail.Status}，只有进行中的订单才能回退");
                 }
 
-                // 更新订单状态为"已取消-回收员回退"
+                // 如果没有提供原因，使用默认原因
+                var rollbackReason = string.IsNullOrWhiteSpace(reason) ? "物品不符合回收要求" : reason;
+
+                // 更新订单状态为"已取消-回收员回退"并保存回退原因
                 var orderDAL = new OrderDAL();
-                bool updateResult = orderDAL.UpdateOrderStatus(appointmentId, "已取消-回收员回退");
+                bool updateResult = orderDAL.UpdateOrderStatusWithReason(appointmentId, "已取消-回收员回退", rollbackReason);
                 
                 if (!updateResult)
                 {

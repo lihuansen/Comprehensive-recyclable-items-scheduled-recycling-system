@@ -29,6 +29,11 @@ namespace recycling.Model
         public int UserID { get; set; }
         
         /// <summary>
+        /// 回收员回退订单的原因（当状态为"已取消-回收员回退"时有值）
+        /// </summary>
+        public string RollbackReason { get; set; }
+        
+        /// <summary>
         /// 品类详细信息列表（包含用户填写的问题答案）
         /// </summary>
         public List<CategoryDetailInfo> Categories { get; set; } = new List<CategoryDetailInfo>();

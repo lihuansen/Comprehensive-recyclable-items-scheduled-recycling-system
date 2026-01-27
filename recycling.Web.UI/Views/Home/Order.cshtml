@@ -225,6 +225,38 @@
         border: 1px solid #ffeeba;
     }
 
+    /* 回退原因样式 */
+    .rollback-reason-section {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    .rollback-reason-title {
+        color: #856404;
+        margin-bottom: 10px;
+    }
+
+    .rollback-reason-title i {
+        color: #fd7e14;
+        margin-right: 8px;
+    }
+
+    .rollback-reason-item {
+        background-color: #fff;
+        border-radius: 4px;
+        padding: 10px;
+        border-left: 4px solid #fd7e14;
+    }
+
+    .rollback-reason-text {
+        color: #856404;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
     .order-details {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -672,6 +704,16 @@
                         <div class="detail-item">
                             <span class="detail-label">回收员：</span>
                             <span class="detail-value" id="recyclerName"></span>
+                        </div>
+                    </div>
+
+                    <!-- 回退原因字段（已取消-回收员回退时显示） -->
+                    <div class="detail-section rollback-reason-section" id="rollbackReasonSection" style="display: none;">
+                        <h6 class="section-title rollback-reason-title">
+                            <i class="fas fa-exclamation-triangle"></i>回退原因
+                        </h6>
+                        <div class="detail-item rollback-reason-item">
+                            <span class="detail-value rollback-reason-text" id="detailRollbackReason"></span>
                         </div>
                     </div>
                 </div>
@@ -1252,6 +1294,23 @@
             } else {
                 // 其他状态（已预约/已取消）隐藏
                 recyclerSection.style.display = 'none';
+            }
+
+            // 处理回退原因显示（仅"已取消-回收员回退"状态）
+            const rollbackReasonSection = document.getElementById('rollbackReasonSection');
+            const rollbackReasonValue = document.getElementById('detailRollbackReason');
+
+            if (order.status === '已取消-回收员回退' && order.rollbackReason) {
+                rollbackReasonValue.textContent = order.rollbackReason;
+                rollbackReasonSection.style.display = 'block';
+                
+                // 也显示回收员信息，让用户知道是谁回退的
+                if (order.recyclerName) {
+                    recyclerNameValue.textContent = order.recyclerName;
+                    recyclerSection.style.display = 'block';
+                }
+            } else {
+                rollbackReasonSection.style.display = 'none';
             }
         }
 

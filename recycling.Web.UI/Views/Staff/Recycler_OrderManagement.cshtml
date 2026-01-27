@@ -968,6 +968,102 @@ select.form-control::-ms-expand {
     </div>
 </div>
 
+<!-- 回退订单模态框 -->
+<div class="modal fade" id="rollbackOrderModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #fd7e14, #e67300); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-undo"></i> 回退订单
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 1;">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" style="background-color: #fff3cd; border-color: #ffeeba; color: #856404;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>注意：</strong>回退订单后，订单状态将变为"已取消-回收员回退"，用户将收到通知并可查看回退原因。
+                </div>
+                <form id="rollbackOrderForm">
+                    <input type="hidden" id="rollbackAppointmentId" name="appointmentId" />
+                    <div class="form-group">
+                        <label for="rollbackReason">
+                            <i class="fas fa-comment-alt"></i> 回退原因 <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="rollbackReason" name="reason" rows="4" 
+                            placeholder="请详细说明回退订单的原因（此原因将显示给用户）..." 
+                            required maxlength="500" style="resize: vertical;"></textarea>
+                        <small class="form-text text-muted">
+                            <span id="reasonCharCount">0</span>/500 字符
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-list-ul"></i> 常用原因（点击快速填写）：</label>
+                        <div class="quick-reasons">
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-reason-btn" 
+                                onclick="setQuickReason('物品不符合回收要求')">
+                                物品不符合回收要求
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-reason-btn" 
+                                onclick="setQuickReason('物品存在污染，需要清洁后再回收')">
+                                物品存在污染，需清洁
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-reason-btn" 
+                                onclick="setQuickReason('物品实际情况与描述不符')">
+                                与描述不符
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-reason-btn" 
+                                onclick="setQuickReason('物品重量或数量与预约不符')">
+                                重量/数量不符
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-reason-btn" 
+                                onclick="setQuickReason('无法联系到用户')">
+                                无法联系用户
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-reason-btn" 
+                                onclick="setQuickReason('用户地址无法到达')">
+                                地址无法到达
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+                <button type="button" class="btn btn-warning" id="confirmRollbackBtn" onclick="confirmRollbackOrder()">
+                    <i class="fas fa-undo"></i> 确认回退
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .quick-reasons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .quick-reason-btn {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 15px;
+    }
+    .quick-reason-btn:hover {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
+        color: white;
+    }
+    #rollbackReason:focus {
+        border-color: #fd7e14;
+        box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+    }
+</style>
+
 @section Scripts {
     <script>
         let currentPage = 1;
@@ -1323,43 +1419,66 @@ select.form-control::-ms-expand {
             });
         }
 
-        // 回退订单
+        // 回退订单 - 显示回退表单模态框
         function rollbackOrder(appointmentId) {
             if (!appointmentId || appointmentId <= 0) {
-                alert('订单ID无效');
+                showAlert('订单ID无效', 'error');
                 return;
             }
 
-            // 弹出对话框让回收员输入回退原因
-            const reason = prompt('请输入回退订单的原因（将发送给用户）：', '物品不符合回收要求');
+            // 设置订单ID到隐藏字段
+            document.getElementById('rollbackAppointmentId').value = appointmentId;
             
-            if (reason === null) {
-                // 用户点击了取消
+            // 清空之前的输入
+            document.getElementById('rollbackReason').value = '';
+            document.getElementById('reasonCharCount').textContent = '0';
+            
+            // 显示模态框
+            $('#rollbackOrderModal').modal('show');
+        }
+
+        // 设置快速原因
+        function setQuickReason(reason) {
+            const textarea = document.getElementById('rollbackReason');
+            textarea.value = reason;
+            document.getElementById('reasonCharCount').textContent = reason.length;
+            textarea.focus();
+        }
+
+        // 监听回退原因输入
+        document.addEventListener('DOMContentLoaded', function() {
+            const reasonTextarea = document.getElementById('rollbackReason');
+            if (reasonTextarea) {
+                reasonTextarea.addEventListener('input', function() {
+                    document.getElementById('reasonCharCount').textContent = this.value.length;
+                });
+            }
+        });
+
+        // 确认回退订单
+        function confirmRollbackOrder() {
+            const appointmentId = document.getElementById('rollbackAppointmentId').value;
+            const reason = document.getElementById('rollbackReason').value.trim();
+
+            if (!reason) {
+                showAlert('请输入回退原因', 'error');
+                document.getElementById('rollbackReason').focus();
                 return;
             }
 
-            if (reason.trim() === '') {
-                alert('请输入回退原因');
-                return;
-            }
-
-            if (!confirm('确认要回退此订单吗？订单将变为已取消状态，但您仍可与用户保持沟通。')) {
+            if (reason.length > 500) {
+                showAlert('回退原因不能超过500个字符', 'error');
                 return;
             }
 
             // 获取防伪令牌
             const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-            // 找到按钮并禁用防止重复点击
-            const btn = event.target.closest('button');
-            if (btn) {
-                btn.disabled = true;
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
-                
-                // 保存原始HTML以便恢复
-                btn.dataset.originalHTML = originalHTML;
-            }
+            // 禁用确认按钮防止重复点击
+            const confirmBtn = document.getElementById('confirmRollbackBtn');
+            const originalBtnText = confirmBtn.innerHTML;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
 
             fetch('@Url.Action("RollbackOrder", "Staff")', {
                 method: 'POST',
@@ -1370,17 +1489,17 @@ select.form-control::-ms-expand {
                 body: new URLSearchParams({
                     __RequestVerificationToken: token,
                     appointmentId: appointmentId,
-                    reason: reason.trim()
+                    reason: reason
                 })
             })
             .then(response => response.json())
             .then(data => {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = btn.dataset.originalHTML || '<i class="fas fa-undo"></i>回退订单';
-                }
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalBtnText;
 
                 if (data.success) {
+                    // 关闭模态框
+                    $('#rollbackOrderModal').modal('hide');
                     showAlert('订单已成功回退，用户已收到通知', 'success');
                     loadOrders(currentPage); // 刷新订单列表
                 } else {
@@ -1388,10 +1507,8 @@ select.form-control::-ms-expand {
                 }
             })
             .catch(error => {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = btn.dataset.originalHTML || '<i class="fas fa-undo"></i>回退订单';
-                }
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalBtnText;
                 console.error('回退订单出错：', error);
                 showAlert('回退订单出错：' + error.message, 'error');
             });
