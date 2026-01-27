@@ -259,11 +259,33 @@ WHERE AppointmentID = @AppointmentID
                 {
                     return default(T);
                 }
-                return (T)reader.GetValue(ordinal);
+                object value = reader.GetValue(ordinal);
+                
+                // 如果类型匹配，直接返回
+                if (value is T typedValue)
+                {
+                    return typedValue;
+                }
+                
+                // 尝试类型转换
+                Type targetType = typeof(T);
+                Type underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                
+                if (underlyingType == typeof(string))
+                {
+                    return (T)(object)value.ToString();
+                }
+                
+                return (T)Convert.ChangeType(value, underlyingType);
             }
             catch (IndexOutOfRangeException)
             {
                 // 列不存在时返回默认值
+                return default(T);
+            }
+            catch (InvalidCastException)
+            {
+                // 类型转换失败时返回默认值
                 return default(T);
             }
         }
