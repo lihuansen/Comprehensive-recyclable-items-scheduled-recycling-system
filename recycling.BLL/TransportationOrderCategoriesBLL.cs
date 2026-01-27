@@ -37,7 +37,7 @@ namespace recycling.BLL
 
             if (transportOrderId <= 0)
             {
-                throw new ArgumentException("运输单ID无效");
+                throw new ArgumentException("运输单ID无效", nameof(transportOrderId));
             }
 
             // categories can be null or empty - DAL handles this gracefully
@@ -81,7 +81,7 @@ namespace recycling.BLL
 
             if (transportOrderId <= 0)
             {
-                throw new ArgumentException("运输单ID无效");
+                throw new ArgumentException("运输单ID无效", nameof(transportOrderId));
             }
 
             _dal.DeleteCategoriesByTransportOrderId(conn, transaction, transportOrderId);
