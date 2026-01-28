@@ -266,6 +266,37 @@ select.form-control::-ms-expand {
         border: 1px solid #f5c6cb;
     }
 
+    /* 中文状态样式 - 用于动态生成的CSS类名 */
+    .status-已预约 {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    .status-进行中 {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    .status-已完成 {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .status-已取消 {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .status-已取消-回收员回退 {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
     .order-details {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -709,6 +740,9 @@ select.form-control::-ms-expand {
 </style>
 
 <div class="order-management-container">
+    <!-- 防伪令牌，用于AJAX请求的CSRF保护 -->
+    @Html.AntiForgeryToken()
+    
     <!-- 统计头部 -->
     <div class="statistics-header">
         <h2 style="margin: 0; font-size: 28px;">
@@ -757,6 +791,7 @@ select.form-control::-ms-expand {
                     <option value="进行中">进行中</option>
                     <option value="已完成">已完成</option>
                     <option value="已取消">已取消</option>
+                    <option value="已取消-回收员回退">已取消-回收员回退</option>
                 </select>
             </div>
             <div class="filter-group">
