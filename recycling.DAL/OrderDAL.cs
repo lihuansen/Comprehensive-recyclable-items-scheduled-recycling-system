@@ -61,10 +61,11 @@ WHERE a.UserID = @UserID";
 
                 if (status != "all")
                 {
-                    // 映射状态名称：前端"已预约"对应数据库"待确认"
+                    // 映射状态名称：前端状态对应数据库状态
                     string dbStatus = status == "pending" ? "已预约" :
                                      status == "confirmed" ? "进行中" :
-                                     status == "completed" ? "已完成" : "已取消";
+                                     status == "completed" ? "已完成" :
+                                     status == "rolledback" ? "已取消-回收员回退" : "已取消";
                     cmd.Parameters.AddWithValue("@Status", dbStatus);
                 }
 
