@@ -96,6 +96,11 @@
                 border-bottom: 3px solid #e74c3c;
             }
 
+            .status-tab.active.status-rolledback {
+                color: #fd7e14;
+                border-bottom: 3px solid #fd7e14;
+            }
+
     /* 订单内容区域 */
     .order-content {
         min-height: 400px;
@@ -519,6 +524,9 @@
             <button class="status-tab status-cancelled" data-status="cancelled">
                 <i class="fas fa-times-circle"></i>已取消
             </button>
+            <button class="status-tab status-rolledback" data-status="rolledback">
+                <i class="fas fa-undo"></i>被回退
+            </button>
         </div>
 
         <!-- 订单内容区域 -->
@@ -560,6 +568,14 @@
                 <div class="loading-spinner">
                     <div class="spinner"></div>
                     <p>正在加载已取消订单...</p>
+                </div>
+            </div>
+
+            <!-- 被回退订单 -->
+            <div class="order-section" id="rolledback-orders">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载被回退订单...</p>
                 </div>
             </div>
         </div>
@@ -841,6 +857,10 @@
                         emptyMessage = '您没有已取消的回收订单';
                         emptyIcon = 'fas fa-times-circle';
                         break;
+                    case 'rolledback':
+                        emptyMessage = '您没有被回退的回收订单';
+                        emptyIcon = 'fas fa-undo';
+                        break;
                 }
 
                 container.innerHTML = `
@@ -943,7 +963,7 @@
                     <div class="order-item" data-order-id="${order.id}">
                         <div class="order-header-info">
                             <div class="order-number">${order.number}</div>
-                            <div class="order-status ${order.statusBadge}">${order.status}</div>
+                            <div class="order-status ${order.statusBadge}">${order.status === '已取消-回收员回退' ? '被回退' : order.status}</div>
                         </div>
 
                         <div class="order-details">
@@ -1172,7 +1192,7 @@
             document.getElementById('detailDateTime').textContent = `${order.date} ${order.timeSlot}`;
             document.getElementById('detailWeight').textContent = `${order.weight} 公斤`;
             document.getElementById('detailPrice').textContent = order.price ? `¥${order.price}` : '待评估';
-            document.getElementById('detailStatus').textContent = order.status;
+            document.getElementById('detailStatus').textContent = order.status === '已取消-回收员回退' ? '被回退' : order.status;
             document.getElementById('detailUrgent').textContent = order.isUrgent ? '是' : '否';
 
             // 更新联系信息

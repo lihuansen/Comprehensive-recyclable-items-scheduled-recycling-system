@@ -291,7 +291,8 @@ select.form-control::-ms-expand {
         border: 1px solid #f5c6cb;
     }
 
-    .status-已取消-回收员回退 {
+    .status-已取消-回收员回退,
+    .status-被回退 {
         background: #fff3cd;
         color: #856404;
         border: 1px solid #ffeeba;
@@ -767,7 +768,7 @@ select.form-control::-ms-expand {
             </div>
             <div class="stat-item">
                 <div class="stat-number">@(ViewBag.OrderStatistics?.CancelledOrders ?? 0)</div>
-                <div class="stat-label">已取消订单</div>
+                <div class="stat-label">被回退订单</div>
             </div>
         </div>
     </div>
@@ -790,8 +791,7 @@ select.form-control::-ms-expand {
                     <option value="已预约">已预约</option>
                     <option value="进行中">进行中</option>
                     <option value="已完成">已完成</option>
-                    <option value="已取消">已取消</option>
-                    <option value="已取消-回收员回退">已取消-回收员回退</option>
+                    <option value="已取消-回收员回退">被回退</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -1018,7 +1018,7 @@ select.form-control::-ms-expand {
             <div class="modal-body">
                 <div class="alert alert-warning" style="background-color: #fff3cd; border-color: #ffeeba; color: #856404;">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <strong>注意：</strong>回退订单后，订单状态将变为"已取消-回收员回退"，用户将收到通知并可查看回退原因。
+                    <strong>注意：</strong>回退订单后，订单状态将变为"被回退"，用户将收到通知并可查看回退原因。
                 </div>
                 <form id="rollbackOrderForm">
                     <input type="hidden" id="rollbackAppointmentId" name="appointmentId" />
@@ -1256,7 +1256,7 @@ select.form-control::-ms-expand {
                         ${order.OrderNumber} ${urgentBadge}
                     </div>
                     <div class="order-status status-${order.Status.toLowerCase().replace(' ', '-')}">
-                        ${order.Status}
+                        ${order.Status === '已取消-回收员回退' ? '被回退' : order.Status}
                     </div>
                 </div>
 
@@ -1594,7 +1594,7 @@ function renderOrderDetail(order) {
     document.getElementById('detailAppointmentTime').textContent = `${order.AppointmentDate} ${order.TimeSlot}`;
     document.getElementById('detailEstimatedWeight').textContent = `${order.EstimatedWeight} 公斤`;
     document.getElementById('detailEstimatedPrice').textContent = order.EstimatedPrice ? `¥${order.EstimatedPrice}` : '待评估';
-    document.getElementById('detailStatus').textContent = order.Status;
+    document.getElementById('detailStatus').textContent = order.Status === '已取消-回收员回退' ? '被回退' : order.Status;
     document.getElementById('detailIsUrgent').textContent = order.IsUrgent ? '是' : '否';
 
     // 更新联系信息
