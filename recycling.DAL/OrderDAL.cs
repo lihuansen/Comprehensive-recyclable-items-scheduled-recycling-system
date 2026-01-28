@@ -69,7 +69,7 @@ WHERE a.UserID = @UserID";
                     cmd.Parameters.AddWithValue("@Status", dbStatus);
                 }
 
-                conn.Open();;
+                conn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
