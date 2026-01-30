@@ -980,11 +980,6 @@
                 ratingHtml += ' ' + transporter.rating.toFixed(1) + '</div>';
             }
             
-            var vehicleInfo = transporter.vehicleType || '未知车型';
-            if (transporter.vehicleCapacity) {
-                vehicleInfo += ' (' + transporter.vehicleCapacity + ' kg)';
-            }
-            
             card.html(
                 '<div class="transporter-header">' +
                     '<div class="transporter-name">' + (transporter.fullName || transporter.username) + '</div>' +
@@ -993,8 +988,7 @@
                 '<div class="transporter-info">' +
                     '<div class="info-item"><i class="glyphicon glyphicon-phone"></i> ' + transporter.phoneNumber + '</div>' +
                     '<div class="info-item"><i class="glyphicon glyphicon-map-marker"></i> ' + transporter.region + '</div>' +
-                    '<div class="info-item"><i class="glyphicon glyphicon-road"></i> ' + transporter.vehiclePlateNumber + '</div>' +
-                    '<div class="info-item"><i class="glyphicon glyphicon-dashboard"></i> ' + vehicleInfo + '</div>' +
+                    '<div class="info-item"><i class="glyphicon glyphicon-user"></i> ' + (transporter.currentStatus || '未知状态') + '</div>' +
                 '</div>' +
                 '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">' +
                     '<button class="btn-call" data-phone="' + $('<div>').text(transporter.phoneNumber).html() + '" data-name="' + $('<div>').text(transporter.fullName || transporter.username).html() + '">' +
