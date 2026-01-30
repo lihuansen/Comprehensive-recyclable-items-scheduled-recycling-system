@@ -1910,6 +1910,7 @@ namespace recycling.Web.UI.Controllers
                 {
                     conn.Open();
                     string sql = @"SELECT TransporterID, Username, FullName, PhoneNumber, Region, 
+                                  VehicleType, VehiclePlateNumber, VehicleCapacity,
                                   CurrentStatus, Available, Rating
                            FROM Transporters 
                            WHERE Region = @Region 
@@ -1925,6 +1926,9 @@ namespace recycling.Web.UI.Controllers
                     {
                         while (reader.Read())
                         {
+                            // SQL columns: TransporterID(0), Username(1), FullName(2), PhoneNumber(3), 
+                            //              Region(4), VehicleType(5), VehiclePlateNumber(6), VehicleCapacity(7),
+                            //              CurrentStatus(8), Available(9), Rating(10)
                             transporters.Add(new
                             {
                                 transporterId = reader.GetInt32(0),
@@ -1936,7 +1940,7 @@ namespace recycling.Web.UI.Controllers
                                 vehiclePlateNumber = reader.IsDBNull(6) ? "" : reader.GetString(6),
                                 vehicleCapacity = reader.IsDBNull(7) ? (decimal?)null : reader.GetDecimal(7),
                                 currentStatus = reader.IsDBNull(8) ? "" : reader.GetString(8),
-                                available = reader.GetBoolean(9),
+                                available = reader.IsDBNull(9) ? false : reader.GetBoolean(9),
                                 rating = reader.IsDBNull(10) ? (decimal?)null : reader.GetDecimal(10)
                             });
                         }
