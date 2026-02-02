@@ -1198,29 +1198,43 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Check if TransportStage and Stage columns exist
+                    // Check if columns exist
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
+                    bool hasDeliveryDate = ColumnExistsInTable(conn, null, "TransportationOrders", "DeliveryDate");
+                    bool hasCompletedDate = ColumnExistsInTable(conn, null, "TransportationOrders", "CompletedDate");
                     
                     // Build dynamic UPDATE SQL based on available columns
-                    string sql = "UPDATE TransportationOrders SET Status = N'已完成', DeliveryDate = @DeliveryDate, CompletedDate = @CompletedDate";
+                    List<string> setClauses = new List<string>();
+                    setClauses.Add("Status = N'已完成'");
+                    
+                    if (hasDeliveryDate)
+                    {
+                        setClauses.Add("DeliveryDate = @DeliveryDate");
+                    }
+                    
+                    if (hasCompletedDate)
+                    {
+                        setClauses.Add("CompletedDate = @CompletedDate");
+                    }
                     
                     if (actualWeight.HasValue)
                     {
-                        sql += ", ActualWeight = @ActualWeight";
+                        setClauses.Add("ActualWeight = @ActualWeight");
                     }
                     
                     if (hasTransportStage)
                     {
-                        sql += ", TransportStage = NULL";
+                        setClauses.Add("TransportStage = NULL");
                     }
                     
                     // Clear Stage column when completing transportation
                     if (hasStage)
                     {
-                        sql += ", Stage = NULL";
+                        setClauses.Add("Stage = NULL");
                     }
                     
+                    string sql = "UPDATE TransportationOrders SET " + string.Join(", ", setClauses);
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
                     // Validate stage progression using Stage column if available, otherwise use TransportStage
@@ -1236,8 +1250,16 @@ namespace recycling.DAL
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@OrderID", orderId);
-                        cmd.Parameters.AddWithValue("@DeliveryDate", DateTime.Now);
-                        cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
+                        
+                        if (hasDeliveryDate)
+                        {
+                            cmd.Parameters.AddWithValue("@DeliveryDate", DateTime.Now);
+                        }
+                        
+                        if (hasCompletedDate)
+                        {
+                            cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
+                        }
                         
                         if (actualWeight.HasValue)
                         {
