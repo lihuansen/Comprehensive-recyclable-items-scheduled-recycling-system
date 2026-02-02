@@ -646,6 +646,18 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
+                    // 检查 TransportationOrderCategories 表是否存在
+                    // Check if TransportationOrderCategories table exists
+                    bool categoriesTableExists = false;
+                    string checkTableSql = @"
+                        SELECT COUNT(*) 
+                        FROM INFORMATION_SCHEMA.TABLES 
+                        WHERE TABLE_NAME = 'TransportationOrderCategories'";
+                    using (SqlCommand checkCmd = new SqlCommand(checkTableSql, conn))
+                    {
+                        categoriesTableExists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+                    }
+                    
                     string sql = @"
                         SELECT 
                             t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, 
@@ -657,6 +669,10 @@ namespace recycling.DAL
                         LEFT JOIN Transporters tr ON t.TransporterID = tr.TransporterID
                         WHERE t.Status = N'已完成'
                         ORDER BY t.CreatedDate DESC";
+
+                    // 用于存储所有订单ID，后续查询结构化品类数据
+                    // Store all order IDs for batch querying structured category data
+                    var orderIds = new List<int>();
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
@@ -671,9 +687,12 @@ namespace recycling.DAL
                                 // This prevents "类别数据格式错误" (category data format error) in frontend
                                 string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
                                 
+                                int orderId = Convert.ToInt32(reader["TransportOrderID"]);
+                                orderIds.Add(orderId);
+                                
                                 orders.Add(new TransportNotificationViewModel
                                 {
-                                    TransportOrderID = Convert.ToInt32(reader["TransportOrderID"]),
+                                    TransportOrderID = orderId,
                                     OrderNumber = reader["OrderNumber"].ToString(),
                                     EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
                                     ItemCategories = validatedItemCategories,
@@ -683,6 +702,77 @@ namespace recycling.DAL
                                     TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString()
                                 });
                             }
+                        }
+                    }
+                    
+                    // 如果 TransportationOrderCategories 表存在，尝试从结构化数据表获取品类信息
+                    // If TransportationOrderCategories table exists, try to get category info from structured data table
+                    if (categoriesTableExists && orderIds.Count > 0)
+                    {
+                        try
+                        {
+                            // 批量查询所有订单的品类信息
+                            // Batch query all category info for orders
+                            string categoryDetailsSql = @"
+                                SELECT TransportOrderID, CategoryKey, CategoryName, Weight, PricePerKg, TotalAmount
+                                FROM TransportationOrderCategories
+                                WHERE TransportOrderID IN (SELECT value FROM STRING_SPLIT(@OrderIds, ','))
+                                ORDER BY TransportOrderID, CategoryID";
+                            
+                            // 构建品类数据字典 {TransportOrderID -> List of categories}
+                            // Build category data dictionary
+                            var categoryDataDict = new Dictionary<int, List<Dictionary<string, object>>>();
+                            
+                            using (SqlCommand catCmd = new SqlCommand(categoryDetailsSql, conn))
+                            {
+                                catCmd.Parameters.AddWithValue("@OrderIds", string.Join(",", orderIds));
+                                
+                                using (SqlDataReader catReader = catCmd.ExecuteReader())
+                                {
+                                    while (catReader.Read())
+                                    {
+                                        int transportOrderId = Convert.ToInt32(catReader["TransportOrderID"]);
+                                        
+                                        if (!categoryDataDict.ContainsKey(transportOrderId))
+                                        {
+                                            categoryDataDict[transportOrderId] = new List<Dictionary<string, object>>();
+                                        }
+                                        
+                                        // 构建前端期望的JSON格式
+                                        // Build JSON format expected by frontend
+                                        // Frontend expects: categoryName, weight, price
+                                        var categoryInfo = new Dictionary<string, object>
+                                        {
+                                            { "categoryKey", catReader["CategoryKey"] == DBNull.Value ? null : catReader["CategoryKey"].ToString() },
+                                            { "categoryName", catReader["CategoryName"] == DBNull.Value ? "未知品类" : catReader["CategoryName"].ToString() },
+                                            { "weight", catReader["Weight"] == DBNull.Value ? 0m : Convert.ToDecimal(catReader["Weight"]) },
+                                            { "price", catReader["TotalAmount"] == DBNull.Value ? 0m : Convert.ToDecimal(catReader["TotalAmount"]) },
+                                            { "pricePerKg", catReader["PricePerKg"] == DBNull.Value ? 0m : Convert.ToDecimal(catReader["PricePerKg"]) }
+                                        };
+                                        
+                                        categoryDataDict[transportOrderId].Add(categoryInfo);
+                                    }
+                                }
+                            }
+                            
+                            // 更新订单的品类信息（优先使用结构化数据）
+                            // Update order category info (prefer structured data)
+                            foreach (var order in orders)
+                            {
+                                if (categoryDataDict.TryGetValue(order.TransportOrderID, out var categoryList) && categoryList.Count > 0)
+                                {
+                                    // 使用结构化数据生成JSON
+                                    // Generate JSON from structured data
+                                    order.ItemCategories = JsonConvert.SerializeObject(categoryList);
+                                    System.Diagnostics.Debug.WriteLine($"从TransportationOrderCategories表获取了订单 {order.TransportOrderID} 的 {categoryList.Count} 条品类数据");
+                                }
+                            }
+                        }
+                        catch (Exception catEx)
+                        {
+                            // 获取结构化数据失败，使用原有的ItemCategories字段
+                            // Failed to get structured data, use original ItemCategories field
+                            System.Diagnostics.Debug.WriteLine($"获取结构化品类数据失败，使用原有数据: {catEx.Message}");
                         }
                     }
                 }
