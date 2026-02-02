@@ -755,14 +755,12 @@
     function displayTransitOrders(orders) {
         if (orders && orders.length > 0) {
             var html = '';
-            // 清空并重新填充缓存
-            transportOrdersCache = {};
-            
             // 使用for循环优化性能（比forEach快）
             for (var i = 0; i < orders.length; i++) {
                 var order = orders[i];
                 
-                // 将完整订单数据存入缓存，按订单ID索引
+                // 合并更新缓存：新数据覆盖现有条目，避免清空导致的竞态条件
+                // Merge into cache: new data overwrites existing entries, avoiding race condition from clearing
                 transportOrdersCache[order.TransportOrderID] = order;
                 
                 html += '<div class="transit-order-item" data-order-id="' + order.TransportOrderID + '" ' +
