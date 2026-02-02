@@ -65,6 +65,19 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 安全地从DataReader读取可空整数列
+        /// Safely read nullable int column from DataReader
+        /// </summary>
+        private int? SafeGetInt(SqlDataReader reader, string columnName)
+        {
+            if (!ColumnExists(reader, columnName))
+                return null;
+            
+            var value = reader[columnName];
+            return value == DBNull.Value ? null : (int?)Convert.ToInt32(value);
+        }
+
+        /// <summary>
         /// 检查数据库表中是否存在指定列
         /// Check if a column exists in the database table
         /// Results are cached to improve performance
@@ -305,9 +318,9 @@ namespace recycling.DAL
                                     CompletedDate = SafeGetDateTime(reader, "CompletedDate"),
                                     CancelledDate = SafeGetDateTime(reader, "CancelledDate"),
                                     CancelReason = SafeGetString(reader, "CancelReason"),
-                                    TransporterNotes = reader["TransporterNotes"] == DBNull.Value ? null : reader["TransporterNotes"].ToString(),
-                                    RecyclerRating = reader["RecyclerRating"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["RecyclerRating"]),
-                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString(),
+                                    TransporterNotes = SafeGetString(reader, "TransporterNotes"),
+                                    RecyclerRating = SafeGetInt(reader, "RecyclerRating"),
+                                    RecyclerReview = SafeGetString(reader, "RecyclerReview"),
                                     PickupConfirmedDate = SafeGetDateTime(reader, "PickupConfirmedDate"),
                                     ArrivedAtPickupDate = SafeGetDateTime(reader, "ArrivedAtPickupDate"),
                                     LoadingCompletedDate = SafeGetDateTime(reader, "LoadingCompletedDate"),
@@ -377,9 +390,9 @@ namespace recycling.DAL
                                     CompletedDate = SafeGetDateTime(reader, "CompletedDate"),
                                     CancelledDate = SafeGetDateTime(reader, "CancelledDate"),
                                     CancelReason = SafeGetString(reader, "CancelReason"),
-                                    TransporterNotes = reader["TransporterNotes"] == DBNull.Value ? null : reader["TransporterNotes"].ToString(),
-                                    RecyclerRating = reader["RecyclerRating"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["RecyclerRating"]),
-                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString(),
+                                    TransporterNotes = SafeGetString(reader, "TransporterNotes"),
+                                    RecyclerRating = SafeGetInt(reader, "RecyclerRating"),
+                                    RecyclerReview = SafeGetString(reader, "RecyclerReview"),
                                     PickupConfirmedDate = SafeGetDateTime(reader, "PickupConfirmedDate"),
                                     ArrivedAtPickupDate = SafeGetDateTime(reader, "ArrivedAtPickupDate"),
                                     LoadingCompletedDate = SafeGetDateTime(reader, "LoadingCompletedDate"),
@@ -504,9 +517,9 @@ namespace recycling.DAL
                                     CompletedDate = SafeGetDateTime(reader, "CompletedDate"),
                                     CancelledDate = SafeGetDateTime(reader, "CancelledDate"),
                                     CancelReason = SafeGetString(reader, "CancelReason"),
-                                    TransporterNotes = reader["TransporterNotes"] == DBNull.Value ? null : reader["TransporterNotes"].ToString(),
-                                    RecyclerRating = reader["RecyclerRating"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["RecyclerRating"]),
-                                    RecyclerReview = reader["RecyclerReview"] == DBNull.Value ? null : reader["RecyclerReview"].ToString(),
+                                    TransporterNotes = SafeGetString(reader, "TransporterNotes"),
+                                    RecyclerRating = SafeGetInt(reader, "RecyclerRating"),
+                                    RecyclerReview = SafeGetString(reader, "RecyclerReview"),
                                     PickupConfirmedDate = SafeGetDateTime(reader, "PickupConfirmedDate"),
                                     ArrivedAtPickupDate = SafeGetDateTime(reader, "ArrivedAtPickupDate"),
                                     LoadingCompletedDate = SafeGetDateTime(reader, "LoadingCompletedDate"),
