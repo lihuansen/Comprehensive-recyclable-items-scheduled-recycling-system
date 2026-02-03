@@ -416,22 +416,25 @@
             </div>
 
             <div id="receiptsTableContainer">
-                @if (Model != null && Model.WarehouseReceipts != null && Model.WarehouseReceipts.Any())
-                {
-                    <table class="receipts-table" id="receiptsTable">
-                        <thead>
-                            <tr>
-                                <th>入库单号</th>
-                                <th>运输单号</th>
-                                <th>回收员</th>
-                                <th>重量(kg)</th>
-                                <th>入库时间</th>
-                                <th>状态</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="receiptsTableBody">
-                            @foreach (var receipt in Model.WarehouseReceipts)
+                @{
+                    var hasReceipts = Model != null && Model.WarehouseReceipts != null && Model.WarehouseReceipts.Any();
+                }
+                <table class="receipts-table" id="receiptsTable" style="@(hasReceipts ? "" : "display: none;")">
+                    <thead>
+                        <tr>
+                            <th>入库单号</th>
+                            <th>运输单号</th>
+                            <th>回收员</th>
+                            <th>重量(kg)</th>
+                            <th>入库时间</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiptsTableBody">
+                        @if (hasReceipts)
+                        {
+                            foreach (var receipt in Model.WarehouseReceipts)
                             {
                                 <tr data-receipt-id="@receipt.ReceiptID">
                                     <td>@receipt.ReceiptNumber</td>
@@ -454,16 +457,13 @@
                                     </td>
                                 </tr>
                             }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <div id="receiptsEmptyState" class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>暂无入库单</p>
-                    </div>
-                }
+                        }
+                    </tbody>
+                </table>
+                <div id="receiptsEmptyState" class="empty-state" style="@(hasReceipts ? "display: none;" : "")">
+                    <i class="fas fa-inbox"></i>
+                    <p>暂无入库单</p>
+                </div>
             </div>
         </div>
     </div>
@@ -1077,9 +1077,11 @@
                 tbody.append(row);
             });
 
+            $('#receiptsEmptyState').hide();
             $('#receiptsTableContainer').show();
             $('#receiptsTable').show();
         } else {
+            $('#receiptsTable').hide();
             $('#receiptsTableContainer').show();
             $('#receiptsEmptyState').show();
         }
