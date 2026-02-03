@@ -66,7 +66,7 @@ namespace recycling.DAL
         /// 预加载所有活动的类别价格
         /// Preload all active category prices to avoid N+1 queries
         /// </summary>
-        private Dictionary<string, decimal> LoadCategoryPrices(SqlConnection conn)
+        private Dictionary<string, decimal> LoadCategoryPrices(SqlConnection conn, SqlTransaction transaction = null)
         {
             var categoryPrices = new Dictionary<string, decimal>();
             string pricesSql = @"
@@ -77,6 +77,11 @@ namespace recycling.DAL
 
             using (SqlCommand pricesCmd = new SqlCommand(pricesSql, conn))
             {
+                if (transaction != null)
+                {
+                    pricesCmd.Transaction = transaction;
+                }
+                
                 using (SqlDataReader priceReader = pricesCmd.ExecuteReader())
                 {
                     while (priceReader.Read())
@@ -291,7 +296,7 @@ namespace recycling.DAL
                             }
                             
                             // 预加载价格
-                            var categoryPrices = LoadCategoryPrices(conn);
+                            var categoryPrices = LoadCategoryPrices(conn, transaction);
                             
                             // 用于跟踪是否成功写入至少一条库存记录
                             bool hasValidCategory = false;
