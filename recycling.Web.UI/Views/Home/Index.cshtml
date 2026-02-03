@@ -538,97 +538,10 @@
             </div>
         }
 
-        <!-- 可回收物展示区域（修复CS1955错误：属性不加()） -->
-        @if (pageResult.Items.Count == 0)
-        {
-            <div class="empty-message">
-                <i class="fas fa-box-open"></i>
-                <h4>未找到符合条件的可回收物</h4>
-                <p>请尝试调整筛选条件后重新查询</p>
-            </div>
-        }
-        else
-        {
-            <div class="items-grid">
-                @foreach (var item in pageResult.Items)
-                {
-                    <div class="item-card">
-                        <div class="item-name">
-                            <span>@item.Name</span> <!-- 修正：属性不加() -->
-                            <span class="item-category">@item.CategoryName</span>
-                        </div>
-                        <div class="item-price">
-                            <i class="fas fa-money-bill-wave"></i> 单价：@item.PricePerKg 元/公斤
-                        </div>
-                        <div class="item-desc">
-                            <i class="fas fa-info-circle"></i> @(string.IsNullOrEmpty(item.Description) ? "无描述信息" : item.Description)
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <!-- 分页控件 -->
-            <div class="pagination-control">
-                <ul class="pagination">
-                    <!-- 首页 -->
-                    <li class="@(pageResult.PageIndex == 1 ? "disabled" : "")">
-                        <a href="@Url.Action("Index", new {
-                            Keyword = queryModel.Keyword,
-                            Category = queryModel.Category,
-                            MinPrice = queryModel.MinPrice,
-                            MaxPrice = queryModel.MaxPrice,
-                            PageIndex = 1
-                        })">
-                            <i class="fas fa-angle-double-left"></i>
-                        </a>
-                    </li>
-
-                    <!-- 上一页 -->
-                    <li class="@(pageResult.PageIndex == 1 ? "disabled" : "")">
-                        <a href="@Url.Action("Index", new {
-                            Keyword = queryModel.Keyword,
-                            Category = queryModel.Category,
-                            MinPrice = queryModel.MinPrice,
-                            MaxPrice = queryModel.MaxPrice,
-                            PageIndex = pageResult.PageIndex - 1
-                        })">
-                            <i class="fas fa-angle-left"></i>
-                        </a>
-                    </li>
-
-                    <!-- 当前页/总页数 -->
-                    <li class="active">
-                        <span>@pageResult.PageIndex / @pageResult.TotalPages</span>
-                    </li>
-
-                    <!-- 下一页 -->
-                    <li class="@(pageResult.PageIndex >= pageResult.TotalPages ? "disabled" : "")">
-                        <a href="@Url.Action("Index", new {
-                            Keyword = queryModel.Keyword,
-                            Category = queryModel.Category,
-                            MinPrice = queryModel.MinPrice,
-                            MaxPrice = queryModel.MaxPrice,
-                            PageIndex = pageResult.PageIndex + 1
-                        })">
-                            <i class="fas fa-angle-right"></i>
-                        </a>
-                    </li>
-
-                    <!-- 最后一页 -->
-                    <li class="@(pageResult.PageIndex >= pageResult.TotalPages ? "disabled" : "")">
-                        <a href="@Url.Action("Index", new {
-                            Keyword = queryModel.Keyword,
-                            Category = queryModel.Category,
-                            MinPrice = queryModel.MinPrice,
-                            MaxPrice = queryModel.MaxPrice,
-                            PageIndex = pageResult.TotalPages
-                        })">
-                            <i class="fas fa-angle-double-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        }
+        <!-- 可回收物展示区域 - 使用AJAX局部刷新 -->
+        <div id="recyclableItemsContainer">
+            @Html.Partial("_RecyclableItemsList", pageResult)
+        </div>
 
         <!-- 预约按钮 -->
         <div class="appointment-section">
@@ -661,6 +574,83 @@
                     maxPrice.value = '';
                 }
             }
+
+            // AJAX分页功能 - 局部刷新
+            function loadRecyclableItems(pageIndex) {
+                const keyword = document.getElementById('Keyword')?.value || '';
+                const category = document.getElementById('Category')?.value || '';
+                const minPriceVal = document.getElementById('MinPrice')?.value || '';
+                const maxPriceVal = document.getElementById('MaxPrice')?.value || '';
+
+                const container = document.getElementById('recyclableItemsContainer');
+                
+                // 显示加载状态
+                container.style.opacity = '0.5';
+                container.style.pointerEvents = 'none';
+
+                // 构建请求URL
+                const params = new URLSearchParams({
+                    Keyword: keyword,
+                    Category: category,
+                    MinPrice: minPriceVal,
+                    MaxPrice: maxPriceVal,
+                    PageIndex: pageIndex
+                });
+
+                fetch('@Url.Action("GetRecyclableItems", "Home")?' + params.toString(), {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络请求失败');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    container.innerHTML = html;
+                    container.style.opacity = '1';
+                    container.style.pointerEvents = 'auto';
+                    
+                    // 重新绑定分页链接事件
+                    bindPaginationEvents();
+                    
+                    // 滚动到内容区域顶部
+                    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                })
+                .catch(error => {
+                    console.error('加载失败:', error);
+                    container.style.opacity = '1';
+                    container.style.pointerEvents = 'auto';
+                    alert('加载数据失败，请稍后重试');
+                });
+            }
+
+            // 绑定分页链接点击事件
+            function bindPaginationEvents() {
+                const paginationLinks = document.querySelectorAll('.pagination-link');
+                paginationLinks.forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        
+                        // 检查是否为禁用状态
+                        const parentLi = this.closest('li');
+                        if (parentLi && parentLi.classList.contains('disabled')) {
+                            return;
+                        }
+                        
+                        const pageIndex = this.getAttribute('data-page');
+                        if (pageIndex) {
+                            loadRecyclableItems(parseInt(pageIndex));
+                        }
+                    });
+                });
+            }
+
+            // 初始化绑定分页事件
+            bindPaginationEvents();
 
             // 预约按钮登录验证
             const appointmentBtn = document.querySelector('.appointment-btn');

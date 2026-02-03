@@ -1,0 +1,71 @@
+@{
+    var pageResult = Model as recycling.Model.PagedResult<recycling.Model.RecyclableItems> ?? new recycling.Model.PagedResult<recycling.Model.RecyclableItems>();
+    var queryModel = ViewBag.QueryModel as recycling.Model.RecyclableQueryModel ?? new recycling.Model.RecyclableQueryModel();
+}
+
+@if (pageResult.Items.Count == 0)
+{
+    <div class="empty-message">
+        <i class="fas fa-box-open"></i>
+        <h4>未找到符合条件的可回收物</h4>
+        <p>请尝试调整筛选条件后重新查询</p>
+    </div>
+}
+else
+{
+    <div class="items-grid">
+        @foreach (var item in pageResult.Items)
+        {
+            <div class="item-card">
+                <div class="item-name">
+                    <span>@item.Name</span>
+                    <span class="item-category">@item.CategoryName</span>
+                </div>
+                <div class="item-price">
+                    <i class="fas fa-money-bill-wave"></i> 单价：@item.PricePerKg 元/公斤
+                </div>
+                <div class="item-desc">
+                    <i class="fas fa-info-circle"></i> @(string.IsNullOrEmpty(item.Description) ? "无描述信息" : item.Description)
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- 分页控件 -->
+    <div class="pagination-control">
+        <ul class="pagination">
+            <!-- 首页 -->
+            <li class="@(pageResult.PageIndex == 1 ? "disabled" : "")">
+                <a href="javascript:void(0);" class="pagination-link" data-page="1">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+
+            <!-- 上一页 -->
+            <li class="@(pageResult.PageIndex == 1 ? "disabled" : "")">
+                <a href="javascript:void(0);" class="pagination-link" data-page="@(pageResult.PageIndex - 1)">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+
+            <!-- 当前页/总页数 -->
+            <li class="active">
+                <span>@pageResult.PageIndex / @pageResult.TotalPages</span>
+            </li>
+
+            <!-- 下一页 -->
+            <li class="@(pageResult.PageIndex >= pageResult.TotalPages ? "disabled" : "")">
+                <a href="javascript:void(0);" class="pagination-link" data-page="@(pageResult.PageIndex + 1)">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+
+            <!-- 最后一页 -->
+            <li class="@(pageResult.PageIndex >= pageResult.TotalPages ? "disabled" : "")">
+                <a href="javascript:void(0);" class="pagination-link" data-page="@pageResult.TotalPages">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+}

@@ -78,6 +78,32 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取可回收物列表（AJAX局部刷新）
+        /// </summary>
+        [HttpGet]
+        public ActionResult GetRecyclableItems(RecyclableQueryModel query)
+        {
+            try
+            {
+                // 设置默认值
+                if (query.PageIndex < 1) query.PageIndex = 1;
+                if (query.PageSize < 1) query.PageSize = 6;
+
+                // 获取分页数据
+                var pageResult = _recyclableItemBLL.GetPagedItems(query);
+
+                // 保存查询条件用于视图
+                ViewBag.QueryModel = query;
+
+                return PartialView("_RecyclableItemsList", pageResult);
+            }
+            catch (Exception ex)
+            {
+                return Content("<div class='error-alert'><i class='fas fa-exclamation-circle'></i> " + ex.Message + "</div>");
+            }
+        }
+
+        /// <summary>
         /// 订单管理页面
         /// </summary>
         [HttpGet]
