@@ -617,14 +617,26 @@
                     // 重新绑定分页链接事件
                     bindPaginationEvents();
                     
-                    // 滚动到内容区域顶部
-                    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // 滚动到内容区域顶部 - 尊重用户的动画偏好设置
+                    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    container.scrollIntoView({ 
+                        behavior: prefersReducedMotion ? 'auto' : 'smooth', 
+                        block: 'start' 
+                    });
                 })
                 .catch(error => {
                     console.error('加载失败:', error);
                     container.style.opacity = '1';
                     container.style.pointerEvents = 'auto';
-                    alert('加载数据失败，请稍后重试');
+                    // 显示内联错误消息而不是使用alert
+                    container.innerHTML = `
+                        <div class="error-alert" style="background: #fff5f5; border-left: 4px solid #ff6b6b; padding: 15px; border-radius: 4px; color: #721c24; text-align: center;">
+                            <i class="fas fa-exclamation-circle"></i> 加载数据失败，请稍后重试
+                            <br><button onclick="loadRecyclableItems(1)" class="btn btn-primary btn-sm" style="margin-top: 10px;">
+                                <i class="fas fa-sync-alt"></i> 重新加载
+                            </button>
+                        </div>
+                    `;
                 });
             }
 

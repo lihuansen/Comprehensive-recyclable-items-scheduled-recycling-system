@@ -99,7 +99,9 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
-                return Content("<div class='error-alert'><i class='fas fa-exclamation-circle'></i> " + ex.Message + "</div>");
+                // Log the error for debugging (in production, use proper logging)
+                System.Diagnostics.Debug.WriteLine("GetRecyclableItems error: " + ex.Message);
+                return Content("<div class='error-alert'><i class='fas fa-exclamation-circle'></i> 加载数据时发生错误，请稍后重试</div>");
             }
         }
 
