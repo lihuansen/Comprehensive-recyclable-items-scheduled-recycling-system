@@ -1490,11 +1490,38 @@
             }
         });
         
+        // 为服务器端渲染的库存卡片应用颜色和图标（立即显示正确颜色）
+        // Apply colors and icons to server-side rendered inventory cards (show correct colors immediately)
+        applyInventoryCardStyles();
+        
         // 自动加载所有实时数据（与点击刷新按钮效果一致）
         // Automatically load all real-time data (same effect as clicking refresh buttons)
         loadCompletedTransportOrders();  // 加载待入库运输单
         loadWarehouseReceipts();         // 加载入库记录
-        loadInventorySummary();          // 加载库存汇总（独立板块）
+        loadInventorySummary();          // 加载库存汇总（刷新实时数据）
         loadInventoryDetail();           // 加载库存明细（独立板块）
     });
+    
+    // 为服务器端渲染的库存卡片应用颜色和图标
+    // Apply colors and icons to server-side rendered inventory cards on page load
+    function applyInventoryCardStyles() {
+        $('.inventory-card').each(function() {
+            var card = $(this);
+            var categoryKey = card.data('category');
+            
+            if (categoryKey && InventoryManager.isValidCategoryKey(categoryKey)) {
+                var icon = InventoryManager.categoryIcons[categoryKey] || 'fa-box';
+                var color = InventoryManager.categoryColors[categoryKey] || '#3498db';
+                
+                // 应用渐变背景色 - Apply gradient background color
+                card.css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + InventoryManager.adjustColor(color, -20) + ' 100%)');
+                
+                // 应用图标 - Apply icon
+                var iconElement = card.find('.inventory-card-icon i');
+                if (iconElement.length > 0) {
+                    iconElement.removeClass().addClass('fas ' + icon);
+                }
+            }
+        });
+    }
 </script>
