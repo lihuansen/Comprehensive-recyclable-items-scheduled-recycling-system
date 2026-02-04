@@ -1191,7 +1191,8 @@
         $('#inventoryLoading').show();
         $('#inventorySummaryCards').hide();
         $('#inventoryEmptyState').hide();
-        $('#inventoryDetailSection').hide();
+        // 注意：不再隐藏库存明细区域，让它保持显示状态
+        // Note: No longer hiding inventory detail section, keeping it visible
 
         $.ajax({
             url: '@Url.Action("GetBaseWarehouseInventorySummary", "Staff")',
@@ -1202,10 +1203,13 @@
             success: function (response) {
                 if (response.success && response.data && response.data.length > 0) {
                     displayInventorySummary(response.data);
-                    // 自动加载明细
+                    // 自动刷新明细（刷新按钮点击时会同时刷新汇总和明细）
                     loadInventoryDetail();
                 } else {
                     $('#inventoryEmptyState').show();
+                    // 即使没有汇总数据，也尝试显示明细（可能存在历史数据）
+                    // Even without summary data, try to show details (may have historical data)
+                    loadInventoryDetail();
                 }
             },
             error: function () {
@@ -1463,6 +1467,12 @@
         // Automatically load all real-time data (same effect as clicking refresh buttons)
         loadCompletedTransportOrders();  // 加载待入库运输单
         loadWarehouseReceipts();         // 加载入库记录
-        loadInventorySummary();          // 加载库存汇总（会自动触发库存明细加载）
+        loadInventorySummary();          // 加载库存汇总
+        
+        // 页面加载时立即显示库存明细，确保用户进入页面时就能看到数据
+        // （注意：loadInventorySummary 的 AJAX 回调也会刷新明细，但此处的调用确保立即显示）
+        // Immediately show inventory details on page load, ensuring users see data right away
+        // (Note: loadInventorySummary's AJAX callback also refreshes details, but this call ensures immediate display)
+        loadInventoryDetail();
     });
 </script>
