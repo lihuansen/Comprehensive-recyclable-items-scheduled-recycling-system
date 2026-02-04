@@ -751,23 +751,23 @@ select.form-control::-ms-expand {
         </h2>
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-number">@(ViewBag.OrderStatistics?.TotalOrders ?? 0)</div>
+                <div class="stat-number" id="stat-total-orders">@(ViewBag.OrderStatistics?.TotalOrders ?? 0)</div>
                 <div class="stat-label">总订单数</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">@(ViewBag.OrderStatistics?.PendingOrders ?? 0)</div>
+                <div class="stat-number" id="stat-pending-orders">@(ViewBag.OrderStatistics?.PendingOrders ?? 0)</div>
                 <div class="stat-label">已预约订单</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">@(ViewBag.OrderStatistics?.ConfirmedOrders ?? 0)</div>
+                <div class="stat-number" id="stat-confirmed-orders">@(ViewBag.OrderStatistics?.ConfirmedOrders ?? 0)</div>
                 <div class="stat-label">进行中订单</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">@(ViewBag.OrderStatistics?.CompletedOrders ?? 0)</div>
+                <div class="stat-number" id="stat-completed-orders">@(ViewBag.OrderStatistics?.CompletedOrders ?? 0)</div>
                 <div class="stat-label">已完成订单</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">@(ViewBag.OrderStatistics?.CancelledOrders ?? 0)</div>
+                <div class="stat-number" id="stat-cancelled-orders">@(ViewBag.OrderStatistics?.CancelledOrders ?? 0)</div>
                 <div class="stat-label">被回退订单</div>
             </div>
         </div>
@@ -1129,6 +1129,35 @@ select.form-control::-ms-expand {
             }, 5000);
         }
 
+        // 加载统计数据
+        function loadStatistics() {
+            fetch('@Url.Action("GetRecyclerOrderStatistics", "Staff")', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP error ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('stat-total-orders').textContent = data.data.totalOrders;
+                    document.getElementById('stat-pending-orders').textContent = data.data.pendingOrders;
+                    document.getElementById('stat-confirmed-orders').textContent = data.data.confirmedOrders;
+                    document.getElementById('stat-completed-orders').textContent = data.data.completedOrders;
+                    document.getElementById('stat-cancelled-orders').textContent = data.data.cancelledOrders;
+                }
+            })
+            .catch(error => {
+                console.error('加载统计数据失败:', error);
+                // 统计数据加载失败不显示错误给用户，因为这是后台更新，不影响主要功能
+            });
+        }
+
         // 加载订单数据
         function loadOrders(page = 1) {
             currentPage = page;
@@ -1393,6 +1422,11 @@ select.form-control::-ms-expand {
                 if (data.success) {
                     showAlert(data.message, 'success');
                     loadOrders(currentPage); // 重新加载当前页
+                    loadStatistics(); // 实时更新统计数据
+                    // 更新消息中心的未读数徽章
+                    if (typeof window.updateRecyclerMessageBadge === 'function') {
+                        window.updateRecyclerMessageBadge();
+                    }
                 } else {
                     showAlert(data.message, 'error');
                 }
@@ -1440,6 +1474,11 @@ select.form-control::-ms-expand {
                 if (data.success) {
                     showAlert('订单已完成，库存已更新', 'success');
                     loadOrders(currentPage); // 刷新订单列表
+                    loadStatistics(); // 实时更新统计数据
+                    // 更新消息中心的未读数徽章
+                    if (typeof window.updateRecyclerMessageBadge === 'function') {
+                        window.updateRecyclerMessageBadge();
+                    }
                 } else {
                     showAlert('完成失败：' + (data.message || ''), 'error');
                 }
@@ -1537,6 +1576,11 @@ select.form-control::-ms-expand {
                     $('#rollbackOrderModal').modal('hide');
                     showAlert('订单已成功回退，用户已收到通知', 'success');
                     loadOrders(currentPage); // 刷新订单列表
+                    loadStatistics(); // 实时更新统计数据
+                    // 更新消息中心的未读数徽章
+                    if (typeof window.updateRecyclerMessageBadge === 'function') {
+                        window.updateRecyclerMessageBadge();
+                    }
                 } else {
                     showAlert('回退失败：' + (data.message || '未知错误'), 'error');
                 }
