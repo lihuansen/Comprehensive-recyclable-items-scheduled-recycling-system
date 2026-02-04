@@ -27,6 +27,18 @@ namespace recycling.Model
         public List<InventorySummaryViewModel> InventorySummary { get; set; }
 
         /// <summary>
+        /// 库存明细列表
+        /// Inventory detail items list
+        /// </summary>
+        public List<InventoryDetailViewModel> InventoryDetails { get; set; }
+
+        /// <summary>
+        /// 库存明细总数
+        /// Total count of inventory details
+        /// </summary>
+        public int InventoryDetailsTotalCount { get; set; }
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         public BaseWarehouseManagementViewModel()
@@ -34,6 +46,8 @@ namespace recycling.Model
             CompletedTransportOrders = new List<TransportNotificationViewModel>();
             WarehouseReceipts = new List<WarehouseReceiptViewModel>();
             InventorySummary = new List<InventorySummaryViewModel>();
+            InventoryDetails = new List<InventoryDetailViewModel>();
+            InventoryDetailsTotalCount = 0;
         }
     }
 }

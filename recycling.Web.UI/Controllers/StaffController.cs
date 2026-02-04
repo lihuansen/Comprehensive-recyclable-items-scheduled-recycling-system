@@ -4935,6 +4935,14 @@ namespace recycling.Web.UI.Controllers
                         TotalPrice = s.TotalPrice
                     }).ToList();
                 }
+
+                // 加载库存明细列表（首页，20条）
+                var inventoryDetails = inventoryBll.GetInventoryDetailWithRecycler(1, 20, null, "Warehouse");
+                if (inventoryDetails != null)
+                {
+                    viewModel.InventoryDetails = inventoryDetails.Items?.ToList() ?? new List<InventoryDetailViewModel>();
+                    viewModel.InventoryDetailsTotalCount = inventoryDetails.TotalCount;
+                }
             }
             catch (Exception ex)
             {
