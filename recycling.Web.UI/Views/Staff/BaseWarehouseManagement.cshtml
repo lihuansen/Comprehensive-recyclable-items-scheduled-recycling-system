@@ -552,16 +552,20 @@
                 <tbody id="inventoryDetailTableBody">
                     @if (Model != null && Model.InventoryDetails != null && Model.InventoryDetails.Any())
                     {
+                        // 已知的有效类别键白名单
+                        var validCategoryKeys = new HashSet<string> { "glass", "metal", "plastic", "paper", "fabric" };
+                        
                         foreach (var item in Model.InventoryDetails)
                         {
+                            // 只使用白名单中的类别键
                             var categoryKey = item.CategoryKey ?? "";
-                            var badgeClass = "badge-" + Html.AttributeEncode(categoryKey);
+                            var badgeClass = validCategoryKeys.Contains(categoryKey) ? "badge-" + categoryKey : "badge-unknown";
                             var price = item.Price.HasValue ? string.Format("¥{0:F2}", item.Price.Value) : "-";
-                            var createdDate = item.CreatedDate.ToString("yyyy-MM-dd HH:mm");
+                            var createdDate = item.CreatedDate.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
                             <tr>
                                 <td><strong>@Html.Encode(item.OrderNumber)</strong></td>
                                 <td><span class="badge-inventory @badgeClass">@Html.Encode(item.CategoryName)</span></td>
-                                <td>@item.Weight.ToString("F2")</td>
+                                <td>@item.Weight.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)</td>
                                 <td>@price</td>
                                 <td>@Html.Encode(item.RecyclerName ?? "-")</td>
                                 <td>@createdDate</td>
