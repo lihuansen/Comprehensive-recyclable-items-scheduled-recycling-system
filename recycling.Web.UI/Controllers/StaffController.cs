@@ -1086,6 +1086,41 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取回收员订单统计数据（AJAX）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclerOrderStatistics()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var statistics = _recyclerOrderBLL.GetRecyclerOrderStatistics(recycler.RecyclerID);
+
+                return Json(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        totalOrders = statistics.TotalOrders,
+                        pendingOrders = statistics.PendingOrders,
+                        confirmedOrders = statistics.ConfirmedOrders,
+                        completedOrders = statistics.CompletedOrders,
+                        cancelledOrders = statistics.CancelledOrders
+                    }
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
         /// 回收员回退订单
         /// </summary>
         [HttpPost]
