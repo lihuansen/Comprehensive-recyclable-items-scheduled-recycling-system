@@ -518,16 +518,24 @@
             <i class="fas fa-box-open"></i>
             <p>暂无库存数据</p>
         </div>
+    </div>
 
-        <!-- 库存明细表格 -->
-        <div id="inventoryDetailSection" style="display: none; margin-top: 25px;">
-            <div class="section-header" style="border-top: 2px solid #f0f0f0; padding-top: 20px;">
-                <h3 class="section-title" style="font-size: 18px;">
+    <!-- 库存明细表格 - 独立的板块 -->
+    <!-- Inventory Details Table - Independent Section -->
+    <div class="section-card" style="margin-top: 25px;">
+        <div id="inventoryDetailSection">
+            <div class="section-header">
+                <h2 class="section-title">
                     <i class="fas fa-list"></i> 库存明细 <span id="inventoryDetailTitle"></span>
-                </h3>
-                <button class="btn-secondary" onclick="showAllInventoryDetails()" style="font-size: 14px; padding: 8px 16px;">
-                    <i class="fas fa-refresh"></i> 显示全部
+                </h2>
+                <button class="btn-secondary" onclick="loadInventoryDetail()">
+                    <i class="fas fa-sync-alt"></i> 刷新
                 </button>
+            </div>
+
+            <div id="inventoryDetailLoading" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>加载中...</p>
             </div>
 
             <table class="receipts-table" id="inventoryDetailTable">
@@ -542,6 +550,12 @@
                     </tr>
                 </thead>
                 <tbody id="inventoryDetailTableBody">
+                    <!-- 初始加载提示 -->
+                    <tr id="inventoryDetailInitialRow">
+                        <td colspan="6" class="empty-details-message">
+                            <i class="fas fa-spinner fa-spin"></i> 正在加载库存明细...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -1191,8 +1205,6 @@
         $('#inventoryLoading').show();
         $('#inventorySummaryCards').hide();
         $('#inventoryEmptyState').hide();
-        // 注意：不再隐藏库存明细区域，让它保持显示状态
-        // Note: No longer hiding inventory detail section, keeping it visible
 
         $.ajax({
             url: '@Url.Action("GetBaseWarehouseInventorySummary", "Staff")',
@@ -1203,13 +1215,8 @@
             success: function (response) {
                 if (response.success && response.data && response.data.length > 0) {
                     displayInventorySummary(response.data);
-                    // 自动刷新明细（刷新按钮点击时会同时刷新汇总和明细）
-                    loadInventoryDetail();
                 } else {
                     $('#inventoryEmptyState').show();
-                    // 即使没有汇总数据，也尝试显示明细（可能存在历史数据）
-                    // Even without summary data, try to show details (may have historical data)
-                    loadInventoryDetail();
                 }
             },
             error: function () {
@@ -1292,7 +1299,10 @@
 
     // 加载库存明细
     function loadInventoryDetail() {
-        $('#inventoryDetailSection').show();
+        // 显示加载状态
+        $('#inventoryDetailLoading').show();
+        $('#inventoryDetailTable').hide();
+        $('#inventoryPaginationContainer').hide();
 
         $.ajax({
             url: '@Url.Action("GetBaseWarehouseInventoryDetail", "Staff")',
@@ -1307,13 +1317,30 @@
                 if (response.success) {
                     displayInventoryDetail(response.data);
                 } else {
-                    InventoryManager.showError('加载库存明细失败: ' + response.message);
+                    showInventoryDetailError('加载库存明细失败: ' + response.message);
                 }
             },
             error: function () {
-                InventoryManager.showError('加载库存明细失败，请稍后重试');
+                showInventoryDetailError('加载库存明细失败，请稍后重试');
+            },
+            complete: function () {
+                $('#inventoryDetailLoading').hide();
+                $('#inventoryDetailTable').show();
             }
         });
+    }
+
+    // 显示库存明细错误信息
+    function showInventoryDetailError(message) {
+        var tbody = $('#inventoryDetailTableBody');
+        tbody.empty();
+        var errorRow = $('<tr>').append(
+            $('<td>').attr('colspan', '6').addClass('empty-details-message').html(
+                '<i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i> ' + escapeHtml(message)
+            )
+        );
+        tbody.append(errorRow);
+        $('#inventoryPaginationContainer').hide();
     }
 
     // 显示库存明细
@@ -1467,12 +1494,7 @@
         // Automatically load all real-time data (same effect as clicking refresh buttons)
         loadCompletedTransportOrders();  // 加载待入库运输单
         loadWarehouseReceipts();         // 加载入库记录
-        loadInventorySummary();          // 加载库存汇总
-        
-        // 页面加载时立即显示库存明细，确保用户进入页面时就能看到数据
-        // （注意：loadInventorySummary 的 AJAX 回调也会刷新明细，但此处的调用确保立即显示）
-        // Immediately show inventory details on page load, ensuring users see data right away
-        // (Note: loadInventorySummary's AJAX callback also refreshes details, but this call ensures immediate display)
-        loadInventoryDetail();
+        loadInventorySummary();          // 加载库存汇总（独立板块）
+        loadInventoryDetail();           // 加载库存明细（独立板块）
     });
 </script>
