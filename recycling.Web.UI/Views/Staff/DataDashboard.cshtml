@@ -380,6 +380,11 @@
             height: 250px;
         }
     }
+
+    .no-data-message {
+        text-align: center;
+        color: #999;
+    }
 </style>
 
 <div id="loadingOverlay" class="loading-overlay">
@@ -646,9 +651,9 @@
             $('#processedFeedbacks').text('0');
 
             // Update tables with no data message
-            $('#topRecyclersTable tbody').html('<tr><td colspan="4" style="text-align:center;color:#999;">暂无数据</td></tr>');
-            $('#regionTable tbody').html('<tr><td colspan="3" style="text-align:center;color:#999;">暂无数据</td></tr>');
-            $('#inventoryTable tbody').html('<tr><td colspan="2" style="text-align:center;color:#999;">暂无数据</td></tr>');
+            $('#topRecyclersTable tbody').html('<tr><td colspan="4" class="no-data-message">暂无数据</td></tr>');
+            $('#regionTable tbody').html('<tr><td colspan="3" class="no-data-message">暂无数据</td></tr>');
+            $('#inventoryTable tbody').html('<tr><td colspan="2" class="no-data-message">暂无数据</td></tr>');
 
             // Update last updated time
             $('#lastUpdatedTime').text(new Date().toLocaleString('zh-CN'));

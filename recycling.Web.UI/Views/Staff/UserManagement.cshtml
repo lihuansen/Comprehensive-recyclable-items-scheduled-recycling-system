@@ -479,7 +479,8 @@
                     $('#newUsersLastMonth').text(data.NewUsersLastMonth || 0);
 
                     // Monthly growth rate
-                    var growthRate = parseFloat(data.MonthlyGrowthRate) || 0;
+                    var growthRate = parseFloat(data.MonthlyGrowthRate);
+                    if (isNaN(growthRate)) growthRate = 0;
                     var growthClass = growthRate >= 0 ? 'growth-positive' : 'growth-negative';
                     var growthIcon = growthRate >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
                     $('#monthlyGrowth').html(
@@ -528,7 +529,14 @@
         $('#completedOrders').text('0');
         $('#ordersThisMonth').text('0');
         $('#newUsersLastMonth').text('0');
-        $('#monthlyGrowth').html('0.0%');
+        
+        // Monthly growth rate with consistent HTML structure
+        $('#monthlyGrowth').html(
+            '0.0%' +
+            '<span class="growth-indicator growth-positive">' +
+            '<i class="fas fa-minus"></i>' +
+            '</span>'
+        );
 
         // Clear loading indicators for lists
         $('#regionDistributionList').html('<div class="text-center text-muted">暂无区域数据</div>');
