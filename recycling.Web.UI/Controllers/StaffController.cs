@@ -2340,12 +2340,6 @@ namespace recycling.Web.UI.Controllers
         {
             try
             {
-                // Permission check
-                if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
-                {
-                    return JsonContent(new { success = false, message = "权限不足" });
-                }
-
                 var stats = _adminBLL.GetUserDashboardStatistics();
                 return JsonContent(new { success = true, data = stats });
             }
