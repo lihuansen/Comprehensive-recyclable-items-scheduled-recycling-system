@@ -273,6 +273,11 @@ namespace recycling.DAL
                 {
                     growthRate = ((decimal)(thisMonth - lastMonth) / lastMonth) * 100;
                 }
+                else if (lastMonth == 0 && thisMonth > 0)
+                {
+                    // Growth from 0 to positive - represent as 100% growth
+                    growthRate = 100;
+                }
                 stats["MonthlyGrowthRate"] = growthRate;
             }
 

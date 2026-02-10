@@ -429,6 +429,8 @@
     var activeInactivePieChart = null;
     // Configurable region prefix for display
     var REGION_PREFIX = '广东省深圳市罗湖区';
+    // Minimum bar width percentage for visibility
+    var MIN_BAR_WIDTH_PERCENT = 5;
 
     $(document).ready(function () {
         loadDashboardStatistics();
@@ -638,7 +640,7 @@
                         <span>${count} 用户</span>
                     </div>
                     <div class="region-bar">
-                        <div class="region-bar-fill" style="width: ${Math.max(percentage, 5)}%;">
+                        <div class="region-bar-fill" style="width: ${Math.max(percentage, MIN_BAR_WIDTH_PERCENT)}%;">
                             ${percentage}%
                         </div>
                     </div>
