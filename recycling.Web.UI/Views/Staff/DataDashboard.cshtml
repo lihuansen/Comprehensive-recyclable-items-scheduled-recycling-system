@@ -380,6 +380,11 @@
             height: 250px;
         }
     }
+
+    .no-data-message {
+        text-align: center;
+        color: #999;
+    }
 </style>
 
 <div id="loadingOverlay" class="loading-overlay">
@@ -602,16 +607,56 @@
                     if (response.success) {
                         updateDashboard(response.data);
                     } else {
-                        alert('加载数据失败: ' + response.message);
+                        // Show fallback values when API returns error
+                        showFallbackDashboard();
+                        console.error('加载数据失败: ' + response.message);
                     }
                 },
                 error: function () {
-                    alert('网络错误，请稍后重试');
+                    // Show fallback values on network error
+                    showFallbackDashboard();
+                    console.error('网络错误，请稍后重试');
                 },
                 complete: function () {
                     $('#loadingOverlay').hide();
                 }
             });
+        }
+
+        function showFallbackDashboard() {
+            // Set fallback values for key metrics
+            $('#totalUsers').text('0');
+            $('#newUsersThisMonth').text('本月新增: 0');
+            $('#totalRecyclers').text('0');
+            $('#availableRecyclers').text('当前可接单: 0');
+            $('#totalOrders').text('0');
+            $('#ordersThisMonth').text('本月订单: 0');
+            $('#totalWeight').text('0');
+            $('#weightThisMonth').text('本月回收: 0kg');
+
+            // Set fallback values for summary cards
+            $('#activeUsersThisWeek').text('0');
+            $('#avgRecyclerRating').text('0.00');
+            $('#pendingOrders').text('0');
+            $('#inProgressOrders').text('0');
+            $('#totalRevenue').text('¥0.00');
+            $('#pendingFeedbacks').text('0');
+
+            // Set fallback values for system overview
+            $('#totalAdmins').text('0');
+            $('#activeAdmins').text('0');
+            $('#totalReviews').text('0');
+            $('#avgReviewRating').text('0.00 分');
+            $('#totalFeedbacks').text('0');
+            $('#processedFeedbacks').text('0');
+
+            // Update tables with no data message
+            $('#topRecyclersTable tbody').html('<tr><td colspan="4" class="no-data-message">暂无数据</td></tr>');
+            $('#regionTable tbody').html('<tr><td colspan="3" class="no-data-message">暂无数据</td></tr>');
+            $('#inventoryTable tbody').html('<tr><td colspan="2" class="no-data-message">暂无数据</td></tr>');
+
+            // Update last updated time
+            $('#lastUpdatedTime').text(new Date().toLocaleString('zh-CN'));
         }
 
         function updateDashboard(data) {

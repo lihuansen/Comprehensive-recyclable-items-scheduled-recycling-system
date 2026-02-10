@@ -466,20 +466,21 @@
                     var data = response.data;
 
                     // Basic stats
-                    $('#totalUsers').text(data.TotalUsers);
-                    $('#activeUsers').text(data.ActiveUsers);
-                    $('#inactiveUsers').text(data.InactiveUsers);
-                    $('#newUsersThisMonth').text(data.NewUsersThisMonth);
-                    $('#newUsersToday').text(data.NewUsersToday);
-                    $('#totalOrders').text(data.TotalOrders);
+                    $('#totalUsers').text(data.TotalUsers || 0);
+                    $('#activeUsers').text(data.ActiveUsers || 0);
+                    $('#inactiveUsers').text(data.InactiveUsers || 0);
+                    $('#newUsersThisMonth').text(data.NewUsersThisMonth || 0);
+                    $('#newUsersToday').text(data.NewUsersToday || 0);
+                    $('#totalOrders').text(data.TotalOrders || 0);
 
                     // Extended stats
-                    $('#completedOrders').text(data.CompletedOrders);
-                    $('#ordersThisMonth').text(data.OrdersThisMonth);
-                    $('#newUsersLastMonth').text(data.NewUsersLastMonth);
+                    $('#completedOrders').text(data.CompletedOrders || 0);
+                    $('#ordersThisMonth').text(data.OrdersThisMonth || 0);
+                    $('#newUsersLastMonth').text(data.NewUsersLastMonth || 0);
 
                     // Monthly growth rate
                     var growthRate = parseFloat(data.MonthlyGrowthRate);
+                    if (isNaN(growthRate)) growthRate = 0;
                     var growthClass = growthRate >= 0 ? 'growth-positive' : 'growth-negative';
                     var growthIcon = growthRate >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
                     $('#monthlyGrowth').html(
@@ -500,12 +501,46 @@
 
                     // User ranking
                     renderUserRanking(data.UserRanking);
+                } else {
+                    // Handle API error - show zero values instead of loading indicators
+                    showDashboardFallbackValues();
+                    console.error('API returned error: ' + (response.message || 'Unknown error'));
                 }
             },
             error: function () {
+                // Handle network error - show zero values instead of loading indicators
+                showDashboardFallbackValues();
                 console.error('Failed to load dashboard statistics');
             }
         });
+    }
+
+    // Show fallback values when dashboard data fails to load
+    function showDashboardFallbackValues() {
+        // Basic stats
+        $('#totalUsers').text('0');
+        $('#activeUsers').text('0');
+        $('#inactiveUsers').text('0');
+        $('#newUsersThisMonth').text('0');
+        $('#newUsersToday').text('0');
+        $('#totalOrders').text('0');
+
+        // Extended stats
+        $('#completedOrders').text('0');
+        $('#ordersThisMonth').text('0');
+        $('#newUsersLastMonth').text('0');
+        
+        // Monthly growth rate with consistent HTML structure
+        $('#monthlyGrowth').html(
+            '0.0%' +
+            '<span class="growth-indicator growth-positive">' +
+            '<i class="fas fa-minus"></i>' +
+            '</span>'
+        );
+
+        // Clear loading indicators for lists
+        $('#regionDistributionList').html('<div class="text-center text-muted">暂无区域数据</div>');
+        $('#userRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
     }
 
     // Render registration trend line chart
