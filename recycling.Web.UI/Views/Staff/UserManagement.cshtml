@@ -33,6 +33,12 @@
         color: #667eea;
     }
 
+    .stats-number-small {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+    }
+
     .stats-label {
         color: #666;
         font-size: 14px;
@@ -87,33 +93,268 @@
         margin-top: 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+
+    /* Dashboard styles */
+    .dashboard-section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .dashboard-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 8px;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .ranking-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .ranking-item:last-child {
+        border-bottom: none;
+    }
+
+    .ranking-number {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 12px;
+    }
+
+    .ranking-1 {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: white;
+    }
+
+    .ranking-2 {
+        background: linear-gradient(135deg, #C0C0C0, #A8A8A8);
+        color: white;
+    }
+
+    .ranking-3 {
+        background: linear-gradient(135deg, #CD7F32, #B87333);
+        color: white;
+    }
+
+    .ranking-other {
+        background: #f0f0f0;
+        color: #666;
+    }
+
+    .ranking-info {
+        flex: 1;
+    }
+
+    .ranking-name {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .ranking-detail {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .ranking-orders {
+        font-weight: bold;
+        color: #667eea;
+        text-align: right;
+    }
+
+    .region-bar {
+        background: #f5f5f5;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        overflow: hidden;
+    }
+
+    .region-bar-fill {
+        height: 24px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+        color: white;
+        font-size: 12px;
+        min-width: 60px;
+    }
+
+    .region-bar-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 2px;
+    }
+
+    .stats-card-mini {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .stats-card-mini .stats-number-small {
+        font-size: 20px;
+    }
+
+    .toggle-dashboard-btn {
+        margin-left: 15px;
+    }
+
+    .growth-indicator {
+        font-size: 14px;
+        margin-left: 10px;
+    }
+
+    .growth-positive {
+        color: #28a745;
+    }
+
+    .growth-negative {
+        color: #dc3545;
+    }
 </style>
 
 <div class="container-fluid">
     <!-- Header -->
     <div class="admin-header">
-        <h2><i class="fas fa-users"></i> 用户管理</h2>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">查看和管理系统中的所有用户</p>
+        <h2>
+            <i class="fas fa-users"></i> 用户管理
+            <button class="btn btn-sm btn-default toggle-dashboard-btn" onclick="toggleDashboard()">
+                <i class="fas fa-chart-bar"></i> <span id="toggleBtnText">隐藏数据看板</span>
+            </button>
+        </h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">查看和管理系统中的所有用户、数据分析看板</p>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row" id="statsCards">
-        <div class="col-md-4">
-            <div class="stats-card">
-                <div class="stats-number" id="totalUsers">--</div>
-                <div class="stats-label"><i class="fas fa-user"></i> 总用户数</div>
+    <!-- 数据看板区域 -->
+    <div id="dashboardSection">
+        <!-- 第一行：基本统计卡片 -->
+        <div class="row" id="statsCards">
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="totalUsers">--</div>
+                    <div class="stats-label"><i class="fas fa-users"></i> 总用户数</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="activeUsers">--</div>
+                    <div class="stats-label"><i class="fas fa-user-check"></i> 活跃用户</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="inactiveUsers">--</div>
+                    <div class="stats-label"><i class="fas fa-user-times"></i> 不活跃用户</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="newUsersThisMonth">--</div>
+                    <div class="stats-label"><i class="fas fa-user-plus"></i> 本月新增</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="newUsersToday">--</div>
+                    <div class="stats-label"><i class="fas fa-calendar-day"></i> 今日新增</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="totalOrders">--</div>
+                    <div class="stats-label"><i class="fas fa-shopping-cart"></i> 总订单数</div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="stats-card">
-                <div class="stats-number" id="newUsersThisMonth">--</div>
-                <div class="stats-label"><i class="fas fa-user-plus"></i> 本月新增</div>
+
+        <!-- 第二行：扩展统计指标 -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="completedOrders">--</div>
+                    <div class="stats-label"><i class="fas fa-check-circle"></i> 已完成订单</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="ordersThisMonth">--</div>
+                    <div class="stats-label"><i class="fas fa-calendar-alt"></i> 本月订单</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="newUsersLastMonth">--</div>
+                    <div class="stats-label"><i class="fas fa-history"></i> 上月新增</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="monthlyGrowth">--</div>
+                    <div class="stats-label"><i class="fas fa-chart-line"></i> 月增长率</div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="stats-card">
-                <div class="stats-number" id="activeUsers">--</div>
-                <div class="stats-label"><i class="fas fa-user-check"></i> 活跃用户(30天内)</div>
+
+        <!-- 第三行：用户注册趋势、区域分布 -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-chart-line"></i> 近30天用户注册趋势</div>
+                    <div class="chart-container">
+                        <canvas id="registrationTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-chart-pie"></i> 活跃用户分布</div>
+                    <div class="chart-container">
+                        <canvas id="activeInactivePieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四行：区域分布和用户排名 -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-map-marker-alt"></i> 用户区域分布</div>
+                    <div id="regionDistributionList" style="max-height: 300px; overflow-y: auto;">
+                        <div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-trophy"></i> 用户活跃度排名（按订单数）</div>
+                    <div class="ranking-list" id="userRankingList">
+                        <div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -178,173 +419,406 @@
 </div>
 
 @section Scripts {
-    <script>
-        var currentPage = 1;
-        var pageSize = 20;
-        var searchTerm = '';
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-N8+bLYT8eLKTJXLJp/s0aM+pOHFjz0iqXR6xQSyJo+qNeDuAhTwD7WBmETcNpZ/p" crossorigin="anonymous"></script>
+<script>
+    var currentPage = 1;
+    var pageSize = 20;
+    var searchTerm = '';
+    var dashboardVisible = true;
+    var registrationTrendChart = null;
+    var activeInactivePieChart = null;
+    // Configurable region prefix for display
+    var REGION_PREFIX = '广东省深圳市罗湖区';
 
-        $(document).ready(function () {
-            loadStatistics();
-            loadUsers();
+    $(document).ready(function () {
+        loadDashboardStatistics();
+        loadUsers();
 
-            // Enter key search
-            $('#searchInput').keypress(function (e) {
-                if (e.which == 13) {
-                    searchUsers();
+        // Enter key search
+        $('#searchInput').keypress(function (e) {
+            if (e.which == 13) {
+                searchUsers();
+            }
+        });
+    });
+
+    // Toggle dashboard visibility
+    function toggleDashboard() {
+        dashboardVisible = !dashboardVisible;
+        if (dashboardVisible) {
+            $('#dashboardSection').slideDown();
+            $('#toggleBtnText').text('隐藏数据看板');
+        } else {
+            $('#dashboardSection').slideUp();
+            $('#toggleBtnText').text('显示数据看板');
+        }
+    }
+
+    // Load comprehensive dashboard statistics
+    function loadDashboardStatistics() {
+        $.ajax({
+            url: '@Url.Action("GetUserDashboardStatistics", "Staff")',
+            type: 'GET',
+            success: function (response) {
+                if (response.success) {
+                    var data = response.data;
+
+                    // Basic stats
+                    $('#totalUsers').text(data.TotalUsers);
+                    $('#activeUsers').text(data.ActiveUsers);
+                    $('#inactiveUsers').text(data.InactiveUsers);
+                    $('#newUsersThisMonth').text(data.NewUsersThisMonth);
+                    $('#newUsersToday').text(data.NewUsersToday);
+                    $('#totalOrders').text(data.TotalOrders);
+
+                    // Extended stats
+                    $('#completedOrders').text(data.CompletedOrders);
+                    $('#ordersThisMonth').text(data.OrdersThisMonth);
+                    $('#newUsersLastMonth').text(data.NewUsersLastMonth);
+
+                    // Monthly growth rate
+                    var growthRate = parseFloat(data.MonthlyGrowthRate);
+                    var growthClass = growthRate >= 0 ? 'growth-positive' : 'growth-negative';
+                    var growthIcon = growthRate >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+                    $('#monthlyGrowth').html(
+                        growthRate.toFixed(1) + '%' +
+                        '<span class="growth-indicator ' + growthClass + '">' +
+                        '<i class="fas ' + growthIcon + '"></i>' +
+                        '</span>'
+                    );
+
+                    // Registration trend chart
+                    renderRegistrationTrendChart(data.RegistrationTrend);
+
+                    // Active/Inactive pie chart
+                    renderActiveInactivePieChart(data.ActiveInactiveDistribution);
+
+                    // Region distribution
+                    renderRegionDistribution(data.RegionDistribution);
+
+                    // User ranking
+                    renderUserRanking(data.UserRanking);
                 }
-            });
+            },
+            error: function () {
+                console.error('Failed to load dashboard statistics');
+            }
+        });
+    }
+
+    // Render registration trend line chart
+    function renderRegistrationTrendChart(trendData) {
+        if (!trendData || trendData.length === 0) {
+            return;
+        }
+
+        var ctx = document.getElementById('registrationTrendChart').getContext('2d');
+
+        // Destroy existing chart if exists
+        if (registrationTrendChart) {
+            registrationTrendChart.destroy();
+        }
+
+        var labels = trendData.map(function (d) { return d.Date; });
+        var data = trendData.map(function (d) { return d.UserCount; });
+
+        registrationTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '新增用户',
+                    data: data,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Render active/inactive pie chart
+    function renderActiveInactivePieChart(distribution) {
+        if (!distribution || distribution.length === 0) {
+            return;
+        }
+
+        var ctx = document.getElementById('activeInactivePieChart').getContext('2d');
+
+        // Destroy existing chart if exists
+        if (activeInactivePieChart) {
+            activeInactivePieChart.destroy();
+        }
+
+        var labels = distribution.map(function (d) { return d.Status; });
+        var data = distribution.map(function (d) { return d.Count; });
+
+        activeInactivePieChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['#28a745', '#6c757d'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                var total = context.dataset.data.reduce(function (a, b) { return a + b; }, 0);
+                                var value = context.raw;
+                                var percentage = ((value / total) * 100).toFixed(1);
+                                return context.label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Render region distribution bars
+    function renderRegionDistribution(regions) {
+        var container = $('#regionDistributionList');
+        container.empty();
+
+        if (!regions || regions.length === 0) {
+            container.html('<div class="text-center text-muted">暂无区域数据</div>');
+            return;
+        }
+
+        // Find max count for percentage calculation
+        var maxCount = Math.max.apply(null, regions.map(function (r) { return r.UserCount; }));
+        if (maxCount === 0) maxCount = 1;
+
+        regions.forEach(function (item) {
+            var count = item.UserCount;
+            var percentage = (count / maxCount * 100).toFixed(0);
+            // Extract street name from full region name using configurable prefix
+            var displayRegion = item.Region;
+            if (item.Region.indexOf(REGION_PREFIX) === 0) {
+                displayRegion = item.Region.replace(REGION_PREFIX, '');
+            }
+
+            container.append(`
+                <div style="margin-bottom: 10px;">
+                    <div class="region-bar-label">
+                        <span>${displayRegion}</span>
+                        <span>${count} 用户</span>
+                    </div>
+                    <div class="region-bar">
+                        <div class="region-bar-fill" style="width: ${Math.max(percentage, 5)}%;">
+                            ${percentage}%
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    // Render user ranking list
+    function renderUserRanking(rankings) {
+        var container = $('#userRankingList');
+        container.empty();
+
+        if (!rankings || rankings.length === 0) {
+            container.html('<div class="text-center text-muted">暂无排名数据</div>');
+            return;
+        }
+
+        rankings.forEach(function (item) {
+            var rankClass = 'ranking-other';
+            if (item.Rank === 1) rankClass = 'ranking-1';
+            else if (item.Rank === 2) rankClass = 'ranking-2';
+            else if (item.Rank === 3) rankClass = 'ranking-3';
+
+            var lastLogin = item.LastLoginDate ? formatDate(item.LastLoginDate) : '从未登录';
+            var address = item.Address || '未填写';
+
+            container.append(`
+                <div class="ranking-item">
+                    <div class="ranking-number ${rankClass}">${item.Rank}</div>
+                    <div class="ranking-info">
+                        <div class="ranking-name">${item.Username}</div>
+                        <div class="ranking-detail">
+                            <i class="fas fa-map-marker-alt"></i> ${address} | 
+                            <i class="fas fa-clock"></i> ${lastLogin}
+                        </div>
+                    </div>
+                    <div class="ranking-orders">
+                        ${item.TotalOrders} 订单
+                        <br/>
+                        <small style="color: #28a745;">${item.CompletedOrders} 已完成</small>
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    function loadUsers() {
+        $.ajax({
+            url: '@Url.Action("GetUsers", "Staff")',
+            type: 'GET',
+            data: {
+                page: currentPage,
+                pageSize: pageSize,
+                searchTerm: searchTerm
+            },
+            success: function (response) {
+                if (response.success) {
+                    renderUsers(response.data);
+                } else {
+                    alert('加载失败: ' + response.message);
+                }
+            },
+            error: function () {
+                alert('加载用户列表失败');
+            }
+        });
+    }
+
+    function renderUsers(data) {
+        var tbody = $('#userTableBody');
+        tbody.empty();
+
+        if (data.Items.length === 0) {
+            tbody.append('<tr><td colspan="7" class="text-center">没有找到用户</td></tr>');
+            return;
+        }
+
+        data.Items.forEach(function (user) {
+            var lastLogin = user.LastLoginDate ? formatDate(user.LastLoginDate) : '从未登录';
+            var isActive = user.LastLoginDate && isWithinDays(user.LastLoginDate, 30);
+            var statusBadge = isActive ?
+                '<span class="badge badge-active">活跃</span>' :
+                '<span class="badge badge-inactive">不活跃</span>';
+
+            var row = `
+                <tr>
+                    <td>${user.UserID}</td>
+                    <td>${user.Username}</td>
+                    <td>${user.Email}</td>
+                    <td>${user.PhoneNumber}</td>
+                    <td>${formatDate(user.RegistrationDate)}</td>
+                    <td>${lastLogin}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+            tbody.append(row);
         });
 
-        function loadStatistics() {
-            $.ajax({
-                url: '@Url.Action("GetUserStatistics", "Staff")',
-                type: 'GET',
-                success: function (response) {
-                    if (response.success) {
-                        $('#totalUsers').text(response.data.TotalUsers);
-                        $('#newUsersThisMonth').text(response.data.NewUsersThisMonth);
-                        $('#activeUsers').text(response.data.ActiveUsers);
-                    }
-                },
-                error: function () {
-                    console.error('Failed to load statistics');
-                }
-            });
-        }
+        // Update pagination
+        renderPagination(data);
+    }
 
-        function loadUsers() {
-            $.ajax({
-                url: '@Url.Action("GetUsers", "Staff")',
-                type: 'GET',
-                data: {
-                    page: currentPage,
-                    pageSize: pageSize,
-                    searchTerm: searchTerm
-                },
-                success: function (response) {
-                    if (response.success) {
-                        renderUsers(response.data);
-                    } else {
-                        alert('加载失败: ' + response.message);
-                    }
-                },
-                error: function () {
-                    alert('加载用户列表失败');
-                }
-            });
-        }
+    function renderPagination(data) {
+        var pagination = $('#pagination');
+        pagination.empty();
 
-        function renderUsers(data) {
-            var tbody = $('#userTableBody');
-            tbody.empty();
+        $('#paginationInfo').html(`显示 ${(data.PageIndex - 1) * data.PageSize + 1} - ${Math.min(data.PageIndex * data.PageSize, data.TotalCount)} 条，共 ${data.TotalCount} 条`);
 
-            if (data.Items.length === 0) {
-                tbody.append('<tr><td colspan="7" class="text-center">没有找到用户</td></tr>');
-                return;
-            }
+        if (data.TotalPages <= 1) return;
 
-            data.Items.forEach(function (user) {
-                var lastLogin = user.LastLoginDate ? formatDate(user.LastLoginDate) : '从未登录';
-                var isActive = user.LastLoginDate && isWithinDays(user.LastLoginDate, 30);
-                var statusBadge = isActive ?
-                    '<span class="badge badge-active">活跃</span>' :
-                    '<span class="badge badge-inactive">不活跃</span>';
+        // Previous
+        pagination.append(`
+            <li class="${data.PageIndex == 1 ? 'disabled' : ''}">
+                <a href="#" onclick="goToPage(${data.PageIndex - 1}); return false;">上一页</a>
+            </li>
+        `);
 
-                var row = `
-                    <tr>
-                        <td>${user.UserID}</td>
-                        <td>${user.Username}</td>
-                        <td>${user.Email}</td>
-                        <td>${user.PhoneNumber}</td>
-                        <td>${formatDate(user.RegistrationDate)}</td>
-                        <td>${lastLogin}</td>
-                        <td>${statusBadge}</td>
-                    </tr>
-                `;
-                tbody.append(row);
-            });
+        // Page numbers
+        var startPage = Math.max(1, data.PageIndex - 2);
+        var endPage = Math.min(data.TotalPages, data.PageIndex + 2);
 
-            // Update pagination
-            renderPagination(data);
-        }
-
-        function renderPagination(data) {
-            var pagination = $('#pagination');
-            pagination.empty();
-
-            $('#paginationInfo').html(`显示 ${(data.PageIndex - 1) * data.PageSize + 1} - ${Math.min(data.PageIndex * data.PageSize, data.TotalCount)} 条，共 ${data.TotalCount} 条`);
-
-            if (data.TotalPages <= 1) return;
-
-            // Previous
+        for (var i = startPage; i <= endPage; i++) {
             pagination.append(`
-                <li class="${data.PageIndex == 1 ? 'disabled' : ''}">
-                    <a href="#" onclick="goToPage(${data.PageIndex - 1}); return false;">上一页</a>
-                </li>
-            `);
-
-            // Page numbers
-            var startPage = Math.max(1, data.PageIndex - 2);
-            var endPage = Math.min(data.TotalPages, data.PageIndex + 2);
-
-            for (var i = startPage; i <= endPage; i++) {
-                pagination.append(`
-                    <li class="${i == data.PageIndex ? 'active' : ''}">
-                        <a href="#" onclick="goToPage(${i}); return false;">${i}</a>
-                    </li>
-                `);
-            }
-
-            // Next
-            pagination.append(`
-                <li class="${data.PageIndex >= data.TotalPages ? 'disabled' : ''}">
-                    <a href="#" onclick="goToPage(${data.PageIndex + 1}); return false;">下一页</a>
+                <li class="${i == data.PageIndex ? 'active' : ''}">
+                    <a href="#" onclick="goToPage(${i}); return false;">${i}</a>
                 </li>
             `);
         }
 
-        function goToPage(page) {
-            currentPage = page;
-            loadUsers();
-            window.scrollTo(0, 0);
-        }
+        // Next
+        pagination.append(`
+            <li class="${data.PageIndex >= data.TotalPages ? 'disabled' : ''}">
+                <a href="#" onclick="goToPage(${data.PageIndex + 1}); return false;">下一页</a>
+            </li>
+        `);
+    }
 
-        function searchUsers() {
-            searchTerm = $('#searchInput').val();
-            currentPage = 1;
-            loadUsers();
-        }
+    function goToPage(page) {
+        currentPage = page;
+        loadUsers();
+        window.scrollTo(0, 0);
+    }
 
-        function exportUsers() {
-            var url = '@Url.Action("ExportUsers", "Staff")';
-            if (searchTerm) {
-                url += '?searchTerm=' + encodeURIComponent(searchTerm);
-            }
-            window.location.href = url;
-        }
+    function searchUsers() {
+        searchTerm = $('#searchInput').val();
+        currentPage = 1;
+        loadUsers();
+    }
 
-        function formatDate(dateString) {
-            if (!dateString) return '从未登录';
-            var date = new Date(dateString);
-            // Check if date is valid
-            if (isNaN(date.getTime())) return '无效日期';
-            return date.getFullYear() + '-' +
-                String(date.getMonth() + 1).padStart(2, '0') + '-' +
-                String(date.getDate()).padStart(2, '0') + ' ' +
-                String(date.getHours()).padStart(2, '0') + ':' +
-                String(date.getMinutes()).padStart(2, '0');
+    function exportUsers() {
+        var url = '@Url.Action("ExportUsers", "Staff")';
+        if (searchTerm) {
+            url += '?searchTerm=' + encodeURIComponent(searchTerm);
         }
+        window.location.href = url;
+    }
 
-        function isWithinDays(dateString, days) {
-            if (!dateString) return false;
-            var date = new Date(dateString);
-            // Check if date is valid
-            if (isNaN(date.getTime())) return false;
-            var now = new Date();
-            var diff = now - date; // difference in milliseconds (positive if date is in the past)
-            var daysDiff = diff / (1000 * 60 * 60 * 24);
-            // Check if date is in the past (>= 0) and within specified days (<= days)
-            return daysDiff >= 0 && daysDiff <= days;
-        }
-    </script>
+    function formatDate(dateString) {
+        if (!dateString) return '从未登录';
+        var date = new Date(dateString);
+        // Check if date is valid
+        if (isNaN(date.getTime())) return '无效日期';
+        return date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0') + ' ' +
+            String(date.getHours()).padStart(2, '0') + ':' +
+            String(date.getMinutes()).padStart(2, '0');
+    }
+
+    function isWithinDays(dateString, days) {
+        if (!dateString) return false;
+        var date = new Date(dateString);
+        // Check if date is valid
+        if (isNaN(date.getTime())) return false;
+        var now = new Date();
+        var diff = now - date; // difference in milliseconds (positive if date is in the past)
+        var daysDiff = diff / (1000 * 60 * 60 * 24);
+        // Check if date is in the past (>= 0) and within specified days (<= days)
+        return daysDiff >= 0 && daysDiff <= days;
+    }
+</script>
 }

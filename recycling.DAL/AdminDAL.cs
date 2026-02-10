@@ -112,6 +112,174 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Get comprehensive user dashboard statistics
+        /// </summary>
+        public Dictionary<string, object> GetUserDashboardStatistics()
+        {
+            var stats = new Dictionary<string, object>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // === Basic Statistics ===
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Users", conn);
+                stats["TotalUsers"] = (int)cmd.ExecuteScalar();
+
+                // Users registered this month
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
+                    WHERE YEAR(RegistrationDate) = YEAR(GETDATE()) 
+                    AND MONTH(RegistrationDate) = MONTH(GETDATE())", conn);
+                stats["NewUsersThisMonth"] = (int)cmd.ExecuteScalar();
+
+                // Users registered last month
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
+                    WHERE YEAR(RegistrationDate) = YEAR(DATEADD(month, -1, GETDATE())) 
+                    AND MONTH(RegistrationDate) = MONTH(DATEADD(month, -1, GETDATE()))", conn);
+                stats["NewUsersLastMonth"] = (int)cmd.ExecuteScalar();
+
+                // Active users (logged in last 30 days)
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
+                    WHERE LastLoginDate >= DATEADD(day, -30, GETDATE())", conn);
+                stats["ActiveUsers"] = (int)cmd.ExecuteScalar();
+
+                // Inactive users (never logged in or logged in more than 30 days ago)
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
+                    WHERE LastLoginDate IS NULL OR LastLoginDate < DATEADD(day, -30, GETDATE())", conn);
+                stats["InactiveUsers"] = (int)cmd.ExecuteScalar();
+
+                // Users registered today
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
+                    WHERE CAST(RegistrationDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
+                stats["NewUsersToday"] = (int)cmd.ExecuteScalar();
+
+                // === User Registration Trend (Last 30 days) ===
+                cmd = new SqlCommand(@"
+                    SELECT CAST(RegistrationDate AS DATE) AS RegDate, COUNT(*) AS UserCount
+                    FROM Users
+                    WHERE RegistrationDate >= DATEADD(day, -30, GETDATE())
+                    GROUP BY CAST(RegistrationDate AS DATE)
+                    ORDER BY RegDate", conn);
+
+                var registrationTrend = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        registrationTrend.Add(new Dictionary<string, object>
+                        {
+                            ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
+                            ["UserCount"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["RegistrationTrend"] = registrationTrend;
+
+                // === Regional Distribution of Users ===
+                cmd = new SqlCommand(@"
+                    SELECT u.Address, COUNT(*) AS UserCount
+                    FROM Users u
+                    WHERE u.Address IS NOT NULL AND u.Address <> ''
+                    GROUP BY u.Address
+                    ORDER BY UserCount DESC", conn);
+
+                var regionDistribution = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        regionDistribution.Add(new Dictionary<string, object>
+                        {
+                            ["Region"] = reader.GetString(0),
+                            ["UserCount"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["RegionDistribution"] = regionDistribution;
+
+                // === User Activity Ranking (by total orders) ===
+                cmd = new SqlCommand(@"
+                    SELECT TOP 10 
+                           u.UserID, 
+                           u.Username, 
+                           u.Email,
+                           u.PhoneNumber,
+                           u.Address,
+                           COUNT(a.AppointmentID) AS TotalOrders,
+                           SUM(CASE WHEN a.Status = N'已完成' THEN 1 ELSE 0 END) AS CompletedOrders,
+                           u.LastLoginDate
+                    FROM Users u
+                    LEFT JOIN Appointments a ON u.UserID = a.UserID
+                    GROUP BY u.UserID, u.Username, u.Email, u.PhoneNumber, u.Address, u.LastLoginDate
+                    ORDER BY TotalOrders DESC", conn);
+
+                var userRanking = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    int rank = 1;
+                    while (reader.Read())
+                    {
+                        userRanking.Add(new Dictionary<string, object>
+                        {
+                            ["Rank"] = rank++,
+                            ["UserID"] = reader.GetInt32(0),
+                            ["Username"] = reader.GetString(1),
+                            ["Email"] = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                            ["PhoneNumber"] = reader.IsDBNull(3) ? "" : reader.GetString(3),
+                            ["Address"] = reader.IsDBNull(4) ? "" : reader.GetString(4),
+                            ["TotalOrders"] = reader.GetInt32(5),
+                            ["CompletedOrders"] = reader.GetInt32(6),
+                            ["LastLoginDate"] = reader.IsDBNull(7) ? (object)null : reader.GetDateTime(7)
+                        });
+                    }
+                }
+                stats["UserRanking"] = userRanking;
+
+                // === Total Orders by Users ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments", conn);
+                stats["TotalOrders"] = (int)cmd.ExecuteScalar();
+
+                // Completed Orders
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已完成'", conn);
+                stats["CompletedOrders"] = (int)cmd.ExecuteScalar();
+
+                // Orders This Month
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
+                    WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
+                    AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
+                stats["OrdersThisMonth"] = (int)cmd.ExecuteScalar();
+
+                // === Active vs Inactive Distribution ===
+                var activeInactiveDistribution = new List<Dictionary<string, object>>
+                {
+                    new Dictionary<string, object>
+                    {
+                        ["Status"] = "活跃用户",
+                        ["Count"] = stats["ActiveUsers"]
+                    },
+                    new Dictionary<string, object>
+                    {
+                        ["Status"] = "不活跃用户",
+                        ["Count"] = stats["InactiveUsers"]
+                    }
+                };
+                stats["ActiveInactiveDistribution"] = activeInactiveDistribution;
+
+                // === Monthly Growth Rate ===
+                int thisMonth = (int)stats["NewUsersThisMonth"];
+                int lastMonth = (int)stats["NewUsersLastMonth"];
+                decimal growthRate = 0;
+                if (lastMonth > 0)
+                {
+                    growthRate = ((decimal)(thisMonth - lastMonth) / lastMonth) * 100;
+                }
+                stats["MonthlyGrowthRate"] = growthRate;
+            }
+
+            return stats;
+        }
+
+        /// <summary>
         /// Get all users for export (without pagination)
         /// </summary>
         public List<Users> GetAllUsersForExport(string searchTerm = null)

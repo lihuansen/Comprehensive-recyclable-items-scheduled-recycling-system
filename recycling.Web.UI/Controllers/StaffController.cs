@@ -2333,6 +2333,29 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 管理员 - 获取用户数据看板统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetUserDashboardStatistics()
+        {
+            try
+            {
+                // Permission check
+                if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
+                {
+                    return JsonContent(new { success = false, message = "权限不足" });
+                }
+
+                var stats = _adminBLL.GetUserDashboardStatistics();
+                return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 管理员 - 导出用户数据到CSV
         /// </summary>
         [HttpGet]

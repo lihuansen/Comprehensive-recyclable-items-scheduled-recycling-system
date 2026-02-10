@@ -39,6 +39,14 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// Get comprehensive user dashboard statistics
+        /// </summary>
+        public Dictionary<string, object> GetUserDashboardStatistics()
+        {
+            return _adminDAL.GetUserDashboardStatistics();
+        }
+
+        /// <summary>
         /// Get all users for export (without pagination)
         /// </summary>
         public List<Users> GetAllUsersForExport(string searchTerm = null)
