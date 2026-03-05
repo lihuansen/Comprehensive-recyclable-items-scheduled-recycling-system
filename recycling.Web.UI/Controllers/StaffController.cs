@@ -4483,16 +4483,12 @@ namespace recycling.Web.UI.Controllers
 
             if (result.Success)
             {
-                TempData["SuccessMessage"] = result.Message;
-                
-                // 更新Session中的数据
-                var updatedTransporter = _staffBLL.GetTransporterById(transporter.TransporterID);
-                if (updatedTransporter != null)
-                {
-                    Session["LoginStaff"] = updatedTransporter;
-                }
-                
-                return RedirectToAction("TransporterProfile");
+                // 个人信息修改成功，清除Session强制重新登录
+                Session.Clear();
+                Session.Abandon();
+
+                TempData["SuccessMessage"] = "个人信息更新成功，请重新登录";
+                return RedirectToAction("Login", "Staff");
             }
             else
             {
@@ -4612,16 +4608,12 @@ namespace recycling.Web.UI.Controllers
 
             if (result.Success)
             {
-                TempData["SuccessMessage"] = result.Message;
-                
-                // 更新Session中的数据
-                var updatedWorker = _staffBLL.GetSortingCenterWorkerById(worker.WorkerID);
-                if (updatedWorker != null)
-                {
-                    Session["LoginStaff"] = updatedWorker;
-                }
-                
-                return RedirectToAction("SortingCenterWorkerProfile");
+                // 个人信息修改成功，清除Session强制重新登录
+                Session.Clear();
+                Session.Abandon();
+
+                TempData["SuccessMessage"] = "个人信息更新成功，请重新登录";
+                return RedirectToAction("Login", "Staff");
             }
             else
             {
