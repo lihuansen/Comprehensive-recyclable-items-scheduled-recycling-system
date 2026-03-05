@@ -732,6 +732,14 @@
                             <span class="detail-value rollback-reason-text" id="detailRollbackReason"></span>
                         </div>
                     </div>
+
+                    <!-- 物品图片 -->
+                    <div class="detail-section" id="pictureSection" style="display: none;">
+                        <h6 class="section-title">
+                            <i class="fas fa-images"></i>物品图片
+                        </h6>
+                        <div id="detailPictures" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1331,6 +1339,23 @@
                 }
             } else {
                 rollbackReasonSection.style.display = 'none';
+            }
+
+            // 显示物品图片
+            const pictureSection = document.getElementById('pictureSection');
+            const picturesContainer = document.getElementById('detailPictures');
+            picturesContainer.innerHTML = '';
+
+            if (order.pictureUrls && order.pictureUrls.length > 0) {
+                order.pictureUrls.forEach(url => {
+                    const imgDiv = document.createElement('div');
+                    imgDiv.style.cssText = 'position: relative; cursor: pointer;';
+                    imgDiv.innerHTML = `<img src="${url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;" onclick="window.open('${url}', '_blank')">`;
+                    picturesContainer.appendChild(imgDiv);
+                });
+                pictureSection.style.display = 'block';
+            } else {
+                pictureSection.style.display = 'none';
             }
         }
 

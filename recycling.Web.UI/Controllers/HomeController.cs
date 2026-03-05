@@ -226,7 +226,10 @@ namespace recycling.Web.UI.Controllers
                         updatedDate = orderDetail.Appointment.UpdatedDate?.ToString("yyyy年MM月dd日 HH:mm") ?? "",
                         recyclerID = orderDetail.Appointment.RecyclerID,
                         recyclerName = orderDetail.RecyclerName,
-                        rollbackReason = orderDetail.Appointment.RollbackReason
+                        rollbackReason = orderDetail.Appointment.RollbackReason,
+                        pictureUrls = string.IsNullOrEmpty(orderDetail.Appointment.PictureUrl) 
+                            ? new string[0] 
+                            : orderDetail.Appointment.PictureUrl.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     },
                     categories = orderDetail.Categories.Select(c => new
                     {

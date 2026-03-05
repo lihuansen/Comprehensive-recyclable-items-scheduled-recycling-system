@@ -652,7 +652,7 @@
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
                     <div class="image-upload-text">点击上传物品图片</div>
-                    <div class="image-upload-hint">支持 JPG、PNG 格式，最多5张图片，每张不超过5MB</div>
+                    <div class="image-upload-hint">支持 JPG、PNG 格式，最多6张图片，每张不超过5MB</div>
                     <input type="file" id="imageUpload" name="Images" multiple accept="image/*" style="display: none;" onchange="handleImageSelection(this)">
                 </div>
                 <div id="imagePreview" style="margin-top: 15px;"></div>
@@ -1030,8 +1030,8 @@
             preview.innerHTML = '';
 
             if (input.files && input.files.length > 0) {
-                if (input.files.length > 5) {
-                    alert('最多只能上传5张图片');
+                if (input.files.length > 6) {
+                    alert('最多只能上传6张图片');
                     input.value = '';
                     return;
                 }

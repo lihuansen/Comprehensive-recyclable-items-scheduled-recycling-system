@@ -34,6 +34,11 @@ namespace recycling.Model
         public string RollbackReason { get; set; }
         
         /// <summary>
+        /// 物品图片URL（多张图片以逗号分隔，最多6张）
+        /// </summary>
+        public string PictureUrl { get; set; }
+        
+        /// <summary>
         /// 品类详细信息列表（包含用户填写的问题答案）
         /// </summary>
         public List<CategoryDetailInfo> Categories { get; set; } = new List<CategoryDetailInfo>();
