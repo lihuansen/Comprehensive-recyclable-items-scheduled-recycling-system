@@ -171,7 +171,7 @@ namespace recycling.Web.UI.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = "若该手机号已注册，验证码已生成（5分钟内有效）",
+                    message = "若该手机号已注册，验证码已生成",
                     debugCode = code // 测试环境显示验证码
                 });
             }
@@ -255,7 +255,7 @@ namespace recycling.Web.UI.Controllers
 
                 // 3. 中性提示（不泄露邮箱是否注册）
                 string message = isSent
-                    ? "若该邮箱已注册，验证码已发送至您的邮箱（5分钟内有效）"
+                    ? "若该邮箱已注册，验证码已发送至您的邮箱"
                     : "发送失败，请稍后重试";
 
                 // 4. 测试环境仍返回验证码（便于调试）
@@ -379,7 +379,7 @@ namespace recycling.Web.UI.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = "若该手机号已注册，验证码已生成（5分钟内有效）",
+                    message = "若该手机号已注册，验证码已生成",
                     debugCode = code // 测试环境显示验证码
                 });
             }
