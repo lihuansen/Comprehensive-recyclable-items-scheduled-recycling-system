@@ -414,12 +414,12 @@ namespace recycling.Web.UI.Controllers
                     return View(model);
                 }
 
-                // 更新成功后，重新从数据库获取用户信息并更新Session
-                var updatedUser = _userBLL.GetUserById(user.UserID);
-                Session["LoginUser"] = updatedUser;
+                // 个人信息修改成功，清除Session强制重新登录
+                Session.Clear();
+                Session.Abandon();
 
-                TempData["SuccessMessage"] = "个人信息更新成功";
-                return RedirectToAction("Profile");
+                TempData["SuccessMessage"] = "个人信息更新成功，请重新登录";
+                return RedirectToAction("Login", "User");
             }
             catch (Exception ex)
             {
