@@ -26,12 +26,12 @@ namespace recycling.DAL
 INSERT INTO Appointments (
     UserID, AppointmentType, AppointmentDate, TimeSlot, EstimatedWeight, 
     IsUrgent, Address, ContactName, ContactPhone, SpecialInstructions, 
-    EstimatedPrice, Status, CreatedDate, UpdatedDate
+    EstimatedPrice, Status, CreatedDate, UpdatedDate, PictureUrl
 ) 
 VALUES (
     @UserID, @AppointmentType, @AppointmentDate, @TimeSlot, @EstimatedWeight,
     @IsUrgent, @Address, @ContactName, @ContactPhone, @SpecialInstructions,
-    @EstimatedPrice, @Status, @CreatedDate, @UpdatedDate
+    @EstimatedPrice, @Status, @CreatedDate, @UpdatedDate, @PictureUrl
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -50,6 +50,7 @@ SELECT SCOPE_IDENTITY();";
                 cmd.Parameters.AddWithValue("@Status", appointment.Status);
                 cmd.Parameters.AddWithValue("@CreatedDate", appointment.CreatedDate);
                 cmd.Parameters.AddWithValue("@UpdatedDate", appointment.UpdatedDate);
+                cmd.Parameters.AddWithValue("@PictureUrl", (object)appointment.PictureUrl ?? DBNull.Value);
 
                 conn.Open();
                 return Convert.ToInt32(cmd.ExecuteScalar());
@@ -103,12 +104,12 @@ VALUES (
 INSERT INTO Appointments (
     UserID, AppointmentType, AppointmentDate, TimeSlot, EstimatedWeight, 
     IsUrgent, Address, ContactName, ContactPhone, SpecialInstructions, 
-    EstimatedPrice, Status, CreatedDate, UpdatedDate
+    EstimatedPrice, Status, CreatedDate, UpdatedDate, PictureUrl
 ) 
 VALUES (
     @UserID, @AppointmentType, @AppointmentDate, @TimeSlot, @EstimatedWeight,
     @IsUrgent, @Address, @ContactName, @ContactPhone, @SpecialInstructions,
-    @EstimatedPrice, @Status, @CreatedDate, @UpdatedDate
+    @EstimatedPrice, @Status, @CreatedDate, @UpdatedDate, @PictureUrl
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -127,6 +128,7 @@ SELECT SCOPE_IDENTITY();";
                         appointmentCmd.Parameters.AddWithValue("@Status", appointment.Status);
                         appointmentCmd.Parameters.AddWithValue("@CreatedDate", appointment.CreatedDate);
                         appointmentCmd.Parameters.AddWithValue("@UpdatedDate", appointment.UpdatedDate);
+                        appointmentCmd.Parameters.AddWithValue("@PictureUrl", (object)appointment.PictureUrl ?? DBNull.Value);
 
                         int appointmentId = Convert.ToInt32(appointmentCmd.ExecuteScalar());
 

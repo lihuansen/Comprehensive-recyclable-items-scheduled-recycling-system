@@ -590,6 +590,38 @@ namespace recycling.Web.UI.Controllers
                 Session["AppointmentBasicInfo"] = model;
                 Session["CategoryDetailModel"] = detailModel;
 
+                // 处理图片上传（保存到磁盘并存储URL到Session）
+                var imageUrls = new List<string>();
+                if (model.Images != null && model.Images.Count > 0)
+                {
+                    string[] allowedExtensions = { ".jpg", ".jpeg", ".png" };
+                    int maxImages = 6;
+                    int savedCount = 0;
+
+                    string uploadPath = Server.MapPath("~/Uploads/Appointments/");
+                    if (!System.IO.Directory.Exists(uploadPath))
+                    {
+                        System.IO.Directory.CreateDirectory(uploadPath);
+                    }
+
+                    foreach (var image in model.Images)
+                    {
+                        if (image != null && image.ContentLength > 0 && savedCount < maxImages)
+                        {
+                            string fileExtension = System.IO.Path.GetExtension(image.FileName).ToLower();
+                            if (allowedExtensions.Contains(fileExtension) && image.ContentLength <= 5 * 1024 * 1024)
+                            {
+                                string fileName = $"apt_{user.UserID}_{DateTime.Now.Ticks}_{savedCount}{fileExtension}";
+                                string filePath = System.IO.Path.Combine(uploadPath, fileName);
+                                image.SaveAs(filePath);
+                                imageUrls.Add($"/Uploads/Appointments/{fileName}");
+                                savedCount++;
+                            }
+                        }
+                    }
+                }
+                Session["AppointmentImageUrls"] = imageUrls.Count > 0 ? string.Join(",", imageUrls) : null;
+
                 return RedirectToAction("CategoryDetails");
             }
             catch (Exception ex)
@@ -772,7 +804,8 @@ namespace recycling.Web.UI.Controllers
                 {
                     BasicInfo = basicInfo,
                     CategoryAnswers = categoryAnswers,
-                    FinalPrice = finalPrice
+                    FinalPrice = finalPrice,
+                    PictureUrl = Session["AppointmentImageUrls"] as string
                 };
 
                 // 提交到数据库
@@ -790,6 +823,7 @@ namespace recycling.Web.UI.Controllers
                 // 清除Session中的临时数据
                 Session.Remove("AppointmentBasicInfo");
                 Session.Remove("CategoryDetailModel");
+                Session.Remove("AppointmentImageUrls");
 
                 TempData["SuccessMessage"] = $"预约成功！预约号：#AP{appointmentId:D6}，预估价格：¥{finalPrice:F2}。我们将在24小时内与您确认。";
 

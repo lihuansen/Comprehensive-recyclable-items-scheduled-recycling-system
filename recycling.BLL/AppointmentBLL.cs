@@ -39,7 +39,8 @@ namespace recycling.BLL
                     EstimatedPrice = submission.FinalPrice,
                     Status = "已预约",
                     CreatedDate = DateTime.Now,
-                    UpdatedDate = DateTime.Now
+                    UpdatedDate = DateTime.Now,
+                    PictureUrl = submission.PictureUrl
                 };
 
                 System.Diagnostics.Debug.WriteLine($"创建Appointment对象: UserID={appointment.UserID}, Type={appointment.AppointmentType}");

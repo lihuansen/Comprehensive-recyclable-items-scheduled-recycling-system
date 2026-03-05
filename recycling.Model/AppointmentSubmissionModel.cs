@@ -11,5 +11,6 @@ namespace recycling.Model
         public AppointmentViewModel BasicInfo { get; set; }
         public Dictionary<string, Dictionary<string, string>> CategoryAnswers { get; set; }
         public decimal FinalPrice { get; set; }
+        public string PictureUrl { get; set; }
     }
 }

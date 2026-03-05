@@ -157,7 +157,8 @@ ORDER BY ac.CategoryID";
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     UpdatedDate = Convert.ToDateTime(reader["UpdatedDate"]),
                                     RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"]),
-                                    RollbackReason = GetColumnValue<string>(reader, "RollbackReason")
+                                    RollbackReason = GetColumnValue<string>(reader, "RollbackReason"),
+                                    PictureUrl = GetColumnValue<string>(reader, "PictureUrl")
                                 },
                                 RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
                                 Categories = categories

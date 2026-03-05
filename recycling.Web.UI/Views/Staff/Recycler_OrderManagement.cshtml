@@ -965,6 +965,14 @@ select.form-control::-ms-expand {
                         </h6>
                         <div id="detailCategoryQuestions"></div>
                     </div>
+
+                    <!-- 物品图片 -->
+                    <div class="detail-section" id="pictureSection" style="display: none;">
+                        <h6 class="section-title">
+                            <i class="fas fa-images"></i>物品图片
+                        </h6>
+                        <div id="detailPictures" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1716,6 +1724,33 @@ function renderOrderDetail(order) {
         }
     } else {
         categoryQuestionsSection.style.display = 'none';
+    }
+
+    // 显示物品图片
+    const pictureSection = document.getElementById('pictureSection');
+    const picturesContainer = document.getElementById('detailPictures');
+    picturesContainer.innerHTML = '';
+
+    if (order.PictureUrl && order.PictureUrl.trim() !== '') {
+        const pictureUrls = order.PictureUrl.split(',').filter(url => url.trim() !== '');
+        if (pictureUrls.length > 0) {
+            pictureUrls.forEach(url => {
+                const trimmedUrl = url.trim();
+                const imgDiv = document.createElement('div');
+                imgDiv.style.cssText = 'position: relative; cursor: pointer;';
+                const img = document.createElement('img');
+                img.src = trimmedUrl;
+                img.style.cssText = 'width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;';
+                img.addEventListener('click', function() { window.open(trimmedUrl, '_blank'); });
+                imgDiv.appendChild(img);
+                picturesContainer.appendChild(imgDiv);
+            });
+            pictureSection.style.display = 'block';
+        } else {
+            pictureSection.style.display = 'none';
+        }
+    } else {
+        pictureSection.style.display = 'none';
     }
 }
 

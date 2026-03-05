@@ -526,6 +526,7 @@ namespace recycling.DAL
                 a.CreatedDate,
                 a.UpdatedDate,
                 a.SpecialInstructions,
+                a.PictureUrl,
                 STUFF((
                     SELECT DISTINCT ', ' + ac.CategoryName
                     FROM AppointmentCategories ac
@@ -568,6 +569,7 @@ namespace recycling.DAL
                             orderDetail.UpdatedDate = reader["UpdatedDate"] == DBNull.Value ? "" : Convert.ToDateTime(reader["UpdatedDate"]).ToString("yyyy-MM-dd HH:mm");
                             orderDetail.SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? "" : reader["SpecialInstructions"].ToString();
                             orderDetail.CategoryNames = reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString();
+                            orderDetail.PictureUrl = reader["PictureUrl"] == DBNull.Value ? "" : reader["PictureUrl"].ToString();
                         }
                     }
                 }
