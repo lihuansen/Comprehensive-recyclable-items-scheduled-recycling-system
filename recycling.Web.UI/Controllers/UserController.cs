@@ -611,7 +611,7 @@ namespace recycling.Web.UI.Controllers
                             string fileExtension = System.IO.Path.GetExtension(image.FileName).ToLower();
                             if (allowedExtensions.Contains(fileExtension) && image.ContentLength <= 5 * 1024 * 1024)
                             {
-                                string fileName = $"apt_{user.UserID}_{DateTime.Now.Ticks}{fileExtension}";
+                                string fileName = $"apt_{user.UserID}_{DateTime.Now.Ticks}_{savedCount}{fileExtension}";
                                 string filePath = System.IO.Path.Combine(uploadPath, fileName);
                                 image.SaveAs(filePath);
                                 imageUrls.Add($"/Uploads/Appointments/{fileName}");

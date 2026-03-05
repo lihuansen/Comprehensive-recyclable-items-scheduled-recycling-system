@@ -1350,7 +1350,11 @@
                 order.pictureUrls.forEach(url => {
                     const imgDiv = document.createElement('div');
                     imgDiv.style.cssText = 'position: relative; cursor: pointer;';
-                    imgDiv.innerHTML = `<img src="${url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;" onclick="window.open('${url}', '_blank')">`;
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.style.cssText = 'width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;';
+                    img.addEventListener('click', function() { window.open(url, '_blank'); });
+                    imgDiv.appendChild(img);
                     picturesContainer.appendChild(imgDiv);
                 });
                 pictureSection.style.display = 'block';

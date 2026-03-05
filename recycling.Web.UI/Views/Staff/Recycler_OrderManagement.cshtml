@@ -1735,9 +1735,14 @@ function renderOrderDetail(order) {
         const pictureUrls = order.PictureUrl.split(',').filter(url => url.trim() !== '');
         if (pictureUrls.length > 0) {
             pictureUrls.forEach(url => {
+                const trimmedUrl = url.trim();
                 const imgDiv = document.createElement('div');
                 imgDiv.style.cssText = 'position: relative; cursor: pointer;';
-                imgDiv.innerHTML = `<img src="${url.trim()}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;" onclick="window.open('${url.trim()}', '_blank')">`;
+                const img = document.createElement('img');
+                img.src = trimmedUrl;
+                img.style.cssText = 'width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;';
+                img.addEventListener('click', function() { window.open(trimmedUrl, '_blank'); });
+                imgDiv.appendChild(img);
                 picturesContainer.appendChild(imgDiv);
             });
             pictureSection.style.display = 'block';
