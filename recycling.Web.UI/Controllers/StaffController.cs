@@ -1172,6 +1172,7 @@ namespace recycling.Web.UI.Controllers
         /// 检查超时订单（自动回退超过预约时间段的订单并通知用户）
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult CheckExpiredOrders()
         {
             try
