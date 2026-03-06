@@ -68,6 +68,7 @@
     <Compile Include="Conversations.cs" />
     <Compile Include="ConversationViewModel.cs" />
     <Compile Include="EmailLoginViewModel.cs" />
+    <Compile Include="ExpiredOrderInfo.cs" />
     <Compile Include="ForgotPasswordViewModel.cs" />
     <Compile Include="HomepageCarousel.cs" />
     <Compile Include="Inventory.cs" />

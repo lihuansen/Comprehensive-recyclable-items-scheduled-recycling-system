@@ -1168,6 +1168,37 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
+        /// <summary>
+        /// 检查超时订单（自动回退超过预约时间段的订单并通知用户）
+        /// </summary>
+        [HttpPost]
+        public JsonResult CheckExpiredOrders()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+
+                // 检查并处理超时订单
+                var result = _recyclerOrderBLL.CheckAndHandleExpiredOrders(recycler.RecyclerID);
+
+                return Json(new
+                {
+                    success = true,
+                    expiredCount = result.ExpiredCount,
+                    messages = result.Messages
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"检查超时订单失败：{ex.Message}" });
+            }
+        }
+
         // <summary>
         /// 消息中心页面（回收员端）
         /// 该方法返回视图，视图的 Model 为 List<RecyclerMessageViewModel>（每条为一条消息记录）

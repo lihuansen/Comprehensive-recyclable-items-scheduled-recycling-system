@@ -239,5 +239,81 @@ namespace recycling.BLL
                 return (false, $"回退订单失败：{ex.Message}");
             }
         }
+
+        /// <summary>
+        /// 检查并处理超时订单（自动回退超过预约时间段的订单）
+        /// 根据北京时间判断，如果订单的预约日期+时间段最晚时间已过，则自动回退订单并通知用户
+        /// </summary>
+        /// <param name="recyclerId">回收员ID（0表示检查所有订单）</param>
+        /// <returns>处理结果，包含超时订单数量和消息</returns>
+        public (int ExpiredCount, List<string> Messages) CheckAndHandleExpiredOrders(int recyclerId = 0)
+        {
+            var messages = new List<string>();
+            int expiredCount = 0;
+
+            try
+            {
+                // 获取已超时的订单
+                var expiredOrders = _recyclerOrderDAL.GetExpiredOrders(recyclerId);
+
+                if (expiredOrders == null || expiredOrders.Count == 0)
+                {
+                    return (0, messages);
+                }
+
+                var orderDAL = new OrderDAL();
+                var notificationBLL = new UserNotificationBLL();
+                var messageBLL = new MessageBLL();
+
+                foreach (var order in expiredOrders)
+                {
+                    try
+                    {
+                        // 更新订单状态为"已取消-系统超时回退"
+                        string rollbackReason = "订单已超过预约时间段，系统自动回退";
+                        bool updateResult = orderDAL.UpdateOrderStatusWithReason(
+                            order.AppointmentID, 
+                            "已取消-系统超时回退", 
+                            rollbackReason);
+
+                        if (updateResult)
+                        {
+                            expiredCount++;
+
+                            // 发送系统消息到聊天记录（如果订单有关联的回收员）
+                            if (order.RecyclerID.HasValue)
+                            {
+                                var systemMessage = new SendMessageRequest
+                                {
+                                    OrderID = order.AppointmentID,
+                                    SenderType = "system",
+                                    SenderID = 0,
+                                    Content = $"系统提示：订单 {order.OrderNumber} 已超过预约时间段（{order.DeadlineTime:yyyy-MM-dd HH:mm}），系统已自动回退此订单。"
+                                };
+                                messageBLL.SendMessage(systemMessage);
+                            }
+
+                            // 发送用户通知消息
+                            notificationBLL.SendOrderExpiredNotification(order.AppointmentID, order.UserID);
+
+                            messages.Add($"订单 {order.OrderNumber} 已超时自动回退");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"处理超时订单 {order.AppointmentID} 失败: {ex.Message}");
+                        messages.Add($"订单 {order.OrderNumber} 处理失败: {ex.Message}");
+                    }
+                }
+
+                return (expiredCount, messages);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"检查超时订单失败: {ex.Message}");
+                messages.Add($"检查超时订单失败: {ex.Message}");
+                return (0, messages);
+            }
+        }
     }
 }

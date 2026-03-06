@@ -298,6 +298,13 @@ select.form-control::-ms-expand {
         border: 1px solid #ffeeba;
     }
 
+    .status-已取消-系统超时回退,
+    .status-超时回退 {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
     .order-details {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -792,6 +799,7 @@ select.form-control::-ms-expand {
                     <option value="进行中">进行中</option>
                     <option value="已完成">已完成</option>
                     <option value="已取消-回收员回退">被回退</option>
+                    <option value="已取消-系统超时回退">超时回退</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -1115,6 +1123,10 @@ select.form-control::-ms-expand {
 
         document.addEventListener('DOMContentLoaded', function () {
             loadOrders();
+            // 页面加载时检查超时订单
+            checkExpiredOrders();
+            // 每5分钟定时检查超时订单
+            setInterval(checkExpiredOrders, 5 * 60 * 1000);
         });
 
         // 显示消息提示
@@ -1135,6 +1147,70 @@ select.form-control::-ms-expand {
             setTimeout(() => {
                 alertContainer.innerHTML = '';
             }, 5000);
+        }
+
+        // 检查超时订单并提示回收员
+        function checkExpiredOrders() {
+            fetch('@Url.Action("CheckExpiredOrders", "Staff")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.expiredCount > 0) {
+                    // 显示超时订单提示
+                    showExpiredOrderAlert(data.expiredCount, data.messages);
+                    // 刷新订单列表和统计数据
+                    loadOrders(currentPage);
+                    loadStatistics();
+                }
+            })
+            .catch(error => {
+                console.error('检查超时订单失败:', error);
+            });
+        }
+
+        // 显示超时订单提醒
+        function showExpiredOrderAlert(count, messages) {
+            const alertContainer = document.getElementById('alertContainer');
+            let detailList = '';
+            if (messages && messages.length > 0) {
+                detailList = '<ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left;">';
+                messages.forEach(msg => {
+                    detailList += `<li>${msg}</li>`;
+                });
+                detailList += '</ul>';
+            }
+
+            const alertHTML = `
+                <div class="alert-message" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); color: #856404; border: 1px solid #ffc107; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 24px; color: #e67e22; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="font-size: 16px;">⏰ 超时订单提醒</strong>
+                            <p style="margin: 8px 0 0 0;">系统检测到 <strong>${count}</strong> 个订单已超过预约时间段，已自动回退并通知用户。请注意查看相关订单。</p>
+                            ${detailList}
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #856404; font-size: 18px; cursor: pointer; opacity: 0.7;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            // 在已有消息前插入，而不是替换
+            alertContainer.insertAdjacentHTML('afterbegin', alertHTML);
+
+            // 15秒后自动消失
+            setTimeout(() => {
+                const expiredAlert = alertContainer.querySelector('.alert-message[style*="fff3cd"]');
+                if (expiredAlert) {
+                    expiredAlert.remove();
+                }
+            }, 15000);
         }
 
         // 加载统计数据
@@ -1293,7 +1369,7 @@ select.form-control::-ms-expand {
                         ${order.OrderNumber} ${urgentBadge}
                     </div>
                     <div class="order-status status-${order.Status.toLowerCase().replace(' ', '-')}">
-                        ${order.Status === '已取消-回收员回退' ? '被回退' : order.Status}
+                        ${order.Status === '已取消-回收员回退' ? '被回退' : (order.Status === '已取消-系统超时回退' ? '超时回退' : order.Status)}
                     </div>
                 </div>
 
@@ -1646,7 +1722,7 @@ function renderOrderDetail(order) {
     document.getElementById('detailAppointmentTime').textContent = `${order.AppointmentDate} ${order.TimeSlot}`;
     document.getElementById('detailEstimatedWeight').textContent = `${order.EstimatedWeight} 公斤`;
     document.getElementById('detailEstimatedPrice').textContent = order.EstimatedPrice ? `¥${order.EstimatedPrice}` : '待评估';
-    document.getElementById('detailStatus').textContent = order.Status === '已取消-回收员回退' ? '被回退' : order.Status;
+    document.getElementById('detailStatus').textContent = order.Status === '已取消-回收员回退' ? '被回退' : (order.Status === '已取消-系统超时回退' ? '超时回退' : order.Status);
     document.getElementById('detailIsUrgent').textContent = order.IsUrgent ? '是' : '否';
 
     // 更新联系信息
