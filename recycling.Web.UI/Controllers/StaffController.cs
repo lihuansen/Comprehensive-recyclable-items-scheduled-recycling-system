@@ -2294,6 +2294,7 @@ namespace recycling.Web.UI.Controllers
                     userId = r.UserID,
                     starRating = r.StarRating,
                     reviewText = r.ReviewText,
+                    pictureUrl = r.PictureUrl,
                     createdDate = r.CreatedDate?.ToString("yyyy-MM-dd HH:mm") ?? ""
                 }).ToList();
 

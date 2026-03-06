@@ -19,8 +19,8 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    INSERT INTO OrderReviews (OrderID, UserID, RecyclerID, StarRating, ReviewText, CreatedDate)
-                    VALUES (@OrderID, @UserID, @RecyclerID, @StarRating, @ReviewText, @CreatedDate)";
+                    INSERT INTO OrderReviews (OrderID, UserID, RecyclerID, StarRating, ReviewText, CreatedDate, PictureUrl)
+                    VALUES (@OrderID, @UserID, @RecyclerID, @StarRating, @ReviewText, @CreatedDate, @PictureUrl)";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
@@ -30,6 +30,7 @@ namespace recycling.DAL
                     cmd.Parameters.Add("@StarRating", SqlDbType.Int).Value = review.StarRating;
                     cmd.Parameters.Add("@ReviewText", SqlDbType.NVarChar, 500).Value = (object)review.ReviewText ?? DBNull.Value;
                     cmd.Parameters.Add("@CreatedDate", SqlDbType.DateTime2).Value = review.CreatedDate;
+                    cmd.Parameters.Add("@PictureUrl", SqlDbType.NVarChar, 2000).Value = (object)review.PictureUrl ?? DBNull.Value;
 
                     conn.Open();
                     int rows = cmd.ExecuteNonQuery();
@@ -107,7 +108,7 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT ReviewID, OrderID, UserID, RecyclerID, StarRating, ReviewText, CreatedDate
+                    SELECT ReviewID, OrderID, UserID, RecyclerID, StarRating, ReviewText, CreatedDate, PictureUrl
                     FROM OrderReviews
                     WHERE OrderID = @OrderID";
 
@@ -128,7 +129,8 @@ namespace recycling.DAL
                                 RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                                 StarRating = Convert.ToInt32(reader["StarRating"]),
                                 ReviewText = reader["ReviewText"] == DBNull.Value ? null : reader["ReviewText"].ToString(),
-                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
+                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                                PictureUrl = reader["PictureUrl"] == DBNull.Value ? null : reader["PictureUrl"].ToString()
                             };
                         }
                     }
@@ -148,7 +150,7 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT ReviewID, OrderID, UserID, RecyclerID, StarRating, ReviewText, CreatedDate
+                    SELECT ReviewID, OrderID, UserID, RecyclerID, StarRating, ReviewText, CreatedDate, PictureUrl
                     FROM OrderReviews
                     WHERE RecyclerID = @RecyclerID
                     ORDER BY CreatedDate DESC";
@@ -170,7 +172,8 @@ namespace recycling.DAL
                                 RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                                 StarRating = Convert.ToInt32(reader["StarRating"]),
                                 ReviewText = reader["ReviewText"] == DBNull.Value ? null : reader["ReviewText"].ToString(),
-                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
+                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                                PictureUrl = reader["PictureUrl"] == DBNull.Value ? null : reader["PictureUrl"].ToString()
                             });
                         }
                     }

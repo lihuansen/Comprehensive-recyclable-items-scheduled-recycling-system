@@ -12,6 +12,7 @@ BEGIN
         [StarRating] INT NOT NULL,                       -- 星级评分（1-5星）
         [ReviewText] NVARCHAR(500) NULL,                 -- 评价文字内容（支持中文）
         [CreatedDate] DATETIME2 NOT NULL DEFAULT GETDATE(), -- 评价创建时间
+        [PictureUrl] NVARCHAR(2000) NULL,                -- 评价图片URL（多张用逗号分隔）
         
         -- 外键约束
         CONSTRAINT [FK_OrderReviews_Appointments] FOREIGN KEY ([OrderID]) 

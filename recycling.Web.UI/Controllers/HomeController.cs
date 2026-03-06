@@ -1005,9 +1005,51 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = "订单未分配回收员，无法评价" });
 
                 var user = (Users)Session["LoginUser"];
-                var reviewBll = new OrderReviewBLL();
 
-                var result = reviewBll.AddReview(orderId, user.UserID, recyclerId, starRating, reviewText);
+                // 处理评价图片上传
+                var imageUrls = new List<string>();
+                if (Request.Files != null && Request.Files.Count > 0)
+                {
+                    string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+                    int maxImages = 6;
+
+                    if (Request.Files.Count > maxImages)
+                        return Json(new { success = false, message = "评价图片最多上传6张" });
+
+                    string uploadPath = Server.MapPath("~/Uploads/Reviews/");
+                    if (!System.IO.Directory.Exists(uploadPath))
+                    {
+                        System.IO.Directory.CreateDirectory(uploadPath);
+                    }
+
+                    for (int i = 0; i < Request.Files.Count; i++)
+                    {
+                        var file = Request.Files[i];
+                        if (file != null && file.ContentLength > 0)
+                        {
+                            string fileExtension = System.IO.Path.GetExtension(file.FileName).ToLower();
+                            if (!allowedExtensions.Contains(fileExtension))
+                            {
+                                return Json(new { success = false, message = "只支持 JPG、PNG、GIF、BMP 格式的图片" });
+                            }
+
+                            if (file.ContentLength > 5 * 1024 * 1024)
+                            {
+                                return Json(new { success = false, message = "单张图片大小不能超过5MB" });
+                            }
+
+                            string fileName = $"review_{user.UserID}_{orderId}_{DateTime.Now.Ticks}_{i}{fileExtension}";
+                            string filePath = System.IO.Path.Combine(uploadPath, fileName);
+                            file.SaveAs(filePath);
+                            imageUrls.Add($"/Uploads/Reviews/{fileName}");
+                        }
+                    }
+                }
+
+                string pictureUrl = imageUrls.Count > 0 ? string.Join(",", imageUrls) : null;
+
+                var reviewBll = new OrderReviewBLL();
+                var result = reviewBll.AddReview(orderId, user.UserID, recyclerId, starRating, reviewText, pictureUrl);
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)

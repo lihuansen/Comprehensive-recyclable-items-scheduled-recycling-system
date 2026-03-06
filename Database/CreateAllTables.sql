@@ -419,6 +419,7 @@ BEGIN
         [StarRating] INT NOT NULL,                       -- 星级评分（1-5）
         [ReviewText] NVARCHAR(500) NULL,                 -- 评价文字
         [CreatedDate] DATETIME2 NOT NULL DEFAULT GETDATE(), -- 创建时间
+        [PictureUrl] NVARCHAR(2000) NULL,                -- 评价图片URL（多张用逗号分隔）
         
         CONSTRAINT FK_OrderReviews_Appointments FOREIGN KEY ([OrderID]) 
             REFERENCES [dbo].[Appointments]([AppointmentID]),

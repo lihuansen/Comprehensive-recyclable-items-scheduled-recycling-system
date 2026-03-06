@@ -15,7 +15,7 @@ namespace recycling.BLL
         /// <summary>
         /// 添加订单评价
         /// </summary>
-        public (bool Success, string Message) AddReview(int orderId, int userId, int recyclerId, int starRating, string reviewText)
+        public (bool Success, string Message) AddReview(int orderId, int userId, int recyclerId, int starRating, string reviewText, string pictureUrl = null)
         {
             if (orderId <= 0 || userId <= 0 || recyclerId <= 0)
             {
@@ -25,6 +25,24 @@ namespace recycling.BLL
             if (starRating < 1 || starRating > 5)
             {
                 return (false, "评分必须在1-5星之间");
+            }
+
+            // 评价文字和图片至少需要提供一项
+            bool hasText = !string.IsNullOrWhiteSpace(reviewText);
+            bool hasPicture = !string.IsNullOrWhiteSpace(pictureUrl);
+            if (!hasText && !hasPicture)
+            {
+                return (false, "请至少填写评价内容或上传评价图片");
+            }
+
+            // 验证图片数量不超过6张
+            if (hasPicture)
+            {
+                var urls = pictureUrl.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                if (urls.Length > 6)
+                {
+                    return (false, "评价图片最多上传6张");
+                }
             }
 
             // 检查是否已评价
@@ -40,7 +58,8 @@ namespace recycling.BLL
                 RecyclerID = recyclerId,
                 StarRating = starRating,
                 ReviewText = reviewText,
-                CreatedDate = DateTime.Now
+                CreatedDate = DateTime.Now,
+                PictureUrl = pictureUrl
             };
 
             bool success = _reviewDAL.AddReview(review);
