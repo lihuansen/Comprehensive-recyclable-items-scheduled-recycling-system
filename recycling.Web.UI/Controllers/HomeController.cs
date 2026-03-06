@@ -1038,7 +1038,7 @@ namespace recycling.Web.UI.Controllers
                                 return Json(new { success = false, message = "单张图片大小不能超过5MB" });
                             }
 
-                            string fileName = $"review_{user.UserID}_{orderId}_{DateTime.Now.Ticks}_{i}{fileExtension}";
+                            string fileName = $"review_{user.UserID}_{orderId}_{Guid.NewGuid():N}{fileExtension}";
                             string filePath = System.IO.Path.Combine(uploadPath, fileName);
                             file.SaveAs(filePath);
                             imageUrls.Add($"/Uploads/Reviews/{fileName}");

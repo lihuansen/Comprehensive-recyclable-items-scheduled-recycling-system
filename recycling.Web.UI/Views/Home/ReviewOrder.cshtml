@@ -381,8 +381,21 @@
                 reader.onload = function(e) {
                     var item = document.createElement('div');
                     item.className = 'image-preview-item';
-                    item.innerHTML = '<img src="' + e.target.result + '" alt="预览">' +
-                        '<button type="button" class="remove-btn" onclick="removeImage(' + index + ')"><i class="fas fa-times"></i></button>';
+
+                    var img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = '预览';
+                    item.appendChild(img);
+
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'remove-btn';
+                    btn.innerHTML = '<i class="fas fa-times"></i>';
+                    btn.addEventListener('click', function() {
+                        removeImage(index);
+                    });
+                    item.appendChild(btn);
+
                     previewList.appendChild(item);
                 };
                 reader.readAsDataURL(file);

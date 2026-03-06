@@ -389,37 +389,55 @@
                 return;
             }
 
-            var html = '';
+            container.innerHTML = '';
             reviews.forEach(function(review) {
-                html += '<div class="review-item">';
-                html += '<div class="review-header">';
-                html += '<span class="review-order"><i class="fas fa-shopping-cart"></i> 订单：' + review.orderNumber + '　<i class="fas fa-user"></i> 用户#' + review.userId + '</span>';
-                html += '<span class="review-date"><i class="far fa-clock"></i> ' + review.createdDate + '</span>';
-                html += '</div>';
-                html += '<div class="review-stars">' + renderStars(review.starRating) + '</div>';
+                var item = document.createElement('div');
+                item.className = 'review-item';
+
+                var header = document.createElement('div');
+                header.className = 'review-header';
+                header.innerHTML = '<span class="review-order"><i class="fas fa-shopping-cart"></i> 订单：' + escapeHtml(review.orderNumber) + '　<i class="fas fa-user"></i> 用户#' + review.userId + '</span>' +
+                    '<span class="review-date"><i class="far fa-clock"></i> ' + escapeHtml(review.createdDate) + '</span>';
+                item.appendChild(header);
+
+                var starsDiv = document.createElement('div');
+                starsDiv.className = 'review-stars';
+                starsDiv.innerHTML = renderStars(review.starRating);
+                item.appendChild(starsDiv);
                 
                 if (review.reviewText && review.reviewText.trim() !== '') {
-                    html += '<div class="review-text">' + escapeHtml(review.reviewText) + '</div>';
+                    var textDiv = document.createElement('div');
+                    textDiv.className = 'review-text';
+                    textDiv.textContent = review.reviewText;
+                    item.appendChild(textDiv);
                 } else {
-                    html += '<div class="no-review-text">用户未留下评价文字</div>';
+                    var noText = document.createElement('div');
+                    noText.className = 'no-review-text';
+                    noText.textContent = '用户未留下评价文字';
+                    item.appendChild(noText);
                 }
 
                 if (review.pictureUrl && review.pictureUrl.trim() !== '') {
                     var images = review.pictureUrl.split(',');
-                    html += '<div class="review-images">';
+                    var imagesDiv = document.createElement('div');
+                    imagesDiv.className = 'review-images';
                     images.forEach(function(imgUrl) {
                         imgUrl = imgUrl.trim();
                         if (imgUrl) {
-                            html += '<img src="' + escapeHtml(imgUrl) + '" alt="评价图片" onclick="openImageModal(\'' + escapeHtml(imgUrl) + '\')" />';
+                            var img = document.createElement('img');
+                            img.src = imgUrl;
+                            img.alt = '评价图片';
+                            img.addEventListener('click', function() {
+                                openImageModal(imgUrl);
+                            });
+                            imagesDiv.appendChild(img);
                         }
                     });
-                    html += '</div>';
+                    item.appendChild(imagesDiv);
                 }
                 
-                html += '</div>';
+                container.appendChild(item);
             });
-            
-            container.innerHTML = html;
         }
 
         function openImageModal(imgUrl) {
