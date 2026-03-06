@@ -276,6 +276,8 @@ namespace recycling.Web.UI.Controllers
                     return "status-cancelled-badge";
                 case "已取消-回收员回退":
                     return "status-rolledback-badge";
+                case "已取消-系统超时回退":
+                    return "status-expired-badge";
                 default:
                     return "status-pending-badge";
             }

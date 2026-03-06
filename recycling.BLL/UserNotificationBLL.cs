@@ -300,6 +300,35 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 发送订单超时自动回退通知（系统自动回退超时订单）
+        /// </summary>
+        public bool SendOrderExpiredNotification(int orderId, int userId)
+        {
+            if (userId <= 0)
+            {
+                userId = _notificationDAL.GetUserIdByOrderId(orderId);
+            }
+            if (userId <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"无法获取订单 {orderId} 的用户ID，超时回退通知发送失败");
+                return false;
+            }
+
+            var notification = new UserNotifications
+            {
+                UserID = userId,
+                NotificationType = NotificationTypes.OrderExpiredAutoRollback,
+                Title = "订单已超时回退",
+                Content = $"尊敬的用户，实在不好意思，由于系统繁忙/回收员人员紧张，未能在预约时间内处理您的订单 {FormatOrderNumber(orderId)}，给您造成不必要的麻烦。您的订单已自动回退，如有需要请重新预约，对此造成的不便我们深表歉意。",
+                RelatedOrderID = orderId,
+                CreatedDate = DateTime.Now,
+                IsRead = false
+            };
+
+            return _notificationDAL.AddNotification(notification);
+        }
+
+        /// <summary>
         /// 获取用户通知列表
         /// </summary>
         public List<UserNotifications> GetUserNotifications(int userId, int pageIndex = 1, int pageSize = 20)

@@ -51,7 +51,15 @@ WHERE a.UserID = @UserID";
                 // 根据状态筛选
                 if (status != "all")
                 {
-                    sql += " AND a.Status = @Status";
+                    if (status == "rolledback")
+                    {
+                        // "被回退"标签页显示所有回退类型的订单
+                        sql += " AND a.Status IN (N'已取消-回收员回退', N'已取消-系统超时回退')";
+                    }
+                    else
+                    {
+                        sql += " AND a.Status = @Status";
+                    }
                 }
 
                 sql += " ORDER BY a.CreatedDate DESC";
@@ -59,13 +67,12 @@ WHERE a.UserID = @UserID";
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@UserID", userId);
 
-                if (status != "all")
+                if (status != "all" && status != "rolledback")
                 {
                     // 映射状态名称：前端状态对应数据库状态
                     string dbStatus = status == "pending" ? "已预约" :
                                      status == "confirmed" ? "进行中" :
-                                     status == "completed" ? "已完成" :
-                                     status == "rolledback" ? "已取消-回收员回退" : "已取消";
+                                     status == "completed" ? "已完成" : "已取消";
                     cmd.Parameters.AddWithValue("@Status", dbStatus);
                 }
 

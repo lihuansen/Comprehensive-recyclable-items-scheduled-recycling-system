@@ -756,5 +756,83 @@ namespace recycling.DAL
                 return string.Empty;
             }
         }
+        /// <summary>
+        /// 获取已超过预约时间段的订单列表（用于超时自动回退）
+        /// 根据预约日期和时间段计算截止时间，与北京时间比较
+        /// </summary>
+        public List<ExpiredOrderInfo> GetExpiredOrders(int recyclerId = 0)
+        {
+            var expiredOrders = new List<ExpiredOrderInfo>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                // 使用北京时间（UTC+8）判断是否超过预约时间段的最晚时间
+                // morning -> 12:00, afternoon -> 17:00, evening -> 21:00, all_day -> 21:00
+                string sql = @"
+                    SELECT 
+                        a.AppointmentID,
+                        a.UserID,
+                        a.AppointmentDate,
+                        a.TimeSlot,
+                        a.Status,
+                        a.RecyclerID,
+                        a.ContactName,
+                        CASE 
+                            WHEN LOWER(LTRIM(RTRIM(REPLACE(a.TimeSlot, ' ', '')))) = 'morning' THEN DATEADD(HOUR, 12, CAST(a.AppointmentDate AS DATETIME))
+                            WHEN LOWER(LTRIM(RTRIM(REPLACE(a.TimeSlot, ' ', '')))) = 'afternoon' THEN DATEADD(HOUR, 17, CAST(a.AppointmentDate AS DATETIME))
+                            WHEN LOWER(LTRIM(RTRIM(REPLACE(a.TimeSlot, ' ', '')))) = 'evening' THEN DATEADD(HOUR, 21, CAST(a.AppointmentDate AS DATETIME))
+                            WHEN LOWER(LTRIM(RTRIM(REPLACE(a.TimeSlot, ' ', '')))) IN ('all_day', 'allday') THEN DATEADD(HOUR, 21, CAST(a.AppointmentDate AS DATETIME))
+                            ELSE DATEADD(HOUR, 23, CAST(a.AppointmentDate AS DATETIME))
+                        END AS DeadlineTime
+                    FROM Appointments a
+                    WHERE a.Status IN (N'已预约', N'进行中')
+                      AND a.AppointmentDate IS NOT NULL
+                      AND a.TimeSlot IS NOT NULL
+                      AND CASE 
+                            WHEN LOWER(LTRIM(RTRIM(REPLACE(a.TimeSlot, ' ', '')))) = 'morning' THEN DATEADD(HOUR, 12, CAST(a.AppointmentDate AS DATETIME))
+                            WHEN LOWER(LTRIM(RTRIM(REPLACE(a.TimeSlot, ' ', '')))) = 'afternoon' THEN DATEADD(HOUR, 17, CAST(a.AppointmentDate AS DATETIME))
+                            WHEN LOWER(LTRIM(RTRIM(REPLACE(a.TimeSlot, ' ', '')))) = 'evening' THEN DATEADD(HOUR, 21, CAST(a.AppointmentDate AS DATETIME))
+                            WHEN LOWER(LTRIM(RTRIM(REPLACE(a.TimeSlot, ' ', '')))) IN ('all_day', 'allday') THEN DATEADD(HOUR, 21, CAST(a.AppointmentDate AS DATETIME))
+                            ELSE DATEADD(HOUR, 23, CAST(a.AppointmentDate AS DATETIME))
+                          END < GETDATE()";
+
+                // 如果指定了回收员ID，则只查询该回收员的"进行中"订单，以及未分配的"已预约"订单
+                if (recyclerId > 0)
+                {
+                    sql += " AND (a.RecyclerID = @RecyclerID OR (a.Status = N'已预约' AND a.RecyclerID IS NULL))";
+                }
+
+                sql += " ORDER BY a.AppointmentDate ASC";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    if (recyclerId > 0)
+                    {
+                        cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                    }
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            expiredOrders.Add(new ExpiredOrderInfo
+                            {
+                                AppointmentID = Convert.ToInt32(reader["AppointmentID"]),
+                                UserID = reader["UserID"] != DBNull.Value ? Convert.ToInt32(reader["UserID"]) : 0,
+                                AppointmentDate = Convert.ToDateTime(reader["AppointmentDate"]),
+                                TimeSlot = reader["TimeSlot"]?.ToString(),
+                                Status = reader["Status"]?.ToString(),
+                                RecyclerID = reader["RecyclerID"] != DBNull.Value ? (int?)Convert.ToInt32(reader["RecyclerID"]) : null,
+                                ContactName = reader["ContactName"]?.ToString(),
+                                DeadlineTime = Convert.ToDateTime(reader["DeadlineTime"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return expiredOrders;
+        }
     }
 }
