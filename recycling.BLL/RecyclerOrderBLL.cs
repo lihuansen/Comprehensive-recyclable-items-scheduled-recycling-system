@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -288,7 +289,7 @@ namespace recycling.BLL
                                     OrderID = order.AppointmentID,
                                     SenderType = "system",
                                     SenderID = 0,
-                                    Content = $"系统提示：订单 {order.OrderNumber} 已超过预约时间段（{order.DeadlineTime:yyyy-MM-dd HH:mm}），系统已自动回退此订单。"
+                                    Content = $"系统提示：订单 {order.OrderNumber} 已超过预约时间段（{order.DeadlineTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}），系统已自动回退此订单。"
                                 };
                                 messageBLL.SendMessage(systemMessage);
                             }

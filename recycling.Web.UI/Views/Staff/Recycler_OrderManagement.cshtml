@@ -1186,7 +1186,7 @@ select.form-control::-ms-expand {
             }
 
             const alertHTML = `
-                <div class="alert-message" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); color: #856404; border: 1px solid #ffc107; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
+                <div class="alert-message expired-order-alert" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); color: #856404; border: 1px solid #ffc107; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
                     <div style="display: flex; align-items: flex-start; gap: 12px;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 24px; color: #e67e22; margin-top: 2px;"></i>
                         <div>
@@ -1206,7 +1206,7 @@ select.form-control::-ms-expand {
 
             // 15秒后自动消失
             setTimeout(() => {
-                const expiredAlert = alertContainer.querySelector('.alert-message[style*="fff3cd"]');
+                const expiredAlert = alertContainer.querySelector('.expired-order-alert');
                 if (expiredAlert) {
                     expiredAlert.remove();
                 }

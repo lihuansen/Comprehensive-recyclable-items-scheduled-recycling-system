@@ -319,7 +319,7 @@ namespace recycling.BLL
                 UserID = userId,
                 NotificationType = NotificationTypes.OrderExpiredAutoRollback,
                 Title = "订单已超时回退",
-                Content = $"尊敬的用户，实在不好意思，由于系统繁忙/回收员人员紧张，未能在预约时间内处理您的订单 {FormatOrderNumber(orderId)}，给您造成不必要的麻烦，再次深感歉意。您的订单已自动回退，如有需要请重新预约，对此造成的不便我们深表歉意。",
+                Content = $"尊敬的用户，实在不好意思，由于系统繁忙/回收员人员紧张，未能在预约时间内处理您的订单 {FormatOrderNumber(orderId)}，给您造成不必要的麻烦。您的订单已自动回退，如有需要请重新预约，对此造成的不便我们深表歉意。",
                 RelatedOrderID = orderId,
                 CreatedDate = DateTime.Now,
                 IsRead = false
