@@ -160,6 +160,53 @@
         font-size: 14px;
     }
 
+    .review-images {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .review-images img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .review-images img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .image-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .image-modal-overlay.active {
+        display: flex;
+    }
+
+    .image-modal-overlay img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -234,6 +281,11 @@
         <h3 class="card-title"><i class="fas fa-comments"></i> 用户评价列表</h3>
         <div id="reviewsList"></div>
     </div>
+</div>
+
+<!-- 图片预览弹窗 -->
+<div class="image-modal-overlay" id="imageModal" onclick="closeImageModal()">
+    <img id="modalImage" src="" alt="评价图片预览" />
 </div>
 
 @section scripts {
@@ -337,25 +389,66 @@
                 return;
             }
 
-            var html = '';
+            container.innerHTML = '';
             reviews.forEach(function(review) {
-                html += '<div class="review-item">';
-                html += '<div class="review-header">';
-                html += '<span class="review-order"><i class="fas fa-shopping-cart"></i> 订单：' + review.orderNumber + '</span>';
-                html += '<span class="review-date"><i class="far fa-clock"></i> ' + review.createdDate + '</span>';
-                html += '</div>';
-                html += '<div class="review-stars">' + renderStars(review.starRating) + '</div>';
+                var item = document.createElement('div');
+                item.className = 'review-item';
+
+                var header = document.createElement('div');
+                header.className = 'review-header';
+                header.innerHTML = '<span class="review-order"><i class="fas fa-shopping-cart"></i> 订单：' + escapeHtml(review.orderNumber) + '　<i class="fas fa-user"></i> 用户#' + review.userId + '</span>' +
+                    '<span class="review-date"><i class="far fa-clock"></i> ' + escapeHtml(review.createdDate) + '</span>';
+                item.appendChild(header);
+
+                var starsDiv = document.createElement('div');
+                starsDiv.className = 'review-stars';
+                starsDiv.innerHTML = renderStars(review.starRating);
+                item.appendChild(starsDiv);
                 
                 if (review.reviewText && review.reviewText.trim() !== '') {
-                    html += '<div class="review-text">' + escapeHtml(review.reviewText) + '</div>';
+                    var textDiv = document.createElement('div');
+                    textDiv.className = 'review-text';
+                    textDiv.textContent = review.reviewText;
+                    item.appendChild(textDiv);
                 } else {
-                    html += '<div class="no-review-text">用户未留下评价内容</div>';
+                    var noText = document.createElement('div');
+                    noText.className = 'no-review-text';
+                    noText.textContent = '用户未留下评价文字';
+                    item.appendChild(noText);
+                }
+
+                if (review.pictureUrl && review.pictureUrl.trim() !== '') {
+                    var images = review.pictureUrl.split(',');
+                    var imagesDiv = document.createElement('div');
+                    imagesDiv.className = 'review-images';
+                    images.forEach(function(imgUrl) {
+                        imgUrl = imgUrl.trim();
+                        if (imgUrl) {
+                            var img = document.createElement('img');
+                            img.src = imgUrl;
+                            img.alt = '评价图片';
+                            img.addEventListener('click', function() {
+                                openImageModal(imgUrl);
+                            });
+                            imagesDiv.appendChild(img);
+                        }
+                    });
+                    item.appendChild(imagesDiv);
                 }
                 
-                html += '</div>';
+                container.appendChild(item);
             });
-            
-            container.innerHTML = html;
+        }
+
+        function openImageModal(imgUrl) {
+            var modal = document.getElementById('imageModal');
+            var modalImg = document.getElementById('modalImage');
+            modalImg.src = imgUrl;
+            modal.classList.add('active');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
         }
 
         function escapeHtml(text) {

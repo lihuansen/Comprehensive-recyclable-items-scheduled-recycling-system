@@ -126,6 +126,87 @@
         margin-top: 10px;
     }
 
+    .image-upload-section {
+        margin-bottom: 30px;
+    }
+
+    .image-upload-area {
+        border: 2px dashed #ecf0f1;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+    .image-upload-area:hover {
+        border-color: #3498db;
+        background: #f0f7ff;
+    }
+
+    .image-upload-area i {
+        font-size: 36px;
+        color: #bdc3c7;
+        margin-bottom: 10px;
+    }
+
+    .image-upload-area p {
+        color: #7f8c8d;
+        margin: 5px 0;
+        font-size: 14px;
+    }
+
+    .image-preview-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .image-preview-item {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid #ecf0f1;
+    }
+
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview-item .remove-btn {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: rgba(231, 76, 60, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+
+    .image-preview-item .remove-btn:hover {
+        background: #c0392b;
+    }
+
+    .image-count {
+        font-size: 13px;
+        color: #95a5a6;
+        margin-top: 8px;
+    }
+
     .submit-btn {
         width: 100%;
         height: 60px;
@@ -223,6 +304,21 @@
             <div class="review-hint">最多500字</div>
         </div>
 
+        <div class="image-upload-section">
+            <label class="rating-label" style="display: block; text-align: left; font-size: 18px; margin-bottom: 15px;">
+                <i class="fas fa-camera"></i> 评价图片（选填）
+            </label>
+            <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('reviewImages').click();">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>点击上传图片</p>
+                <p style="font-size: 12px;">支持 JPG、PNG、GIF、BMP 格式，单张不超过5MB</p>
+            </div>
+            <input type="file" id="reviewImages" multiple accept="image/jpeg,image/png,image/gif,image/bmp" style="display: none;" />
+            <div class="image-preview-list" id="imagePreviewList"></div>
+            <div class="image-count" id="imageCount"></div>
+            <div class="review-hint">最多上传6张图片，评价文字和图片至少选择一项</div>
+        </div>
+
         <button id="submitBtn" class="submit-btn" disabled>
             <i class="fas fa-paper-plane"></i> 提交评价
         </button>
@@ -238,6 +334,7 @@
         var selectedRating = 0;
         var orderId = @(orderDetail?.Appointment?.AppointmentID ?? 0);
         var recyclerId = @(orderDetail?.Appointment?.RecyclerID ?? 0);
+        var selectedFiles = [];
 
         var ratingTexts = {
             1: '非常不满意',
@@ -246,6 +343,75 @@
             4: '满意',
             5: '非常满意'
         };
+
+        // 图片上传处理
+        var imageInput = document.getElementById('reviewImages');
+        var previewList = document.getElementById('imagePreviewList');
+        var imageCountEl = document.getElementById('imageCount');
+
+        imageInput.addEventListener('change', function() {
+            var newFiles = Array.from(this.files);
+            var allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'];
+            var maxSize = 5 * 1024 * 1024;
+
+            for (var i = 0; i < newFiles.length; i++) {
+                if (selectedFiles.length >= 6) {
+                    alert('最多上传6张图片');
+                    break;
+                }
+                if (!allowedTypes.includes(newFiles[i].type)) {
+                    alert('文件 "' + newFiles[i].name + '" 格式不支持，请上传 JPG、PNG、GIF、BMP 格式的图片');
+                    continue;
+                }
+                if (newFiles[i].size > maxSize) {
+                    alert('文件 "' + newFiles[i].name + '" 超过5MB限制');
+                    continue;
+                }
+                selectedFiles.push(newFiles[i]);
+            }
+
+            this.value = '';
+            renderImagePreviews();
+        });
+
+        function renderImagePreviews() {
+            previewList.innerHTML = '';
+            selectedFiles.forEach(function(file, index) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var item = document.createElement('div');
+                    item.className = 'image-preview-item';
+
+                    var img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = '预览';
+                    item.appendChild(img);
+
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'remove-btn';
+                    btn.innerHTML = '<i class="fas fa-times"></i>';
+                    btn.addEventListener('click', function() {
+                        removeImage(index);
+                    });
+                    item.appendChild(btn);
+
+                    previewList.appendChild(item);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            if (selectedFiles.length > 0) {
+                imageCountEl.textContent = '已选择 ' + selectedFiles.length + '/6 张图片';
+            } else {
+                imageCountEl.textContent = '';
+            }
+        }
+
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            renderImagePreviews();
+        }
 
         // 星级评分交互
         var stars = document.querySelectorAll('.star');
@@ -316,22 +482,32 @@
                 return;
             }
 
+            // 验证：文字和图片至少选择一项
+            if (!reviewText && selectedFiles.length === 0) {
+                alert('请至少填写评价内容或上传评价图片');
+                return;
+            }
+
             var btn = this;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
 
+            var formData = new FormData();
+            formData.append('orderId', orderId);
+            formData.append('recyclerId', recyclerId);
+            formData.append('starRating', selectedRating);
+            formData.append('reviewText', reviewText);
+
+            for (var i = 0; i < selectedFiles.length; i++) {
+                formData.append('reviewImages', selectedFiles[i]);
+            }
+
             fetch('@Url.Action("SubmitReview", "Home")', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({
-                    orderId: orderId,
-                    recyclerId: recyclerId,
-                    starRating: selectedRating,
-                    reviewText: reviewText
-                })
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
