@@ -1023,10 +1023,17 @@ namespace recycling.Web.UI.Controllers
             {
                 var user = (Users)Session["LoginUser"];
 
+                // 获取街道名称
+                string streetName = street;
+                if (Streets.LuohuStreets.ContainsKey(street))
+                {
+                    streetName = Streets.LuohuStreets[street];
+                }
+
                 var newAddress = new UserAddresses
                 {
                     UserID = user.UserID,
-                    Street = street,
+                    Street = streetName,
                     DetailAddress = detailAddress,
                     ContactName = contactName,
                     ContactPhone = contactPhone,
