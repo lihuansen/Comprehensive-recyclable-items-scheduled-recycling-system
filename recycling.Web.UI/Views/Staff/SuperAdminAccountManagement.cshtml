@@ -167,6 +167,33 @@
         font-size: 14px;
         margin-top: 5px;
     }
+
+    /* 密码显隐切换 */
+    .password-input-container {
+        position: relative;
+    }
+    .password-input-container .form-control {
+        padding-right: 40px;
+    }
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #666;
+        font-size: 16px;
+        padding: 5px;
+        z-index: 10;
+    }
+    .toggle-password:hover {
+        color: #333;
+    }
+    .toggle-password:focus {
+        outline: none;
+    }
 </style>
 
 <div class="profile-container">
@@ -289,16 +316,31 @@
                     @Html.AntiForgeryToken()
                     <div class="form-group">
                         <label for="oldPassword">旧密码</label>
-                        <input type="password" class="form-control" id="oldPassword" placeholder="请输入旧密码" required>
+                        <div class="password-input-container">
+                            <input type="password" class="form-control" id="oldPassword" placeholder="请输入旧密码" required>
+                            <button type="button" class="toggle-password" id="toggleOldPassword">
+                                <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="newPassword">新密码</label>
-                        <input type="password" class="form-control" id="newPassword" placeholder="请输入新密码（至少6个字符）" required>
+                        <div class="password-input-container">
+                            <input type="password" class="form-control" id="newPassword" placeholder="请输入新密码（至少6个字符）" required>
+                            <button type="button" class="toggle-password" id="toggleNewPassword">
+                                <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                            </button>
+                        </div>
                         <small class="info-text">密码长度至少为6个字符</small>
                     </div>
                     <div class="form-group">
                         <label for="confirmPassword">确认新密码</label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入新密码" required>
+                        <div class="password-input-container">
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入新密码" required>
+                            <button type="button" class="toggle-password" id="toggleConfirmPassword">
+                                <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -314,7 +356,32 @@
 
 @section Scripts {
 <script>
+// 密码显隐切换功能
+function setupPasswordToggle(toggleBtnId, passwordInputId) {
+    var toggleBtn = document.getElementById(toggleBtnId);
+    var passwordInput = document.getElementById(passwordInputId);
+    if (toggleBtn && passwordInput) {
+        toggleBtn.addEventListener('click', function () {
+            var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            var icon = this.querySelector('i');
+            if (type === 'password') {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    }
+}
+
 $(document).ready(function () {
+    // 初始化密码显隐切换
+    setupPasswordToggle('toggleOldPassword', 'oldPassword');
+    setupPasswordToggle('toggleNewPassword', 'newPassword');
+    setupPasswordToggle('toggleConfirmPassword', 'confirmPassword');
+
     // 加载账号信息
     loadAccountInfo();
 
