@@ -241,6 +241,82 @@ namespace recycling.BLL
             }
         }
 
+        #region 回收员账号管理
+
+        /// <summary>
+        /// 更新回收员个人信息
+        /// </summary>
+        public (bool Success, string Message) UpdateRecyclerProfile(int recyclerId, RecyclerProfileViewModel model)
+        {
+            if (recyclerId <= 0)
+                return (false, "回收员ID无效");
+
+            if (model == null)
+                return (false, "数据不能为空");
+
+            try
+            {
+                var recycler = _staffDAL.GetRecyclerById(recyclerId);
+                if (recycler == null)
+                    return (false, "回收员不存在");
+
+                // 更新字段
+                recycler.FullName = model.FullName;
+                recycler.PhoneNumber = model.PhoneNumber;
+                recycler.Region = model.Region;
+
+                bool result = _staffDAL.UpdateRecycler(recycler);
+                return result ? (true, "个人信息更新成功") : (false, "更新失败，请重试");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"更新失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 修改回收员密码
+        /// </summary>
+        public (bool Success, string Message) ChangeRecyclerPassword(int recyclerId, string currentPassword, string newPassword)
+        {
+            if (recyclerId <= 0)
+                return (false, "回收员ID无效");
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+                return (false, "请输入当前密码");
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+                return (false, "请输入新密码");
+
+            if (newPassword.Length < 6)
+                return (false, "新密码长度不能少于6个字符");
+
+            try
+            {
+                var recycler = _staffDAL.GetRecyclerById(recyclerId);
+                if (recycler == null)
+                    return (false, "回收员不存在");
+
+                // 验证当前密码
+                string currentPasswordHash = HashPassword(currentPassword);
+                if (!string.Equals(recycler.PasswordHash, currentPasswordHash, StringComparison.OrdinalIgnoreCase))
+                    return (false, "当前密码错误");
+
+                // 更新密码
+                string newPasswordHash = HashPassword(newPassword);
+                recycler.PasswordHash = newPasswordHash;
+
+                bool result = _staffDAL.UpdateRecycler(recycler);
+                return result ? (true, "密码修改成功，请重新登录") : (false, "密码修改失败，请重试");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"修改密码失败：{ex.Message}");
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// 更新运输人员个人信息（不包括车辆类型和载重）
         /// </summary>
