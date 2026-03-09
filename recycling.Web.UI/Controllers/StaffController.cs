@@ -1110,7 +1110,8 @@ namespace recycling.Web.UI.Controllers
                         pendingOrders = statistics.PendingOrders,
                         confirmedOrders = statistics.ConfirmedOrders,
                         completedOrders = statistics.CompletedOrders,
-                        cancelledOrders = statistics.CancelledOrders
+                        cancelledOrders = statistics.CancelledOrders,
+                        systemExpiredOrders = statistics.SystemExpiredOrders
                     }
                 }, JsonRequestBehavior.AllowGet);
             }
