@@ -4452,6 +4452,131 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
+        #region 回收员账号管理功能
+
+        /// <summary>
+        /// 回收员 - 个人中心页面
+        /// </summary>
+        public ActionResult RecyclerProfile()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                return RedirectToAction("Login", "Staff");
+
+            var recycler = (Recyclers)Session["LoginStaff"];
+            
+            // 重新从数据库获取最新信息
+            var latestRecycler = _staffBLL.GetRecyclerById(recycler.RecyclerID);
+            if (latestRecycler != null)
+            {
+                Session["LoginStaff"] = latestRecycler;
+                return View(latestRecycler);
+            }
+            
+            return View(recycler);
+        }
+
+        /// <summary>
+        /// 回收员 - 显示编辑个人信息页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult RecyclerEditProfile()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                return RedirectToAction("Login", "Staff");
+
+            var recycler = (Recyclers)Session["LoginStaff"];
+            
+            var model = new RecyclerProfileViewModel
+            {
+                FullName = recycler.FullName,
+                PhoneNumber = recycler.PhoneNumber,
+                Region = recycler.Region
+            };
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// 回收员 - 处理编辑个人信息提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RecyclerEditProfile(RecyclerProfileViewModel model)
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                return RedirectToAction("Login", "Staff");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var recycler = (Recyclers)Session["LoginStaff"];
+            var result = _staffBLL.UpdateRecyclerProfile(recycler.RecyclerID, model);
+
+            if (result.Success)
+            {
+                // 个人信息修改成功，清除Session强制重新登录
+                Session.Clear();
+                Session.Abandon();
+
+                TempData["SuccessMessage"] = "个人信息更新成功，请重新登录";
+                return RedirectToAction("Login", "Staff");
+            }
+            else
+            {
+                ModelState.AddModelError("", result.Message);
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// 回收员 - 显示修改密码页面
+        /// </summary>
+        [HttpGet]
+        public ActionResult RecyclerChangePassword()
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                return RedirectToAction("Login", "Staff");
+
+            return View(new ChangePasswordViewModel());
+        }
+
+        /// <summary>
+        /// 回收员 - 处理修改密码提交
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RecyclerChangePassword(ChangePasswordViewModel model)
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                return RedirectToAction("Login", "Staff");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var recycler = (Recyclers)Session["LoginStaff"];
+            var result = _staffBLL.ChangeRecyclerPassword(recycler.RecyclerID, model.CurrentPassword, model.NewPassword);
+
+            if (result.Success)
+            {
+                TempData["SuccessMessage"] = result.Message;
+                // 清除Session，要求重新登录
+                Session.Clear();
+                Session.Abandon();
+                return RedirectToAction("Login", "Staff");
+            }
+            else
+            {
+                ModelState.AddModelError("", result.Message);
+                return View(model);
+            }
+        }
+
+        #endregion
+
         #region 运输人员账号管理功能
 
         /// <summary>

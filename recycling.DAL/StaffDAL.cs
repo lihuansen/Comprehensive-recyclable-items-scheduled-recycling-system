@@ -507,7 +507,8 @@ namespace recycling.DAL
 
             using (var conn = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT RecyclerID, Username, FullName, PhoneNumber, Region, IsActive, Available 
+                string sql = @"SELECT RecyclerID, Username, PasswordHash, FullName, PhoneNumber, Region, 
+                      IsActive, Available, Rating, CreatedDate, LastLoginDate 
                       FROM Recyclers 
                       WHERE RecyclerID = @RecyclerID";
 
@@ -523,16 +524,47 @@ namespace recycling.DAL
                         {
                             RecyclerID = Convert.ToInt32(reader["RecyclerID"]),
                             Username = reader["Username"].ToString(),
+                            PasswordHash = reader["PasswordHash"]?.ToString(),
                             FullName = reader["FullName"]?.ToString(),
                             PhoneNumber = reader["PhoneNumber"]?.ToString(),
                             Region = reader["Region"] != DBNull.Value ? reader["Region"].ToString() : null,
                             IsActive = Convert.ToBoolean(reader["IsActive"]),
-                            Available = Convert.ToBoolean(reader["Available"])
+                            Available = Convert.ToBoolean(reader["Available"]),
+                            Rating = reader["Rating"] != DBNull.Value ? Convert.ToDecimal(reader["Rating"]) : (decimal?)null,
+                            CreatedDate = reader["CreatedDate"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedDate"]) : (DateTime?)null,
+                            LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null
                         };
                     }
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// 更新回收员信息
+        /// </summary>
+        public bool UpdateRecycler(Recyclers recycler)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Recyclers 
+                              SET FullName = @FullName, 
+                                  PhoneNumber = @PhoneNumber, 
+                                  Region = @Region, 
+                                  PasswordHash = @PasswordHash
+                              WHERE RecyclerID = @RecyclerID";
+
+                var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@RecyclerID", recycler.RecyclerID);
+                cmd.Parameters.AddWithValue("@FullName", recycler.FullName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", recycler.PhoneNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Region", recycler.Region ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@PasswordHash", recycler.PasswordHash ?? (object)DBNull.Value);
+
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
         }
 
         #region 基地工作人员账号管理
