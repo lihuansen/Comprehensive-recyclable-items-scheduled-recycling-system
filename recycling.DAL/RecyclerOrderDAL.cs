@@ -312,7 +312,8 @@ namespace recycling.DAL
                         COUNT(CASE WHEN Status = '已预约' AND RecyclerID IS NULL THEN 1 END) as PendingOrders,
                         COUNT(CASE WHEN Status = '进行中' AND RecyclerID = @RecyclerID THEN 1 END) as ConfirmedOrders,
                         COUNT(CASE WHEN Status = '已完成' AND RecyclerID = @RecyclerID THEN 1 END) as CompletedOrders,
-                        COUNT(CASE WHEN Status = '已取消-回收员回退' AND RecyclerID = @RecyclerID THEN 1 END) as CancelledOrders
+                        COUNT(CASE WHEN Status = '已取消-回收员回退' AND RecyclerID = @RecyclerID THEN 1 END) as CancelledOrders,
+                        COUNT(CASE WHEN Status = '已取消-系统超时回退' AND RecyclerID = @RecyclerID THEN 1 END) as SystemExpiredOrders
                     FROM Appointments
                     WHERE {whereCondition}";
 
@@ -337,6 +338,7 @@ namespace recycling.DAL
                             statistics.ConfirmedOrders = Convert.ToInt32(reader["ConfirmedOrders"]);
                             statistics.CompletedOrders = Convert.ToInt32(reader["CompletedOrders"]);
                             statistics.CancelledOrders = Convert.ToInt32(reader["CancelledOrders"]);
+                            statistics.SystemExpiredOrders = Convert.ToInt32(reader["SystemExpiredOrders"]);
                         }
                     }
                 }

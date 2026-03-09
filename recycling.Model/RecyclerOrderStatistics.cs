@@ -13,5 +13,6 @@ namespace recycling.Model
         public int ConfirmedOrders { get; set; }
         public int CompletedOrders { get; set; }
         public int CancelledOrders { get; set; }
+        public int SystemExpiredOrders { get; set; }
     }
 }

@@ -775,7 +775,11 @@ select.form-control::-ms-expand {
             </div>
             <div class="stat-item">
                 <div class="stat-number" id="stat-cancelled-orders">@(ViewBag.OrderStatistics?.CancelledOrders ?? 0)</div>
-                <div class="stat-label">被回退订单</div>
+                <div class="stat-label">回收员回退订单</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="stat-system-expired-orders">@(ViewBag.OrderStatistics?.SystemExpiredOrders ?? 0)</div>
+                <div class="stat-label">系统超时回退订单</div>
             </div>
         </div>
     </div>
@@ -798,8 +802,8 @@ select.form-control::-ms-expand {
                     <option value="已预约">已预约</option>
                     <option value="进行中">进行中</option>
                     <option value="已完成">已完成</option>
-                    <option value="已取消-回收员回退">被回退</option>
-                    <option value="已取消-系统超时回退">超时回退</option>
+                    <option value="已取消-回收员回退">回收员回退</option>
+                    <option value="已取消-系统超时回退">系统超时回退</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -1238,6 +1242,7 @@ select.form-control::-ms-expand {
                     document.getElementById('stat-confirmed-orders').textContent = data.data.confirmedOrders;
                     document.getElementById('stat-completed-orders').textContent = data.data.completedOrders;
                     document.getElementById('stat-cancelled-orders').textContent = data.data.cancelledOrders;
+                    document.getElementById('stat-system-expired-orders').textContent = data.data.systemExpiredOrders;
                 }
             })
             .catch(error => {
@@ -1373,7 +1378,7 @@ select.form-control::-ms-expand {
                         ${order.OrderNumber} ${urgentBadge}
                     </div>
                     <div class="order-status status-${order.Status.toLowerCase().replace(' ', '-')}">
-                        ${order.Status === '已取消-回收员回退' ? '被回退' : (order.Status === '已取消-系统超时回退' ? '超时回退' : order.Status)}
+                        ${order.Status === '已取消-回收员回退' ? '回收员回退' : (order.Status === '已取消-系统超时回退' ? '系统超时回退' : order.Status)}
                     </div>
                 </div>
 
