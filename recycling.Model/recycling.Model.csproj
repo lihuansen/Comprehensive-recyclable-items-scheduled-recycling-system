@@ -102,7 +102,6 @@
     <Compile Include="TransportationOrderCategories.cs" />
     <Compile Include="TransportationOrders.cs" />
     <Compile Include="TransporterProfileViewModel.cs" />
-    <Compile Include="Transporters.cs" />
     <Compile Include="UpdateProfileViewModel.cs" />
     <Compile Include="UserAddresses.cs" />
     <Compile Include="UserFeedback.cs" />
