@@ -172,5 +172,19 @@ namespace recycling.BLL
         }
 
         #endregion
+
+        #region SuperAdmin Avatar Methods
+
+        /// <summary>
+        /// 更新超级管理员头像
+        /// </summary>
+        public bool UpdateSuperAdminAvatar(int superAdminId, string avatarUrl)
+        {
+            if (superAdminId <= 0)
+                throw new ArgumentException("超级管理员ID无效");
+            return _superAdminDAL.UpdateSuperAdminAvatar(superAdminId, avatarUrl);
+        }
+
+        #endregion
     }
 }
