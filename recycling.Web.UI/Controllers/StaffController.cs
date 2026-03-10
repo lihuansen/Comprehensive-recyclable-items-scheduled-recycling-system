@@ -285,7 +285,8 @@ namespace recycling.Web.UI.Controllers
                             fullName = superAdmin.FullName,
                             isActive = superAdmin.IsActive,
                             createdAt = superAdmin.CreatedDate,
-                            lastLogin = superAdmin.LastLoginDate
+                            lastLogin = superAdmin.LastLoginDate,
+                            avatarUrl = superAdmin.URL
                         }
                     });
                 }
@@ -302,7 +303,8 @@ namespace recycling.Web.UI.Controllers
                             fullName = admin.FullName,
                             isActive = admin.IsActive,
                             createdAt = admin.CreatedDate,
-                            lastLogin = admin.LastLoginDate
+                            lastLogin = admin.LastLoginDate,
+                            avatarUrl = admin.URL
                         }
                     });
                 }
@@ -4523,6 +4525,193 @@ namespace recycling.Web.UI.Controllers
             }
             
             return View(worker);
+        }
+
+        #endregion
+
+        #region 工作人员头像管理
+
+        /// <summary>
+        /// 工作人员上传自定义头像（所有角色通用）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult UploadStaffAvatar(HttpPostedFileBase avatarFile)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                if (avatarFile == null || avatarFile.ContentLength == 0)
+                {
+                    return Json(new { success = false, message = "请选择要上传的图片" });
+                }
+
+                if (avatarFile.ContentLength > 5 * 1024 * 1024)
+                {
+                    return Json(new { success = false, message = "图片大小不能超过5MB" });
+                }
+
+                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+                string fileExtension = Path.GetExtension(avatarFile.FileName).ToLower();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return Json(new { success = false, message = "只支持 JPG、PNG、GIF、BMP 格式的图片" });
+                }
+
+                string role = Session["StaffRole"] as string;
+                string fileName;
+                bool success;
+                string avatarUrl;
+
+                string uploadPath = Server.MapPath("~/Uploads/Avatars/");
+                if (!Directory.Exists(uploadPath))
+                {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                switch (role)
+                {
+                    case "recycler":
+                        var recycler = (Recyclers)Session["LoginStaff"];
+                        fileName = $"recycler_{recycler.RecyclerID}_{DateTime.Now.Ticks}{fileExtension}";
+                        avatarUrl = $"/Uploads/Avatars/{fileName}";
+                        avatarFile.SaveAs(Path.Combine(uploadPath, fileName));
+                        success = _adminBLL.UpdateRecyclerAvatar(recycler.RecyclerID, avatarUrl);
+                        if (success) { recycler.URL = avatarUrl; Session["LoginStaff"] = recycler; }
+                        break;
+
+                    case "admin":
+                        var admin = (Admins)Session["LoginStaff"];
+                        fileName = $"admin_{admin.AdminID}_{DateTime.Now.Ticks}{fileExtension}";
+                        avatarUrl = $"/Uploads/Avatars/{fileName}";
+                        avatarFile.SaveAs(Path.Combine(uploadPath, fileName));
+                        success = _adminBLL.UpdateAdminAvatar(admin.AdminID, avatarUrl);
+                        if (success) { admin.URL = avatarUrl; Session["LoginStaff"] = admin; }
+                        break;
+
+                    case "superadmin":
+                        var superAdmin = (SuperAdmins)Session["LoginStaff"];
+                        fileName = $"superadmin_{superAdmin.SuperAdminID}_{DateTime.Now.Ticks}{fileExtension}";
+                        avatarUrl = $"/Uploads/Avatars/{fileName}";
+                        avatarFile.SaveAs(Path.Combine(uploadPath, fileName));
+                        success = _superAdminBLL.UpdateSuperAdminAvatar(superAdmin.SuperAdminID, avatarUrl);
+                        if (success) { superAdmin.URL = avatarUrl; Session["LoginStaff"] = superAdmin; }
+                        break;
+
+                    case "transporter":
+                        var transporter = (Transporters)Session["LoginStaff"];
+                        fileName = $"transporter_{transporter.TransporterID}_{DateTime.Now.Ticks}{fileExtension}";
+                        avatarUrl = $"/Uploads/Avatars/{fileName}";
+                        avatarFile.SaveAs(Path.Combine(uploadPath, fileName));
+                        success = _adminBLL.UpdateTransporterAvatar(transporter.TransporterID, avatarUrl);
+                        if (success) { transporter.URL = avatarUrl; Session["LoginStaff"] = transporter; }
+                        break;
+
+                    case "sortingcenterworker":
+                        var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                        fileName = $"worker_{worker.WorkerID}_{DateTime.Now.Ticks}{fileExtension}";
+                        avatarUrl = $"/Uploads/Avatars/{fileName}";
+                        avatarFile.SaveAs(Path.Combine(uploadPath, fileName));
+                        success = _adminBLL.UpdateSortingCenterWorkerAvatar(worker.WorkerID, avatarUrl);
+                        if (success) { worker.URL = avatarUrl; Session["LoginStaff"] = worker; }
+                        break;
+
+                    default:
+                        return Json(new { success = false, message = "未知的工作人员角色" });
+                }
+
+                if (success)
+                {
+                    return Json(new { success = true, message = "头像上传成功", avatarUrl = avatarUrl });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "头像上传失败，请重试" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "上传失败：" + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 工作人员设置默认头像（所有角色通用）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SetStaffDefaultAvatar(string avatarName)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] == null)
+                {
+                    return Json(new { success = false, message = "请先登录" });
+                }
+
+                string[] validAvatars = { "avatar1.svg", "avatar2.svg", "avatar3.svg", "avatar4.svg", "avatar5.svg" };
+                if (!validAvatars.Contains(avatarName))
+                {
+                    return Json(new { success = false, message = "无效的头像选择" });
+                }
+
+                string role = Session["StaffRole"] as string;
+                string avatarUrl = $"/Uploads/Avatars/Default/{avatarName}";
+                bool success;
+
+                switch (role)
+                {
+                    case "recycler":
+                        var recycler = (Recyclers)Session["LoginStaff"];
+                        success = _adminBLL.UpdateRecyclerAvatar(recycler.RecyclerID, avatarUrl);
+                        if (success) { recycler.URL = avatarUrl; Session["LoginStaff"] = recycler; }
+                        break;
+
+                    case "admin":
+                        var admin = (Admins)Session["LoginStaff"];
+                        success = _adminBLL.UpdateAdminAvatar(admin.AdminID, avatarUrl);
+                        if (success) { admin.URL = avatarUrl; Session["LoginStaff"] = admin; }
+                        break;
+
+                    case "superadmin":
+                        var superAdmin = (SuperAdmins)Session["LoginStaff"];
+                        success = _superAdminBLL.UpdateSuperAdminAvatar(superAdmin.SuperAdminID, avatarUrl);
+                        if (success) { superAdmin.URL = avatarUrl; Session["LoginStaff"] = superAdmin; }
+                        break;
+
+                    case "transporter":
+                        var transporter = (Transporters)Session["LoginStaff"];
+                        success = _adminBLL.UpdateTransporterAvatar(transporter.TransporterID, avatarUrl);
+                        if (success) { transporter.URL = avatarUrl; Session["LoginStaff"] = transporter; }
+                        break;
+
+                    case "sortingcenterworker":
+                        var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                        success = _adminBLL.UpdateSortingCenterWorkerAvatar(worker.WorkerID, avatarUrl);
+                        if (success) { worker.URL = avatarUrl; Session["LoginStaff"] = worker; }
+                        break;
+
+                    default:
+                        return Json(new { success = false, message = "未知的工作人员角色" });
+                }
+
+                if (success)
+                {
+                    return Json(new { success = true, message = "默认头像设置成功", avatarUrl = avatarUrl });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "设置失败，请重试" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "设置失败：" + ex.Message });
+            }
         }
 
         #endregion

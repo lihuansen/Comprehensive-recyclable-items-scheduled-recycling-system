@@ -654,5 +654,49 @@ namespace recycling.BLL
         }
 
         #endregion
+
+        #region Staff Avatar Methods
+
+        /// <summary>
+        /// 更新回收员头像
+        /// </summary>
+        public bool UpdateRecyclerAvatar(int recyclerId, string avatarUrl)
+        {
+            if (recyclerId <= 0)
+                throw new ArgumentException("回收员ID无效");
+            return _adminDAL.UpdateRecyclerAvatar(recyclerId, avatarUrl);
+        }
+
+        /// <summary>
+        /// 更新管理员头像
+        /// </summary>
+        public bool UpdateAdminAvatar(int adminId, string avatarUrl)
+        {
+            if (adminId <= 0)
+                throw new ArgumentException("管理员ID无效");
+            return _adminDAL.UpdateAdminAvatar(adminId, avatarUrl);
+        }
+
+        /// <summary>
+        /// 更新运输人员头像
+        /// </summary>
+        public bool UpdateTransporterAvatar(int transporterId, string avatarUrl)
+        {
+            if (transporterId <= 0)
+                throw new ArgumentException("运输人员ID无效");
+            return _adminDAL.UpdateTransporterAvatar(transporterId, avatarUrl);
+        }
+
+        /// <summary>
+        /// 更新基地工作人员头像
+        /// </summary>
+        public bool UpdateSortingCenterWorkerAvatar(int workerId, string avatarUrl)
+        {
+            if (workerId <= 0)
+                throw new ArgumentException("基地工作人员ID无效");
+            return _adminDAL.UpdateSortingCenterWorkerAvatar(workerId, avatarUrl);
+        }
+
+        #endregion
     }
 }

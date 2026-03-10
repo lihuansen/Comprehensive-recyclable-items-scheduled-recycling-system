@@ -298,8 +298,25 @@ namespace recycling.DAL
                 FullName = reader.GetString(reader.GetOrdinal("FullName")),
                 CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                URL = reader.IsDBNull(reader.GetOrdinal("URL")) ? null : reader.GetString(reader.GetOrdinal("URL"))
             };
+        }
+
+        /// <summary>
+        /// 更新超级管理员头像
+        /// </summary>
+        public bool UpdateSuperAdminAvatar(int superAdminId, string avatarUrl)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "UPDATE SuperAdmins SET URL = @URL WHERE SuperAdminID = @SuperAdminID";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@URL", (object)avatarUrl ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@SuperAdminID", superAdminId);
+                return cmd.ExecuteNonQuery() > 0;
+            }
         }
 
         #endregion

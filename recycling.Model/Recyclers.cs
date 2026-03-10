@@ -34,5 +34,7 @@ namespace recycling.Model
         public bool? IsActive { get; set; }
 
         public decimal? money { get; set; }
+
+        public string URL { get; set; }
     }
 }
