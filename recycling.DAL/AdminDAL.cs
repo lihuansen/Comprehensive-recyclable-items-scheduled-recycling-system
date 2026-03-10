@@ -2202,7 +2202,7 @@ namespace recycling.DAL
                 CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                URL = reader.IsDBNull(reader.GetOrdinal("URL")) ? null : reader.GetString(reader.GetOrdinal("URL"))
+                URL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL"))
             };
         }
 
@@ -2280,9 +2280,9 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "UPDATE Recyclers SET URL = @URL WHERE RecyclerID = @RecyclerID";
+                string sql = "UPDATE Recyclers SET AvatarURL = @AvatarURL WHERE RecyclerID = @RecyclerID";
                 SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@URL", (object)avatarUrl ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@AvatarURL", (object)avatarUrl ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
                 return cmd.ExecuteNonQuery() > 0;
             }
