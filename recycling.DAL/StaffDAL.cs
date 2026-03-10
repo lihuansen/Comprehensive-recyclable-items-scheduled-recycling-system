@@ -24,7 +24,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT RecyclerID, Username, PasswordHash, FullName, PhoneNumber, Region, LastLoginDate, IsActive, Available 
+                    string sql = @"SELECT RecyclerID, Username, PasswordHash, FullName, PhoneNumber, Region, LastLoginDate, IsActive, Available, AvatarURL 
                                   FROM Recyclers 
                                   WHERE Username = @Username";
 
@@ -48,7 +48,8 @@ namespace recycling.DAL
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null,
                                 IsActive = Convert.ToBoolean(reader["IsActive"]),
-                                Available = Convert.ToBoolean(reader["Available"])
+                                Available = Convert.ToBoolean(reader["Available"]),
+                                URL = reader["AvatarURL"] != DBNull.Value ? reader["AvatarURL"].ToString() : null
                             };
                         }
                     }
@@ -100,7 +101,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT AdminID, Username, PasswordHash, FullName, Character, IsActive, CreatedDate, LastLoginDate 
+                    string sql = @"SELECT AdminID, Username, PasswordHash, FullName, Character, IsActive, CreatedDate, LastLoginDate, URL 
                                   FROM Admins 
                                   WHERE Username = @Username";
 
@@ -129,7 +130,8 @@ namespace recycling.DAL
                                     : (DateTime?)null,
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
-                                    : (DateTime?)null
+                                    : (DateTime?)null,
+                                URL = reader["URL"] != DBNull.Value ? reader["URL"].ToString() : null
                             };
                         }
                     }
@@ -181,7 +183,7 @@ namespace recycling.DAL
             {
                 try
                 {
-                    string sql = @"SELECT SuperAdminID, Username, PasswordHash, LastLoginDate 
+                    string sql = @"SELECT SuperAdminID, Username, PasswordHash, LastLoginDate, URL 
                                   FROM SuperAdmins 
                                   WHERE Username = @Username";
 
@@ -200,7 +202,8 @@ namespace recycling.DAL
                                 PasswordHash = reader["PasswordHash"].ToString(),
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
-                                    : (DateTime?)null
+                                    : (DateTime?)null,
+                                URL = reader["URL"] != DBNull.Value ? reader["URL"].ToString() : null
                             };
                         }
                     }
@@ -254,7 +257,7 @@ namespace recycling.DAL
                 {
                     string sql = @"SELECT TransporterID, Username, PasswordHash, FullName, PhoneNumber, 
                                           Region, Available, CurrentStatus,
-                                          LastLoginDate, IsActive 
+                                          LastLoginDate, IsActive, URL 
                                   FROM Transporters 
                                   WHERE Username = @Username";
 
@@ -279,7 +282,8 @@ namespace recycling.DAL
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null,
-                                IsActive = Convert.ToBoolean(reader["IsActive"])
+                                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                                URL = reader["URL"] != DBNull.Value ? reader["URL"].ToString() : null
                             };
                         }
                     }
@@ -332,7 +336,7 @@ namespace recycling.DAL
                     string sql = @"SELECT TransporterID, Username, PasswordHash, FullName, PhoneNumber, 
                                           IDNumber, Region, Available, CurrentStatus,
                                           TotalWeight, Rating, CreatedDate, LastLoginDate, IsActive, 
-                                          money
+                                          money, URL
                                   FROM Transporters 
                                   WHERE TransporterID = @TransporterID";
 
@@ -364,7 +368,8 @@ namespace recycling.DAL
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null,
                                 IsActive = Convert.ToBoolean(reader["IsActive"]),
-                                money = reader["money"] != DBNull.Value ? Convert.ToDecimal(reader["money"]) : (decimal?)null
+                                money = reader["money"] != DBNull.Value ? Convert.ToDecimal(reader["money"]) : (decimal?)null,
+                                URL = reader["URL"] != DBNull.Value ? reader["URL"].ToString() : null
                             };
                         }
                     }
@@ -429,7 +434,7 @@ namespace recycling.DAL
                     
                     string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, 
                                       SortingCenterID, SortingCenterName,
-                                      Available, CurrentStatus, LastLoginDate, IsActive
+                                      Available, CurrentStatus, LastLoginDate, IsActive, URL
                               FROM SortingCenterWorkers 
                               WHERE Username = @Username";
 
@@ -454,7 +459,8 @@ namespace recycling.DAL
                                 LastLoginDate = reader["LastLoginDate"] != DBNull.Value
                                     ? Convert.ToDateTime(reader["LastLoginDate"])
                                     : (DateTime?)null,
-                                IsActive = Convert.ToBoolean(reader["IsActive"])
+                                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                                URL = reader["URL"] != DBNull.Value ? reader["URL"].ToString() : null
                             };
                         }
                     }
@@ -508,7 +514,7 @@ namespace recycling.DAL
             using (var conn = new SqlConnection(_connectionString))
             {
                 string sql = @"SELECT RecyclerID, Username, PasswordHash, FullName, PhoneNumber, Region, 
-                      IsActive, Available, Rating, CreatedDate, LastLoginDate 
+                      IsActive, Available, Rating, CreatedDate, LastLoginDate, AvatarURL 
                       FROM Recyclers 
                       WHERE RecyclerID = @RecyclerID";
 
@@ -532,7 +538,8 @@ namespace recycling.DAL
                             Available = Convert.ToBoolean(reader["Available"]),
                             Rating = reader["Rating"] != DBNull.Value ? Convert.ToDecimal(reader["Rating"]) : (decimal?)null,
                             CreatedDate = reader["CreatedDate"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedDate"]) : (DateTime?)null,
-                            LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null
+                            LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
+                            URL = reader["AvatarURL"] != DBNull.Value ? reader["AvatarURL"].ToString() : null
                         };
                     }
                 }
@@ -579,7 +586,7 @@ namespace recycling.DAL
                 string sql = @"SELECT WorkerID, Username, PasswordHash, FullName, PhoneNumber, IDNumber, 
                               SortingCenterID, SortingCenterName, 
                               Available, CurrentStatus, TotalItemsProcessed, TotalWeightProcessed, 
-                              Rating, CreatedDate, LastLoginDate, IsActive 
+                              Rating, CreatedDate, LastLoginDate, IsActive, URL 
                               FROM SortingCenterWorkers 
                               WHERE WorkerID = @WorkerID";
 
@@ -608,7 +615,8 @@ namespace recycling.DAL
                             Rating = reader["Rating"] != DBNull.Value ? Convert.ToDecimal(reader["Rating"]) : (decimal?)null,
                             CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                             LastLoginDate = reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : (DateTime?)null,
-                            IsActive = Convert.ToBoolean(reader["IsActive"])
+                            IsActive = Convert.ToBoolean(reader["IsActive"]),
+                            URL = reader["URL"] != DBNull.Value ? reader["URL"].ToString() : null
                         };
                     }
                 }
