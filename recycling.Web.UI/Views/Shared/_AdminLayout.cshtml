@@ -299,7 +299,19 @@
                 @if (Session["LoginStaff"] != null)
                 {
                     var admin = (recycling.Model.Admins)Session["LoginStaff"];
-                    <span>您好，管理员：@admin.Username</span>
+                    <div style="display: inline-flex; align-items: center; gap: 10px;">
+                        @if (!string.IsNullOrEmpty(admin.URL))
+                        {
+                            <img src="@admin.URL" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid white;" />
+                        }
+                        else
+                        {
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; border: 2px solid white;">
+                                <i class="fas fa-user-shield" style="font-size: 14px;"></i>
+                            </div>
+                        }
+                        <span>您好，管理员：@admin.Username</span>
+                    </div>
                     @Html.ActionLink("退出登录", "Logout", "Staff")
                 }
             </div>
