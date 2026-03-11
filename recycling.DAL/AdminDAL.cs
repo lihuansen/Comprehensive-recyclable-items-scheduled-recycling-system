@@ -177,10 +177,12 @@ namespace recycling.DAL
 
                 // === Regional Distribution of Users ===
                 cmd = new SqlCommand(@"
-                    SELECT u.Address, COUNT(*) AS UserCount
+                    SELECT ISNULL(ua.Province, '') + ISNULL(ua.City, '') + ISNULL(ua.District, '') + ISNULL(ua.Street, '') AS Address,
+                           COUNT(DISTINCT u.UserID) AS UserCount
                     FROM Users u
-                    WHERE u.Address IS NOT NULL AND u.Address <> ''
-                    GROUP BY u.Address
+                    INNER JOIN UserAddresses ua ON u.UserID = ua.UserID
+                    WHERE ua.Street IS NOT NULL AND ua.Street <> ''
+                    GROUP BY ua.Province, ua.City, ua.District, ua.Street
                     ORDER BY UserCount DESC", conn);
 
                 var regionDistribution = new List<Dictionary<string, object>>();
@@ -204,13 +206,15 @@ namespace recycling.DAL
                            u.Username, 
                            u.Email,
                            u.PhoneNumber,
-                           u.Address,
+                           (SELECT TOP 1 ISNULL(ua.Province, '') + ISNULL(ua.City, '') + ISNULL(ua.District, '') + ISNULL(ua.Street, '') + ISNULL(ua.DetailAddress, '')
+                            FROM UserAddresses ua WHERE ua.UserID = u.UserID
+                            ORDER BY ua.IsDefault DESC, ua.CreatedDate DESC) AS Address,
                            COUNT(a.AppointmentID) AS TotalOrders,
                            SUM(CASE WHEN a.Status = N'已完成' THEN 1 ELSE 0 END) AS CompletedOrders,
                            u.LastLoginDate
                     FROM Users u
                     LEFT JOIN Appointments a ON u.UserID = a.UserID
-                    GROUP BY u.UserID, u.Username, u.Email, u.PhoneNumber, u.Address, u.LastLoginDate
+                    GROUP BY u.UserID, u.Username, u.Email, u.PhoneNumber, u.LastLoginDate
                     ORDER BY TotalOrders DESC", conn);
 
                 var userRanking = new List<Dictionary<string, object>>();
