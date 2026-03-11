@@ -235,20 +235,6 @@ namespace recycling.DAL
                 }
                 stats["UserRanking"] = userRanking;
 
-                // === Total Orders by Users ===
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments", conn);
-                stats["TotalOrders"] = (int)cmd.ExecuteScalar();
-
-                // Completed Orders
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已完成'", conn);
-                stats["CompletedOrders"] = (int)cmd.ExecuteScalar();
-
-                // Orders This Month
-                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
-                    WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
-                    AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
-                stats["OrdersThisMonth"] = (int)cmd.ExecuteScalar();
-
                 // === Active vs Inactive Distribution ===
                 var activeInactiveDistribution = new List<Dictionary<string, object>>
                 {
