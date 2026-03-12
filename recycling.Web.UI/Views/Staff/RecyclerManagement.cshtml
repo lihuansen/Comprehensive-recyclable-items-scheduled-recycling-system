@@ -390,6 +390,10 @@ function loadDashboardStatistics() {
                     renderCategoryPieChart(data.CategoryDistribution);
                 } catch(e) {
                     console.error('分类回收占比图表渲染失败:', e);
+                    var canvas = document.getElementById('categoryPieChart');
+                    if (canvas && canvas.parentElement) {
+                        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>图表加载失败</div>';
+                    }
                 }
                 
                 // Recycler ranking
