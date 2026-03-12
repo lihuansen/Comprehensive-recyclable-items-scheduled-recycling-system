@@ -176,13 +176,20 @@ namespace recycling.DAL
                 stats["RegistrationTrend"] = registrationTrend;
 
                 // === Regional Distribution of Users ===
+                // Each user is counted only once, using their primary address
+                // (IsDefault=1 preferred, then most recently created)
                 cmd = new SqlCommand(@"
-                    SELECT ISNULL(ua.Province, '') + ISNULL(ua.City, '') + ISNULL(ua.District, '') + ISNULL(ua.Street, '') AS Address,
-                           COUNT(DISTINCT u.UserID) AS UserCount
-                    FROM Users u
-                    INNER JOIN UserAddresses ua ON u.UserID = ua.UserID
-                    WHERE ua.Street IS NOT NULL AND ua.Street <> ''
-                    GROUP BY ua.Province, ua.City, ua.District, ua.Street
+                    ;WITH RankedAddresses AS (
+                        SELECT ua.UserID,
+                               ISNULL(ua.Province, '') + ISNULL(ua.City, '') + ISNULL(ua.District, '') + ISNULL(ua.Street, '') AS Region,
+                               ROW_NUMBER() OVER (PARTITION BY ua.UserID ORDER BY ua.IsDefault DESC, ua.CreatedDate DESC) AS rn
+                        FROM UserAddresses ua
+                        WHERE ua.Street IS NOT NULL AND ua.Street <> ''
+                    )
+                    SELECT Region, COUNT(*) AS UserCount
+                    FROM RankedAddresses
+                    WHERE rn = 1
+                    GROUP BY Region
                     ORDER BY UserCount DESC", conn);
 
                 var regionDistribution = new List<Dictionary<string, object>>();
