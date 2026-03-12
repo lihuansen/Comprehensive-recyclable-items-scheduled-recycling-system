@@ -413,13 +413,13 @@ function renderRegionWeightList(regions) {
         return;
     }
     
-    // Find max weight for percentage calculation
-    var maxWeight = Math.max.apply(null, regions.map(function(r) { return parseFloat(r.TotalWeight); }));
-    if (maxWeight === 0) maxWeight = 1;
+    // Find total weight for percentage calculation
+    var totalWeight = regions.reduce(function(sum, r) { return sum + parseFloat(r.TotalWeight); }, 0);
+    if (totalWeight === 0) totalWeight = 1;
     
     regions.forEach(function(item) {
         var weight = parseFloat(item.TotalWeight);
-        var percentage = (weight / maxWeight * 100).toFixed(0);
+        var percentage = (weight / totalWeight * 100).toFixed(0);
         // Extract street name from full region name using configurable prefix
         var streetName = item.Region.replace(REGION_PREFIX, '');
         
