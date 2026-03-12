@@ -1967,9 +1967,10 @@ namespace recycling.DAL
                     }
                     stats["WeeklyTrend"] = weeklyTrend;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // TransportationOrders table may not exist yet - use default values
+                    System.Diagnostics.Debug.WriteLine($"GetTransporterDashboardStatistics - TransportationOrders query error: {ex.Message}");
                 }
 
                 // === Transporter Ranking by Completed Orders ===
@@ -2007,9 +2008,10 @@ namespace recycling.DAL
                     }
                     stats["TransporterRanking"] = transporterRanking;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // Ranking query may fail if TransportationOrders table doesn't exist - use default values
+                    System.Diagnostics.Debug.WriteLine($"GetTransporterDashboardStatistics - Ranking query error: {ex.Message}");
                 }
 
                 // === Regional Transporter Distribution ===
