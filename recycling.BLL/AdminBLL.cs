@@ -504,6 +504,14 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// Get comprehensive transporter dashboard statistics
+        /// </summary>
+        public Dictionary<string, object> GetTransporterDashboardStatistics()
+        {
+            return _adminDAL.GetTransporterDashboardStatistics();
+        }
+
+        /// <summary>
         /// Get all transporters for export
         /// </summary>
         public List<Transporters> GetAllTransportersForExport(string searchTerm = null, bool? isActive = null)
