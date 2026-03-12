@@ -391,7 +391,7 @@
 </div>
 
 @section Scripts {
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-N8+bLYT8eLKTJXLJp/s0aM+pOHFjz0iqXR6xQSyJo+qNeDuAhTwD7WBmETcNpZ/p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     var currentPage = 1;
     var pageSize = 20;
@@ -457,16 +457,20 @@
                     );
 
                     // Registration trend chart
-                    renderRegistrationTrendChart(data.RegistrationTrend);
+                    try { renderRegistrationTrendChart(data.RegistrationTrend); }
+                    catch (e) { console.error('Registration trend chart error:', e); }
 
                     // Active/Inactive pie chart
-                    renderActiveInactivePieChart(data.ActiveInactiveDistribution);
+                    try { renderActiveInactivePieChart(data.ActiveInactiveDistribution); }
+                    catch (e) { console.error('Active/Inactive pie chart error:', e); }
 
                     // Region distribution
-                    renderRegionDistribution(data.RegionDistribution);
+                    try { renderRegionDistribution(data.RegionDistribution); }
+                    catch (e) { console.error('Region distribution error:', e); }
 
                     // User ranking
-                    renderUserRanking(data.UserRanking);
+                    try { renderUserRanking(data.UserRanking); }
+                    catch (e) { console.error('User ranking error:', e); }
                 } else {
                     // Handle API error - show zero values instead of loading indicators
                     showDashboardFallbackValues();
