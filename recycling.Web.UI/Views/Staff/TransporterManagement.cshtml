@@ -133,27 +133,7 @@
             </div>
         </div>
 
-        <!-- 第三行：图表区域 - 订单状态分布饼图 + 近7天订单趋势 -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="dashboard-section">
-                    <div class="dashboard-title"><i class="fas fa-chart-pie"></i> 运输订单状态分布</div>
-                    <div class="chart-container">
-                        <canvas id="statusPieChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="dashboard-section">
-                    <div class="dashboard-title"><i class="fas fa-chart-line"></i> 近7天运输订单趋势</div>
-                    <div class="chart-container">
-                        <canvas id="weeklyTrendChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 第四行：区域分布 + 运输人员排名 -->
+        <!-- 第三行：区域分布 + 运输人员排名 -->
         <div class="row">
             <div class="col-md-6">
                 <div class="dashboard-section">
@@ -343,12 +323,9 @@
 </div>
 
 @section Scripts {
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
 var transporterCache = {}; // Cache for transporter data
-var statusPieChart = null;
-var weeklyTrendChart = null;
 var dashboardVisible = true;
 // Configurable region prefix for display
 var REGION_PREFIX = '广东省深圳市罗湖区';
@@ -425,28 +402,6 @@ function loadDashboardStatistics() {
                 $('#inTransitOrders').text(data.InTransitOrders || 0);
                 $('#cancelledOrders').text(data.CancelledOrders || 0);
 
-                // Order status distribution pie chart
-                try {
-                    renderStatusPieChart(data.StatusDistribution);
-                } catch(e) {
-                    console.error('订单状态分布图表渲染失败:', e);
-                    var canvas = document.getElementById('statusPieChart');
-                    if (canvas && canvas.parentElement) {
-                        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>图表加载失败</div>';
-                    }
-                }
-
-                // Weekly trend chart
-                try {
-                    renderWeeklyTrendChart(data.WeeklyTrend);
-                } catch(e) {
-                    console.error('近7天趋势图表渲染失败:', e);
-                    var canvas = document.getElementById('weeklyTrendChart');
-                    if (canvas && canvas.parentElement) {
-                        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>图表加载失败</div>';
-                    }
-                }
-
                 // Region distribution
                 try {
                     renderRegionDistribution(data.RegionDistribution);
@@ -487,149 +442,9 @@ function showDashboardFallbackValues() {
     $('#inTransitOrders').text('0');
     $('#cancelledOrders').text('0');
 
-    // Clear loading indicators for chart containers
-    var statusCanvas = document.getElementById('statusPieChart');
-    if (statusCanvas && statusCanvas.parentElement) {
-        statusCanvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>暂无运输订单数据</div>';
-    }
-    var trendCanvas = document.getElementById('weeklyTrendChart');
-    if (trendCanvas && trendCanvas.parentElement) {
-        trendCanvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>暂无近7天运输数据</div>';
-    }
-
     // Clear loading indicators for lists
     $('#regionDistributionList').html('<div class="text-center text-muted">暂无区域数据</div>');
     $('#transporterRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
-}
-
-// Render order status distribution pie chart
-function renderStatusPieChart(statusData) {
-    var canvas = document.getElementById('statusPieChart');
-    if (!canvas) return;
-
-    if (!statusData || statusData.length === 0) {
-        var container = canvas.parentElement;
-        container.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>暂无运输订单数据</div>';
-        return;
-    }
-
-    var ctx = canvas.getContext('2d');
-
-    if (statusPieChart) {
-        statusPieChart.destroy();
-    }
-
-    var statusColors = {
-        '待接单': '#ffc107',
-        '已接单': '#17a2b8',
-        '运输中': '#007bff',
-        '已完成': '#28a745',
-        '已取消': '#dc3545'
-    };
-    var defaultColors = ['#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#6c757d'];
-
-    var labels = statusData.map(function(s) { return s.Status; });
-    var data = statusData.map(function(s) { return s.Count; });
-    var colors = labels.map(function(label, i) {
-        return statusColors[label] || defaultColors[i % defaultColors.length];
-    });
-
-    statusPieChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: colors,
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                            var value = context.raw;
-                            var percentage = ((value / total) * 100).toFixed(1);
-                            return context.label + ': ' + value + ' 单 (' + percentage + '%)';
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Render weekly order trend chart
-function renderWeeklyTrendChart(trendData) {
-    var canvas = document.getElementById('weeklyTrendChart');
-    if (!canvas) return;
-
-    if (!trendData || trendData.length === 0) {
-        var container = canvas.parentElement;
-        container.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>暂无近7天运输数据</div>';
-        return;
-    }
-
-    var ctx = canvas.getContext('2d');
-
-    if (weeklyTrendChart) {
-        weeklyTrendChart.destroy();
-    }
-
-    var labels = trendData.map(function(t) { return t.Date; });
-    var data = trendData.map(function(t) { return t.OrderCount; });
-
-    weeklyTrendChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: '运输订单数',
-                data: data,
-                backgroundColor: 'rgba(102, 126, 234, 0.6)',
-                borderColor: '#667eea',
-                borderWidth: 2,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        precision: 0
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.parsed.y + ' 单';
-                        }
-                    }
-                }
-            }
-        }
-    });
 }
 
 // Render region distribution list
