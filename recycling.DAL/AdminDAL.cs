@@ -702,41 +702,12 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE Available = 1 AND IsActive = 1", conn);
                 stats["AvailableRecyclers"] = (int)cmd.ExecuteScalar();
 
-                // === Daily Recycling by Category (今日各分类回收总量) ===
+                // === Regional Recycling Totals (十个街道区域回收总量 - 基于已完成订单) ===
                 cmd = new SqlCommand(@"
-                    SELECT CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
-                    FROM Inventory
-                    WHERE InventoryType = N'Warehouse'
-                      AND CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))
-                    GROUP BY CategoryName
-                    ORDER BY TotalWeight DESC", conn);
-
-                var dailyCategoryWeight = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        dailyCategoryWeight.Add(new Dictionary<string, object>
-                        {
-                            ["CategoryName"] = reader.GetString(0),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(1))
-                        });
-                    }
-                }
-                stats["DailyCategoryWeight"] = dailyCategoryWeight;
-
-                // Total daily weight
-                cmd = new SqlCommand(@"
-                    SELECT ISNULL(SUM(Weight), 0) FROM Inventory 
-                    WHERE InventoryType = N'Warehouse' 
-                      AND CreatedDate >= CAST(GETDATE() AS DATE) AND CreatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))", conn);
-                stats["TodayTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // === Regional Recycling Totals (十个街道区域回收总量) ===
-                cmd = new SqlCommand(@"
-                    SELECT r.Region, ISNULL(SUM(i.Weight), 0) AS TotalWeight
+                    SELECT r.Region, ISNULL(SUM(ac.Weight), 0) AS TotalWeight
                     FROM Recyclers r
-                    LEFT JOIN Inventory i ON r.RecyclerID = i.RecyclerID AND i.InventoryType = N'Warehouse'
+                    LEFT JOIN Appointments a ON r.RecyclerID = a.RecyclerID AND a.Status = N'已完成'
+                    LEFT JOIN AppointmentCategories ac ON a.AppointmentID = ac.AppointmentID
                     WHERE r.Region IS NOT NULL AND r.Region <> ''
                     GROUP BY r.Region
                     ORDER BY TotalWeight DESC", conn);
@@ -755,14 +726,15 @@ namespace recycling.DAL
                 }
                 stats["RegionWeight"] = regionWeight;
 
-                // === Recycler Total Weight Ranking (回收员累计回收总量排名 - 从入职到现在) ===
+                // === Recycler Total Weight Ranking (回收员累计回收总量排名 - 基于已完成订单) ===
                 cmd = new SqlCommand(@"
                     SELECT r.RecyclerID, ISNULL(r.FullName, r.Username) AS Name, r.Username, 
                            r.Region, ISNULL(r.Rating, 0) AS Rating,
-                           ISNULL(SUM(i.Weight), 0) AS TotalWeight,
-                           COUNT(DISTINCT i.OrderID) AS CompletedOrders
+                           ISNULL(SUM(ac.Weight), 0) AS TotalWeight,
+                           COUNT(DISTINCT a.AppointmentID) AS CompletedOrders
                     FROM Recyclers r
-                    LEFT JOIN Inventory i ON r.RecyclerID = i.RecyclerID
+                    LEFT JOIN Appointments a ON r.RecyclerID = a.RecyclerID AND a.Status = N'已完成'
+                    LEFT JOIN AppointmentCategories ac ON a.AppointmentID = ac.AppointmentID
                     WHERE r.IsActive = 1
                     GROUP BY r.RecyclerID, r.FullName, r.Username, r.Region, r.Rating
                     ORDER BY TotalWeight DESC", conn);
@@ -789,43 +761,50 @@ namespace recycling.DAL
                 stats["RecyclerRanking"] = recyclerRanking;
 
                 // === Additional Statistics ===
-                // Today's completed orders
-                cmd = new SqlCommand(@"
-                    SELECT COUNT(*) FROM Appointments 
-                    WHERE Status = N'已完成' AND UpdatedDate >= CAST(GETDATE() AS DATE) AND UpdatedDate < DATEADD(day, 1, CAST(GETDATE() AS DATE))", conn);
-                stats["TodayCompletedOrders"] = (int)cmd.ExecuteScalar();
+                // Total completed orders (all time)
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已完成'", conn);
+                stats["TotalCompletedOrders"] = (int)cmd.ExecuteScalar();
 
-                // This month's total weight
+                // Total orders (all statuses)
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments", conn);
+                stats["TotalOrders"] = (int)cmd.ExecuteScalar();
+
+                // This month's total weight (based on completed orders)
                 cmd = new SqlCommand(@"
-                    SELECT ISNULL(SUM(Weight), 0) FROM Inventory 
-                    WHERE InventoryType = N'Warehouse'
-                      AND CreatedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
-                      AND CreatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
+                    SELECT ISNULL(SUM(ac.Weight), 0) FROM AppointmentCategories ac
+                    INNER JOIN Appointments a ON ac.AppointmentID = a.AppointmentID
+                    WHERE a.Status = N'已完成'
+                      AND a.UpdatedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
+                      AND a.UpdatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
                 stats["MonthTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // All-time total weight
-                cmd = new SqlCommand("SELECT ISNULL(SUM(Weight), 0) FROM Inventory WHERE InventoryType = N'Warehouse'", conn);
+                // All-time total weight (based on completed orders)
+                cmd = new SqlCommand(@"
+                    SELECT ISNULL(SUM(ac.Weight), 0) FROM AppointmentCategories ac
+                    INNER JOIN Appointments a ON ac.AppointmentID = a.AppointmentID
+                    WHERE a.Status = N'已完成'", conn);
                 stats["AllTimeTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
                 // Average recycler rating
                 cmd = new SqlCommand("SELECT ISNULL(AVG(Rating), 0) FROM Recyclers WHERE Rating IS NOT NULL AND IsActive = 1", conn);
                 stats["AverageRecyclerRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // Pending orders (waiting for recyclers)
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'待接单'", conn);
+                // Pending orders (waiting for recyclers - status '已预约')
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已预约'", conn);
                 stats["PendingOrders"] = (int)cmd.ExecuteScalar();
 
                 // In-progress orders
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'进行中'", conn);
                 stats["InProgressOrders"] = (int)cmd.ExecuteScalar();
 
-                // === Last 7 days weight trend ===
+                // === Last 7 days weight trend (based on completed orders) ===
                 cmd = new SqlCommand(@"
-                    SELECT CAST(CreatedDate AS DATE) AS RecycleDate, ISNULL(SUM(Weight), 0) AS TotalWeight
-                    FROM Inventory
-                    WHERE InventoryType = N'Warehouse'
-                      AND CreatedDate >= DATEADD(day, -7, GETDATE())
-                    GROUP BY CAST(CreatedDate AS DATE)
+                    SELECT CAST(a.UpdatedDate AS DATE) AS RecycleDate, ISNULL(SUM(ac.Weight), 0) AS TotalWeight
+                    FROM AppointmentCategories ac
+                    INNER JOIN Appointments a ON ac.AppointmentID = a.AppointmentID
+                    WHERE a.Status = N'已完成'
+                      AND a.UpdatedDate >= DATEADD(day, -7, GETDATE())
+                    GROUP BY CAST(a.UpdatedDate AS DATE)
                     ORDER BY RecycleDate", conn);
 
                 var weeklyTrend = new List<Dictionary<string, object>>();
@@ -842,12 +821,13 @@ namespace recycling.DAL
                 }
                 stats["WeeklyTrend"] = weeklyTrend;
 
-                // === Category distribution (all time) ===
+                // === Category distribution (all time, based on completed orders) ===
                 cmd = new SqlCommand(@"
-                    SELECT CategoryName, ISNULL(SUM(Weight), 0) AS TotalWeight
-                    FROM Inventory
-                    WHERE InventoryType = N'Warehouse'
-                    GROUP BY CategoryName
+                    SELECT ac.CategoryName, ISNULL(SUM(ac.Weight), 0) AS TotalWeight
+                    FROM AppointmentCategories ac
+                    INNER JOIN Appointments a ON ac.AppointmentID = a.AppointmentID
+                    WHERE a.Status = N'已完成'
+                    GROUP BY ac.CategoryName
                     ORDER BY TotalWeight DESC", conn);
 
                 var categoryDistribution = new List<Dictionary<string, object>>();
