@@ -1861,6 +1861,22 @@ namespace recycling.DAL
         {
             var stats = new Dictionary<string, object>();
 
+            // Initialize default values to ensure all keys exist
+            stats["TotalTransporters"] = 0;
+            stats["ActiveTransporters"] = 0;
+            stats["AvailableTransporters"] = 0;
+            stats["TotalOrders"] = 0;
+            stats["CompletedOrders"] = 0;
+            stats["PendingOrders"] = 0;
+            stats["InTransitOrders"] = 0;
+            stats["CancelledOrders"] = 0;
+            stats["AllTimeTotalWeight"] = 0m;
+            stats["MonthTotalWeight"] = 0m;
+            stats["StatusDistribution"] = new List<Dictionary<string, object>>();
+            stats["WeeklyTrend"] = new List<Dictionary<string, object>>();
+            stats["TransporterRanking"] = new List<Dictionary<string, object>>();
+            stats["RegionDistribution"] = new List<Dictionary<string, object>>();
+
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
@@ -1875,112 +1891,126 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters WHERE Available = 1 AND IsActive = 1", conn);
                 stats["AvailableTransporters"] = (int)cmd.ExecuteScalar();
 
-                // === Transportation Order Statistics ===
-                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders", conn);
-                stats["TotalOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'已完成'", conn);
-                stats["CompletedOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'待接单'", conn);
-                stats["PendingOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'运输中'", conn);
-                stats["InTransitOrders"] = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'已取消'", conn);
-                stats["CancelledOrders"] = (int)cmd.ExecuteScalar();
-
-                // Total transported weight (based on completed orders)
-                cmd = new SqlCommand(@"
-                    SELECT ISNULL(SUM(ISNULL(ActualWeight, EstimatedWeight)), 0) 
-                    FROM TransportationOrders WHERE Status = N'已完成'", conn);
-                stats["AllTimeTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // This month's transported weight
-                cmd = new SqlCommand(@"
-                    SELECT ISNULL(SUM(ISNULL(ActualWeight, EstimatedWeight)), 0) 
-                    FROM TransportationOrders 
-                    WHERE Status = N'已完成'
-                      AND CompletedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
-                      AND CompletedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
-                stats["MonthTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
-
-                // === Order Status Distribution (for pie chart) ===
-                cmd = new SqlCommand(@"
-                    SELECT Status, COUNT(*) AS OrderCount
-                    FROM TransportationOrders
-                    GROUP BY Status
-                    ORDER BY OrderCount DESC", conn);
-
-                var statusDistribution = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                // === Transportation Order Statistics (wrapped in try-catch for resilience) ===
+                try
                 {
-                    while (reader.Read())
+                    cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders", conn);
+                    stats["TotalOrders"] = (int)cmd.ExecuteScalar();
+
+                    cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'已完成'", conn);
+                    stats["CompletedOrders"] = (int)cmd.ExecuteScalar();
+
+                    cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'待接单'", conn);
+                    stats["PendingOrders"] = (int)cmd.ExecuteScalar();
+
+                    cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'运输中'", conn);
+                    stats["InTransitOrders"] = (int)cmd.ExecuteScalar();
+
+                    cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'已取消'", conn);
+                    stats["CancelledOrders"] = (int)cmd.ExecuteScalar();
+
+                    // Total transported weight (based on completed orders)
+                    cmd = new SqlCommand(@"
+                        SELECT ISNULL(SUM(ISNULL(ActualWeight, EstimatedWeight)), 0) 
+                        FROM TransportationOrders WHERE Status = N'已完成'", conn);
+                    stats["AllTimeTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                    // This month's transported weight
+                    cmd = new SqlCommand(@"
+                        SELECT ISNULL(SUM(ISNULL(ActualWeight, EstimatedWeight)), 0) 
+                        FROM TransportationOrders 
+                        WHERE Status = N'已完成'
+                          AND CompletedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
+                          AND CompletedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
+                    stats["MonthTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                    // === Order Status Distribution (for pie chart) ===
+                    cmd = new SqlCommand(@"
+                        SELECT Status, COUNT(*) AS OrderCount
+                        FROM TransportationOrders
+                        GROUP BY Status
+                        ORDER BY OrderCount DESC", conn);
+
+                    var statusDistribution = new List<Dictionary<string, object>>();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        statusDistribution.Add(new Dictionary<string, object>
+                        while (reader.Read())
                         {
-                            ["Status"] = reader.GetString(0),
-                            ["Count"] = reader.GetInt32(1)
-                        });
+                            statusDistribution.Add(new Dictionary<string, object>
+                            {
+                                ["Status"] = reader.GetString(0),
+                                ["Count"] = reader.GetInt32(1)
+                            });
+                        }
                     }
+                    stats["StatusDistribution"] = statusDistribution;
+
+                    // === Weekly Order Trend (last 7 days, based on CreatedDate) ===
+                    cmd = new SqlCommand(@"
+                        SELECT CAST(CreatedDate AS DATE) AS OrderDate, COUNT(*) AS OrderCount
+                        FROM TransportationOrders
+                        WHERE CreatedDate >= DATEADD(day, -7, GETDATE())
+                        GROUP BY CAST(CreatedDate AS DATE)
+                        ORDER BY OrderDate", conn);
+
+                    var weeklyTrend = new List<Dictionary<string, object>>();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            weeklyTrend.Add(new Dictionary<string, object>
+                            {
+                                ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
+                                ["OrderCount"] = reader.GetInt32(1)
+                            });
+                        }
+                    }
+                    stats["WeeklyTrend"] = weeklyTrend;
                 }
-                stats["StatusDistribution"] = statusDistribution;
-
-                // === Weekly Order Trend (last 7 days, based on CreatedDate) ===
-                cmd = new SqlCommand(@"
-                    SELECT CAST(CreatedDate AS DATE) AS OrderDate, COUNT(*) AS OrderCount
-                    FROM TransportationOrders
-                    WHERE CreatedDate >= DATEADD(day, -7, GETDATE())
-                    GROUP BY CAST(CreatedDate AS DATE)
-                    ORDER BY OrderDate", conn);
-
-                var weeklyTrend = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                catch (Exception)
                 {
-                    while (reader.Read())
-                    {
-                        weeklyTrend.Add(new Dictionary<string, object>
-                        {
-                            ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
-                            ["OrderCount"] = reader.GetInt32(1)
-                        });
-                    }
+                    // TransportationOrders table may not exist yet - use default values
                 }
-                stats["WeeklyTrend"] = weeklyTrend;
 
                 // === Transporter Ranking by Completed Orders ===
-                cmd = new SqlCommand(@"
-                    SELECT t.TransporterID, ISNULL(t.FullName, t.Username) AS Name, t.Username, 
-                           t.Region, ISNULL(t.Rating, 0) AS Rating,
-                           COUNT(DISTINCT o.TransportOrderID) AS CompletedOrders,
-                           ISNULL(SUM(ISNULL(o.ActualWeight, o.EstimatedWeight)), 0) AS TotalWeight
-                    FROM Transporters t
-                    LEFT JOIN TransportationOrders o ON t.TransporterID = o.TransporterID AND o.Status = N'已完成'
-                    WHERE t.IsActive = 1
-                    GROUP BY t.TransporterID, t.FullName, t.Username, t.Region, t.Rating
-                    ORDER BY CompletedOrders DESC", conn);
-
-                var transporterRanking = new List<Dictionary<string, object>>();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                try
                 {
-                    int rank = 1;
-                    while (reader.Read())
+                    cmd = new SqlCommand(@"
+                        SELECT t.TransporterID, ISNULL(t.FullName, t.Username) AS Name, t.Username, 
+                               t.Region, ISNULL(t.Rating, 0) AS Rating,
+                               COUNT(DISTINCT o.TransportOrderID) AS CompletedOrders,
+                               ISNULL(SUM(ISNULL(o.ActualWeight, o.EstimatedWeight)), 0) AS TotalWeight
+                        FROM Transporters t
+                        LEFT JOIN TransportationOrders o ON t.TransporterID = o.TransporterID AND o.Status = N'已完成'
+                        WHERE t.IsActive = 1
+                        GROUP BY t.TransporterID, t.FullName, t.Username, t.Region, t.Rating
+                        ORDER BY CompletedOrders DESC", conn);
+
+                    var transporterRanking = new List<Dictionary<string, object>>();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        transporterRanking.Add(new Dictionary<string, object>
+                        int rank = 1;
+                        while (reader.Read())
                         {
-                            ["Rank"] = rank++,
-                            ["TransporterID"] = reader.GetInt32(0),
-                            ["Name"] = reader.GetString(1),
-                            ["Username"] = reader.GetString(2),
-                            ["Region"] = reader.IsDBNull(3) ? "" : reader.GetString(3),
-                            ["Rating"] = Convert.ToDecimal(reader.GetValue(4)),
-                            ["CompletedOrders"] = reader.GetInt32(5),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(6))
-                        });
+                            transporterRanking.Add(new Dictionary<string, object>
+                            {
+                                ["Rank"] = rank++,
+                                ["TransporterID"] = reader.GetInt32(0),
+                                ["Name"] = reader.GetString(1),
+                                ["Username"] = reader.GetString(2),
+                                ["Region"] = reader.IsDBNull(3) ? "" : reader.GetString(3),
+                                ["Rating"] = Convert.ToDecimal(reader.GetValue(4)),
+                                ["CompletedOrders"] = reader.GetInt32(5),
+                                ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(6))
+                            });
+                        }
                     }
+                    stats["TransporterRanking"] = transporterRanking;
                 }
-                stats["TransporterRanking"] = transporterRanking;
+                catch (Exception)
+                {
+                    // Ranking query may fail if TransportationOrders table doesn't exist - use default values
+                }
 
                 // === Regional Transporter Distribution ===
                 cmd = new SqlCommand(@"
