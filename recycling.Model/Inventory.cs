@@ -1,0 +1,35 @@
+namespace recycling.Model
+{
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using System.Data.Entity.Spatial;
+
+    [Table("Inventory")]
+    public partial class Inventory
+    {
+        public int InventoryID { get; set; }
+
+        public int? OrderID { get; set; }
+
+        [StringLength(50)]
+        public string CategoryKey { get; set; }
+
+        [StringLength(50)]
+        public string CategoryName { get; set; }
+
+        public decimal? Weight { get; set; }
+
+        public int? RecyclerID { get; set; }
+
+        public DateTime? CreatedDate { get; set; }
+
+        public decimal? Price { get; set; }
+
+        [StringLength(50)]
+        public string InventoryType { get; set; } = "StoragePoint";
+
+        public int? ReceiptID { get; set; }
+    }
+}

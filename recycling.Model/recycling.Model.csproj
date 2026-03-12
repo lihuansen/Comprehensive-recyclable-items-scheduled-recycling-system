@@ -70,6 +70,7 @@
     <Compile Include="ExpiredOrderInfo.cs" />
     <Compile Include="ForgotPasswordViewModel.cs" />
     <Compile Include="HomepageCarousel.cs" />
+    <Compile Include="Inventory.cs" />
     <Compile Include="InventoryDetailViewModel.cs" />
     <Compile Include="InventorySummaryViewModel.cs" />
     <Compile Include="LoginViewModel.cs" />
