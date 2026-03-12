@@ -619,13 +619,13 @@
             return;
         }
 
-        // Find max count for percentage calculation
-        var maxCount = Math.max.apply(null, regions.map(function (r) { return r.UserCount; }));
-        if (maxCount === 0) maxCount = 1;
+        // Calculate total user count for percentage calculation
+        var totalCount = regions.reduce(function (sum, r) { return sum + r.UserCount; }, 0);
+        if (totalCount === 0) totalCount = 1;
 
         regions.forEach(function (item) {
             var count = item.UserCount;
-            var percentage = (count / maxCount * 100).toFixed(0);
+            var percentage = (count / totalCount * 100).toFixed(1);
             // Extract street name from full region name using configurable prefix
             var displayRegion = item.Region;
             if (item.Region.indexOf(REGION_PREFIX) === 0) {
