@@ -404,23 +404,26 @@ function loadDashboardStatistics() {
     $.ajax({
         url: '@Url.Action("GetTransporterDashboardStatistics", "Staff")',
         type: 'GET',
+        dataType: 'json',
         success: function (response) {
             if (response.success) {
                 var data = response.data;
 
                 // Basic stats
-                $('#totalTransporters').text(data.TotalTransporters);
-                $('#activeTransporters').text(data.ActiveTransporters);
-                $('#availableTransporters').text(data.AvailableTransporters);
-                $('#allTimeTotalWeight').text(parseFloat(data.AllTimeTotalWeight).toFixed(1));
-                $('#completedOrders').text(data.CompletedOrders);
-                $('#totalOrders').text(data.TotalOrders);
+                $('#totalTransporters').text(data.TotalTransporters || 0);
+                $('#activeTransporters').text(data.ActiveTransporters || 0);
+                $('#availableTransporters').text(data.AvailableTransporters || 0);
+                var allTimeWeight = parseFloat(data.AllTimeTotalWeight);
+                $('#allTimeTotalWeight').text(isNaN(allTimeWeight) ? '0.0' : allTimeWeight.toFixed(1));
+                $('#completedOrders').text(data.CompletedOrders || 0);
+                $('#totalOrders').text(data.TotalOrders || 0);
 
                 // Extended stats
-                $('#monthTotalWeight').text(parseFloat(data.MonthTotalWeight).toFixed(1));
-                $('#pendingOrders').text(data.PendingOrders);
-                $('#inTransitOrders').text(data.InTransitOrders);
-                $('#cancelledOrders').text(data.CancelledOrders);
+                var monthWeight = parseFloat(data.MonthTotalWeight);
+                $('#monthTotalWeight').text(isNaN(monthWeight) ? '0.0' : monthWeight.toFixed(1));
+                $('#pendingOrders').text(data.PendingOrders || 0);
+                $('#inTransitOrders').text(data.InTransitOrders || 0);
+                $('#cancelledOrders').text(data.CancelledOrders || 0);
 
                 // Order status distribution pie chart
                 try {
@@ -445,13 +448,58 @@ function loadDashboardStatistics() {
                 }
 
                 // Region distribution
-                renderRegionDistribution(data.RegionDistribution);
+                try {
+                    renderRegionDistribution(data.RegionDistribution);
+                } catch(e) {
+                    console.error('区域分布渲染失败:', e);
+                    $('#regionDistributionList').html('<div class="text-center text-muted">区域数据加载失败</div>');
+                }
 
                 // Transporter ranking
-                renderTransporterRanking(data.TransporterRanking);
+                try {
+                    renderTransporterRanking(data.TransporterRanking);
+                } catch(e) {
+                    console.error('排名渲染失败:', e);
+                    $('#transporterRankingList').html('<div class="text-center text-muted">排名数据加载失败</div>');
+                }
+            } else {
+                showDashboardFallbackValues();
+                console.error('获取运输人员数据看板失败: ' + (response.message || '未知错误'));
             }
+        },
+        error: function (xhr, status, error) {
+            showDashboardFallbackValues();
+            console.error('运输人员数据看板加载失败:', error);
         }
     });
+}
+
+// Show fallback values when dashboard data fails to load
+function showDashboardFallbackValues() {
+    $('#totalTransporters').text('0');
+    $('#activeTransporters').text('0');
+    $('#availableTransporters').text('0');
+    $('#allTimeTotalWeight').text('0.0');
+    $('#completedOrders').text('0');
+    $('#totalOrders').text('0');
+    $('#monthTotalWeight').text('0.0');
+    $('#pendingOrders').text('0');
+    $('#inTransitOrders').text('0');
+    $('#cancelledOrders').text('0');
+
+    // Clear loading indicators for chart containers
+    var statusCanvas = document.getElementById('statusPieChart');
+    if (statusCanvas && statusCanvas.parentElement) {
+        statusCanvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>暂无运输订单数据</div>';
+    }
+    var trendCanvas = document.getElementById('weeklyTrendChart');
+    if (trendCanvas && trendCanvas.parentElement) {
+        trendCanvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>暂无近7天运输数据</div>';
+    }
+
+    // Clear loading indicators for lists
+    $('#regionDistributionList').html('<div class="text-center text-muted">暂无区域数据</div>');
+    $('#transporterRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
 }
 
 // Render order status distribution pie chart
