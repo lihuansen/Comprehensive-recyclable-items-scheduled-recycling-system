@@ -4,13 +4,13 @@
 }
 
 <style>
-    /* ===== Dark Theme Base ===== */
+    /* ===== Light Theme Base ===== */
     .db-wrap {
-        background: linear-gradient(135deg, #0c0e1a 0%, #151933 50%, #1a1040 100%);
+        background: linear-gradient(135deg, #eef1f8 0%, #e4e9f2 50%, #f0ecf9 100%);
         min-height: 100vh;
         padding: 24px;
         margin: -20px -15px;
-        color: #e0e6ff;
+        color: #2d3748;
         font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
@@ -32,13 +32,13 @@
         margin: 0;
         font-size: 26px;
         font-weight: 700;
-        background: linear-gradient(90deg, #7c83ff, #00d4ff, #00ffab);
+        background: linear-gradient(90deg, #6366f1, #0891b2, #059669);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
     .db-live-dot {
         width: 8px; height: 8px;
-        background: #00ffab;
+        background: #10b981;
         border-radius: 50%;
         animation: dbPulse 2s infinite;
         display: inline-block;
@@ -48,12 +48,12 @@
         align-items: center;
         gap: 12px;
         font-size: 13px;
-        color: rgba(255,255,255,0.5);
+        color: rgba(0,0,0,0.5);
     }
     .db-refresh-btn {
-        background: rgba(124,131,255,0.15);
-        border: 1px solid rgba(124,131,255,0.3);
-        color: #7c83ff;
+        background: rgba(124,131,255,0.12);
+        border: 1px solid rgba(124,131,255,0.25);
+        color: #6366f1;
         padding: 6px 16px;
         border-radius: 8px;
         cursor: pointer;
@@ -61,29 +61,30 @@
         transition: all 0.3s;
     }
     .db-refresh-btn:hover {
-        background: rgba(124,131,255,0.3);
+        background: rgba(124,131,255,0.25);
         color: #fff;
     }
 
     /* ===== Glass Card ===== */
     .g-card {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 16px;
         backdrop-filter: blur(12px);
         padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         transition: transform 0.25s, box-shadow 0.25s;
     }
     .g-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.08);
     }
 
     /* ===== Section Title ===== */
     .sec-title {
         font-size: 16px;
         font-weight: 600;
-        color: rgba(255,255,255,0.7);
+        color: rgba(0,0,0,0.65);
         margin-bottom: 18px;
         display: flex;
         align-items: center;
@@ -91,7 +92,7 @@
     }
     .sec-title i {
         font-size: 14px;
-        color: #7c83ff;
+        color: #6366f1;
     }
 
     /* ===== Today Highlight Strip ===== */
@@ -102,12 +103,13 @@
         margin-bottom: 24px;
     }
     .today-item {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 14px;
         padding: 18px 20px;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .today-item::before {
         content: '';
@@ -118,13 +120,13 @@
         height: 3px;
         border-radius: 14px 14px 0 0;
     }
-    .today-item:nth-child(1)::before { background: linear-gradient(90deg, #7c83ff, #a78bfa); }
-    .today-item:nth-child(2)::before { background: linear-gradient(90deg, #00d4ff, #0ea5e9); }
-    .today-item:nth-child(3)::before { background: linear-gradient(90deg, #00ffab, #10b981); }
-    .today-item:nth-child(4)::before { background: linear-gradient(90deg, #f59e0b, #f97316); }
+    .today-item:nth-child(1)::before { background: linear-gradient(90deg, #6366f1, #a78bfa); }
+    .today-item:nth-child(2)::before { background: linear-gradient(90deg, #0891b2, #0ea5e9); }
+    .today-item:nth-child(3)::before { background: linear-gradient(90deg, #10b981, #059669); }
+    .today-item:nth-child(4)::before { background: linear-gradient(90deg, #d97706, #f97316); }
     .today-item .ti-label {
         font-size: 12px;
-        color: rgba(255,255,255,0.45);
+        color: rgba(0,0,0,0.45);
         margin-bottom: 6px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -132,11 +134,11 @@
     .today-item .ti-value {
         font-size: 28px;
         font-weight: 700;
-        color: #fff;
+        color: #1a202c;
     }
     .today-item .ti-sub {
         font-size: 12px;
-        color: rgba(255,255,255,0.35);
+        color: rgba(0,0,0,0.35);
         margin-top: 4px;
     }
 
@@ -148,13 +150,14 @@
         margin-bottom: 24px;
     }
     .kpi-card {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 14px;
         padding: 20px;
         display: flex;
         align-items: center;
         gap: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .kpi-icon {
         width: 52px;
@@ -176,16 +179,16 @@
     .kpi-body .kpi-val {
         font-size: 24px;
         font-weight: 700;
-        color: #fff;
+        color: #1a202c;
     }
     .kpi-body .kpi-label {
         font-size: 12px;
-        color: rgba(255,255,255,0.45);
+        color: rgba(0,0,0,0.45);
         margin-top: 2px;
     }
     .kpi-body .kpi-sub {
         font-size: 11px;
-        color: rgba(124,131,255,0.8);
+        color: rgba(99,102,241,0.8);
         margin-top: 4px;
     }
 
@@ -197,12 +200,13 @@
         margin-bottom: 24px;
     }
     .p-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(0,0,0,0.05);
         border-radius: 12px;
         padding: 16px;
         text-align: center;
         position: relative;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .p-card .p-icon {
         font-size: 28px;
@@ -212,24 +216,24 @@
     .p-card .p-count {
         font-size: 26px;
         font-weight: 700;
-        color: #fff;
+        color: #1a202c;
     }
     .p-card .p-name {
         font-size: 12px;
-        color: rgba(255,255,255,0.45);
+        color: rgba(0,0,0,0.45);
         margin-top: 4px;
     }
     .p-card .p-active {
         font-size: 11px;
-        color: #00ffab;
+        color: #10b981;
         margin-top: 6px;
     }
-    .p-card:nth-child(1) .p-icon { color: #7c83ff; }
-    .p-card:nth-child(2) .p-icon { color: #00d4ff; }
-    .p-card:nth-child(3) .p-icon { color: #00ffab; }
-    .p-card:nth-child(4) .p-icon { color: #f59e0b; }
-    .p-card:nth-child(5) .p-icon { color: #ec4899; }
-    .p-card:nth-child(6) .p-icon { color: #8b5cf6; }
+    .p-card:nth-child(1) .p-icon { color: #6366f1; }
+    .p-card:nth-child(2) .p-icon { color: #0891b2; }
+    .p-card:nth-child(3) .p-icon { color: #059669; }
+    .p-card:nth-child(4) .p-icon { color: #d97706; }
+    .p-card:nth-child(5) .p-icon { color: #db2777; }
+    .p-card:nth-child(6) .p-icon { color: #7c3aed; }
 
     /* ===== Chart Grid ===== */
     .chart-grid {
@@ -242,18 +246,19 @@
         grid-template-columns: repeat(3, 1fr);
     }
     .chart-box {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 16px;
         padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .chart-box h3 {
         margin: 0 0 16px 0;
         font-size: 15px;
-        color: rgba(255,255,255,0.7);
+        color: rgba(0,0,0,0.65);
         font-weight: 600;
     }
-    .chart-box h3 i { color: #7c83ff; margin-right: 6px; font-size: 13px; }
+    .chart-box h3 i { color: #6366f1; margin-right: 6px; font-size: 13px; }
     .chart-wrap {
         position: relative;
         height: 280px;
@@ -267,12 +272,13 @@
         margin-bottom: 24px;
     }
     .pipe-step {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 14px;
         padding: 18px;
         text-align: center;
         position: relative;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .pipe-step::after {
         content: '→';
@@ -280,24 +286,24 @@
         right: -12px;
         top: 50%;
         transform: translateY(-50%);
-        color: rgba(255,255,255,0.2);
+        color: rgba(0,0,0,0.2);
         font-size: 20px;
     }
     .pipe-step:last-child::after { display: none; }
     .pipe-num {
         font-size: 32px;
         font-weight: 700;
-        color: #fff;
+        color: #1a202c;
     }
     .pipe-label {
         font-size: 12px;
-        color: rgba(255,255,255,0.45);
+        color: rgba(0,0,0,0.45);
         margin-top: 6px;
     }
-    .pipe-step:nth-child(1) .pipe-num { color: #f59e0b; }
-    .pipe-step:nth-child(2) .pipe-num { color: #00d4ff; }
-    .pipe-step:nth-child(3) .pipe-num { color: #7c83ff; }
-    .pipe-step:nth-child(4) .pipe-num { color: #00ffab; }
+    .pipe-step:nth-child(1) .pipe-num { color: #d97706; }
+    .pipe-step:nth-child(2) .pipe-num { color: #0891b2; }
+    .pipe-step:nth-child(3) .pipe-num { color: #6366f1; }
+    .pipe-step:nth-child(4) .pipe-num { color: #059669; }
 
     /* ===== Efficiency Metrics ===== */
     .eff-grid {
@@ -307,11 +313,12 @@
         margin-bottom: 24px;
     }
     .eff-card {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 14px;
         padding: 20px;
         text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .eff-ring {
         width: 80px;
@@ -330,11 +337,11 @@
         transform: translate(-50%, -50%);
         font-size: 16px;
         font-weight: 700;
-        color: #fff;
+        color: #1a202c;
     }
     .eff-label {
         font-size: 12px;
-        color: rgba(255,255,255,0.5);
+        color: rgba(0,0,0,0.5);
     }
     .eff-label.mt { margin-top: 12px; }
 
@@ -355,11 +362,11 @@
     /* ===== Personnel Title Suffix ===== */
     .sec-title .total-suffix {
         font-size: 12px;
-        color: rgba(255,255,255,0.3);
+        color: rgba(0,0,0,0.3);
         margin-left: auto;
     }
     .sec-title .total-suffix .hl {
-        color: #7c83ff;
+        color: #6366f1;
     }
 
     /* ===== Cancel Row ===== */
@@ -382,18 +389,19 @@
         margin-bottom: 24px;
     }
     .tbl-card {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 16px;
         padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .tbl-card h3 {
         margin: 0 0 14px 0;
         font-size: 15px;
-        color: rgba(255,255,255,0.7);
+        color: rgba(0,0,0,0.65);
         font-weight: 600;
     }
-    .tbl-card h3 i { color: #7c83ff; margin-right: 6px; font-size: 13px; }
+    .tbl-card h3 i { color: #6366f1; margin-right: 6px; font-size: 13px; }
     .dk-table {
         width: 100%;
         border-collapse: collapse;
@@ -402,16 +410,16 @@
         text-align: left;
         padding: 10px 8px;
         font-size: 11px;
-        color: rgba(255,255,255,0.35);
+        color: rgba(0,0,0,0.4);
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
+        border-bottom: 1px solid rgba(0,0,0,0.08);
     }
     .dk-table td {
         padding: 10px 8px;
         font-size: 13px;
-        color: rgba(255,255,255,0.75);
-        border-bottom: 1px solid rgba(255,255,255,0.04);
+        color: rgba(0,0,0,0.7);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
     .dk-table tr:hover td { background: rgba(124,131,255,0.06); }
     .rank-badge {
@@ -427,7 +435,7 @@
     .rank-badge.gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; }
     .rank-badge.silver { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
     .rank-badge.bronze { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; }
-    .rank-badge.normal { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+    .rank-badge.normal { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.45); }
     .rating-stars { color: #fbbf24; font-size: 11px; }
 
     /* ===== System Overview Grid ===== */
@@ -438,43 +446,44 @@
         margin-bottom: 24px;
     }
     .sys-card {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 14px;
         padding: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .sys-card .sys-title {
         font-size: 13px;
-        color: rgba(255,255,255,0.45);
+        color: rgba(0,0,0,0.45);
         margin-bottom: 12px;
         display: flex;
         align-items: center;
         gap: 6px;
     }
-    .sys-card .sys-title i { color: #7c83ff; font-size: 14px; }
+    .sys-card .sys-title i { color: #6366f1; font-size: 14px; }
     .sys-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 6px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.04);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
     .sys-row:last-child { border: none; }
     .sys-row span:first-child {
         font-size: 12px;
-        color: rgba(255,255,255,0.5);
+        color: rgba(0,0,0,0.5);
     }
     .sys-row span:last-child {
         font-size: 14px;
         font-weight: 600;
-        color: #fff;
+        color: #1a202c;
     }
 
     /* ===== Footer ===== */
     .db-footer {
         text-align: center;
         padding: 16px 0 0;
-        color: rgba(255,255,255,0.2);
+        color: rgba(0,0,0,0.25);
         font-size: 12px;
     }
 
@@ -482,7 +491,7 @@
     .db-loading {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(12,14,26,0.95);
+        background: rgba(238,241,248,0.95);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -498,7 +507,7 @@
     }
     .db-loading p {
         margin-top: 16px;
-        color: rgba(255,255,255,0.4);
+        color: rgba(0,0,0,0.45);
         font-size: 13px;
     }
 
@@ -788,7 +797,7 @@
                 <thead>
                     <tr><th style="width:40px;">排名</th><th>姓名</th><th>评分</th><th>完成订单</th></tr>
                 </thead>
-                <tbody><tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">加载中...</td></tr></tbody>
+                <tbody><tr><td colspan="4" style="text-align:center;color:rgba(0,0,0,0.3);">加载中...</td></tr></tbody>
             </table>
         </div>
         <div class="tbl-card">
@@ -797,7 +806,7 @@
                 <thead>
                     <tr><th style="width:40px;">排名</th><th>用户名</th><th>订单数</th><th>消费金额</th></tr>
                 </thead>
-                <tbody><tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">加载中...</td></tr></tbody>
+                <tbody><tr><td colspan="4" style="text-align:center;color:rgba(0,0,0,0.3);">加载中...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -809,7 +818,7 @@
                 <thead>
                     <tr><th style="width:40px;">排名</th><th>区域</th><th>回收员数</th></tr>
                 </thead>
-                <tbody><tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);">加载中...</td></tr></tbody>
+                <tbody><tr><td colspan="3" style="text-align:center;color:rgba(0,0,0,0.3);">加载中...</td></tr></tbody>
             </table>
         </div>
         <div class="tbl-card">
@@ -818,7 +827,7 @@
                 <thead>
                     <tr><th>品类</th><th>总重量(kg)</th></tr>
                 </thead>
-                <tbody><tr><td colspan="2" style="text-align:center;color:rgba(255,255,255,0.3);">加载中...</td></tr></tbody>
+                <tbody><tr><td colspan="2" style="text-align:center;color:rgba(0,0,0,0.3);">加载中...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -874,9 +883,9 @@
         // Chart instances
         var charts = {};
 
-        // Dark theme defaults for Chart.js
-        Chart.defaults.color = 'rgba(255,255,255,0.5)';
-        Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+        // Light theme defaults for Chart.js
+        Chart.defaults.color = 'rgba(0,0,0,0.5)';
+        Chart.defaults.borderColor = 'rgba(0,0,0,0.08)';
 
         $(document).ready(function () {
             loadDashboardData();
@@ -953,10 +962,10 @@
             $('#sysSortingActive').text('0');
 
             // Tables
-            $('#tblRecyclers tbody').html('<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">暂无数据</td></tr>');
-            $('#tblUsers tbody').html('<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">暂无数据</td></tr>');
-            $('#tblRegion tbody').html('<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);">暂无数据</td></tr>');
-            $('#tblInventory tbody').html('<tr><td colspan="2" style="text-align:center;color:rgba(255,255,255,0.3);">暂无数据</td></tr>');
+            $('#tblRecyclers tbody').html('<tr><td colspan="4" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
+            $('#tblUsers tbody').html('<tr><td colspan="4" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
+            $('#tblRegion tbody').html('<tr><td colspan="3" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
+            $('#tblInventory tbody').html('<tr><td colspan="2" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
         }
 
         function updateDashboard(d) {
@@ -1019,19 +1028,19 @@
             // === Efficiency ===
             var cr = parseFloat(d.OrderCompletionRate) || 0;
             $('#completionRate').text(cr.toFixed(1) + '%');
-            drawRing('ringCompletion', cr, '#7c83ff');
+            drawRing('ringCompletion', cr, '#6366f1');
 
             var totalFb = parseInt(d.TotalFeedbacks) || 0;
             var processedFb = parseInt(d.ProcessedFeedbacks) || 0;
             var fbRate = totalFb > 0 ? (processedFb / totalFb * 100) : 0;
             $('#feedbackRate').text(fbRate.toFixed(1) + '%');
-            drawRing('ringFeedback', fbRate, '#00d4ff');
+            drawRing('ringFeedback', fbRate, '#0891b2');
 
             var totalWR = parseInt(d.TotalWarehouseReceipts) || 0;
             var processedWR = parseInt(d.ProcessedWarehouseReceipts) || 0;
             var wrRate = totalWR > 0 ? (processedWR / totalWR * 100) : 0;
             $('#warehouseRate').text(wrRate.toFixed(1) + '%');
-            drawRing('ringWarehouse', wrRate, '#00ffab');
+            drawRing('ringWarehouse', wrRate, '#059669');
 
             var ar = parseFloat(d.AverageRecyclerRating) || 0;
             $('#avgRating').text(ar.toFixed(2));
@@ -1095,7 +1104,7 @@
             // bg
             ctx.beginPath();
             ctx.arc(cx, cy, r, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.08)';
             ctx.lineWidth = lw;
             ctx.stroke();
             // value
@@ -1142,7 +1151,7 @@
                     datasets: [{
                         label: '订单数',
                         data: fV,
-                        backgroundColor: createGradient('chartOrderTrend', '#7c83ff', '#6366f1'),
+                        backgroundColor: createGradient('chartOrderTrend', '#6366f1', '#4f46e5'),
                         borderRadius: 6,
                         borderSkipped: false,
                         barPercentage: 0.6
@@ -1156,7 +1165,7 @@
         function renderOrderStatus(data) {
             var labels = data ? data.map(function (d) { return d.Status; }) : [];
             var values = data ? data.map(function (d) { return d.Count; }) : [];
-            var colors = ['#7c83ff', '#00ffab', '#f59e0b', '#ec4899', '#00d4ff', '#8b5cf6'];
+            var colors = ['#6366f1', '#10b981', '#d97706', '#db2777', '#0891b2', '#7c3aed'];
             destroyChart('chartOrderStatus');
             charts['chartOrderStatus'] = new Chart(document.getElementById('chartOrderStatus'), {
                 type: 'doughnut',
@@ -1203,23 +1212,23 @@
                         {
                             label: '订单数',
                             data: orderMerged,
-                            borderColor: '#7c83ff',
-                            backgroundColor: 'rgba(124,131,255,0.1)',
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99,102,241,0.1)',
                             fill: true,
                             tension: 0.4,
                             pointRadius: 4,
-                            pointBackgroundColor: '#7c83ff',
+                            pointBackgroundColor: '#6366f1',
                             yAxisID: 'y'
                         },
                         {
                             label: '营收 (¥)',
                             data: revMerged,
-                            borderColor: '#00ffab',
-                            backgroundColor: 'rgba(0,255,171,0.08)',
+                            borderColor: '#059669',
+                            backgroundColor: 'rgba(5,150,105,0.08)',
                             fill: true,
                             tension: 0.4,
                             pointRadius: 4,
-                            pointBackgroundColor: '#00ffab',
+                            pointBackgroundColor: '#059669',
                             yAxisID: 'y1'
                         }
                     ]
@@ -1229,9 +1238,9 @@
                     interaction: { mode: 'index', intersect: false },
                     plugins: { legend: { labels: { usePointStyle: true, padding: 16, font: { size: 11 } } } },
                     scales: {
-                        y: { beginAtZero: true, position: 'left', grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 10 } } },
+                        y: { beginAtZero: true, position: 'left', grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 } } },
                         y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } },
-                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 10 } } }
+                        x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 } } }
                     }
                 }
             });
@@ -1241,7 +1250,7 @@
         function renderCategory(data) {
             var labels = data ? data.map(function (d) { return d.Category; }) : [];
             var values = data ? data.map(function (d) { return d.Count; }) : [];
-            var colors = ['#7c83ff', '#00d4ff', '#00ffab', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444', '#06b6d4'];
+            var colors = ['#6366f1', '#0891b2', '#10b981', '#d97706', '#db2777', '#7c3aed', '#ef4444', '#0284c7'];
             destroyChart('chartCategory');
             charts['chartCategory'] = new Chart(document.getElementById('chartCategory'), {
                 type: 'polarArea',
@@ -1259,7 +1268,7 @@
                     plugins: {
                         legend: { position: 'right', labels: { padding: 12, usePointStyle: true, font: { size: 11 } } }
                     },
-                    scales: { r: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { display: false } } }
+                    scales: { r: { grid: { color: 'rgba(0,0,0,0.08)' }, ticks: { display: false } } }
                 }
             });
         }
@@ -1268,7 +1277,7 @@
         function renderTransportStatus(data) {
             var labels = data ? data.map(function (d) { return d.Status; }) : [];
             var values = data ? data.map(function (d) { return d.Count; }) : [];
-            var colors = ['#f59e0b', '#00d4ff', '#7c83ff', '#00ffab'];
+            var colors = ['#d97706', '#0891b2', '#6366f1', '#059669'];
             destroyChart('chartTransportStatus');
             charts['chartTransportStatus'] = new Chart(document.getElementById('chartTransportStatus'), {
                 type: 'doughnut',
@@ -1320,7 +1329,7 @@
             var tbody = $('#tblRecyclers tbody');
             tbody.empty();
             if (!data || data.length === 0) {
-                tbody.html('<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">暂无数据</td></tr>');
+                tbody.html('<tr><td colspan="4" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
                 return;
             }
             data.forEach(function (item, i) {
@@ -1338,7 +1347,7 @@
             var tbody = $('#tblUsers tbody');
             tbody.empty();
             if (!data || data.length === 0) {
-                tbody.html('<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">暂无数据</td></tr>');
+                tbody.html('<tr><td colspan="4" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
                 return;
             }
             data.forEach(function (item, i) {
@@ -1355,7 +1364,7 @@
             var tbody = $('#tblRegion tbody');
             tbody.empty();
             if (!data || data.length === 0) {
-                tbody.html('<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);">暂无数据</td></tr>');
+                tbody.html('<tr><td colspan="3" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
                 return;
             }
             data.forEach(function (item, i) {
@@ -1370,7 +1379,7 @@
             var tbody = $('#tblInventory tbody');
             tbody.empty();
             if (!data || data.length === 0) {
-                tbody.html('<tr><td colspan="2" style="text-align:center;color:rgba(255,255,255,0.3);">暂无数据</td></tr>');
+                tbody.html('<tr><td colspan="2" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
                 return;
             }
             data.forEach(function (item) {
@@ -1396,8 +1405,8 @@
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: !!showLegend } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 10 } } },
-                    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 10 } } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 } } },
+                    x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 } } }
                 }
             };
         }
