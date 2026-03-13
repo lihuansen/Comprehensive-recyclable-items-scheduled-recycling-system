@@ -164,10 +164,10 @@ namespace recycling.DAL
                             string insertSql = @"
                                 INSERT INTO WarehouseReceipts 
                                 (ReceiptNumber, TransportOrderID, RecyclerID, WorkerID, TotalWeight, 
-                                 ItemCategories, Status, Notes, CreatedDate, CreatedBy)
+                                 ItemCategories, Status, Notes, CreatedDate, CreatedBy, OrderID)
                                 VALUES 
                                 (@ReceiptNumber, @TransportOrderID, @RecyclerID, @WorkerID, @TotalWeight, 
-                                 @ItemCategories, @Status, @Notes, @CreatedDate, @CreatedBy);
+                                 @ItemCategories, @Status, @Notes, @CreatedDate, @CreatedBy, @OrderID);
                                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
                             int receiptId;
@@ -183,6 +183,7 @@ namespace recycling.DAL
                                 cmd.Parameters.AddWithValue("@Notes", (object)receipt.Notes ?? DBNull.Value);
                                 cmd.Parameters.AddWithValue("@CreatedDate", receipt.CreatedDate);
                                 cmd.Parameters.AddWithValue("@CreatedBy", receipt.CreatedBy);
+                                cmd.Parameters.AddWithValue("@OrderID", (object)receipt.OrderID ?? DBNull.Value);
 
                                 receiptId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
@@ -226,7 +227,7 @@ namespace recycling.DAL
                             // 1. 获取入库单信息
                             string getReceiptSql = @"
                                 SELECT ReceiptID, ReceiptNumber, TransportOrderID, RecyclerID, WorkerID, 
-                                       TotalWeight, ItemCategories, Status, Notes, CreatedDate, CreatedBy
+                                       TotalWeight, ItemCategories, Status, Notes, CreatedDate, CreatedBy, OrderID
                                 FROM WarehouseReceipts
                                 WHERE ReceiptID = @ReceiptID";
 
@@ -256,7 +257,8 @@ namespace recycling.DAL
                                             Status = reader["Status"].ToString(),
                                             Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                             CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                                            CreatedBy = Convert.ToInt32(reader["CreatedBy"])
+                                            CreatedBy = Convert.ToInt32(reader["CreatedBy"]),
+                                            OrderID = reader["OrderID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["OrderID"])
                                         };
                                     }
                                 }
@@ -300,6 +302,10 @@ namespace recycling.DAL
                             
                             // 用于跟踪是否成功写入至少一条库存记录
                             bool hasValidCategory = false;
+                            
+                            // 用于跟踪入库的物品数量和总重量，用于更新基地人员统计
+                            int validCategoryCount = 0;
+                            decimal totalProcessedWeight = 0;
 
                             foreach (var category in categories)
                             {
@@ -316,6 +322,8 @@ namespace recycling.DAL
                                 }
                                 
                                 hasValidCategory = true;
+                                validCategoryCount++;
+                                totalProcessedWeight += weight;
 
                                 // 计算价格
                                 decimal? price = null;
@@ -381,9 +389,9 @@ namespace recycling.DAL
                                     // 插入新库存记录
                                     string insertInventorySql = @"
                                         INSERT INTO Inventory 
-                                        (OrderID, CategoryKey, CategoryName, Weight, RecyclerID, CreatedDate, Price, InventoryType)
+                                        (OrderID, CategoryKey, CategoryName, Weight, RecyclerID, CreatedDate, Price, InventoryType, ReceiptID)
                                         VALUES 
-                                        (@OrderID, @CategoryKey, @CategoryName, @Weight, @RecyclerID, @CreatedDate, @Price, @InventoryType)";
+                                        (@OrderID, @CategoryKey, @CategoryName, @Weight, @RecyclerID, @CreatedDate, @Price, @InventoryType, @ReceiptID)";
 
                                     using (SqlCommand insertCmd = new SqlCommand(insertInventorySql, conn, transaction))
                                     {
@@ -395,6 +403,7 @@ namespace recycling.DAL
                                         insertCmd.Parameters.AddWithValue("@CreatedDate", receipt.CreatedDate);
                                         insertCmd.Parameters.AddWithValue("@Price", (object)price ?? DBNull.Value);
                                         insertCmd.Parameters.AddWithValue("@InventoryType", "Warehouse");
+                                        insertCmd.Parameters.AddWithValue("@ReceiptID", receiptId);
                                         insertCmd.ExecuteNonQuery();
                                     }
                                 }
@@ -416,6 +425,21 @@ namespace recycling.DAL
                             {
                                 cmd.Parameters.AddWithValue("@ReceiptID", receiptId);
                                 cmd.ExecuteNonQuery();
+                            }
+
+                            // 4. 更新基地人员的处理统计（TotalItemsProcessed和TotalWeightProcessed）
+                            string updateWorkerStatsSql = @"
+                                UPDATE SortingCenterWorkers
+                                SET TotalItemsProcessed = ISNULL(TotalItemsProcessed, 0) + @ItemCount,
+                                    TotalWeightProcessed = ISNULL(TotalWeightProcessed, 0) + @WeightProcessed
+                                WHERE WorkerID = @WorkerID";
+
+                            using (SqlCommand statsCmd = new SqlCommand(updateWorkerStatsSql, conn, transaction))
+                            {
+                                statsCmd.Parameters.AddWithValue("@ItemCount", validCategoryCount);
+                                statsCmd.Parameters.AddWithValue("@WeightProcessed", totalProcessedWeight);
+                                statsCmd.Parameters.AddWithValue("@WorkerID", receipt.WorkerID);
+                                statsCmd.ExecuteNonQuery();
                             }
 
                             transaction.Commit();
@@ -572,7 +596,8 @@ namespace recycling.DAL
                                     Status = reader["Status"].ToString(),
                                     Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                                    CreatedBy = Convert.ToInt32(reader["CreatedBy"])
+                                    CreatedBy = Convert.ToInt32(reader["CreatedBy"]),
+                                    OrderID = reader["OrderID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["OrderID"])
                                 };
                             }
                         }
@@ -894,7 +919,8 @@ namespace recycling.DAL
                                     Status = reader["Status"].ToString(),
                                     Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                                    CreatedBy = Convert.ToInt32(reader["CreatedBy"])
+                                    CreatedBy = Convert.ToInt32(reader["CreatedBy"]),
+                                    OrderID = reader["OrderID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["OrderID"])
                                 };
                             }
                         }
