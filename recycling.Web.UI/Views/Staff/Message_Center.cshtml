@@ -177,6 +177,17 @@
             if (data.success) {
                 var messages = data.messages || data.data || [];
                 renderConversationMessages(messages);
+                // 根据订单状态控制输入框
+                var status = data.orderStatus || '';
+                var input = document.getElementById('conversationInput');
+                var sendBtn = document.getElementById('sendMessageBtn');
+                if (status === '已完成' || status === '已取消-系统超时回退') {
+                    if (input) { input.disabled = true; input.placeholder = '订单已结束，无法发送消息'; }
+                    if (sendBtn) sendBtn.disabled = true;
+                } else {
+                    if (input) { input.disabled = false; input.placeholder = '输入联系用户的消息...'; }
+                    if (sendBtn) sendBtn.disabled = false;
+                }
             } else {
                 var container = document.getElementById('conversationContainer');
                 if (container) container.innerHTML = '<div class="text-danger">加载对话失败：' + escapeHtml(data.message || '') + '</div>';

@@ -559,8 +559,18 @@ namespace recycling.Web.UI.Controllers
                     sentTime = m.SentTime.HasValue ? m.SentTime.Value.ToString("o") : "",
                     isRead = m.IsRead
                 }).ToList();
-                
-                return Json(new { success = true, data = formattedMessages });
+
+                // 获取订单状态，用于前端判断是否锁定聊天输入
+                string orderStatus = "";
+                try
+                {
+                    var orderDetail = _orderBLL.GetOrderDetail(orderId, user.UserID);
+                    if (orderDetail != null && orderDetail.Appointment != null)
+                        orderStatus = orderDetail.Appointment.Status ?? "";
+                }
+                catch { }
+
+                return Json(new { success = true, data = formattedMessages, orderStatus = orderStatus });
             }
             catch (Exception ex)
             {
@@ -646,7 +656,18 @@ namespace recycling.Web.UI.Controllers
                 
                 string endedTimeIso = conversationEnded ? latestConv.EndedTime.Value.ToString("o") : string.Empty;
 
-                return Json(new { success = true, messages = result, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
+                // 获取订单状态，用于前端判断是否锁定聊天输入
+                string orderStatus = "";
+                try
+                {
+                    var user = (Users)Session["LoginUser"];
+                    var orderDetail = _orderBLL.GetOrderDetail(orderId, user.UserID);
+                    if (orderDetail != null && orderDetail.Appointment != null)
+                        orderStatus = orderDetail.Appointment.Status ?? "";
+                }
+                catch { }
+
+                return Json(new { success = true, messages = result, orderStatus = orderStatus, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
             }
             catch (Exception ex)
             {

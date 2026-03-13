@@ -1306,10 +1306,22 @@ namespace recycling.Web.UI.Controllers
                 // 使用公共方法确定谁已经结束了对话
                 string lastEndedBy = convBll.GetConversationEndedByStatus(orderId);
 
+                // 获取订单状态，用于前端判断是否锁定聊天输入
+                string orderStatus = "";
+                try
+                {
+                    var recycler = (Recyclers)Session["LoginStaff"];
+                    var orderResult = _recyclerOrderBLL.GetOrderDetail(orderId, recycler.RecyclerID);
+                    if (orderResult.Detail != null)
+                        orderStatus = orderResult.Detail.Status ?? "";
+                }
+                catch { }
+
                 return JsonContent(new
                 {
                     success = true,
                     messages = result,
+                    orderStatus = orderStatus,
                     conversationLastEndedBy = lastEndedBy,
                     conversationBothEnded = conversationBothEnded,
                     conversationLatestEndedTime = latestEndedTimeIso
@@ -1346,6 +1358,22 @@ namespace recycling.Web.UI.Controllers
 
                 request.SenderType = "recycler";
                 request.SenderID = recycler.RecyclerID;
+
+                // 检查订单状态：已完成和系统超时回退的订单不允许发送消息
+                try
+                {
+                    var orderResult = _recyclerOrderBLL.GetOrderDetail(request.OrderID, recycler.RecyclerID);
+                    if (orderResult.Detail != null)
+                    {
+                        var status = orderResult.Detail.Status;
+                        if (status == "已完成" || status == "已取消-系统超时回退")
+                        {
+                            var blockJson = JsonConvert.SerializeObject(new { success = false, message = "该订单已结束，无法发送消息" });
+                            return Content(blockJson, "application/json", System.Text.Encoding.UTF8);
+                        }
+                    }
+                }
+                catch { }
 
                 var result = _messageBLL.SendMessage(request);
                 var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
