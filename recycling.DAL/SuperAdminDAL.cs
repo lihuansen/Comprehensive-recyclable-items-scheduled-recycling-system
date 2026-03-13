@@ -397,7 +397,7 @@ namespace recycling.DAL
                            LastLoginDate, IsActive
                     FROM Admins
                     WHERE IsActive = 1
-                    ORDER BY LastLoginDate DESC", conn);
+                    ORDER BY CASE WHEN LastLoginDate IS NULL THEN 0 ELSE 1 END DESC, LastLoginDate DESC", conn);
 
                 var adminRanking = new List<Dictionary<string, object>>();
                 using (SqlDataReader reader = cmd.ExecuteReader())
