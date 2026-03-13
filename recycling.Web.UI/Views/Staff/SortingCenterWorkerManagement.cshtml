@@ -608,7 +608,7 @@ function renderWorkerRanking(rankings) {
                     '<div class="ranking-detail">' +
                         '<i class="fas fa-star"></i> ' + parseFloat(item.Rating).toFixed(1) + ' | ' +
                         '<i class="fas fa-boxes"></i> ' + item.TotalItems + ' 件 | ' +
-                        '<i class="fas fa-weight-hanging"></i> ' + parseFloat(item.TotalWeight).toFixed(2) + ' kg | ' +
+                        '<i class="fas fa-weight-hanging"></i> ' + parseFloat(item.TotalWeight).toFixed(1) + ' kg | ' +
                         '<span class="badge ' + (item.CurrentStatus === '空闲' ? 'badge-available' : 'badge-unavailable') + '">' + escapeHtml(item.CurrentStatus) + '</span>' +
                     '</div>' +
                 '</div>' +
