@@ -336,6 +336,43 @@
         font-size: 12px;
         color: rgba(255,255,255,0.5);
     }
+    .eff-label.mt { margin-top: 12px; }
+
+    /* ===== Rating Card ===== */
+    .rating-display {
+        text-align: center;
+    }
+    .rating-display .rating-value {
+        font-size: 36px;
+        font-weight: 700;
+        color: #fbbf24;
+        margin-bottom: 8px;
+    }
+    .rating-display .rating-stars-lg {
+        font-size: 16px;
+    }
+
+    /* ===== Personnel Title Suffix ===== */
+    .sec-title .total-suffix {
+        font-size: 12px;
+        color: rgba(255,255,255,0.3);
+        margin-left: auto;
+    }
+    .sec-title .total-suffix .hl {
+        color: #7c83ff;
+    }
+
+    /* ===== Cancel Row ===== */
+    .kpi-row.col3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .kpi-icon.c7 { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .kpi-icon.c8 { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+    /* ===== Sys Grid 2-col ===== */
+    .sys-grid.col2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
 
     /* ===== Table Section ===== */
     .table-grid {
@@ -566,7 +603,7 @@
     </div>
 
     <!-- ========== 3. Personnel Overview ========== -->
-    <div class="sec-title"><i class="fas fa-users-cog"></i> 全平台人员总览 <span style="font-size:12px;color:rgba(255,255,255,0.3);margin-left:auto;">总人数: <span id="totalPersonnel" style="color:#7c83ff;">-</span></span></div>
+    <div class="sec-title"><i class="fas fa-users-cog"></i> 全平台人员总览 <span class="total-suffix">总人数: <span class="hl" id="totalPersonnel">-</span></span></div>
     <div class="personnel-grid">
         <div class="p-card">
             <span class="p-icon"><i class="fas fa-user"></i></span>
@@ -673,11 +710,11 @@
             <div class="eff-label">入库完成率</div>
         </div>
         <div class="eff-card">
-            <div style="text-align:center;">
-                <div style="font-size:36px;font-weight:700;color:#fbbf24;margin-bottom:8px;" id="avgRating">-</div>
-                <div class="rating-stars" id="avgRatingStars" style="font-size:16px;">★★★★★</div>
+            <div class="rating-display">
+                <div class="rating-value" id="avgRating">-</div>
+                <div class="rating-stars rating-stars-lg" id="avgRatingStars">★★★★★</div>
             </div>
-            <div class="eff-label" style="margin-top:12px;">回收员平均评分</div>
+            <div class="eff-label mt">回收员平均评分</div>
         </div>
     </div>
 
@@ -719,7 +756,7 @@
 
     <!-- ========== 10. Cancellation Analysis ========== -->
     <div class="sec-title"><i class="fas fa-exclamation-triangle"></i> 订单取消分析</div>
-    <div class="kpi-row" style="grid-template-columns: repeat(3,1fr);">
+    <div class="kpi-row col3">
         <div class="kpi-card">
             <div class="kpi-icon c5"><i class="fas fa-ban"></i></div>
             <div class="kpi-body">
@@ -728,14 +765,14 @@
             </div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fas fa-user-times"></i></div>
+            <div class="kpi-icon c7"><i class="fas fa-user-times"></i></div>
             <div class="kpi-body">
                 <div class="kpi-val" id="cancelRecycler">-</div>
                 <div class="kpi-label">回收员回退取消</div>
             </div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fas fa-clock"></i></div>
+            <div class="kpi-icon c8"><i class="fas fa-clock"></i></div>
             <div class="kpi-body">
                 <div class="kpi-val" id="cancelSystem">-</div>
                 <div class="kpi-label">系统超时取消</div>
@@ -809,7 +846,7 @@
         </div>
     </div>
 
-    <div class="sys-grid" style="grid-template-columns: repeat(2,1fr);">
+    <div class="sys-grid col2">
         <div class="sys-card">
             <div class="sys-title"><i class="fas fa-boxes"></i> 仓库入库信息</div>
             <div class="sys-row"><span>总入库单数</span><span id="sysWReceipts">-</span></div>

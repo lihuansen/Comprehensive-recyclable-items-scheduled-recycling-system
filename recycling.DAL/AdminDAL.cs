@@ -1715,7 +1715,7 @@ namespace recycling.DAL
 
                 // === Today's Highlights ===
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
-                    WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE) AND Status = N'已完成'", conn);
+                    WHERE CAST(UpdatedDate AS DATE) = CAST(GETDATE() AS DATE) AND Status = N'已完成'", conn);
                 stats["CompletedOrdersToday"] = (int)cmd.ExecuteScalar();
 
                 cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedPrice), 0) FROM Appointments 
