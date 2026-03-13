@@ -1641,6 +1641,186 @@ namespace recycling.DAL
                     });
                 }
                 stats["InventoryStats"] = inventoryStats;
+
+                // === Transporter Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters", conn);
+                stats["TotalTransporters"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters WHERE IsActive = 1", conn);
+                stats["ActiveTransporters"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters WHERE Available = 1 AND IsActive = 1", conn);
+                stats["AvailableTransporters"] = (int)cmd.ExecuteScalar();
+
+                // === Sorting Center Worker Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers", conn);
+                stats["TotalSortingWorkers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers WHERE IsActive = 1", conn);
+                stats["ActiveSortingWorkers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT ISNULL(SUM(TotalItemsProcessed), 0) FROM SortingCenterWorkers WHERE IsActive = 1", conn);
+                stats["TotalItemsProcessed"] = Convert.ToInt64(cmd.ExecuteScalar());
+
+                cmd = new SqlCommand("SELECT ISNULL(SUM(TotalWeightProcessed), 0) FROM SortingCenterWorkers WHERE IsActive = 1", conn);
+                stats["TotalWeightProcessed"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // === SuperAdmin Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM SuperAdmins", conn);
+                stats["TotalSuperAdmins"] = (int)cmd.ExecuteScalar();
+
+                // === Transportation Order Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders", conn);
+                stats["TotalTransportOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'待接单'", conn);
+                stats["PendingTransportOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'已接单'", conn);
+                stats["AcceptedTransportOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'运输中'", conn);
+                stats["InTransitOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'已完成'", conn);
+                stats["CompletedTransportOrders"] = (int)cmd.ExecuteScalar();
+
+                // === Warehouse Receipt Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM WarehouseReceipts", conn);
+                stats["TotalWarehouseReceipts"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM WarehouseReceipts WHERE Status = N'待入库'", conn);
+                stats["PendingWarehouseReceipts"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM WarehouseReceipts WHERE Status = N'已入库'", conn);
+                stats["ProcessedWarehouseReceipts"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT ISNULL(SUM(TotalWeight), 0) FROM WarehouseReceipts WHERE Status = N'已入库'", conn);
+                stats["TotalWarehouseWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // === Order Cancellation Breakdown ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已取消-回收员回退'", conn);
+                stats["RecyclerCancelledOrders"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已取消-系统超时回退'", conn);
+                stats["SystemExpiredOrders"] = (int)cmd.ExecuteScalar();
+
+                // === Order Completion Rate ===
+                cmd = new SqlCommand(@"
+                    SELECT CASE WHEN COUNT(*) > 0 
+                        THEN CAST(SUM(CASE WHEN Status = N'已完成' THEN 1 ELSE 0 END) AS DECIMAL(5,2)) * 100 / COUNT(*) 
+                        ELSE 0 END 
+                    FROM Appointments", conn);
+                stats["OrderCompletionRate"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // === Today's Highlights ===
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
+                    WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE) AND Status = N'已完成'", conn);
+                stats["CompletedOrdersToday"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedPrice), 0) FROM Appointments 
+                    WHERE Status = N'已完成' AND CAST(UpdatedDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
+                stats["RevenueToday"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments 
+                    WHERE Status = N'已完成' AND CAST(UpdatedDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
+                stats["WeightToday"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
+                    WHERE CAST(RegistrationDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
+                stats["NewUsersToday"] = (int)cmd.ExecuteScalar();
+
+                // === Revenue Trend (Last 6 months) ===
+                cmd = new SqlCommand(@"
+                    SELECT YEAR(UpdatedDate) AS Y, MONTH(UpdatedDate) AS M, 
+                           ISNULL(SUM(EstimatedPrice), 0) AS Revenue,
+                           ISNULL(SUM(EstimatedWeight), 0) AS Weight
+                    FROM Appointments
+                    WHERE Status = N'已完成' AND UpdatedDate >= DATEADD(month, -6, GETDATE())
+                    GROUP BY YEAR(UpdatedDate), MONTH(UpdatedDate)
+                    ORDER BY Y, M", conn);
+
+                var revenueWeightTrend = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int year = reader.GetInt32(0);
+                        int month = reader.GetInt32(1);
+                        revenueWeightTrend.Add(new Dictionary<string, object>
+                        {
+                            ["Month"] = $"{year}-{month:D2}",
+                            ["Revenue"] = reader.GetDecimal(2),
+                            ["Weight"] = reader.GetDecimal(3)
+                        });
+                    }
+                }
+                stats["RevenueWeightTrend"] = revenueWeightTrend;
+
+                // === Transport Order Status Distribution ===
+                cmd = new SqlCommand(@"
+                    SELECT Status, COUNT(*) AS Count 
+                    FROM TransportationOrders 
+                    GROUP BY Status 
+                    ORDER BY Count DESC", conn);
+
+                var transportStatusDist = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        transportStatusDist.Add(new Dictionary<string, object>
+                        {
+                            ["Status"] = reader.GetString(0),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["TransportStatusDistribution"] = transportStatusDist;
+
+                // === Top Users by Orders ===
+                cmd = new SqlCommand(@"
+                    SELECT TOP 5 u.UserID, u.Username, COUNT(a.AppointmentID) AS TotalOrders,
+                           ISNULL(SUM(CASE WHEN a.Status = N'已完成' THEN a.EstimatedPrice ELSE 0 END), 0) AS TotalSpent
+                    FROM Users u
+                    LEFT JOIN Appointments a ON u.UserID = a.UserID
+                    GROUP BY u.UserID, u.Username
+                    ORDER BY TotalOrders DESC", conn);
+
+                var topUsers = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        topUsers.Add(new Dictionary<string, object>
+                        {
+                            ["UserID"] = reader.GetInt32(0),
+                            ["Username"] = reader.GetString(1),
+                            ["TotalOrders"] = reader.GetInt32(2),
+                            ["TotalSpent"] = reader.GetDecimal(3)
+                        });
+                    }
+                }
+                stats["TopUsers"] = topUsers;
+
+                // === Weekly Revenue (Last 7 days) ===
+                cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedPrice), 0) FROM Appointments 
+                    WHERE Status = N'已完成' AND UpdatedDate >= DATEADD(day, -7, GETDATE())", conn);
+                stats["RevenueThisWeek"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // === Weekly Weight (Last 7 days) ===
+                cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments 
+                    WHERE Status = N'已完成' AND UpdatedDate >= DATEADD(day, -7, GETDATE())", conn);
+                stats["WeightThisWeek"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // === Notification Statistics ===
+                cmd = new SqlCommand("SELECT COUNT(*) FROM UserNotifications WHERE IsRead = 0", conn);
+                stats["UnreadNotifications"] = (int)cmd.ExecuteScalar();
+
+                // === Personnel Totals ===
+                stats["TotalPersonnel"] = (int)stats["TotalUsers"] + (int)stats["TotalRecyclers"] 
+                    + (int)stats["TotalAdmins"] + (int)stats["TotalTransporters"] 
+                    + (int)stats["TotalSortingWorkers"] + (int)stats["TotalSuperAdmins"];
             }
 
             return stats;
