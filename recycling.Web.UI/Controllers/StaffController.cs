@@ -1315,7 +1315,10 @@ namespace recycling.Web.UI.Controllers
                     if (orderResult.Detail != null)
                         orderStatus = orderResult.Detail.Status ?? "";
                 }
-                catch { }
+                catch (Exception statusEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"获取订单状态失败：{statusEx.Message}");
+                }
 
                 return JsonContent(new
                 {
@@ -1373,7 +1376,10 @@ namespace recycling.Web.UI.Controllers
                         }
                     }
                 }
-                catch { }
+                catch (Exception statusEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"检查订单状态失败：{statusEx.Message}");
+                }
 
                 var result = _messageBLL.SendMessage(request);
                 var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });

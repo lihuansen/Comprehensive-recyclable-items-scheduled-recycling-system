@@ -568,7 +568,10 @@ namespace recycling.Web.UI.Controllers
                     if (orderDetail != null && orderDetail.Appointment != null)
                         orderStatus = orderDetail.Appointment.Status ?? "";
                 }
-                catch { }
+                catch (Exception statusEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"获取订单状态失败：{statusEx.Message}");
+                }
 
                 return Json(new { success = true, data = formattedMessages, orderStatus = orderStatus });
             }
@@ -665,7 +668,10 @@ namespace recycling.Web.UI.Controllers
                     if (orderDetail != null && orderDetail.Appointment != null)
                         orderStatus = orderDetail.Appointment.Status ?? "";
                 }
-                catch { }
+                catch (Exception statusEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"获取订单状态失败：{statusEx.Message}");
+                }
 
                 return Json(new { success = true, messages = result, orderStatus = orderStatus, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
             }
