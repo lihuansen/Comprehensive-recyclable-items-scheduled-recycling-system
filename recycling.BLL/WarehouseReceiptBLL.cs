@@ -101,7 +101,8 @@ namespace recycling.BLL
                     TotalWeight = totalWeight,
                     ItemCategories = finalItemCategories,
                     Notes = notes,
-                    CreatedBy = workerId
+                    CreatedBy = workerId,
+                    OrderID = transportOrderId
                 };
 
                 var (receiptId, receiptNumber) = _dal.CreateWarehouseReceipt(receipt);
