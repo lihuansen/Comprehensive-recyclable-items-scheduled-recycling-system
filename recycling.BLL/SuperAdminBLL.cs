@@ -149,6 +149,15 @@ namespace recycling.BLL
             return _superAdminDAL.GetAllSuperAdminsForExport(searchTerm, isActive);
         }
 
+        /// <summary>
+        /// Get comprehensive admin dashboard statistics
+        /// 获取管理员数据看板统计信息
+        /// </summary>
+        public Dictionary<string, object> GetAdminDashboardStatistics()
+        {
+            return _superAdminDAL.GetAdminDashboardStatistics();
+        }
+
         #endregion
 
         #region Helper Methods
