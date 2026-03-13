@@ -2298,6 +2298,181 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Get comprehensive sorting center worker dashboard statistics
+        /// </summary>
+        public Dictionary<string, object> GetSortingCenterWorkerDashboardStatistics()
+        {
+            var stats = new Dictionary<string, object>();
+
+            // Initialize default values to ensure all keys exist
+            stats["TotalWorkers"] = 0;
+            stats["ActiveWorkers"] = 0;
+            stats["InactiveWorkers"] = 0;
+            stats["AvailableWorkers"] = 0;
+            stats["TotalItemsProcessed"] = 0;
+            stats["TotalWeightProcessed"] = 0m;
+            stats["AvgRating"] = 0m;
+            stats["NewWorkersThisMonth"] = 0;
+            stats["StatusDistribution"] = new List<Dictionary<string, object>>();
+            stats["RatingDistribution"] = new List<Dictionary<string, object>>();
+            stats["RegistrationTrend"] = new List<Dictionary<string, object>>();
+            stats["WorkerRanking"] = new List<Dictionary<string, object>>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // === Basic Statistics ===
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers", conn);
+                stats["TotalWorkers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers WHERE IsActive = 1", conn);
+                stats["ActiveWorkers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers WHERE IsActive = 0", conn);
+                stats["InactiveWorkers"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers WHERE Available = 1 AND IsActive = 1", conn);
+                stats["AvailableWorkers"] = (int)cmd.ExecuteScalar();
+
+                // Total items and weight processed
+                cmd = new SqlCommand("SELECT ISNULL(SUM(ISNULL(TotalItemsProcessed, 0)), 0) FROM SortingCenterWorkers", conn);
+                stats["TotalItemsProcessed"] = Convert.ToInt32(cmd.ExecuteScalar());
+
+                cmd = new SqlCommand("SELECT ISNULL(SUM(ISNULL(TotalWeightProcessed, 0)), 0) FROM SortingCenterWorkers", conn);
+                stats["TotalWeightProcessed"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // Average rating
+                cmd = new SqlCommand("SELECT ISNULL(AVG(Rating), 0) FROM SortingCenterWorkers WHERE Rating IS NOT NULL AND IsActive = 1", conn);
+                stats["AvgRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                // New workers this month
+                cmd = new SqlCommand(@"
+                    SELECT COUNT(*) FROM SortingCenterWorkers 
+                    WHERE CreatedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
+                      AND CreatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
+                stats["NewWorkersThisMonth"] = (int)cmd.ExecuteScalar();
+
+                // === Status Distribution (for pie chart) ===
+                cmd = new SqlCommand(@"
+                    SELECT CurrentStatus, COUNT(*) AS WorkerCount
+                    FROM SortingCenterWorkers
+                    WHERE IsActive = 1
+                    GROUP BY CurrentStatus
+                    ORDER BY WorkerCount DESC", conn);
+
+                var statusDistribution = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        statusDistribution.Add(new Dictionary<string, object>
+                        {
+                            ["Status"] = reader.GetString(0),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["StatusDistribution"] = statusDistribution;
+
+                // === Rating Distribution (for bar chart) ===
+                cmd = new SqlCommand(@"
+                    SELECT 
+                        CASE 
+                            WHEN Rating IS NULL OR Rating = 0 THEN '未评分'
+                            WHEN Rating >= 1 AND Rating < 2 THEN '1-2分'
+                            WHEN Rating >= 2 AND Rating < 3 THEN '2-3分'
+                            WHEN Rating >= 3 AND Rating < 4 THEN '3-4分'
+                            WHEN Rating >= 4 AND Rating <= 5 THEN '4-5分'
+                            ELSE '其他'
+                        END AS RatingRange,
+                        COUNT(*) AS WorkerCount
+                    FROM SortingCenterWorkers
+                    WHERE IsActive = 1
+                    GROUP BY 
+                        CASE 
+                            WHEN Rating IS NULL OR Rating = 0 THEN '未评分'
+                            WHEN Rating >= 1 AND Rating < 2 THEN '1-2分'
+                            WHEN Rating >= 2 AND Rating < 3 THEN '2-3分'
+                            WHEN Rating >= 3 AND Rating < 4 THEN '3-4分'
+                            WHEN Rating >= 4 AND Rating <= 5 THEN '4-5分'
+                            ELSE '其他'
+                        END
+                    ORDER BY RatingRange", conn);
+
+                var ratingDistribution = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        ratingDistribution.Add(new Dictionary<string, object>
+                        {
+                            ["Range"] = reader.GetString(0),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["RatingDistribution"] = ratingDistribution;
+
+                // === Registration Trend (last 6 months) ===
+                cmd = new SqlCommand(@"
+                    SELECT FORMAT(CreatedDate, 'yyyy-MM') AS RegMonth, COUNT(*) AS WorkerCount
+                    FROM SortingCenterWorkers
+                    WHERE CreatedDate >= DATEADD(month, -6, GETDATE())
+                    GROUP BY FORMAT(CreatedDate, 'yyyy-MM')
+                    ORDER BY RegMonth", conn);
+
+                var registrationTrend = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        registrationTrend.Add(new Dictionary<string, object>
+                        {
+                            ["Month"] = reader.GetString(0),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["RegistrationTrend"] = registrationTrend;
+
+                // === Worker Ranking by Weight Processed ===
+                cmd = new SqlCommand(@"
+                    SELECT WorkerID, ISNULL(FullName, Username) AS Name, Username, 
+                           ISNULL(Rating, 0) AS Rating,
+                           ISNULL(TotalItemsProcessed, 0) AS TotalItems,
+                           ISNULL(TotalWeightProcessed, 0) AS TotalWeight,
+                           CurrentStatus
+                    FROM SortingCenterWorkers
+                    WHERE IsActive = 1
+                    ORDER BY TotalWeightProcessed DESC", conn);
+
+                var workerRanking = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    int rank = 1;
+                    while (reader.Read())
+                    {
+                        workerRanking.Add(new Dictionary<string, object>
+                        {
+                            ["Rank"] = rank++,
+                            ["WorkerID"] = reader.GetInt32(0),
+                            ["Name"] = reader.GetString(1),
+                            ["Username"] = reader.GetString(2),
+                            ["Rating"] = Convert.ToDecimal(reader.GetValue(3)),
+                            ["TotalItems"] = Convert.ToInt32(reader.GetValue(4)),
+                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(5)),
+                            ["CurrentStatus"] = reader.GetString(6)
+                        });
+                    }
+                }
+                stats["WorkerRanking"] = workerRanking;
+            }
+
+            return stats;
+        }
+
+        /// <summary>
         /// Get all sorting center workers for export (without pagination)
         /// </summary>
         public List<SortingCenterWorkers> GetAllSortingCenterWorkersForExport(string searchTerm = null, bool? isActive = null)

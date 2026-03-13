@@ -633,6 +633,14 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// Get comprehensive sorting center worker dashboard statistics
+        /// </summary>
+        public Dictionary<string, object> GetSortingCenterWorkerDashboardStatistics()
+        {
+            return _adminDAL.GetSortingCenterWorkerDashboardStatistics();
+        }
+
+        /// <summary>
         /// Get all sorting center workers for export
         /// </summary>
         public List<SortingCenterWorkers> GetAllSortingCenterWorkersForExport(string searchTerm = null, bool? isActive = null)

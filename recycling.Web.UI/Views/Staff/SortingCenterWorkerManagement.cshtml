@@ -8,6 +8,7 @@
     .stats-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; transition: transform 0.3s; }
     .stats-card:hover { transform: translateY(-5px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
     .stats-number { font-size: 32px; font-weight: bold; color: #11998e; }
+    .stats-number-small { font-size: 24px; font-weight: bold; color: #11998e; }
     .stats-label { color: #666; font-size: 14px; margin-top: 5px; }
     .search-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .data-table { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -21,6 +22,25 @@
     .badge-unavailable { background-color: #ffc107; }
     .btn-action { margin: 0 2px; }
     .modal-header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+    /* Dashboard styles */
+    .dashboard-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .dashboard-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; border-bottom: 2px solid #11998e; padding-bottom: 8px; }
+    .chart-container { height: 250px; }
+    .ranking-list { max-height: 300px; overflow-y: auto; }
+    .ranking-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+    .ranking-item:last-child { border-bottom: none; }
+    .ranking-number { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; }
+    .ranking-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
+    .ranking-2 { background: linear-gradient(135deg, #C0C0C0, #A8A8A8); color: white; }
+    .ranking-3 { background: linear-gradient(135deg, #CD7F32, #B87333); color: white; }
+    .ranking-other { background: #f0f0f0; color: #666; }
+    .ranking-info { flex: 1; }
+    .ranking-name { font-weight: 600; color: #333; }
+    .ranking-detail { font-size: 12px; color: #888; }
+    .ranking-weight { font-weight: bold; color: #11998e; text-align: right; }
+    .stats-card-mini { padding: 15px; text-align: center; }
+    .stats-card-mini .stats-number-small { font-size: 20px; }
+    .toggle-dashboard-btn { margin-left: 15px; }
     /* 密码显隐切换 */
     .password-input-container { position: relative; }
     .password-input-container .form-control { padding-right: 40px; }
@@ -31,28 +51,116 @@
 
 <div class="container-fluid">
     <div class="admin-header">
-        <h2><i class="fas fa-industry"></i> 基地人员管理</h2>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理基地工作人员账号、查看人员信息</p>
+        <h2>
+            <i class="fas fa-industry"></i> 基地人员管理
+            <button class="btn btn-sm btn-default toggle-dashboard-btn" onclick="toggleDashboard()">
+                <i class="fas fa-chart-bar"></i> <span id="toggleBtnText">隐藏数据看板</span>
+            </button>
+        </h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理基地工作人员账号、查看人员信息、数据分析看板</p>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="row" id="statsCards">
-        <div class="col-md-4">
-            <div class="stats-card text-center">
-                <div class="stats-number" id="totalWorkers">--</div>
-                <div class="stats-label"><i class="fas fa-users"></i> 总人员数</div>
+    <!-- 数据看板区域 -->
+    <div id="dashboardSection">
+        <!-- 第一行：基本统计卡片 -->
+        <div class="row" id="statsCards">
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="totalWorkers">--</div>
+                    <div class="stats-label"><i class="fas fa-users"></i> 总人员数</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="activeWorkers">--</div>
+                    <div class="stats-label"><i class="fas fa-user-check"></i> 激活人员</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="inactiveWorkers">--</div>
+                    <div class="stats-label"><i class="fas fa-user-slash"></i> 禁用人员</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="availableWorkers">--</div>
+                    <div class="stats-label"><i class="fas fa-user-clock"></i> 可用人员</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="totalWeightProcessed">--</div>
+                    <div class="stats-label"><i class="fas fa-weight-hanging"></i> 累计处理(kg)</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="totalItemsProcessed">--</div>
+                    <div class="stats-label"><i class="fas fa-boxes"></i> 累计处理(件)</div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="stats-card text-center">
-                <div class="stats-number" id="activeWorkers">--</div>
-                <div class="stats-label"><i class="fas fa-user-check"></i> 激活人员</div>
+
+        <!-- 第二行：更多统计指标 -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="avgRating">--</div>
+                    <div class="stats-label"><i class="fas fa-star"></i> 平均评分</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="newWorkersThisMonth">--</div>
+                    <div class="stats-label"><i class="fas fa-calendar-plus"></i> 本月新增</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="activeRate">--</div>
+                    <div class="stats-label"><i class="fas fa-percentage"></i> 激活率</div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="stats-card text-center">
-                <div class="stats-number" id="availableWorkers">--</div>
-                <div class="stats-label"><i class="fas fa-user-clock"></i> 可用人员</div>
+
+        <!-- 第三行：图表 -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-chart-pie"></i> 人员状态分布</div>
+                    <div class="chart-container">
+                        <canvas id="statusDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-chart-bar"></i> 评分分布</div>
+                    <div class="chart-container">
+                        <canvas id="ratingDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-chart-line"></i> 近6月入职趋势</div>
+                    <div class="chart-container">
+                        <canvas id="registrationTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四行：人员排名 -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-trophy"></i> 基地人员处理量排名</div>
+                    <div class="ranking-list" id="workerRankingList">
+                        <div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -206,9 +314,14 @@
 </div>
 
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
 var workerCache = {}; // Cache for worker data
+var dashboardVisible = true;
+var statusPieChart = null;
+var ratingBarChart = null;
+var registrationLineChart = null;
 
 // Helper function to escape HTML and prevent XSS
 function escapeHtml(text) {
@@ -240,21 +353,268 @@ function setupPasswordToggle(toggleBtnId, passwordInputId) {
 
 $(document).ready(function () {
     setupPasswordToggle('togglePassword', 'password');
-    loadStatistics();
+    loadDashboardStatistics();
     loadWorkers();
+
+    $('#searchInput').keypress(function (e) {
+        if (e.which == 13) {
+            searchWorkers();
+        }
+    });
 });
 
-function loadStatistics() {
+// Toggle dashboard visibility
+function toggleDashboard() {
+    dashboardVisible = !dashboardVisible;
+    if (dashboardVisible) {
+        $('#dashboardSection').slideDown();
+        $('#toggleBtnText').text('隐藏数据看板');
+    } else {
+        $('#dashboardSection').slideUp();
+        $('#toggleBtnText').text('显示数据看板');
+    }
+}
+
+// Load comprehensive dashboard statistics
+function loadDashboardStatistics() {
     $.ajax({
-        url: '@Url.Action("GetSortingCenterWorkerStatistics", "Staff")',
+        url: '@Url.Action("GetSortingCenterWorkerDashboardStatistics", "Staff")',
         type: 'GET',
+        dataType: 'json',
         success: function (response) {
             if (response.success) {
-                $('#totalWorkers').text(response.data.TotalWorkers);
-                $('#activeWorkers').text(response.data.ActiveWorkers);
-                $('#availableWorkers').text(response.data.AvailableWorkers);
+                var data = response.data;
+
+                // Basic stats
+                $('#totalWorkers').text(data.TotalWorkers || 0);
+                $('#activeWorkers').text(data.ActiveWorkers || 0);
+                $('#inactiveWorkers').text(data.InactiveWorkers || 0);
+                $('#availableWorkers').text(data.AvailableWorkers || 0);
+                $('#totalItemsProcessed').text(data.TotalItemsProcessed || 0);
+
+                var totalWeight = parseFloat(data.TotalWeightProcessed);
+                $('#totalWeightProcessed').text(isNaN(totalWeight) ? '0.0' : totalWeight.toFixed(1));
+
+                var avgRating = parseFloat(data.AvgRating);
+                $('#avgRating').text(isNaN(avgRating) ? '0.0' : avgRating.toFixed(1));
+
+                $('#newWorkersThisMonth').text(data.NewWorkersThisMonth || 0);
+
+                // Active rate
+                var total = parseInt(data.TotalWorkers) || 0;
+                var active = parseInt(data.ActiveWorkers) || 0;
+                var activeRate = total > 0 ? ((active / total) * 100).toFixed(1) + '%' : '0%';
+                $('#activeRate').text(activeRate);
+
+                // Charts
+                try { renderStatusDistribution(data.StatusDistribution); }
+                catch (e) { console.error('Status distribution chart error:', e); }
+
+                try { renderRatingDistribution(data.RatingDistribution); }
+                catch (e) { console.error('Rating distribution chart error:', e); }
+
+                try { renderRegistrationTrend(data.RegistrationTrend); }
+                catch (e) { console.error('Registration trend chart error:', e); }
+
+                // Worker ranking
+                try { renderWorkerRanking(data.WorkerRanking); }
+                catch (e) { console.error('Worker ranking error:', e); }
+            } else {
+                showDashboardFallbackValues();
+                console.error('获取基地人员数据看板失败: ' + (response.message || '未知错误'));
+            }
+        },
+        error: function (xhr, status, error) {
+            showDashboardFallbackValues();
+            console.error('基地人员数据看板加载失败:', error);
+        }
+    });
+}
+
+// Show fallback values when dashboard data fails to load
+function showDashboardFallbackValues() {
+    $('#totalWorkers').text('0');
+    $('#activeWorkers').text('0');
+    $('#inactiveWorkers').text('0');
+    $('#availableWorkers').text('0');
+    $('#totalItemsProcessed').text('0');
+    $('#totalWeightProcessed').text('0.0');
+    $('#avgRating').text('0.0');
+    $('#newWorkersThisMonth').text('0');
+    $('#activeRate').text('0%');
+    $('#workerRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
+}
+
+// Render status distribution pie chart
+function renderStatusDistribution(statusData) {
+    var canvas = document.getElementById('statusDistributionChart');
+    if (!canvas) return;
+
+    if (statusPieChart) { statusPieChart.destroy(); }
+
+    if (!statusData || statusData.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top:100px;">暂无状态数据</div>';
+        return;
+    }
+
+    var labels = statusData.map(function(item) { return item.Status; });
+    var values = statusData.map(function(item) { return item.Count; });
+    var colors = ['#11998e', '#38ef7d', '#f6d365', '#fda085', '#a8edea', '#fed6e3'];
+
+    statusPieChart = new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 15 } }
             }
         }
+    });
+}
+
+// Render rating distribution bar chart
+function renderRatingDistribution(ratingData) {
+    var canvas = document.getElementById('ratingDistributionChart');
+    if (!canvas) return;
+
+    if (ratingBarChart) { ratingBarChart.destroy(); }
+
+    if (!ratingData || ratingData.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top:100px;">暂无评分数据</div>';
+        return;
+    }
+
+    var labels = ratingData.map(function(item) { return item.Range; });
+    var values = ratingData.map(function(item) { return item.Count; });
+
+    ratingBarChart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '人数',
+                data: values,
+                backgroundColor: 'rgba(17, 153, 142, 0.7)',
+                borderColor: '#11998e',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 11 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    ticks: { font: { size: 11 } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+// Render registration trend line chart
+function renderRegistrationTrend(trendData) {
+    var canvas = document.getElementById('registrationTrendChart');
+    if (!canvas) return;
+
+    if (registrationLineChart) { registrationLineChart.destroy(); }
+
+    if (!trendData || trendData.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top:100px;">暂无趋势数据</div>';
+        return;
+    }
+
+    var labels = trendData.map(function(item) { return item.Month; });
+    var values = trendData.map(function(item) { return item.Count; });
+
+    registrationLineChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '新增人员',
+                data: values,
+                borderColor: '#11998e',
+                backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#11998e',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 11 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    ticks: { font: { size: 11 } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+// Render worker ranking list
+function renderWorkerRanking(rankings) {
+    var container = $('#workerRankingList');
+    container.empty();
+
+    if (!rankings || rankings.length === 0) {
+        container.html('<div class="text-center text-muted">暂无排名数据</div>');
+        return;
+    }
+
+    rankings.forEach(function(item) {
+        var rankClass = 'ranking-other';
+        if (item.Rank === 1) rankClass = 'ranking-1';
+        else if (item.Rank === 2) rankClass = 'ranking-2';
+        else if (item.Rank === 3) rankClass = 'ranking-3';
+
+        container.append(
+            '<div class="ranking-item">' +
+                '<div class="ranking-number ' + rankClass + '">' + item.Rank + '</div>' +
+                '<div class="ranking-info">' +
+                    '<div class="ranking-name">' + escapeHtml(item.Name) + '</div>' +
+                    '<div class="ranking-detail">' +
+                        '<i class="fas fa-star"></i> ' + parseFloat(item.Rating).toFixed(1) + ' | ' +
+                        '<i class="fas fa-boxes"></i> ' + item.TotalItems + ' 件 | ' +
+                        '<i class="fas fa-weight-hanging"></i> ' + parseFloat(item.TotalWeight).toFixed(1) + ' kg | ' +
+                        '<span class="badge ' + (item.CurrentStatus === '空闲' ? 'badge-available' : 'badge-unavailable') + '">' + escapeHtml(item.CurrentStatus) + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="ranking-weight">' + parseFloat(item.TotalWeight).toFixed(1) + ' kg</div>' +
+            '</div>'
+        );
     });
 }
 
@@ -374,7 +734,7 @@ function saveWorker() {
             if (response.success) {
                 $('#workerModal').modal('hide');
                 loadWorkers();
-                loadStatistics();
+                loadDashboardStatistics();
             }
         }
     });
@@ -393,7 +753,7 @@ function deleteWorker(id) {
             alert(response.message);
             if (response.success) {
                 loadWorkers();
-                loadStatistics();
+                loadDashboardStatistics();
             }
         }
     });
