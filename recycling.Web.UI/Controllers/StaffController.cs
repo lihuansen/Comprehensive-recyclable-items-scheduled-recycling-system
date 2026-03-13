@@ -2965,6 +2965,29 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 超级管理员 - 获取管理员数据看板统计信息（API）
+        /// </summary>
+        [HttpGet]
+        public ContentResult GetAdminDashboardStatistics()
+        {
+            // Permission check
+            if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
+            {
+                return JsonContent(new { success = false, message = "权限不足" });
+            }
+
+            try
+            {
+                var stats = _superAdminBLL.GetAdminDashboardStatistics();
+                return JsonContent(new { success = true, data = stats });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 超级管理员 - 导出管理员数据到CSV
         /// </summary>
         [HttpGet]

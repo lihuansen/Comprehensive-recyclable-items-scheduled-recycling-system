@@ -8,6 +8,7 @@
     .stats-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; transition: transform 0.3s; }
     .stats-card:hover { transform: translateY(-5px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
     .stats-number { font-size: 32px; font-weight: bold; color: #f5576c; }
+    .stats-number-small { font-size: 24px; font-weight: bold; color: #f5576c; }
     .stats-label { color: #666; font-size: 14px; margin-top: 5px; }
     .search-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .admin-table { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -19,6 +20,25 @@
     .badge-inactive { background-color: #6c757d; }
     .btn-action { margin: 0 2px; }
     .modal-header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+    /* Dashboard styles */
+    .dashboard-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .dashboard-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; border-bottom: 2px solid #f5576c; padding-bottom: 8px; }
+    .chart-container { height: 250px; }
+    .ranking-list { max-height: 300px; overflow-y: auto; }
+    .ranking-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+    .ranking-item:last-child { border-bottom: none; }
+    .ranking-number { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; }
+    .ranking-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
+    .ranking-2 { background: linear-gradient(135deg, #C0C0C0, #A8A8A8); color: white; }
+    .ranking-3 { background: linear-gradient(135deg, #CD7F32, #B87333); color: white; }
+    .ranking-other { background: #f0f0f0; color: #666; }
+    .ranking-info { flex: 1; }
+    .ranking-name { font-weight: 600; color: #333; }
+    .ranking-detail { font-size: 12px; color: #888; }
+    .ranking-weight { font-weight: bold; color: #f5576c; text-align: right; }
+    .stats-card-mini { padding: 15px; text-align: center; }
+    .stats-card-mini .stats-number-small { font-size: 20px; }
+    .toggle-dashboard-btn { margin-left: 15px; }
     /* 密码显隐切换 */
     .password-input-container { position: relative; }
     .password-input-container .form-control { padding-right: 40px; }
@@ -29,35 +49,104 @@
 
 <div class="container-fluid">
     <div class="admin-header">
-        <h2><i class="fas fa-user-shield"></i> 管理员管理</h2>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理管理员账号、查看系统管理员</p>
+        <h2>
+            <i class="fas fa-user-shield"></i> 管理员管理
+            <button class="btn btn-sm btn-default toggle-dashboard-btn" onclick="toggleDashboard()">
+                <i class="fas fa-chart-bar"></i> <span id="toggleBtnText">隐藏数据看板</span>
+            </button>
+        </h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">管理管理员账号、查看系统管理员、数据分析看板</p>
     </div>
 
-    <div class="row" id="statsCards">
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number" id="totalAdmins">--</div>
-                <div class="stats-label"><i class="fas fa-users"></i> 总管理员数</div>
+    <!-- 数据看板区域 -->
+    <div id="dashboardSection">
+        <!-- 第一行：基本统计卡片 -->
+        <div class="row" id="statsCards">
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="totalAdmins">--</div>
+                    <div class="stats-label"><i class="fas fa-users"></i> 总管理员</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="activeAdmins">--</div>
+                    <div class="stats-label"><i class="fas fa-user-check"></i> 激活管理员</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="inactiveAdmins">--</div>
+                    <div class="stats-label"><i class="fas fa-user-slash"></i> 禁用管理员</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="newAdminsThisMonth">--</div>
+                    <div class="stats-label"><i class="fas fa-user-plus"></i> 本月新增</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="recentLoginCount">--</div>
+                    <div class="stats-label"><i class="fas fa-sign-in-alt"></i> 近7日活跃</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stats-card stats-card-mini">
+                    <div class="stats-number-small" id="activeRate">--</div>
+                    <div class="stats-label"><i class="fas fa-percentage"></i> 激活率</div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number" id="activeAdmins">--</div>
-                <div class="stats-label"><i class="fas fa-user-check"></i> 激活管理员</div>
+
+        <!-- 第二行：图表 -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-chart-pie"></i> 权限分布</div>
+                    <div class="chart-container">
+                        <canvas id="permissionDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-chart-bar"></i> 近7日管理员最后登录分布</div>
+                    <div class="chart-container">
+                        <canvas id="loginActivityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-chart-line"></i> 近6月注册趋势</div>
+                    <div class="chart-container">
+                        <canvas id="registrationTrendChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number" id="newAdminsThisMonth">--</div>
-                <div class="stats-label"><i class="fas fa-user-plus"></i> 本月新增</div>
+
+        <!-- 第三行：管理员活跃排名 -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dashboard-section">
+                    <div class="dashboard-title"><i class="fas fa-trophy"></i> 管理员最近活跃排名</div>
+                    <div class="ranking-list" id="adminRankingList">
+                        <div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <button class="btn btn-success btn-block" onclick="showAddModal()">
-                    <i class="fas fa-plus"></i> 添加管理员
-                </button>
-            </div>
+    </div>
+
+    <!-- 操作按钮行 -->
+    <div class="row" style="margin-bottom: 20px;">
+        <div class="col-md-12">
+            <button class="btn btn-success" onclick="showAddModal()">
+                <i class="fas fa-plus"></i> 添加管理员
+            </button>
         </div>
     </div>
 
@@ -176,7 +265,22 @@
 </div>
 
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
+var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
+var dashboardVisible = true;
+var permissionPieChart = null;
+var loginBarChart = null;
+var registrationLineChart = null;
+
+// Helper function to escape HTML and prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
+
 // 密码显隐切换功能
 function setupPasswordToggle(toggleBtnId, passwordInputId) {
     var toggleBtn = document.getElementById(toggleBtnId);
@@ -197,26 +301,278 @@ function setupPasswordToggle(toggleBtnId, passwordInputId) {
     }
 }
 
-var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
-
 $(document).ready(function () {
     setupPasswordToggle('togglePassword', 'password');
-    loadStatistics();
+    loadDashboardStatistics();
     loadAdmins();
 });
 
-function loadStatistics() {
+// Toggle dashboard visibility
+function toggleDashboard() {
+    dashboardVisible = !dashboardVisible;
+    if (dashboardVisible) {
+        $('#dashboardSection').slideDown();
+        $('#toggleBtnText').text('隐藏数据看板');
+    } else {
+        $('#dashboardSection').slideUp();
+        $('#toggleBtnText').text('显示数据看板');
+    }
+}
+
+// Load comprehensive dashboard statistics
+function loadDashboardStatistics() {
     $.ajax({
-        url: '@Url.Action("GetAdminStatistics", "Staff")',
+        url: '@Url.Action("GetAdminDashboardStatistics", "Staff")',
         type: 'GET',
+        dataType: 'json',
         success: function (response) {
             if (response.success) {
-                $('#totalAdmins').text(response.data.TotalAdmins);
-                $('#activeAdmins').text(response.data.ActiveAdmins);
-                $('#newAdminsThisMonth').text(response.data.NewAdminsThisMonth);
+                var data = response.data;
+
+                // Basic stats
+                $('#totalAdmins').text(data.TotalAdmins || 0);
+                $('#activeAdmins').text(data.ActiveAdmins || 0);
+                $('#inactiveAdmins').text(data.InactiveAdmins || 0);
+                $('#newAdminsThisMonth').text(data.NewAdminsThisMonth || 0);
+                $('#recentLoginCount').text(data.RecentLoginCount || 0);
+
+                // Active rate
+                var total = parseInt(data.TotalAdmins) || 0;
+                var active = parseInt(data.ActiveAdmins) || 0;
+                var activeRate = total > 0 ? ((active / total) * 100).toFixed(1) + '%' : '0%';
+                $('#activeRate').text(activeRate);
+
+                // Charts
+                try { renderPermissionDistribution(data.PermissionDistribution); }
+                catch (e) { console.error('Permission distribution chart error:', e); }
+
+                try { renderLoginActivity(data.LoginActivityTrend); }
+                catch (e) { console.error('Login activity chart error:', e); }
+
+                try { renderRegistrationTrend(data.RegistrationTrend); }
+                catch (e) { console.error('Registration trend chart error:', e); }
+
+                // Admin ranking
+                try { renderAdminRanking(data.AdminRanking); }
+                catch (e) {
+                    console.error('Admin ranking render error:', e);
+                    $('#adminRankingList').html('<div class="text-center text-muted">排名数据加载失败</div>');
+                }
+            } else {
+                showDashboardFallbackValues();
+                console.error('获取管理员数据看板失败: ' + (response.message || '未知错误'));
+            }
+        },
+        error: function (xhr, status, error) {
+            showDashboardFallbackValues();
+            console.error('管理员数据看板加载失败:', error);
+        }
+    });
+}
+
+// Show fallback values when dashboard data fails to load
+function showDashboardFallbackValues() {
+    $('#totalAdmins').text('0');
+    $('#activeAdmins').text('0');
+    $('#inactiveAdmins').text('0');
+    $('#newAdminsThisMonth').text('0');
+    $('#recentLoginCount').text('0');
+    $('#activeRate').text('0%');
+    $('#adminRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
+}
+
+// Permission name mapping
+function getPermissionText(character) {
+    switch(character) {
+        case 'user_management': return '用户管理';
+        case 'recycler_management': return '回收员管理';
+        case 'transporter_management': return '运输人员管理';
+        case 'sortingcenterworker_management': return '基地人员管理';
+        case 'feedback_management': return '反馈管理';
+        case 'homepage_management': return '首页页面管理';
+        case 'warehouse_management': return '仓库管理';
+        case 'log_management': return '日志管理';
+        case 'full_access': return '全部权限';
+        case 'unset': return '未设置';
+        default: return character || '未设置';
+    }
+}
+
+// Render permission distribution doughnut chart
+function renderPermissionDistribution(permData) {
+    var canvas = document.getElementById('permissionDistributionChart');
+    if (!canvas) return;
+
+    if (permissionPieChart) { permissionPieChart.destroy(); }
+
+    if (!permData || permData.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top:100px;">暂无权限数据</div>';
+        return;
+    }
+
+    var labels = permData.map(function(item) { return getPermissionText(item.Permission); });
+    var values = permData.map(function(item) { return item.Count; });
+    var colors = ['#f5576c', '#f093fb', '#4facfe', '#00f2fe', '#43e97b', '#fa709a', '#fee140', '#a18cd1', '#fbc2eb'];
+
+    permissionPieChart = new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } }
             }
         }
     });
+}
+
+// Render login activity bar chart
+function renderLoginActivity(loginData) {
+    var canvas = document.getElementById('loginActivityChart');
+    if (!canvas) return;
+
+    if (loginBarChart) { loginBarChart.destroy(); }
+
+    if (!loginData || loginData.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top:100px;">暂无登录数据</div>';
+        return;
+    }
+
+    var labels = loginData.map(function(item) { return item.Date; });
+    var values = loginData.map(function(item) { return item.Count; });
+
+    loginBarChart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '登录人数',
+                data: values,
+                backgroundColor: 'rgba(245, 87, 108, 0.7)',
+                borderColor: '#f5576c',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 11 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    ticks: { font: { size: 11 } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+// Render registration trend line chart
+function renderRegistrationTrend(trendData) {
+    var canvas = document.getElementById('registrationTrendChart');
+    if (!canvas) return;
+
+    if (registrationLineChart) { registrationLineChart.destroy(); }
+
+    if (!trendData || trendData.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="text-center text-muted" style="padding-top:100px;">暂无趋势数据</div>';
+        return;
+    }
+
+    var labels = trendData.map(function(item) { return item.Month; });
+    var values = trendData.map(function(item) { return item.Count; });
+
+    registrationLineChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '新增管理员',
+                data: values,
+                borderColor: '#f5576c',
+                backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#f5576c',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 11 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    ticks: { font: { size: 11 } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+// Render admin ranking list
+function renderAdminRanking(rankings) {
+    var container = $('#adminRankingList');
+    container.empty();
+
+    if (!rankings || rankings.length === 0) {
+        container.html('<div class="text-center text-muted">暂无排名数据</div>');
+        return;
+    }
+
+    rankings.forEach(function(item) {
+        var rankClass = 'ranking-other';
+        if (item.Rank === 1) rankClass = 'ranking-1';
+        else if (item.Rank === 2) rankClass = 'ranking-2';
+        else if (item.Rank === 3) rankClass = 'ranking-3';
+
+        var permText = getPermissionText(item.Permission);
+
+        container.append(
+            '<div class="ranking-item">' +
+                '<div class="ranking-number ' + rankClass + '">' + item.Rank + '</div>' +
+                '<div class="ranking-info">' +
+                    '<div class="ranking-name">' + escapeHtml(item.Name) + '</div>' +
+                    '<div class="ranking-detail">' +
+                        '<i class="fas fa-user"></i> ' + escapeHtml(item.Username) + ' | ' +
+                        '<i class="fas fa-key"></i> ' + escapeHtml(permText) +
+                    '</div>' +
+                '</div>' +
+                '<div class="ranking-weight">' + (item.LastLogin || '从未登录') + '</div>' +
+            '</div>'
+        );
+    });
+}
+
+function loadStatistics() {
+    loadDashboardStatistics();
 }
 
 function loadAdmins() {
@@ -242,9 +598,9 @@ function renderAdmins(data) {
         var permissionText = getPermissionText(a.Character);
         var row = `<tr>
             <td>${a.AdminID}</td>
-            <td>${a.Username}</td>
-            <td>${a.FullName}</td>
-            <td><span class="label label-primary">${permissionText}</span></td>
+            <td>${escapeHtml(a.Username)}</td>
+            <td>${escapeHtml(a.FullName)}</td>
+            <td><span class="label label-primary">${escapeHtml(permissionText)}</span></td>
             <td>${a.CreatedDate ? formatDate(a.CreatedDate) : '-'}</td>
             <td>${a.LastLoginDate ? formatDate(a.LastLoginDate) : '从未登录'}</td>
             <td>
@@ -258,21 +614,6 @@ function renderAdmins(data) {
         tbody.append(row);
     });
     renderPagination(data);
-}
-
-function getPermissionText(character) {
-    switch(character) {
-        case 'user_management': return '用户管理';
-        case 'recycler_management': return '回收员管理';
-        case 'transporter_management': return '运输人员管理';
-        case 'sortingcenterworker_management': return '基地人员管理';
-        case 'feedback_management': return '反馈管理';
-        case 'homepage_management': return '首页页面管理';
-        case 'warehouse_management': return '仓库管理';
-        case 'log_management': return '日志管理';
-        case 'full_access': return '全部权限';
-        default: return '未设置';
-    }
 }
 
 function renderPagination(data) {

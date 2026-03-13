@@ -280,6 +280,149 @@ namespace recycling.DAL
             return superAdmins;
         }
 
+        /// <summary>
+        /// Get comprehensive admin dashboard statistics for super admin
+        /// 获取管理员数据看板统计信息
+        /// </summary>
+        public Dictionary<string, object> GetAdminDashboardStatistics()
+        {
+            var stats = new Dictionary<string, object>();
+
+            // Initialize default values
+            stats["TotalAdmins"] = 0;
+            stats["ActiveAdmins"] = 0;
+            stats["InactiveAdmins"] = 0;
+            stats["NewAdminsThisMonth"] = 0;
+            stats["RecentLoginCount"] = 0;
+            stats["PermissionDistribution"] = new List<Dictionary<string, object>>();
+            stats["RegistrationTrend"] = new List<Dictionary<string, object>>();
+            stats["LoginActivityTrend"] = new List<Dictionary<string, object>>();
+            stats["AdminRanking"] = new List<Dictionary<string, object>>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // === Basic Statistics ===
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Admins", conn);
+                stats["TotalAdmins"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Admins WHERE IsActive = 1", conn);
+                stats["ActiveAdmins"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM Admins WHERE IsActive = 0", conn);
+                stats["InactiveAdmins"] = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Admins 
+                    WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
+                    AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
+                stats["NewAdminsThisMonth"] = (int)cmd.ExecuteScalar();
+
+                // Recent login count (last 7 days)
+                cmd = new SqlCommand(@"SELECT COUNT(*) FROM Admins 
+                    WHERE LastLoginDate >= DATEADD(day, -7, GETDATE())", conn);
+                stats["RecentLoginCount"] = (int)cmd.ExecuteScalar();
+
+                // === Permission Distribution (for doughnut chart) ===
+                cmd = new SqlCommand(@"
+                    SELECT ISNULL(Character, 'unset') AS Permission, COUNT(*) AS AdminCount
+                    FROM Admins
+                    GROUP BY Character
+                    ORDER BY AdminCount DESC", conn);
+
+                var permissionDistribution = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        permissionDistribution.Add(new Dictionary<string, object>
+                        {
+                            ["Permission"] = reader.GetString(0),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["PermissionDistribution"] = permissionDistribution;
+
+                // === Registration Trend (last 6 months, for line chart) ===
+                cmd = new SqlCommand(@"
+                    SELECT YEAR(CreatedDate) AS RegYear, MONTH(CreatedDate) AS RegMonth, COUNT(*) AS AdminCount
+                    FROM Admins
+                    WHERE CreatedDate >= DATEADD(month, -6, GETDATE())
+                    GROUP BY YEAR(CreatedDate), MONTH(CreatedDate)
+                    ORDER BY RegYear, RegMonth", conn);
+
+                var registrationTrend = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int year = reader.GetInt32(0);
+                        int month = reader.GetInt32(1);
+                        registrationTrend.Add(new Dictionary<string, object>
+                        {
+                            ["Month"] = $"{year}-{month:D2}",
+                            ["Count"] = reader.GetInt32(2)
+                        });
+                    }
+                }
+                stats["RegistrationTrend"] = registrationTrend;
+
+                // === Login Activity Trend (last 7 days, for bar chart) ===
+                cmd = new SqlCommand(@"
+                    SELECT CAST(LastLoginDate AS DATE) AS LoginDate, COUNT(*) AS LoginCount
+                    FROM Admins
+                    WHERE LastLoginDate >= DATEADD(day, -7, GETDATE())
+                    GROUP BY CAST(LastLoginDate AS DATE)
+                    ORDER BY LoginDate", conn);
+
+                var loginActivityTrend = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        loginActivityTrend.Add(new Dictionary<string, object>
+                        {
+                            ["Date"] = reader.GetDateTime(0).ToString("MM-dd"),
+                            ["Count"] = reader.GetInt32(1)
+                        });
+                    }
+                }
+                stats["LoginActivityTrend"] = loginActivityTrend;
+
+                // === Admin Ranking (by last login, most active first) ===
+                cmd = new SqlCommand(@"
+                    SELECT TOP 10 AdminID, FullName, Username, 
+                           ISNULL(Character, 'unset') AS Character,
+                           LastLoginDate, IsActive
+                    FROM Admins
+                    WHERE IsActive = 1
+                    ORDER BY CASE WHEN LastLoginDate IS NULL THEN 0 ELSE 1 END DESC, LastLoginDate DESC", conn);
+
+                var adminRanking = new List<Dictionary<string, object>>();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    int rank = 1;
+                    while (reader.Read())
+                    {
+                        adminRanking.Add(new Dictionary<string, object>
+                        {
+                            ["Rank"] = rank++,
+                            ["AdminID"] = reader.GetInt32(0),
+                            ["Name"] = reader.GetString(1),
+                            ["Username"] = reader.GetString(2),
+                            ["Permission"] = reader.GetString(3),
+                            ["LastLogin"] = reader.IsDBNull(4) ? "" : reader.GetDateTime(4).ToString("yyyy-MM-dd HH:mm"),
+                            ["IsActive"] = reader.GetBoolean(5)
+                        });
+                    }
+                }
+                stats["AdminRanking"] = adminRanking;
+            }
+
+            return stats;
+        }
+
         #endregion
 
         #region Helper Methods
