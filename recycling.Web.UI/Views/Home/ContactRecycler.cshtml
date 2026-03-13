@@ -96,9 +96,14 @@
                 data: { orderId: orderId },
                 success: function (res) {
                     if (res.success) {
-                        // 直接渲染所有消息，不再检查对话结束状态
                         renderMessages(res.messages);
-                        enableInput();
+                        // 根据订单状态控制输入框
+                        var status = res.orderStatus || '';
+                        if (status === '已完成' || status === '已取消-系统超时回退') {
+                            disableInput('订单已结束，无法发送消息');
+                        } else {
+                            enableInput();
+                        }
                         $("#loadingMsg").hide();
                     } else {
                         $("#chatMessages").html(`<div class="text-danger text-center">加载失败：${res.message}</div>`);

@@ -147,10 +147,10 @@ namespace recycling.BLL
                     return (false, "订单不存在或无权访问");
                 }
 
-                // 检查订单状态是否为"进行中"（数据库中状态字段值为"进行中"）
-                if (orderDetail.Appointment.Status != "进行中")
+                // 检查订单状态：允许"进行中"和"已取消-回收员回退"的订单发送消息
+                if (orderDetail.Appointment.Status != "进行中" && orderDetail.Appointment.Status != "已取消-回收员回退")
                 {
-                    return (false, "仅可对进行中的订单发送消息");
+                    return (false, "当前订单状态不允许发送消息");
                 }
 
                 // 在发送消息前，确保有活跃的对话会话
