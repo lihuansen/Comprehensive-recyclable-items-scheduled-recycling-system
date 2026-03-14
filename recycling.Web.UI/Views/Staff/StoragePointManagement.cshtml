@@ -1184,6 +1184,7 @@
         var selectedOption = $baseContactSelect.find('option:selected');
         var baseContactPerson = selectedOption.attr('data-name') || '';
         var baseContactPhone = $('#baseContactPhone').val().trim();
+        var assignedWorkerID = $baseContactSelect.val();
         var specialInstructions = $('#specialInstructions').val().trim();
 
         // 验证必填字段
@@ -1223,7 +1224,8 @@
                 itemCategories: itemCategoriesJson,
                 baseContactPerson: baseContactPerson,
                 baseContactPhone: baseContactPhone,
-                specialInstructions: specialInstructions
+                specialInstructions: specialInstructions,
+                assignedWorkerID: assignedWorkerID
             },
             beforeSend: function() {
                 // 禁用提交按钮
@@ -1233,6 +1235,8 @@
                 if (response.success) {
                     alert('运输单创建成功！运输单号：' + (response.orderNumber || ''));
                     closeOrderModal();
+                    // 清空基地工作人员缓存（因为选中的人员状态已变为工作中）
+                    baseStaffList = [];
                     // 可选：刷新页面或更新库存数据
                     loadSummary();
                 } else {

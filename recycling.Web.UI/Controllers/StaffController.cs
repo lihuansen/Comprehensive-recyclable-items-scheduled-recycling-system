@@ -2076,12 +2076,14 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 // Get all active base staff from SortingCenterWorkers table
+                // 只返回状态为"空闲"的基地工作人员（工作中的人员不可被选择）
                 using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString))
                 {
                     conn.Open();
                     string sql = @"SELECT WorkerID, FullName, PhoneNumber 
                            FROM SortingCenterWorkers 
                            WHERE IsActive = 1 
+                           AND (CurrentStatus = N'空闲' OR CurrentStatus IS NULL)
                            ORDER BY FullName";
 
                     var cmd = new System.Data.SqlClient.SqlCommand(sql, conn);
@@ -2122,7 +2124,8 @@ namespace recycling.Web.UI.Controllers
         [ValidateAntiForgeryToken]
         public ContentResult CreateTransportationOrder(int transporterId, string pickupAddress, 
             decimal estimatedWeight, decimal itemTotalValue, string itemCategories, 
-            string baseContactPerson, string baseContactPhone, string specialInstructions)
+            string baseContactPerson, string baseContactPhone, string specialInstructions,
+            int assignedWorkerID = 0)
         {
             try
             {
@@ -2155,6 +2158,11 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "预估重量必须大于0" });
                 }
 
+                if (assignedWorkerID <= 0)
+                {
+                    return JsonContent(new { success = false, message = "请选择基地工作人员" });
+                }
+
                 // 创建运输单对象
                 // 目的地固定为"深圳基地"：根据业务需求，当前所有运输都统一送往深圳基地集中分拣中心
                 // 如果将来需要支持多个基地，需要修改此处逻辑为可配置的选项
@@ -2167,12 +2175,13 @@ namespace recycling.Web.UI.Controllers
                     DestinationAddress = "深圳基地", // 固定目的地
                     ContactPerson = string.IsNullOrWhiteSpace(staff.FullName) ? staff.Username : staff.FullName, // 回收员姓名，如果FullName为空则使用Username
                     ContactPhone = staff.PhoneNumber, // 回收员电话
-                    BaseContactPerson = baseContactPerson, // 基地联系人（可编辑）
-                    BaseContactPhone = baseContactPhone, // 基地联系电话（可编辑）
+                    BaseContactPerson = baseContactPerson, // 基地联系人（从下拉列表选择）
+                    BaseContactPhone = baseContactPhone, // 基地联系电话（自动填充）
                     EstimatedWeight = estimatedWeight,
                     ItemTotalValue = itemTotalValue,
                     ItemCategories = null, // 将在解析品类信息后设置为格式化文本
-                    SpecialInstructions = specialInstructions
+                    SpecialInstructions = specialInstructions,
+                    AssignedWorkerID = assignedWorkerID > 0 ? (int?)assignedWorkerID : null
                 };
 
                 // 解析品类详细信息（如果提供的是JSON格式）
@@ -5152,6 +5161,14 @@ namespace recycling.Web.UI.Controllers
 
                 var worker = (SortingCenterWorkers)Session["LoginStaff"];
 
+                // 验证当前工作人员是否是该运输单的指定基地工作人员
+                var transportOrderDAL = new TransportationOrderDAL();
+                int? assignedWorkerId = transportOrderDAL.GetAssignedWorkerIdByTransportOrderId(transportOrderId);
+                if (assignedWorkerId.HasValue && assignedWorkerId.Value != worker.WorkerID)
+                {
+                    return JsonContent(new { success = false, message = "您不是该运输单的指定基地工作人员，无法创建入库单" });
+                }
+
                 // 创建入库单（BLL层会进行所有必要的验证）
                 var (success, message, receiptId, receiptNumber) = _warehouseReceiptBLL.CreateWarehouseReceipt(
                     transportOrderId, 
@@ -5217,6 +5234,22 @@ namespace recycling.Web.UI.Controllers
                 if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
                 {
                     return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+
+                // 验证当前工作人员是否有权处理该入库单
+                // 通过入库单获取对应运输单的AssignedWorkerID进行权限校验
+                var warehouseReceiptDAL = new WarehouseReceiptDAL();
+                var receipt = warehouseReceiptDAL.GetWarehouseReceiptById(receiptId);
+                if (receipt != null && receipt.TransportOrderID.HasValue)
+                {
+                    var transportOrderDAL = new TransportationOrderDAL();
+                    int? assignedWorkerId = transportOrderDAL.GetAssignedWorkerIdByTransportOrderId(receipt.TransportOrderID.Value);
+                    if (assignedWorkerId.HasValue && assignedWorkerId.Value != worker.WorkerID)
+                    {
+                        return JsonContent(new { success = false, message = "您不是该运输单的指定基地工作人员，无法处理入库" });
+                    }
                 }
 
                 var (success, message) = _warehouseReceiptBLL.ProcessWarehouseReceipt(receiptId);

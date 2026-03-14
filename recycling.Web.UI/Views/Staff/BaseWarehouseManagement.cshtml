@@ -237,6 +237,21 @@
         background: #f0f8f4;
     }
 
+    .transit-order-item.assigned-to-me {
+        border-left: 4px solid #27ae60;
+    }
+
+    .transit-order-item.assigned-to-other {
+        border-left: 4px solid #e67e22;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .transit-order-item.assigned-to-other:hover {
+        border-color: #e67e22;
+        box-shadow: none;
+    }
+
     .order-info {
         display: flex;
         justify-content: space-between;
@@ -446,9 +461,18 @@
                                     <td>
                                         @if (receipt.Status == "待入库")
                                         {
-                                            <button class="btn-warehouse" onclick="processWarehouse(@receipt.ReceiptID)">
-                                                <i class="fas fa-warehouse"></i> 入库
-                                            </button>
+                                            var currentWorkerId = ((recycling.Model.SortingCenterWorkers)Session["LoginStaff"]).WorkerID;
+                                            var isAssignedToMe = !receipt.AssignedWorkerID.HasValue || receipt.AssignedWorkerID.Value == currentWorkerId;
+                                            if (isAssignedToMe)
+                                            {
+                                                <button class="btn-warehouse" onclick="processWarehouse(@receipt.ReceiptID)">
+                                                    <i class="fas fa-warehouse"></i> 入库
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span style="color: #e67e22; font-size: 12px;"><i class="fas fa-lock"></i> 非指定人员</span>
+                                            }
                                         }
                                         else
                                         {
@@ -712,6 +736,10 @@
 <script>
     var selectedOrderId = null;
     
+    // 当前登录的基地工作人员ID（用于权限判断）
+    // Current logged-in sorting center worker ID (for permission checks)
+    var currentWorkerID = @(((recycling.Model.SortingCenterWorkers)Session["LoginStaff"]).WorkerID);
+    
     /**
      * 运输单数据缓存
      * Cache for transport order data to avoid storing JSON in HTML attributes
@@ -810,21 +838,35 @@
                 // Merge into cache: new data overwrites existing entries, avoiding race condition from clearing
                 transportOrdersCache[order.TransportOrderID] = order;
                 
-                html += '<div class="transit-order-item" data-order-id="' + order.TransportOrderID + '" ' +
+                // 判断当前工作人员是否是该运输单的指定基地工作人员
+                var isAssigned = order.AssignedWorkerID && order.AssignedWorkerID === currentWorkerID;
+                var isOtherAssigned = order.AssignedWorkerID && order.AssignedWorkerID !== currentWorkerID;
+                var assignedClass = isAssigned ? ' assigned-to-me' : (isOtherAssigned ? ' assigned-to-other' : '');
+                var clickHandler = isOtherAssigned ? '' : 'onclick="selectOrder(this)"';
+                var cursorStyle = isOtherAssigned ? ' style="cursor: not-allowed; opacity: 0.6;"' : '';
+                
+                html += '<div class="transit-order-item' + assignedClass + '" data-order-id="' + order.TransportOrderID + '" ' +
                     'data-order-number="' + order.OrderNumber + '" ' +
                     'data-estimated-weight="' + order.EstimatedWeight + '" ' +
                     'data-recycler-name="' + (order.RecyclerName || '') + '" ' +
                     'data-transporter-name="' + (order.TransporterName || '') + '" ' +
-                    'onclick="selectOrder(this)">' +
+                    clickHandler + cursorStyle + '>' +
                     '<div class="order-info">' +
                     '<span class="order-number">' + order.OrderNumber + '</span>' +
                     '<span class="order-weight">' + order.EstimatedWeight.toFixed(2) + ' kg</span>' +
                     '</div>' +
                     '<div class="order-details">' +
                     '回收员：' + (order.RecyclerName || '-') + ' | ' +
-                    '运输人员：' + (order.TransporterName || '-') +
-                    '</div>';
+                    '运输人员：' + (order.TransporterName || '-');
                 
+                // 显示指定人员信息
+                if (isAssigned) {
+                    html += '<br/><span style="color: #27ae60; font-weight: bold;"><i class="fas fa-user-check"></i> 指定给我</span>';
+                } else if (isOtherAssigned) {
+                    html += '<br/><span style="color: #e67e22;"><i class="fas fa-user-lock"></i> 指定给：' + (order.BaseContactPerson || '其他人员') + '</span>';
+                }
+                
+                html += '</div>';
                 html += '</div>';
             }
             $('#transitOrdersList').html(html).show();
@@ -837,6 +879,13 @@
     function selectOrder(element) {
         // 检查是否已创建入库单
         var orderId = $(element).data('order-id');
+        
+        // 先检查当前工作人员是否是该运输单的指定基地工作人员
+        var orderData = transportOrdersCache[orderId];
+        if (orderData && orderData.AssignedWorkerID && orderData.AssignedWorkerID !== currentWorkerID) {
+            alert('您不是该运输单的指定基地工作人员，无法创建入库单');
+            return;
+        }
         
         $.ajax({
             url: '@Url.Action("CheckWarehouseReceipt", "Staff")',
@@ -1107,7 +1156,13 @@
                 var actionButton = '';
                 
                 if (receipt.Status === '待入库') {
-                    actionButton = '<button class="btn-warehouse" onclick="processWarehouse(' + receipt.ReceiptID + ')"><i class="fas fa-warehouse"></i> 入库</button>';
+                    // 只有指定的基地工作人员才能操作入库按钮
+                    var isAssignedToMe = !receipt.AssignedWorkerID || receipt.AssignedWorkerID === currentWorkerID;
+                    if (isAssignedToMe) {
+                        actionButton = '<button class="btn-warehouse" onclick="processWarehouse(' + receipt.ReceiptID + ')"><i class="fas fa-warehouse"></i> 入库</button>';
+                    } else {
+                        actionButton = '<span style="color: #e67e22; font-size: 12px;"><i class="fas fa-lock"></i> 非指定人员</span>';
+                    }
                 } else {
                     actionButton = '<span style="color: #999;">-</span>';
                 }

@@ -158,10 +158,34 @@ namespace recycling.BLL
 
                 if (result)
                 {
-                    // 3. 获取运输单信息用于通知
+                    // 3. 获取运输单信息用于通知和状态更新
                     var transportOrder = receipt.TransportOrderID.HasValue 
                         ? _transportDAL.GetTransportationOrderById(receipt.TransportOrderID.Value) 
                         : null;
+
+                    // 3.1 入库成功后，检查并更新基地工作人员状态为"空闲"
+                    try
+                    {
+                        if (transportOrder != null && transportOrder.AssignedWorkerID.HasValue)
+                        {
+                            int assignedWorkerId = transportOrder.AssignedWorkerID.Value;
+                            // 检查该工作人员是否还有其他未完成的任务
+                            if (!_transportDAL.HasPendingTasksForWorker(assignedWorkerId))
+                            {
+                                _transportDAL.UpdateSortingCenterWorkerStatus(assignedWorkerId, "空闲");
+                                System.Diagnostics.Debug.WriteLine($"基地工作人员 {assignedWorkerId} 所有任务已完成，状态已更新为空闲");
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"基地工作人员 {assignedWorkerId} 还有其他未完成任务，保持工作中状态");
+                            }
+                        }
+                    }
+                    catch (Exception statusEx)
+                    {
+                        // 状态更新失败不影响入库操作
+                        System.Diagnostics.Debug.WriteLine($"更新基地工作人员状态失败: {statusEx.Message}");
+                    }
 
                     // 4. 发送入库完成通知给回收员
                     try

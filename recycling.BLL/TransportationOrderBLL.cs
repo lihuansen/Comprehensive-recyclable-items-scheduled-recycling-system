@@ -43,6 +43,21 @@ namespace recycling.BLL
                 // 调用DAL创建运输单
                 var (orderId, orderNumber) = _dal.CreateTransportationOrder(order, categories);
 
+                // 设置指定基地工作人员状态为"工作中"
+                if (orderId > 0 && order.AssignedWorkerID.HasValue && order.AssignedWorkerID.Value > 0)
+                {
+                    try
+                    {
+                        _dal.UpdateSortingCenterWorkerStatus(order.AssignedWorkerID.Value, "工作中");
+                        System.Diagnostics.Debug.WriteLine($"基地工作人员 {order.AssignedWorkerID.Value} 状态已更新为工作中");
+                    }
+                    catch (Exception statusEx)
+                    {
+                        // 状态更新失败不影响运输单创建
+                        System.Diagnostics.Debug.WriteLine($"更新基地工作人员状态失败: {statusEx.Message}");
+                    }
+                }
+
                 // 发送通知给基地工作人员
                 if (orderId > 0)
                 {
