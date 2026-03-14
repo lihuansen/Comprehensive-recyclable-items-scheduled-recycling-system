@@ -96,6 +96,7 @@ sqlcmd -S localhost -d RecyclingSystemDB -i CreateAdminContactMessagesTable.sql
 4. 依次打开并执行以下脚本：
    - `CreateAdminOperationLogsTable.sql`（管理员日志表 - **推荐首先执行**）
    - `CreateInventoryTable.sql`（库存表 - **暂存点管理必需**）
+   - `CreateTransportationOrdersTable.sql`（运输单表 - **运输功能必需**）
    - `CreateUserFeedbackTable.sql`
    - `CreateAdminContactMessagesTable.sql`
    - `CreateHomepageCarouselTable.sql`（如果需要）
@@ -228,6 +229,32 @@ SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Inventory';
 3. 刷新暂存点管理页面
 
 **相关文档**: 参见 `STORAGE_POINT_TROUBLESHOOTING.md` 获取详细的故障排查步骤
+
+### 问题5: 创建运输单失败 "列名 'AssignedWorkerID' 无效"
+
+**原因**: `TransportationOrders` 表缺少 `AssignedWorkerID` 列
+
+**症状**:
+- 回收员在暂存点管理中联系运输人员，填写信息后创建运输单
+- 系统显示"创建失败：创建运输单失败: 创建运输单失败: 列名 'AssignedWorkerID' 无效。"
+
+**解决方案**:
+
+⚠️ **新安装用户**: 如果尚未创建 `TransportationOrders` 表，直接执行最新版本的 `CreateTransportationOrdersTable.sql`，该脚本已包含 `AssignedWorkerID` 等所有必需字段。
+
+⚠️ **已有数据库用户**: 如果 `TransportationOrders` 表已存在但缺少字段，请依次执行以下迁移脚本：
+
+1. 执行 `UpdateTransportationOrdersTableStructure.sql`（添加 BaseContactPerson、BaseContactPhone、ItemTotalValue 字段）
+2. 执行 `AddAssignedWorkerIDAndUpdateWorkerStatus.sql`（添加 AssignedWorkerID 字段并更新基地工作人员状态约束）
+
+验证字段添加成功：
+```sql
+SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'TransportationOrders'
+  AND COLUMN_NAME IN ('AssignedWorkerID', 'BaseContactPerson', 'BaseContactPhone', 'ItemTotalValue')
+ORDER BY ORDINAL_POSITION;
+```
 
 ## 功能测试 (Feature Testing)
 

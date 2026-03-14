@@ -119,6 +119,25 @@ chmod +x VerifyStoragePointSetup.sh FixStoragePointManagement.sh
 
 ---
 
+## 🔴 解决创建运输单失败（列名 'AssignedWorkerID' 无效）
+
+如果您在回收员端暂存点管理中创建运输单时遇到**"创建失败：创建运输单失败: 列名 'AssignedWorkerID' 无效。"**错误：
+
+### 快速修复
+
+在 SQL Server Management Studio (SSMS) 中依次执行以下脚本：
+
+1. **`UpdateTransportationOrdersTableStructure.sql`** — 添加 BaseContactPerson、BaseContactPhone、ItemTotalValue 字段
+2. **`AddAssignedWorkerIDAndUpdateWorkerStatus.sql`** — 添加 AssignedWorkerID 字段并更新基地工作人员状态约束
+
+### 问题原因
+
+此错误是因为 **TransportationOrders（运输单）表缺少 AssignedWorkerID 列**导致的。该字段用于在创建运输单时指定基地工作人员，是运输单创建功能的必需字段。
+
+> **新安装用户注意**: 最新版本的 `CreateTransportationOrdersTable.sql` 已包含 `AssignedWorkerID` 等所有必需字段，新安装时无需单独执行迁移脚本。
+
+---
+
 ## ⭐ 完整建表脚本（推荐）
 
 如果您需要创建整个数据库的所有表，请使用：
@@ -410,10 +429,13 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 如果是全新安装，建议按以下顺序执行脚本：
 1. `CreateAdminOperationLogsTable.sql` - 创建管理员操作日志表（用于日志管理功能）
 2. `CreateInventoryTable.sql` - 创建库存表（包含 Price 列）
-3. `CreateOrderReviewsTable.sql` - 创建订单评价表
+3. `CreateTransportationOrdersTable.sql` - 创建运输单表（包含 AssignedWorkerID 等所有必需字段）
+4. `CreateOrderReviewsTable.sql` - 创建订单评价表
 
 如果表已存在但缺少某些列：
 - 执行 `AddInventoryPriceColumn.sql` - 为已存在的 Inventory 表添加 Price 列
+- 执行 `UpdateTransportationOrdersTableStructure.sql` - 为已存在的 TransportationOrders 表添加 BaseContactPerson、BaseContactPhone、ItemTotalValue 字段
+- 执行 `AddAssignedWorkerIDAndUpdateWorkerStatus.sql` - 为已存在的 TransportationOrders 表添加 AssignedWorkerID 字段
 
 ## Entity Framework 集成
 
