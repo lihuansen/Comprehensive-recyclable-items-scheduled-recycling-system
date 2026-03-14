@@ -83,5 +83,11 @@ namespace recycling.Model
         public DateTime? DeliveryConfirmedDate { get; set; }
 
         public DateTime? ArrivedAtDeliveryDate { get; set; }
+
+        /// <summary>
+        /// 指定的基地工作人员ID（创建运输单时选择）
+        /// Assigned sorting center worker ID (selected during transport order creation)
+        /// </summary>
+        public int? AssignedWorkerID { get; set; }
     }
 }

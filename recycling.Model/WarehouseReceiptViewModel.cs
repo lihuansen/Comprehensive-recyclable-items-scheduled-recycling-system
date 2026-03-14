@@ -73,6 +73,12 @@ namespace recycling.Model
         /// 入库时间
         /// </summary>
         public DateTime CreatedDate { get; set; }
+
+        /// <summary>
+        /// 运输单指定的基地工作人员ID
+        /// Assigned worker ID from transport order
+        /// </summary>
+        public int? AssignedWorkerID { get; set; }
     }
 
     /// <summary>
@@ -120,5 +126,17 @@ namespace recycling.Model
         /// 状态
         /// </summary>
         public string Status { get; set; }
+
+        /// <summary>
+        /// 指定的基地工作人员ID
+        /// Assigned sorting center worker ID
+        /// </summary>
+        public int? AssignedWorkerID { get; set; }
+
+        /// <summary>
+        /// 基地联系人
+        /// Base contact person name
+        /// </summary>
+        public string BaseContactPerson { get; set; }
     }
 }

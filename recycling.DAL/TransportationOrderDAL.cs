@@ -196,12 +196,12 @@ namespace recycling.DAL
                                 (OrderNumber, RecyclerID, TransporterID, PickupAddress, DestinationAddress,
                                  ContactPerson, ContactPhone, BaseContactPerson, BaseContactPhone, 
                                  EstimatedWeight, ItemTotalValue, ItemCategories, 
-                                 SpecialInstructions, Status, CreatedDate)
+                                 SpecialInstructions, Status, CreatedDate, AssignedWorkerID)
                                 VALUES 
                                 (@OrderNumber, @RecyclerID, @TransporterID, @PickupAddress, @DestinationAddress,
                                  @ContactPerson, @ContactPhone, @BaseContactPerson, @BaseContactPhone,
                                  @EstimatedWeight, @ItemTotalValue, @ItemCategories, 
-                                 @SpecialInstructions, @Status, @CreatedDate);
+                                 @SpecialInstructions, @Status, @CreatedDate, @AssignedWorkerID);
                                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
                             int orderId;
@@ -222,6 +222,7 @@ namespace recycling.DAL
                                 cmd.Parameters.AddWithValue("@SpecialInstructions", (object)order.SpecialInstructions ?? DBNull.Value);
                                 cmd.Parameters.AddWithValue("@Status", order.Status);
                                 cmd.Parameters.AddWithValue("@CreatedDate", order.CreatedDate);
+                                cmd.Parameters.AddWithValue("@AssignedWorkerID", (object)order.AssignedWorkerID ?? DBNull.Value);
 
                                 orderId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
@@ -258,6 +259,106 @@ namespace recycling.DAL
             {
                 System.Diagnostics.Debug.WriteLine($"CreateTransportationOrder Error: {ex.Message}");
                 throw new Exception($"创建运输单失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// 更新基地工作人员的当前状态
+        /// Update sorting center worker's current status
+        /// </summary>
+        /// <param name="workerId">基地工作人员ID</param>
+        /// <param name="status">新状态（空闲/工作中）</param>
+        /// <returns>是否更新成功</returns>
+        public bool UpdateSortingCenterWorkerStatus(int workerId, string status)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"UPDATE SortingCenterWorkers SET CurrentStatus = @Status WHERE WorkerID = @WorkerID";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Status", status);
+                        cmd.Parameters.AddWithValue("@WorkerID", workerId);
+                        int rows = cmd.ExecuteNonQuery();
+                        return rows > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateSortingCenterWorkerStatus Error: {ex.Message}");
+                throw new Exception($"更新基地工作人员状态失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// 检查基地工作人员是否有未完成入库的运输单
+        /// Check if sorting center worker has transport orders with pending warehouse receipts
+        /// </summary>
+        /// <param name="workerId">基地工作人员ID</param>
+        /// <returns>是否有未完成的任务</returns>
+        public bool HasPendingTasksForWorker(int workerId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    // 检查是否有指定给该工作人员的、尚未入库的运输单
+                    // （状态不是已取消，且没有已入库的入库单）
+                    string sql = @"
+                        SELECT COUNT(*) 
+                        FROM TransportationOrders t
+                        LEFT JOIN WarehouseReceipts w ON t.TransportOrderID = w.TransportOrderID AND w.Status = N'已入库'
+                        WHERE t.AssignedWorkerID = @WorkerID 
+                        AND t.Status != N'已取消'
+                        AND w.ReceiptID IS NULL";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@WorkerID", workerId);
+                        int count = Convert.ToInt32(cmd.ExecuteScalar());
+                        return count > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"HasPendingTasksForWorker Error: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取运输单的指定基地工作人员ID
+        /// Get the assigned worker ID for a transport order
+        /// </summary>
+        public int? GetAssignedWorkerIdByTransportOrderId(int transportOrderId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT AssignedWorkerID FROM TransportationOrders WHERE TransportOrderID = @OrderID";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@OrderID", transportOrderId);
+                        var result = cmd.ExecuteScalar();
+                        if (result == null || result == DBNull.Value)
+                            return null;
+                        return Convert.ToInt32(result);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetAssignedWorkerIdByTransportOrderId Error: {ex.Message}");
+                return null;
             }
         }
 
@@ -325,7 +426,8 @@ namespace recycling.DAL
                                     ArrivedAtPickupDate = SafeGetDateTime(reader, "ArrivedAtPickupDate"),
                                     LoadingCompletedDate = SafeGetDateTime(reader, "LoadingCompletedDate"),
                                     DeliveryConfirmedDate = SafeGetDateTime(reader, "DeliveryConfirmedDate"),
-                                    ArrivedAtDeliveryDate = SafeGetDateTime(reader, "ArrivedAtDeliveryDate")
+                                    ArrivedAtDeliveryDate = SafeGetDateTime(reader, "ArrivedAtDeliveryDate"),
+                                    AssignedWorkerID = SafeGetInt(reader, "AssignedWorkerID")
                                 });
                             }
                         }
@@ -397,7 +499,8 @@ namespace recycling.DAL
                                     ArrivedAtPickupDate = SafeGetDateTime(reader, "ArrivedAtPickupDate"),
                                     LoadingCompletedDate = SafeGetDateTime(reader, "LoadingCompletedDate"),
                                     DeliveryConfirmedDate = SafeGetDateTime(reader, "DeliveryConfirmedDate"),
-                                    ArrivedAtDeliveryDate = SafeGetDateTime(reader, "ArrivedAtDeliveryDate")
+                                    ArrivedAtDeliveryDate = SafeGetDateTime(reader, "ArrivedAtDeliveryDate"),
+                                    AssignedWorkerID = SafeGetInt(reader, "AssignedWorkerID")
                                 };
                             }
                         }
@@ -524,7 +627,8 @@ namespace recycling.DAL
                                     ArrivedAtPickupDate = SafeGetDateTime(reader, "ArrivedAtPickupDate"),
                                     LoadingCompletedDate = SafeGetDateTime(reader, "LoadingCompletedDate"),
                                     DeliveryConfirmedDate = SafeGetDateTime(reader, "DeliveryConfirmedDate"),
-                                    ArrivedAtDeliveryDate = SafeGetDateTime(reader, "ArrivedAtDeliveryDate")
+                                    ArrivedAtDeliveryDate = SafeGetDateTime(reader, "ArrivedAtDeliveryDate"),
+                                    AssignedWorkerID = SafeGetInt(reader, "AssignedWorkerID")
                                 });
                             }
                         }
