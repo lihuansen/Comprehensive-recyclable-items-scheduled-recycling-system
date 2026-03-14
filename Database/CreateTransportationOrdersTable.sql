@@ -26,10 +26,13 @@ BEGIN
         [TransporterID] INT NOT NULL,                        -- 运输人员ID（外键）
         [PickupAddress] NVARCHAR(200) NOT NULL,              -- 取货地址
         [DestinationAddress] NVARCHAR(200) NOT NULL,         -- 目的地地址（基地地址）
-        [ContactPerson] NVARCHAR(50) NOT NULL,               -- 联系人（回收员姓名）
-        [ContactPhone] NVARCHAR(20) NOT NULL,                -- 联系电话
+        [ContactPerson] NVARCHAR(50) NULL,                   -- 联系人（回收员姓名，可选）
+        [ContactPhone] NVARCHAR(20) NULL,                    -- 联系电话（可选）
+        [BaseContactPerson] NVARCHAR(50) NULL,               -- 基地联系人姓名
+        [BaseContactPhone] NVARCHAR(20) NULL,                -- 基地联系人电话
         [EstimatedWeight] DECIMAL(10, 2) NOT NULL,           -- 预估总重量（kg）
         [ActualWeight] DECIMAL(10, 2) NULL,                  -- 实际重量（kg）
+        [ItemTotalValue] DECIMAL(10, 2) NOT NULL DEFAULT 0,  -- 物品总金额
         [ItemCategories] NVARCHAR(MAX) NULL,                 -- 物品类别（JSON格式存储）
         [SpecialInstructions] NVARCHAR(500) NULL,            -- 特殊说明
         [Status] NVARCHAR(20) NOT NULL DEFAULT N'待接单',    -- 状态（待接单、已接单、运输中、已完成、已取消）
@@ -43,6 +46,12 @@ BEGIN
         [TransporterNotes] NVARCHAR(500) NULL,               -- 运输人员备注
         [RecyclerRating] INT NULL,                           -- 回收员评分（1-5）
         [RecyclerReview] NVARCHAR(500) NULL,                 -- 回收员评价
+        [AssignedWorkerID] INT NULL,                         -- 指定的基地工作人员ID（创建运输单时选择）
+        [PickupConfirmedDate] DATETIME2 NULL,                -- 确认取货时间
+        [ArrivedAtPickupDate] DATETIME2 NULL,                -- 到达取货点时间
+        [LoadingCompletedDate] DATETIME2 NULL,               -- 装货完成时间
+        [DeliveryConfirmedDate] DATETIME2 NULL,              -- 确认送达时间
+        [ArrivedAtDeliveryDate] DATETIME2 NULL,              -- 到达目的地时间
         
         -- 约束
         CONSTRAINT FK_TransportationOrders_Recyclers FOREIGN KEY ([RecyclerID]) 
@@ -65,6 +74,7 @@ BEGIN
     CREATE INDEX IX_TransportationOrders_TransporterID ON [dbo].[TransportationOrders]([TransporterID]);
     CREATE INDEX IX_TransportationOrders_Status ON [dbo].[TransportationOrders]([Status]);
     CREATE INDEX IX_TransportationOrders_CreatedDate ON [dbo].[TransportationOrders]([CreatedDate] DESC);
+    CREATE INDEX IX_TransportationOrders_AssignedWorkerID ON [dbo].[TransportationOrders]([AssignedWorkerID]);
 
     PRINT 'TransportationOrders 表创建成功';
 END
@@ -83,10 +93,13 @@ GO
 -- TransporterID         : 负责运输的运输人员ID
 -- PickupAddress         : 回收员暂存点地址（取货地址）
 -- DestinationAddress    : 目的地地址（通常是分拣中心或基地）
--- ContactPerson         : 联系人姓名（回收员姓名）
--- ContactPhone          : 联系电话（回收员电话）
+-- ContactPerson         : 联系人姓名（回收员姓名，可选）
+-- ContactPhone          : 联系电话（回收员电话，可选）
+-- BaseContactPerson     : 基地联系人姓名
+-- BaseContactPhone      : 基地联系人电话
 -- EstimatedWeight       : 预估总重量（公斤）
 -- ActualWeight          : 实际运输重量（公斤），由运输人员在完成后填写
+-- ItemTotalValue        : 物品总金额
 -- ItemCategories        : 物品类别JSON，例如：[{"categoryName":"纸类","weight":10.5},{"categoryName":"塑料","weight":5.2}]
 -- SpecialInstructions   : 特殊说明或备注信息
 -- Status                : 运输单状态
@@ -100,6 +113,12 @@ GO
 -- TransporterNotes      : 运输人员备注信息
 -- RecyclerRating        : 回收员对运输服务的评分（1-5分）
 -- RecyclerReview        : 回收员对运输服务的评价文字
+-- AssignedWorkerID      : 指定的基地工作人员ID（创建运输单时选择）
+-- PickupConfirmedDate   : 确认取货时间
+-- ArrivedAtPickupDate   : 到达取货点时间
+-- LoadingCompletedDate  : 装货完成时间
+-- DeliveryConfirmedDate : 确认送达时间
+-- ArrivedAtDeliveryDate : 到达目的地时间
 -- ==============================================================================
 
 -- ==============================================================================
@@ -121,10 +140,12 @@ GO
 -- ==============================================================================
 -- INSERT INTO [dbo].[TransportationOrders] 
 --     (OrderNumber, RecyclerID, TransporterID, PickupAddress, DestinationAddress, 
---      ContactPerson, ContactPhone, EstimatedWeight, ItemCategories, Status)
+--      ContactPerson, ContactPhone, BaseContactPerson, BaseContactPhone,
+--      EstimatedWeight, ItemTotalValue, ItemCategories, AssignedWorkerID, Status)
 -- VALUES 
 --     (N'TO202601030001', 1, 1, N'深圳市罗湖区XX街道XX号', N'深圳市罗湖区分拣中心',
---      N'张回收员', N'13800138000', 45.50, 
+--      N'张回收员', N'13800138000', N'李工作人员', N'13900139000',
+--      45.50, 150.00,
 --      N'[{"categoryName":"纸类","weight":20.5},{"categoryName":"塑料","weight":15.0},{"categoryName":"金属","weight":10.0}]',
---      N'待接单');
+--      1, N'待接单');
 -- ==============================================================================
