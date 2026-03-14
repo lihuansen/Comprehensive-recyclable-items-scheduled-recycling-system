@@ -282,6 +282,10 @@
       <Project>{0e7d980c-a0b6-42c8-a958-5eb24ed8d14a}</Project>
       <Name>recycling.BLL</Name>
     </ProjectReference>
+    <ProjectReference Include="..\recycling.DAL\recycling.DAL.csproj">
+      <Project>{3bbcb9cc-26f0-4e3f-8535-81a919d03f8e}</Project>
+      <Name>recycling.DAL</Name>
+    </ProjectReference>
     <ProjectReference Include="..\recycling.Model\recycling.Model.csproj">
       <Project>{6da7df6c-412a-4297-a76a-30321e6243c0}</Project>
       <Name>recycling.Model</Name>
