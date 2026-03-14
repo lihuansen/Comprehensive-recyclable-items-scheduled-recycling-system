@@ -196,7 +196,29 @@ namespace recycling.BLL
                 if (orderId <= 0)
                     throw new ArgumentException("运输单ID无效");
 
-                return _dal.AcceptTransportationOrder(orderId);
+                // 获取运输单信息以获取运输人员ID
+                var order = _dal.GetTransportationOrderById(orderId);
+                if (order == null)
+                    throw new ArgumentException("运输单不存在");
+
+                bool result = _dal.AcceptTransportationOrder(orderId);
+
+                // 接单成功后，更新运输人员状态为"运输中"
+                if (result && order.TransporterID.HasValue && order.TransporterID.Value > 0)
+                {
+                    try
+                    {
+                        _dal.UpdateTransporterStatus(order.TransporterID.Value, "运输中");
+                        System.Diagnostics.Debug.WriteLine($"运输人员 {order.TransporterID.Value} 状态已更新为运输中");
+                    }
+                    catch (Exception statusEx)
+                    {
+                        // 状态更新失败不影响接单结果
+                        System.Diagnostics.Debug.WriteLine($"更新运输人员状态失败: {statusEx.Message}");
+                    }
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -430,15 +452,35 @@ namespace recycling.BLL
                 if (actualWeight.HasValue && actualWeight.Value < 0)
                     throw new ArgumentException("实际重量不能为负数");
 
+                // 获取运输单详情（在完成之前获取，以便获取运输人员ID）
+                var order = _dal.GetTransportationOrderById(orderId);
+
                 bool result = _dal.CompleteTransportation(orderId, actualWeight);
 
-                // 发送通知给基地工作人员
+                // 发送通知给基地工作人员，并更新运输人员状态
                 if (result)
                 {
+                    // 更新运输人员状态：如果没有其他未完成的运输单，则恢复为"空闲"
+                    if (order != null && order.TransporterID.HasValue && order.TransporterID.Value > 0)
+                    {
+                        try
+                        {
+                            bool hasActiveOrders = _dal.HasActiveTransportOrdersForTransporter(order.TransporterID.Value);
+                            if (!hasActiveOrders)
+                            {
+                                _dal.UpdateTransporterStatus(order.TransporterID.Value, "空闲");
+                                System.Diagnostics.Debug.WriteLine($"运输人员 {order.TransporterID.Value} 所有运输单已完成，状态已更新为空闲");
+                            }
+                        }
+                        catch (Exception statusEx)
+                        {
+                            // 状态更新失败不影响运输完成结果
+                            System.Diagnostics.Debug.WriteLine($"更新运输人员状态失败: {statusEx.Message}");
+                        }
+                    }
+
                     try
                     {
-                        // 获取运输单详情
-                        var order = _dal.GetTransportationOrderById(orderId);
                         if (order != null)
                         {
                             // 获取运输人员名字
