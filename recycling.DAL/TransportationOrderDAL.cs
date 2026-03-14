@@ -363,6 +363,72 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 更新运输人员的当前状态
+        /// Update transporter's current status
+        /// </summary>
+        /// <param name="transporterId">运输人员ID</param>
+        /// <param name="status">新状态（空闲/运输中）</param>
+        /// <returns>是否更新成功</returns>
+        public bool UpdateTransporterStatus(int transporterId, string status)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"UPDATE Transporters SET CurrentStatus = @Status WHERE TransporterID = @TransporterID";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Status", status);
+                        cmd.Parameters.AddWithValue("@TransporterID", transporterId);
+                        int rows = cmd.ExecuteNonQuery();
+                        return rows > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateTransporterStatus Error: {ex.Message}");
+                throw new Exception($"更新运输人员状态失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// 检查运输人员是否有未完成的运输单
+        /// Check if transporter has active (non-completed, non-cancelled) transport orders
+        /// </summary>
+        /// <param name="transporterId">运输人员ID</param>
+        /// <returns>是否有未完成的运输单</returns>
+        public bool HasActiveTransportOrdersForTransporter(int transporterId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"
+                        SELECT COUNT(*) 
+                        FROM TransportationOrders 
+                        WHERE TransporterID = @TransporterID 
+                        AND Status NOT IN (N'已完成', N'已取消')";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TransporterID", transporterId);
+                        int count = Convert.ToInt32(cmd.ExecuteScalar());
+                        return count > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"HasActiveTransportOrdersForTransporter Error: {ex.Message}");
+                throw new Exception($"检查运输人员未完成运输单失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
         /// 获取回收员的运输单列表
         /// </summary>
         public List<TransportationOrders> GetTransportationOrdersByRecycler(int recyclerId)
