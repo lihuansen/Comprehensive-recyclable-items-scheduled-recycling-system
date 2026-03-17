@@ -626,7 +626,7 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        // 修改：GetOrderMessages（用户端） — 增加 conversationEnded/endedBy/endedTime
+        // 获取订单消息（用户端）
         [HttpPost]
         public JsonResult GetOrderMessages(int orderId)
         {
@@ -650,15 +650,6 @@ namespace recycling.Web.UI.Controllers
                     isRead = m.IsRead
                 }).ToList();
 
-                var convBll = new ConversationBLL();
-                var latestConv = convBll.GetLatestConversation(orderId);
-                bool conversationEnded = latestConv != null && latestConv.EndedTime.HasValue;
-                
-                // 使用公共方法确定谁已经结束了对话
-                string endedBy = convBll.GetConversationEndedByStatus(orderId);
-                
-                string endedTimeIso = conversationEnded ? latestConv.EndedTime.Value.ToString("o") : string.Empty;
-
                 // 获取订单状态，用于前端判断是否锁定聊天输入
                 string orderStatus = "";
                 try
@@ -673,7 +664,7 @@ namespace recycling.Web.UI.Controllers
                     System.Diagnostics.Debug.WriteLine($"获取订单状态失败：{statusEx.Message}");
                 }
 
-                return Json(new { success = true, messages = result, orderStatus = orderStatus, conversationEnded = conversationEnded, endedBy = endedBy, endedTime = endedTimeIso });
+                return Json(new { success = true, messages = result, orderStatus = orderStatus });
             }
             catch (Exception ex)
             {
@@ -733,143 +724,6 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        // 新增：用户结束会话（HomeController）
-        [HttpPost]
-        public JsonResult EndConversation(int orderId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null) return Json(new { success = false, message = "请先登录" });
-                var user = (Users)Session["LoginUser"];
-                var convBll = new ConversationBLL();
-                bool ok = convBll.EndConversationBy(orderId, "user", user.UserID);
-                
-                if (!ok)
-                {
-                    return Json(new { success = false, message = "结束对话失败" });
-                }
-
-                // 检查双方是否都已结束
-                var (bothEnded, _) = convBll.HasBothEnded(orderId);
-
-                return Json(new
-                {
-                    success = true,
-                    message = "对话已结束",
-                    bothEnded = bothEnded
-                });
-            }
-            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
-        }
-
-        // 获取用户的历史会话列表（分页）
-        [HttpPost]
-        public JsonResult GetUserConversations(int pageIndex = 1, int pageSize = 20)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                    return Json(new { success = false, message = "请先登录" });
-
-                var user = (Users)Session["LoginUser"];
-                var conversationBLL = new ConversationBLL();
-                var convs = conversationBLL.GetUserConversations(user.UserID, pageIndex, pageSize);
-
-                // 将 DateTime 转为 ISO 字符串
-                var result = convs.Select(c => new
-                {
-                    conversationId = c.ConversationID,
-                    orderId = c.OrderID,
-                    orderNumber = c.OrderNumber,
-                    recyclerId = c.RecyclerID,
-                    recyclerName = c.RecyclerName,
-                    createdTime = c.CreatedTime.HasValue ? c.CreatedTime.Value.ToString("o") : string.Empty,
-                    endedTime = c.EndedTime.HasValue ? c.EndedTime.Value.ToString("o") : string.Empty,
-                    status = c.Status
-                }).ToList();
-
-                return Json(new { success = true, conversations = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // 获取某次已结束会话的历史消息（按 EndedTime 截取）
-        [HttpPost]
-        public JsonResult GetConversationMessagesBeforeEnd(int orderId, string endedTime)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                    return Json(new { success = false, message = "请先登录" });
-
-                if (orderId <= 0 || string.IsNullOrWhiteSpace(endedTime))
-                    return Json(new { success = false, message = "参数不完整" });
-
-                if (!DateTime.TryParse(endedTime, out DateTime et))
-                    return Json(new { success = false, message = "结束时间格式错误" });
-
-                var conversationBLL = new ConversationBLL();
-                var messages = conversationBLL.GetConversationMessagesBeforeEnd(orderId, et);
-
-                var result = messages.Select(m => new
-                {
-                    messageId = m.MessageID,
-                    orderId = m.OrderID,
-                    senderType = (m.SenderType ?? string.Empty).ToLower(),
-                    senderId = m.SenderID,
-                    content = m.Content ?? string.Empty,
-                    // 若 SentTime 是 Nullable<DateTime>（DateTime?），先判断后再取 Value.ToString("o")
-                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
-                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
-                                : string.Empty,
-                    isRead = m.IsRead
-                }).ToList();
-
-                return Json(new { success = true, messages = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // 获取用户的历史消息（超过1个月的消息）
-        [HttpPost]
-        public JsonResult GetUserHistoricalMessages(int orderId)
-        {
-            try
-            {
-                if (Session["LoginUser"] == null)
-                    return Json(new { success = false, message = "请先登录" });
-
-                var user = (Users)Session["LoginUser"];
-                var conversationBLL = new ConversationBLL();
-                var messages = conversationBLL.GetUserHistoricalMessages(orderId, user.UserID);
-
-                var result = messages.Select(m => new
-                {
-                    messageId = m.MessageID,
-                    orderId = m.OrderID,
-                    senderType = (m.SenderType ?? string.Empty).ToLower(),
-                    senderId = m.SenderID,
-                    content = m.Content ?? string.Empty,
-                    sentTime = (m.SentTime != null && m.SentTime != default(DateTime))
-                                ? (m.SentTime is DateTime dt ? dt.ToString("o") : m.SentTime.ToString())
-                                : string.Empty,
-                    isRead = m.IsRead
-                }).ToList();
-
-                return Json(new { success = true, messages = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
         /// <summary>
         /// 联系回收员视图（用户端）
         /// </summary>

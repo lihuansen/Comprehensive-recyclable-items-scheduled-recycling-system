@@ -59,7 +59,6 @@
     <Compile Include="AdminDAL.cs" />
     <Compile Include="AppointmentDAL.cs" />
     <Compile Include="BaseStaffNotificationDAL.cs" />
-    <Compile Include="ConversationDAL.cs" />
     <Compile Include="FeedbackDAL.cs" />
     <Compile Include="HomepageCarouselDAL.cs" />
     <Compile Include="InventoryDAL.cs" />

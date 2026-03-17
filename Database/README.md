@@ -144,7 +144,7 @@ chmod +x VerifyStoragePointSetup.sh FixStoragePointManagement.sh
 
 **CreateAllTables.sql** - 包含所有实体类对应的数据库表
 
-此脚本包含以下21个表的完整定义（**已包含钱包系统表**）：
+此脚本包含以下20个表的完整定义（**已包含钱包系统表**）：
 
 | 序号 | 表名 | 实体类 | 说明 |
 |------|------|--------|------|
@@ -156,28 +156,27 @@ chmod +x VerifyStoragePointSetup.sh FixStoragePointManagement.sh
 | 6 | Appointments | recycling.Model.Appointments | 预约订单表 |
 | 7 | AppointmentCategories | recycling.Model.AppointmentCategories | 预约品类表 |
 | 8 | Messages | recycling.Model.Messages | 消息表 |
-| 9 | Conversations | recycling.Model.Conversations | 会话表 |
-| 10 | HomepageCarousel | recycling.Model.HomepageCarousel | 首页轮播图表 |
-| 11 | Inventory | recycling.Model.Inventory | 库存表 |
-| 12 | OrderReviews | recycling.Model.OrderReviews | 订单评价表 |
-| 13 | UserFeedback | recycling.Model.UserFeedback | 用户反馈表 |
-| 14 | UserNotifications | recycling.Model.UserNotifications | 用户通知表 |
-| 15 | UserAddresses | recycling.Model.UserAddresses | 用户地址表 |
-| 16 | AdminOperationLogs | recycling.Model.AdminOperationLogs | 管理员操作日志表 |
-| 17 | UserContactRequests | 使用ADO.NET直接访问 | 用户联系请求表 |
-| 18 | AdminContactMessages | 使用ADO.NET直接访问 | 管理员联系消息表 |
-| 19 | AdminContactConversations | 使用ADO.NET直接访问 | 管理员联系会话表 |
-| 20 | **UserPaymentAccounts** | **recycling.Model.UserPaymentAccount** | **用户支付账户表** |
-| 21 | **WalletTransactions** | **无（ADO.NET访问）** | **钱包交易记录表** |
+| 9 | HomepageCarousel | recycling.Model.HomepageCarousel | 首页轮播图表 |
+| 10 | Inventory | recycling.Model.Inventory | 库存表 |
+| 11 | OrderReviews | recycling.Model.OrderReviews | 订单评价表 |
+| 12 | UserFeedback | recycling.Model.UserFeedback | 用户反馈表 |
+| 13 | UserNotifications | recycling.Model.UserNotifications | 用户通知表 |
+| 14 | UserAddresses | recycling.Model.UserAddresses | 用户地址表 |
+| 15 | AdminOperationLogs | recycling.Model.AdminOperationLogs | 管理员操作日志表 |
+| 16 | UserContactRequests | 使用ADO.NET直接访问 | 用户联系请求表 |
+| 17 | AdminContactMessages | 使用ADO.NET直接访问 | 管理员联系消息表 |
+| 18 | AdminContactConversations | 使用ADO.NET直接访问 | 管理员联系会话表 |
+| 19 | **UserPaymentAccounts** | **recycling.Model.UserPaymentAccount** | **用户支付账户表** |
+| 20 | **WalletTransactions** | **无（ADO.NET访问）** | **钱包交易记录表** |
 
 > **注意**: 
-> - 表 17-19 和 21 没有对应的实体类，因为这些表通过 ADO.NET 直接访问，不通过 Entity Framework。
-> - **表 20-21 是钱包系统的核心表，已包含在最新版本的 CreateAllTables.sql 中。**
+> - 表 16-18 和 20 没有对应的实体类，因为这些表通过 ADO.NET 直接访问，不通过 Entity Framework。
+> - **表 19-20 是钱包系统的核心表，已包含在最新版本的 CreateAllTables.sql 中。**
 
 **使用方法：**
 ```sql
 -- 在 SQL Server Management Studio (SSMS) 中执行
--- 直接运行 CreateAllTables.sql 即可自动创建 RecyclingSystemDB 数据库和所有21个表（包括钱包系统表）
+-- 直接运行 CreateAllTables.sql 即可自动创建 RecyclingSystemDB 数据库和所有20个表（包括钱包系统表）
 ```
 
 **重要提示：** 脚本会自动创建数据库 **RecyclingSystemDB**（而非 RecyclingDB）。
@@ -462,7 +461,6 @@ sqlcmd -S localhost -d RecyclingDB -i CreateAdminContactMessagesTable.sql
 | AppointmentCategories | AppointmentCategories | 预约品类表 |
 | RecyclableItems | RecyclableItems | 可回收物品表 |
 | Messages | Messages | 消息表 |
-| Conversations | Conversations | 会话表 |
 | HomepageCarousel | HomepageCarousel | 首页轮播图表 |
 | Inventory | Inventory | 库存表 |
 | OrderReviews | OrderReviews | 订单评价表 |
