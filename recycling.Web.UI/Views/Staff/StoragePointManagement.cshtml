@@ -925,6 +925,12 @@
 
     // 显示运输人员模态框
     function showTransporterModal() {
+        // 前端快速检查：暂存点是否有物品
+        if (storagePointData.totalWeight <= 0) {
+            alert('暂存点没有物品，无需联系运输人员');
+            return;
+        }
+        
         $('#transporterModal').show();
         $('#transporterList').html('<div style="text-align: center; padding: 40px; color: #666;"><i class="glyphicon glyphicon-refresh glyphicon-spin" style="font-size: 32px;"></i><p>加载中...</p></div>');
         

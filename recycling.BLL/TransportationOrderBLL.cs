@@ -43,6 +43,21 @@ namespace recycling.BLL
                 // 调用DAL创建运输单
                 var (orderId, orderNumber) = _dal.CreateTransportationOrder(order, categories);
 
+                // 设置运输人员状态为"工作中"
+                if (orderId > 0 && order.TransporterID.HasValue && order.TransporterID.Value > 0)
+                {
+                    try
+                    {
+                        _dal.UpdateTransporterStatus(order.TransporterID.Value, "工作中");
+                        System.Diagnostics.Debug.WriteLine($"运输人员 {order.TransporterID.Value} 状态已更新为工作中");
+                    }
+                    catch (Exception statusEx)
+                    {
+                        // 状态更新失败不影响运输单创建
+                        System.Diagnostics.Debug.WriteLine($"更新运输人员状态失败: {statusEx.Message}");
+                    }
+                }
+
                 // 设置指定基地工作人员状态为"工作中"
                 if (orderId > 0 && order.AssignedWorkerID.HasValue && order.AssignedWorkerID.Value > 0)
                 {
@@ -86,6 +101,27 @@ namespace recycling.BLL
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"CreateTransportationOrder BLL Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 检查回收员是否有未完成的运输单（即暂存点物品已创建了运输单但尚未完成）
+        /// </summary>
+        /// <param name="recyclerId">回收员ID</param>
+        /// <returns>是否有未完成的运输单</returns>
+        public bool HasActiveTransportOrdersForRecycler(int recyclerId)
+        {
+            try
+            {
+                if (recyclerId <= 0)
+                    throw new ArgumentException("回收员ID无效");
+
+                return _dal.HasActiveTransportOrdersForRecycler(recyclerId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"HasActiveTransportOrdersForRecycler BLL Error: {ex.Message}");
                 throw;
             }
         }
@@ -203,13 +239,13 @@ namespace recycling.BLL
 
                 bool result = _dal.AcceptTransportationOrder(orderId);
 
-                // 接单成功后，更新运输人员状态为"运输中"
+                // 接单成功后，更新运输人员状态为"工作中"（如果尚未设置）
                 if (result && order.TransporterID.HasValue && order.TransporterID.Value > 0)
                 {
                     try
                     {
-                        _dal.UpdateTransporterStatus(order.TransporterID.Value, "运输中");
-                        System.Diagnostics.Debug.WriteLine($"运输人员 {order.TransporterID.Value} 状态已更新为运输中");
+                        _dal.UpdateTransporterStatus(order.TransporterID.Value, "工作中");
+                        System.Diagnostics.Debug.WriteLine($"运输人员 {order.TransporterID.Value} 状态已更新为工作中");
                     }
                     catch (Exception statusEx)
                     {
