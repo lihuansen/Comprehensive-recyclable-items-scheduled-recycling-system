@@ -513,6 +513,22 @@ namespace recycling.BLL
                             // 状态更新失败不影响运输完成结果
                             System.Diagnostics.Debug.WriteLine($"更新运输人员状态失败: {statusEx.Message}");
                         }
+
+                        // 累加运输人员总运输重量
+                        decimal weightToAdd = actualWeight ?? order.EstimatedWeight ?? 0;
+                        if (weightToAdd > 0)
+                        {
+                            try
+                            {
+                                _dal.UpdateTransporterTotalWeight(order.TransporterID.Value, weightToAdd);
+                                System.Diagnostics.Debug.WriteLine($"运输人员 {order.TransporterID.Value} 总运输重量已增加 {weightToAdd} kg");
+                            }
+                            catch (Exception weightEx)
+                            {
+                                // 重量更新失败不影响运输完成结果
+                                System.Diagnostics.Debug.WriteLine($"更新运输人员总重量失败: {weightEx.Message}");
+                            }
+                        }
                     }
 
                     try

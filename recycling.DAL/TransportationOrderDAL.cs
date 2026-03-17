@@ -395,6 +395,38 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 累加运输人员的总运输重量
+        /// Increment transporter's TotalWeight by the given weight amount
+        /// </summary>
+        /// <param name="transporterId">运输人员ID</param>
+        /// <param name="weight">本次运输重量（公斤）</param>
+        /// <returns>是否更新成功</returns>
+        public bool UpdateTransporterTotalWeight(int transporterId, decimal weight)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"UPDATE Transporters SET TotalWeight = ISNULL(TotalWeight, 0) + @Weight WHERE TransporterID = @TransporterID";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Weight", weight);
+                        cmd.Parameters.AddWithValue("@TransporterID", transporterId);
+                        int rows = cmd.ExecuteNonQuery();
+                        return rows > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateTransporterTotalWeight Error: {ex.Message}");
+                throw new Exception($"更新运输人员总重量失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
         /// 检查运输人员是否有未完成的运输单
         /// Check if transporter has active (non-completed, non-cancelled) transport orders
         /// </summary>
