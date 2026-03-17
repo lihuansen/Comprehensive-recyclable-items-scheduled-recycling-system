@@ -67,15 +67,18 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
+                    // Some legacy sorting center worker records have NULL IsActive.
+                    // Treat NULL as active so they still receive notifications.
+                    // Set IsActive = 0 explicitly to deactivate a worker.
                     string sql = @"INSERT INTO BaseStaffNotifications 
                                  (WorkerID, NotificationType, Title, Content, 
-                                  RelatedTransportOrderID, RelatedWarehouseReceiptID, 
-                                  CreatedDate, IsRead)
-                                 SELECT WorkerID, @NotificationType, @Title, @Content, 
-                                        @RelatedTransportOrderID, @RelatedWarehouseReceiptID, 
-                                        @CreatedDate, 0
-                                 FROM SortingCenterWorkers 
-                                 WHERE IsActive = 1";
+                                   RelatedTransportOrderID, RelatedWarehouseReceiptID, 
+                                   CreatedDate, IsRead)
+                                  SELECT WorkerID, @NotificationType, @Title, @Content, 
+                                         @RelatedTransportOrderID, @RelatedWarehouseReceiptID, 
+                                         @CreatedDate, 0
+                                  FROM SortingCenterWorkers 
+                                  WHERE ISNULL(IsActive, 1) = 1";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
