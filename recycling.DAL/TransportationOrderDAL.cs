@@ -429,6 +429,40 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 检查回收员是否有未完成的运输单（即暂存点物品已创建了运输单但尚未完成）
+        /// Check if recycler has active (non-completed, non-cancelled) transport orders
+        /// </summary>
+        /// <param name="recyclerId">回收员ID</param>
+        /// <returns>是否有未完成的运输单</returns>
+        public bool HasActiveTransportOrdersForRecycler(int recyclerId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"
+                        SELECT COUNT(*) 
+                        FROM TransportationOrders 
+                        WHERE RecyclerID = @RecyclerID 
+                        AND Status NOT IN (N'已完成', N'已取消')";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                        int count = Convert.ToInt32(cmd.ExecuteScalar());
+                        return count > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"HasActiveTransportOrdersForRecycler Error: {ex.Message}");
+                throw new Exception($"检查回收员未完成运输单失败: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
         /// 获取回收员的运输单列表
         /// </summary>
         public List<TransportationOrders> GetTransportationOrdersByRecycler(int recyclerId)

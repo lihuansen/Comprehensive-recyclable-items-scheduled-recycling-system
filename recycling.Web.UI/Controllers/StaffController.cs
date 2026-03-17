@@ -2010,7 +2010,24 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "您的账号未分配区域，请联系管理员" });
                 }
 
-                // Get transporters in the same region who are active and available
+                // Check if storage point has items
+                var storagePointBLL = new StoragePointBLL();
+                var summary = storagePointBLL.GetStoragePointSummary(staff.RecyclerID);
+                bool hasStoragePointItems = summary != null && summary.Count > 0 && summary.Exists(s => s.TotalWeight > 0);
+                if (!hasStoragePointItems)
+                {
+                    return JsonContent(new { success = false, message = "暂存点没有物品，无需联系运输人员" });
+                }
+
+                // Check if recycler already has an active (non-completed, non-cancelled) transport order
+                var transportOrderBLL = new TransportationOrderBLL();
+                bool hasActiveOrder = transportOrderBLL.HasActiveTransportOrdersForRecycler(staff.RecyclerID);
+                if (hasActiveOrder)
+                {
+                    return JsonContent(new { success = false, message = "当前暂存点物品已创建了运输单，请等待运输单完成后再创建新单" });
+                }
+
+                // Get transporters in the same region who are active and available (excluding those already working)
                 using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString))
                 {
                     conn.Open();
@@ -2020,6 +2037,7 @@ namespace recycling.Web.UI.Controllers
                            WHERE Region = @Region 
                            AND IsActive = 1 
                            AND Available = 1
+                           AND (CurrentStatus = N'空闲' OR CurrentStatus IS NULL OR CurrentStatus = '')
                            ORDER BY Rating DESC, FullName";
 
                     var cmd = new System.Data.SqlClient.SqlCommand(sql, conn);
