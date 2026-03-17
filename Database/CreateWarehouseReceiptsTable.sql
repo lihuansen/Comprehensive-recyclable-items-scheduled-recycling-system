@@ -30,7 +30,7 @@ BEGIN
         [Status] NVARCHAR(20) NOT NULL DEFAULT N'已入库',     -- 状态（已入库、已取消）
         [Notes] NVARCHAR(500) NULL,                           -- 备注信息
         [CreatedDate] DATETIME2 NOT NULL DEFAULT GETDATE(),   -- 创建时间（入库时间）
-        [CreatedBy] INT NOT NULL,                             -- 创建人（基地人员ID）
+        [Price] DECIMAL(10, 2) NULL,                          -- 入库总价
         
         -- 约束
         CONSTRAINT FK_WarehouseReceipts_TransportationOrders FOREIGN KEY ([TransportOrderID]) 
@@ -42,7 +42,9 @@ BEGIN
         CONSTRAINT CK_WarehouseReceipts_Status 
             CHECK ([Status] IN (N'已入库', N'已取消')),
         CONSTRAINT CK_WarehouseReceipts_TotalWeight 
-            CHECK ([TotalWeight] > 0)
+            CHECK ([TotalWeight] > 0),
+        CONSTRAINT CK_WarehouseReceipts_Price 
+            CHECK ([Price] IS NULL OR [Price] >= 0)
     );
 
     -- 创建索引
@@ -74,7 +76,7 @@ GO
 -- Status               : 入库单状态（已入库、已取消）
 -- Notes                : 备注信息
 -- CreatedDate          : 入库时间
--- CreatedBy            : 创建人（基地人员ID）
+-- Price                : 入库总价（可选，单位：元）
 -- ==============================================================================
 
 -- ==============================================================================
@@ -93,9 +95,9 @@ GO
 -- ==============================================================================
 -- INSERT INTO [dbo].[WarehouseReceipts] 
 --     (ReceiptNumber, TransportOrderID, RecyclerID, WorkerID, TotalWeight, 
---      ItemCategories, Status, CreatedBy)
+--      ItemCategories, Status, Notes, Price)
 -- VALUES 
 --     (N'WR202601040001', 1, 1, 1, 45.50, 
 --      N'[{"categoryKey":"paper","categoryName":"纸类","weight":20.5},{"categoryKey":"plastic","categoryName":"塑料","weight":15.0},{"categoryKey":"metal","categoryName":"金属","weight":10.0}]',
---      N'已入库', 1);
+--      N'已入库', NULL, 120.00);
 -- ==============================================================================

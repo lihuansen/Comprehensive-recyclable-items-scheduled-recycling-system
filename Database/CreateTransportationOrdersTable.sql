@@ -43,7 +43,6 @@ BEGIN
         [CompletedDate] DATETIME2 NULL,                      -- 完成时间
         [CancelledDate] DATETIME2 NULL,                      -- 取消时间
         [CancelReason] NVARCHAR(200) NULL,                   -- 取消原因
-        [TransporterNotes] NVARCHAR(500) NULL,               -- 运输人员备注
         [RecyclerRating] INT NULL,                           -- 回收员评分（1-5）
         [RecyclerReview] NVARCHAR(500) NULL,                 -- 回收员评价
         [AssignedWorkerID] INT NULL,                         -- 指定的基地工作人员ID（创建运输单时选择）
@@ -110,7 +109,6 @@ GO
 -- CompletedDate         : 运输单完成时间
 -- CancelledDate         : 取消时间
 -- CancelReason          : 取消原因
--- TransporterNotes      : 运输人员备注信息
 -- RecyclerRating        : 回收员对运输服务的评分（1-5分）
 -- RecyclerReview        : 回收员对运输服务的评价文字
 -- AssignedWorkerID      : 指定的基地工作人员ID（创建运输单时选择）

@@ -100,9 +100,7 @@ namespace recycling.BLL
                     WorkerID = workerId,
                     TotalWeight = totalWeight,
                     ItemCategories = finalItemCategories,
-                    Notes = notes,
-                    CreatedBy = workerId,
-                    OrderID = transportOrderId
+                    Notes = notes
                 };
 
                 var (receiptId, receiptNumber) = _dal.CreateWarehouseReceipt(receipt);

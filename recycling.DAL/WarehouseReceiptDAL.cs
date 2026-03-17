@@ -103,6 +103,68 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 根据品类JSON和系统价格表计算总价
+        /// Calculate total price for warehouse receipt based on category JSON and price list
+        /// </summary>
+        private decimal? CalculateTotalPrice(string itemCategoriesJson, SqlConnection conn, SqlTransaction transaction)
+        {
+            if (string.IsNullOrWhiteSpace(itemCategoriesJson))
+            {
+                return null;
+            }
+
+            try
+            {
+                var categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategoriesJson);
+                if (categories == null || categories.Count == 0)
+                {
+                    return null;
+                }
+
+                var categoryPrices = LoadCategoryPrices(conn, transaction);
+                decimal totalPrice = 0;
+                bool hasPrice = false;
+
+                foreach (var category in categories)
+                {
+                    string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"]?.ToString() : null;
+                    decimal weight = ExtractWeightFromJson(category, categoryKey ?? "", "CalculateTotalPrice");
+                    decimal? priceForCategory = null;
+
+                    // 优先使用已传入的金额字段
+                    if (category.ContainsKey("totalAmount") && category["totalAmount"] != null)
+                    {
+                        try { priceForCategory = Convert.ToDecimal(category["totalAmount"]); } catch { priceForCategory = null; }
+                    }
+
+                    if (!priceForCategory.HasValue && category.ContainsKey("price") && category["price"] != null)
+                    {
+                        try { priceForCategory = Convert.ToDecimal(category["price"]); } catch { priceForCategory = null; }
+                    }
+
+                    // 如果没有金额字段，则使用价格表计算
+                    if (!priceForCategory.HasValue && !string.IsNullOrEmpty(categoryKey) && categoryPrices.ContainsKey(categoryKey) && weight > 0)
+                    {
+                        priceForCategory = weight * categoryPrices[categoryKey];
+                    }
+
+                    if (priceForCategory.HasValue)
+                    {
+                        totalPrice += priceForCategory.Value;
+                        hasPrice = true;
+                    }
+                }
+
+                return hasPrice ? (decimal?)Math.Round(totalPrice, 2) : null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CalculateTotalPrice failed: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// 生成入库单号
         /// 格式：WR+YYYYMMDD+4位序号
         /// </summary>
@@ -159,15 +221,16 @@ namespace recycling.DAL
                             receipt.ReceiptNumber = GenerateReceiptNumber();
                             receipt.CreatedDate = DateTime.Now;
                             receipt.Status = "待入库"; // Changed from "已入库" to "待入库"
+                            receipt.Price = CalculateTotalPrice(receipt.ItemCategories, conn, transaction);
 
                             // 2. 插入入库单记录
                             string insertSql = @"
                                 INSERT INTO WarehouseReceipts 
                                 (ReceiptNumber, TransportOrderID, RecyclerID, WorkerID, TotalWeight, 
-                                 ItemCategories, Status, Notes, CreatedDate, CreatedBy, OrderID)
+                                 ItemCategories, Status, Notes, CreatedDate, Price)
                                 VALUES 
                                 (@ReceiptNumber, @TransportOrderID, @RecyclerID, @WorkerID, @TotalWeight, 
-                                 @ItemCategories, @Status, @Notes, @CreatedDate, @CreatedBy, @OrderID);
+                                 @ItemCategories, @Status, @Notes, @CreatedDate, @Price);
                                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
                             int receiptId;
@@ -182,8 +245,7 @@ namespace recycling.DAL
                                 cmd.Parameters.AddWithValue("@Status", receipt.Status);
                                 cmd.Parameters.AddWithValue("@Notes", (object)receipt.Notes ?? DBNull.Value);
                                 cmd.Parameters.AddWithValue("@CreatedDate", receipt.CreatedDate);
-                                cmd.Parameters.AddWithValue("@CreatedBy", receipt.CreatedBy);
-                                cmd.Parameters.AddWithValue("@OrderID", (object)receipt.OrderID ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@Price", (object)receipt.Price ?? DBNull.Value);
 
                                 receiptId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
@@ -227,7 +289,7 @@ namespace recycling.DAL
                             // 1. 获取入库单信息
                             string getReceiptSql = @"
                                 SELECT ReceiptID, ReceiptNumber, TransportOrderID, RecyclerID, WorkerID, 
-                                       TotalWeight, ItemCategories, Status, Notes, CreatedDate, CreatedBy, OrderID
+                                       TotalWeight, ItemCategories, Status, Notes, CreatedDate, Price
                                 FROM WarehouseReceipts
                                 WHERE ReceiptID = @ReceiptID";
 
@@ -257,8 +319,7 @@ namespace recycling.DAL
                                             Status = reader["Status"].ToString(),
                                             Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                             CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                                            CreatedBy = Convert.ToInt32(reader["CreatedBy"]),
-                                            OrderID = reader["OrderID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["OrderID"])
+                                            Price = reader["Price"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["Price"])
                                         };
                                     }
                                 }
@@ -598,8 +659,7 @@ namespace recycling.DAL
                                     Status = reader["Status"].ToString(),
                                     Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                                    CreatedBy = Convert.ToInt32(reader["CreatedBy"]),
-                                    OrderID = reader["OrderID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["OrderID"])
+                                    Price = reader["Price"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["Price"])
                                 };
                             }
                         }
@@ -894,9 +954,9 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    string sql = @"
-                        SELECT * FROM WarehouseReceipts 
-                        WHERE TransportOrderID = @TransportOrderID";
+                        string sql = @"
+                            SELECT * FROM WarehouseReceipts 
+                            WHERE TransportOrderID = @TransportOrderID";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
@@ -924,8 +984,7 @@ namespace recycling.DAL
                                     Status = reader["Status"].ToString(),
                                     Notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString(),
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                                    CreatedBy = Convert.ToInt32(reader["CreatedBy"]),
-                                    OrderID = reader["OrderID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["OrderID"])
+                                    Price = reader["Price"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["Price"])
                                 };
                             }
                         }
