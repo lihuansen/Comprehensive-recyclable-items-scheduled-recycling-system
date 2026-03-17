@@ -11,7 +11,6 @@ namespace recycling.BLL
     public class MessageBLL
     {
         private readonly MessageDAL _messageDAL = new MessageDAL();
-        private readonly ConversationBLL _conversationBLL = new ConversationBLL();
         private readonly UserNotificationBLL _userNotificationBLL = new UserNotificationBLL();
 
         /// <summary>
@@ -26,10 +25,6 @@ namespace recycling.BLL
 
             try
             {
-                // 在发送消息前，确保有活跃的对话会话
-                // 如果之前的对话双方都已结束，则创建新对话
-                _conversationBLL.EnsureActiveConversation(request.OrderID);
-
                 var message = new Messages
                 {
                     OrderID = request.OrderID,
@@ -152,10 +147,6 @@ namespace recycling.BLL
                 {
                     return (false, "当前订单状态不允许发送消息");
                 }
-
-                // 在发送消息前，确保有活跃的对话会话
-                // 如果之前的对话双方都已结束，则创建新对话
-                _conversationBLL.EnsureActiveConversation(request.OrderID);
 
                 // 发送消息（指定发送者类型为user）
                 request.SenderType = "user";

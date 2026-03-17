@@ -294,48 +294,7 @@ END
 GO
 
 -- ==============================================================================
--- 9. Conversations 表（会话表）
--- 实体类: recycling.Model.Conversations
--- 用途: 存储订单的会话状态
--- ==============================================================================
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Conversations]') AND type in (N'U'))
-BEGIN
-    CREATE TABLE [dbo].[Conversations] (
-        [ConversationID] INT PRIMARY KEY IDENTITY(1,1),  -- 会话ID（自增主键）
-        [OrderID] INT NULL,                              -- 关联的订单ID
-        [UserID] INT NULL,                               -- 用户ID
-        [RecyclerID] INT NULL,                           -- 回收员ID
-        [Status] NVARCHAR(20) NULL,                      -- 会话状态
-        [CreatedTime] DATETIME2 NULL,                    -- 创建时间
-        [EndedTime] DATETIME2 NULL,                      -- 结束时间
-        [UserEnded] BIT NULL,                            -- 用户是否结束
-        [RecyclerEnded] BIT NULL,                        -- 回收员是否结束
-        [UserEndedTime] DATETIME2 NULL,                  -- 用户结束时间
-        [RecyclerEndedTime] DATETIME2 NULL,              -- 回收员结束时间
-        
-        CONSTRAINT FK_Conversations_Appointments FOREIGN KEY ([OrderID]) 
-            REFERENCES [dbo].[Appointments]([AppointmentID]),
-        CONSTRAINT FK_Conversations_Users FOREIGN KEY ([UserID]) 
-            REFERENCES [dbo].[Users]([UserID]),
-        CONSTRAINT FK_Conversations_Recyclers FOREIGN KEY ([RecyclerID]) 
-            REFERENCES [dbo].[Recyclers]([RecyclerID])
-    );
-
-    -- 创建索引
-    CREATE INDEX IX_Conversations_OrderID ON [dbo].[Conversations]([OrderID]);
-    CREATE INDEX IX_Conversations_UserID ON [dbo].[Conversations]([UserID]);
-    CREATE INDEX IX_Conversations_RecyclerID ON [dbo].[Conversations]([RecyclerID]);
-
-    PRINT 'Conversations 表创建成功';
-END
-ELSE
-BEGIN
-    PRINT 'Conversations 表已存在';
-END
-GO
-
--- ==============================================================================
--- 10. HomepageCarousel 表（首页轮播图表）
+-- 9. HomepageCarousel 表（首页轮播图表）
 -- 实体类: recycling.Model.HomepageCarousel
 -- 用途: 存储首页轮播图和视频内容
 -- ==============================================================================
@@ -366,7 +325,7 @@ END
 GO
 
 -- ==============================================================================
--- 11. Inventory 表（库存表）
+-- 10. Inventory 表（库存表）
 -- 实体类: recycling.Model.Inventory
 -- 用途: 存储回收员的库存管理信息
 -- ==============================================================================
@@ -405,7 +364,7 @@ END
 GO
 
 -- ==============================================================================
--- 12. OrderReviews 表（订单评价表）
+-- 11. OrderReviews 表（订单评价表）
 -- 实体类: recycling.Model.OrderReviews
 -- 用途: 存储用户对回收员的评价信息
 -- ==============================================================================
@@ -445,7 +404,7 @@ END
 GO
 
 -- ==============================================================================
--- 13. UserFeedback 表（用户反馈表）
+-- 12. UserFeedback 表（用户反馈表）
 -- 实体类: recycling.Model.UserFeedback
 -- 用途: 存储用户提交的问题反馈、功能建议等
 -- ==============================================================================
@@ -486,7 +445,7 @@ END
 GO
 
 -- ==============================================================================
--- 14. UserNotifications 表（用户通知表）
+-- 13. UserNotifications 表（用户通知表）
 -- 实体类: recycling.Model.UserNotifications
 -- 用途: 存储用户通知消息
 -- ==============================================================================
@@ -523,7 +482,7 @@ END
 GO
 
 -- ==============================================================================
--- 15. UserAddresses 表（用户地址表）
+-- 14. UserAddresses 表（用户地址表）
 -- 实体类: recycling.Model.UserAddresses
 -- 用途: 存储用户的收货地址信息
 -- ==============================================================================
@@ -560,7 +519,7 @@ END
 GO
 
 -- ==============================================================================
--- 16. AdminOperationLogs 表（管理员操作日志表）
+-- 15. AdminOperationLogs 表（管理员操作日志表）
 -- 实体类: recycling.Model.AdminOperationLogs
 -- 用途: 记录管理员端的所有操作日志
 -- ==============================================================================
@@ -597,7 +556,7 @@ END
 GO
 
 -- ==============================================================================
--- 17. UserContactRequests 表（用户联系请求表）
+-- 16. UserContactRequests 表（用户联系请求表）
 -- 用途: 记录用户点击"联系我们"的请求
 -- ==============================================================================
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[UserContactRequests]') AND type in (N'U'))
@@ -628,7 +587,7 @@ END
 GO
 
 -- ==============================================================================
--- 18. AdminContactMessages 表（管理员联系消息表）
+-- 17. AdminContactMessages 表（管理员联系消息表）
 -- 用途: 存储用户和管理员之间的聊天消息
 -- ==============================================================================
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AdminContactMessages]') AND type in (N'U'))
@@ -662,7 +621,7 @@ END
 GO
 
 -- ==============================================================================
--- 19. AdminContactConversations 表（管理员联系会话表）
+-- 18. AdminContactConversations 表（管理员联系会话表）
 -- 用途: 跟踪用户和管理员之间的会话状态
 -- ==============================================================================
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AdminContactConversations]') AND type in (N'U'))
@@ -695,7 +654,7 @@ END
 GO
 
 -- ==============================================================================
--- 20. UserPaymentAccounts 表（用户支付账户表）
+-- 19. UserPaymentAccounts 表（用户支付账户表）
 -- 实体类: recycling.Model.UserPaymentAccount
 -- 用途: 存储用户绑定的支付账户（支付宝、微信、银行卡等）
 -- ==============================================================================
@@ -738,7 +697,7 @@ END
 GO
 
 -- ==============================================================================
--- 21. WalletTransactions 表（钱包交易记录表）
+-- 20. WalletTransactions 表（钱包交易记录表）
 -- 用途: 存储所有钱包相关的交易记录
 -- ==============================================================================
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[WalletTransactions]') AND type in (N'U'))
@@ -803,21 +762,20 @@ PRINT '  5. RecyclableItems - 可回收物品表';
 PRINT '  6. Appointments - 预约订单表';
 PRINT '  7. AppointmentCategories - 预约品类表';
 PRINT '  8. Messages - 消息表';
-PRINT '  9. Conversations - 会话表';
-PRINT ' 10. HomepageCarousel - 首页轮播图表';
-PRINT ' 11. Inventory - 库存表';
-PRINT ' 12. OrderReviews - 订单评价表';
-PRINT ' 13. UserFeedback - 用户反馈表';
-PRINT ' 14. UserNotifications - 用户通知表';
-PRINT ' 15. UserAddresses - 用户地址表';
-PRINT ' 16. AdminOperationLogs - 管理员操作日志表';
-PRINT ' 17. UserContactRequests - 用户联系请求表';
-PRINT ' 18. AdminContactMessages - 管理员联系消息表';
-PRINT ' 19. AdminContactConversations - 管理员联系会话表';
-PRINT ' 20. UserPaymentAccounts - 用户支付账户表';
-PRINT ' 21. WalletTransactions - 钱包交易记录表';
+PRINT '  9. HomepageCarousel - 首页轮播图表';
+PRINT ' 10. Inventory - 库存表';
+PRINT ' 11. OrderReviews - 订单评价表';
+PRINT ' 12. UserFeedback - 用户反馈表';
+PRINT ' 13. UserNotifications - 用户通知表';
+PRINT ' 14. UserAddresses - 用户地址表';
+PRINT ' 15. AdminOperationLogs - 管理员操作日志表';
+PRINT ' 16. UserContactRequests - 用户联系请求表';
+PRINT ' 17. AdminContactMessages - 管理员联系消息表';
+PRINT ' 18. AdminContactConversations - 管理员联系会话表';
+PRINT ' 19. UserPaymentAccounts - 用户支付账户表';
+PRINT ' 20. WalletTransactions - 钱包交易记录表';
 PRINT '';
-PRINT '注意: 表 17-19 和 21 通过 ADO.NET 直接访问，不使用 Entity Framework';
+PRINT '注意: 表 16-18 和 20 通过 ADO.NET 直接访问，不使用 Entity Framework';
 PRINT '对应的实体类位于: recycling.Model 项目';
 PRINT '';
 GO

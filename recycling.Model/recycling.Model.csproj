@@ -64,8 +64,6 @@
     <Compile Include="BaseStaffNotifications.cs" />
     <Compile Include="ChangePasswordViewModel.cs" />
     <Compile Include="ContactRecyclerViewModel.cs" />
-    <Compile Include="Conversations.cs" />
-    <Compile Include="ConversationViewModel.cs" />
     <Compile Include="EmailLoginViewModel.cs" />
     <Compile Include="ExpiredOrderInfo.cs" />
     <Compile Include="ForgotPasswordViewModel.cs" />
