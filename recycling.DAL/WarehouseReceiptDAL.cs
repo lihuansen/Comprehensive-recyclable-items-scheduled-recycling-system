@@ -134,12 +134,22 @@ namespace recycling.DAL
                     // 优先使用已传入的金额字段
                     if (category.ContainsKey("totalAmount") && category["totalAmount"] != null)
                     {
-                        try { priceForCategory = Convert.ToDecimal(category["totalAmount"]); } catch { priceForCategory = null; }
+                        try { priceForCategory = Convert.ToDecimal(category["totalAmount"]); } 
+                        catch (Exception ex) 
+                        { 
+                            System.Diagnostics.Debug.WriteLine($"CalculateTotalPrice totalAmount parse failed for category {categoryKey}: {ex.Message}"); 
+                            priceForCategory = null; 
+                        }
                     }
 
                     if (!priceForCategory.HasValue && category.ContainsKey("price") && category["price"] != null)
                     {
-                        try { priceForCategory = Convert.ToDecimal(category["price"]); } catch { priceForCategory = null; }
+                        try { priceForCategory = Convert.ToDecimal(category["price"]); } 
+                        catch (Exception ex) 
+                        { 
+                            System.Diagnostics.Debug.WriteLine($"CalculateTotalPrice price parse failed for category {categoryKey}: {ex.Message}"); 
+                            priceForCategory = null; 
+                        }
                     }
 
                     // 如果没有金额字段，则使用价格表计算

@@ -30,7 +30,7 @@ BEGIN
         [Status] NVARCHAR(20) NOT NULL DEFAULT N'已入库',     -- 状态（已入库、已取消）
         [Notes] NVARCHAR(500) NULL,                           -- 备注信息
         [CreatedDate] DATETIME2 NOT NULL DEFAULT GETDATE(),   -- 创建时间（入库时间）
-        [Price] DECIMAL(10, 2) NULL,                          -- 入库总价
+        [Price] DECIMAL(10, 2) NULL,                          -- 入库总价（系统自动计算，可为空）
         
         -- 约束
         CONSTRAINT FK_WarehouseReceipts_TransportationOrders FOREIGN KEY ([TransportOrderID]) 
@@ -76,7 +76,7 @@ GO
 -- Status               : 入库单状态（已入库、已取消）
 -- Notes                : 备注信息
 -- CreatedDate          : 入库时间
--- Price                : 入库总价（可选，单位：元）
+-- Price                : 入库总价（系统自动计算，无法计算时为空，单位：元）
 -- ==============================================================================
 
 -- ==============================================================================
