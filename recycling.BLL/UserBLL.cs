@@ -282,7 +282,7 @@ namespace recycling.BLL
 
             if (originalHash == newHash)
             {
-                return "新密码不能与原密码相同，请重新设置";
+                return "新密码和旧密码一致，请重新设置";
             }
 
             // 3. 执行密码更新
