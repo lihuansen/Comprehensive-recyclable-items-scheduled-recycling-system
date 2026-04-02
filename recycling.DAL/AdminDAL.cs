@@ -1998,6 +1998,81 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Check whether transporter username already exists
+        /// </summary>
+        public bool IsTransporterUsernameExists(string username, int? excludeTransporterId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM Transporters WHERE Username = @Username";
+                if (excludeTransporterId.HasValue)
+                {
+                    sql += " AND TransporterID <> @TransporterID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", username);
+                if (excludeTransporterId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@TransporterID", excludeTransporterId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
+        /// Check whether transporter phone number already exists
+        /// </summary>
+        public bool IsTransporterPhoneNumberExists(string phoneNumber, int? excludeTransporterId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM Transporters WHERE PhoneNumber = @PhoneNumber";
+                if (excludeTransporterId.HasValue)
+                {
+                    sql += " AND TransporterID <> @TransporterID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                if (excludeTransporterId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@TransporterID", excludeTransporterId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
+        /// Check whether transporter ID number already exists
+        /// </summary>
+        public bool IsTransporterIDNumberExists(string idNumber, int? excludeTransporterId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM Transporters WHERE IDNumber = @IDNumber";
+                if (excludeTransporterId.HasValue)
+                {
+                    sql += " AND TransporterID <> @TransporterID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@IDNumber", idNumber);
+                if (excludeTransporterId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@TransporterID", excludeTransporterId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
         /// Update transporter information
         /// </summary>
         public bool UpdateTransporter(Transporters transporter)
@@ -2792,23 +2867,39 @@ namespace recycling.DAL
 
         private Transporters MapTransporterFromReader(SqlDataReader reader)
         {
+            Func<string, bool> hasColumn = (columnName) =>
+            {
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    if (string.Equals(reader.GetName(i), columnName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
             return new Transporters
             {
                 TransporterID = reader.GetInt32(reader.GetOrdinal("TransporterID")),
-                Username = reader.GetString(reader.GetOrdinal("Username")),
-                PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
+                Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString(reader.GetOrdinal("Username")),
+                PasswordHash = reader.IsDBNull(reader.GetOrdinal("PasswordHash")) ? null : reader.GetString(reader.GetOrdinal("PasswordHash")),
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
-                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                PhoneNumber = reader.IsDBNull(reader.GetOrdinal("PhoneNumber")) ? null : reader.GetString(reader.GetOrdinal("PhoneNumber")),
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
-                Region = reader.GetString(reader.GetOrdinal("Region")),
-                Available = reader.GetBoolean(reader.GetOrdinal("Available")),
-                CurrentStatus = reader.GetString(reader.GetOrdinal("CurrentStatus")),
-                TotalWeight = reader.GetDecimal(reader.GetOrdinal("TotalWeight")),
+                Region = reader.IsDBNull(reader.GetOrdinal("Region")) ? null : reader.GetString(reader.GetOrdinal("Region")),
+                Available = reader.IsDBNull(reader.GetOrdinal("Available")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("Available")),
+                CurrentStatus = reader.IsDBNull(reader.GetOrdinal("CurrentStatus")) ? null : reader.GetString(reader.GetOrdinal("CurrentStatus")),
+                TotalWeight = reader.IsDBNull(reader.GetOrdinal("TotalWeight")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("TotalWeight")),
                 Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("Rating")),
-                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                URL = reader.IsDBNull(reader.GetOrdinal("URL")) ? null : reader.GetString(reader.GetOrdinal("URL"))
+                IsActive = reader.IsDBNull(reader.GetOrdinal("IsActive")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                URL = hasColumn("URL")
+                    ? (reader.IsDBNull(reader.GetOrdinal("URL")) ? null : reader.GetString(reader.GetOrdinal("URL")))
+                    : (hasColumn("AvatarURL")
+                        ? (reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL")))
+                        : null)
             };
         }
 
