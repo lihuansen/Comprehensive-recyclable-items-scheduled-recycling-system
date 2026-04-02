@@ -12,6 +12,7 @@ namespace recycling.BLL
     public class AdminBLL
     {
         private readonly AdminDAL _adminDAL;
+        private static readonly Regex ChinaMobileRegex = new Regex(@"^1[3-9]\d{9}$", RegexOptions.Compiled);
 
         public AdminBLL()
         {
@@ -497,7 +498,7 @@ namespace recycling.BLL
                 return (false, "区域不能为空");
             }
 
-            if (!Regex.IsMatch(transporter.PhoneNumber, @"^1[3-9]\d{9}$"))
+            if (!ChinaMobileRegex.IsMatch(transporter.PhoneNumber))
             {
                 return (false, "请输入有效的11位手机号");
             }

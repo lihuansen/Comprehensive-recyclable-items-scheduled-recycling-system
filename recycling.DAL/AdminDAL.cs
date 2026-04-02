@@ -2867,17 +2867,15 @@ namespace recycling.DAL
 
         private Transporters MapTransporterFromReader(SqlDataReader reader)
         {
-            Func<string, bool> hasColumn = (columnName) =>
+            var columnOrdinals = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < reader.FieldCount; i++)
             {
-                for (int i = 0; i < reader.FieldCount; i++)
-                {
-                    if (string.Equals(reader.GetName(i), columnName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            };
+                columnOrdinals[reader.GetName(i)] = i;
+            }
+
+            Func<string, bool> hasColumn = (columnName) => columnOrdinals.ContainsKey(columnName);
+            int urlOrdinal = hasColumn("URL") ? columnOrdinals["URL"] : -1;
+            int avatarUrlOrdinal = hasColumn("AvatarURL") ? columnOrdinals["AvatarURL"] : -1;
 
             return new Transporters
             {
@@ -2895,10 +2893,10 @@ namespace recycling.DAL
                 CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
                 IsActive = reader.IsDBNull(reader.GetOrdinal("IsActive")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                URL = hasColumn("URL")
-                    ? (reader.IsDBNull(reader.GetOrdinal("URL")) ? null : reader.GetString(reader.GetOrdinal("URL")))
-                    : (hasColumn("AvatarURL")
-                        ? (reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? null : reader.GetString(reader.GetOrdinal("AvatarURL")))
+                URL = urlOrdinal >= 0
+                    ? (reader.IsDBNull(urlOrdinal) ? null : reader.GetString(urlOrdinal))
+                    : (avatarUrlOrdinal >= 0
+                        ? (reader.IsDBNull(avatarUrlOrdinal) ? null : reader.GetString(avatarUrlOrdinal))
                         : null)
             };
         }
