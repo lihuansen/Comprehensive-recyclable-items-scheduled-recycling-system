@@ -160,6 +160,16 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) UpdateRecycler(Recyclers recycler)
         {
+            if (recycler == null)
+            {
+                return (false, "回收员信息不能为空");
+            }
+
+            recycler.Username = recycler.Username?.Trim();
+            recycler.PhoneNumber = recycler.PhoneNumber?.Trim();
+            recycler.Region = recycler.Region?.Trim();
+            recycler.FullName = recycler.FullName?.Trim();
+
             // Validation
             if (recycler.RecyclerID <= 0)
             {
@@ -179,6 +189,21 @@ namespace recycling.BLL
             if (string.IsNullOrEmpty(recycler.Region))
             {
                 return (false, "区域不能为空");
+            }
+
+            if (!Regex.IsMatch(recycler.PhoneNumber, @"^1[3-9]\d{9}$"))
+            {
+                return (false, "请输入有效的11位手机号");
+            }
+
+            if (_adminDAL.IsRecyclerUsernameExists(recycler.Username, recycler.RecyclerID))
+            {
+                return (false, "用户名已存在，请更换其他用户名");
+            }
+
+            if (_adminDAL.IsRecyclerPhoneNumberExists(recycler.PhoneNumber, recycler.RecyclerID))
+            {
+                return (false, "手机号已存在，请更换其他手机号");
             }
 
             bool result = _adminDAL.UpdateRecycler(recycler);
