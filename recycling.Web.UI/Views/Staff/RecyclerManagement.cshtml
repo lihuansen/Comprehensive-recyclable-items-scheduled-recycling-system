@@ -615,16 +615,47 @@ function editRecycler(recycler) {
 
 function saveRecycler() {
     var id = $('#recyclerId').val();
+    var username = $.trim($('#username').val());
+    var password = $.trim($('#password').val());
+    var phoneNumber = $.trim($('#phoneNumber').val());
+    var region = $.trim($('#region').val());
+    var phoneRegex = /^1[3-9]\d{9}$/;
+
+    if (!username) {
+        alert('用户名不能为空');
+        return;
+    }
+
+    if (!id && !password) {
+        alert('密码不能为空');
+        return;
+    }
+
+    if (!phoneNumber) {
+        alert('手机号不能为空');
+        return;
+    }
+
+    if (!phoneRegex.test(phoneNumber)) {
+        alert('请输入有效的11位手机号');
+        return;
+    }
+
+    if (!region) {
+        alert('区域不能为空');
+        return;
+    }
+
     var data = {
         RecyclerID: id || 0,
-        Username: $('#username').val(),
-        PhoneNumber: $('#phoneNumber').val(),
-        FullName: $('#fullName').val(),
-        Region: $('#region').val(),
+        Username: username,
+        PhoneNumber: phoneNumber,
+        FullName: $.trim($('#fullName').val()),
+        Region: region,
         Available: $('#available').is(':checked'),
         IsActive: $('#isActive').is(':checked')
     };
-    if (!id) data.password = $('#password').val();
+    if (!id) data.password = password;
     
     $.ajax({
         url: id ? '@Url.Action("UpdateRecycler", "Staff")' : '@Url.Action("AddRecycler", "Staff")',

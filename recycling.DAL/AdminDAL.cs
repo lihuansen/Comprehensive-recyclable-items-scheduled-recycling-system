@@ -551,6 +551,56 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Check whether recycler username already exists
+        /// </summary>
+        public bool IsRecyclerUsernameExists(string username, int? excludeRecyclerId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM Recyclers WHERE Username = @Username";
+                if (excludeRecyclerId.HasValue)
+                {
+                    sql += " AND RecyclerID <> @RecyclerID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", username);
+                if (excludeRecyclerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@RecyclerID", excludeRecyclerId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
+        /// Check whether recycler phone number already exists
+        /// </summary>
+        public bool IsRecyclerPhoneNumberExists(string phoneNumber, int? excludeRecyclerId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM Recyclers WHERE PhoneNumber = @PhoneNumber";
+                if (excludeRecyclerId.HasValue)
+                {
+                    sql += " AND RecyclerID <> @RecyclerID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                if (excludeRecyclerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@RecyclerID", excludeRecyclerId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
         /// Update recycler information
         /// </summary>
         public bool UpdateRecycler(Recyclers recycler)
