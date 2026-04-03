@@ -2975,21 +2975,21 @@ namespace recycling.DAL
             return new SortingCenterWorkers
             {
                 WorkerID = reader.GetInt32(reader.GetOrdinal("WorkerID")),
-                Username = reader.GetString(reader.GetOrdinal("Username")),
-                PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
+                Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString(reader.GetOrdinal("Username")),
+                PasswordHash = reader.IsDBNull(reader.GetOrdinal("PasswordHash")) ? null : reader.GetString(reader.GetOrdinal("PasswordHash")),
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
-                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                PhoneNumber = reader.IsDBNull(reader.GetOrdinal("PhoneNumber")) ? null : reader.GetString(reader.GetOrdinal("PhoneNumber")),
                 IDNumber = reader.IsDBNull(reader.GetOrdinal("IDNumber")) ? null : reader.GetString(reader.GetOrdinal("IDNumber")),
-                SortingCenterID = reader.GetInt32(reader.GetOrdinal("SortingCenterID")),
+                SortingCenterID = reader.IsDBNull(reader.GetOrdinal("SortingCenterID")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("SortingCenterID")),
                 SortingCenterName = reader.IsDBNull(reader.GetOrdinal("SortingCenterName")) ? null : reader.GetString(reader.GetOrdinal("SortingCenterName")),
-                Available = reader.GetBoolean(reader.GetOrdinal("Available")),
-                CurrentStatus = reader.GetString(reader.GetOrdinal("CurrentStatus")),
-                TotalItemsProcessed = reader.GetInt32(reader.GetOrdinal("TotalItemsProcessed")),
-                TotalWeightProcessed = reader.GetDecimal(reader.GetOrdinal("TotalWeightProcessed")),
+                Available = reader.IsDBNull(reader.GetOrdinal("Available")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("Available")),
+                CurrentStatus = reader.IsDBNull(reader.GetOrdinal("CurrentStatus")) ? null : reader.GetString(reader.GetOrdinal("CurrentStatus")),
+                TotalItemsProcessed = reader.IsDBNull(reader.GetOrdinal("TotalItemsProcessed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("TotalItemsProcessed")),
+                TotalWeightProcessed = reader.IsDBNull(reader.GetOrdinal("TotalWeightProcessed")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("TotalWeightProcessed")),
                 Rating = reader.IsDBNull(reader.GetOrdinal("Rating")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("Rating")),
-                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                CreatedDate = reader.IsDBNull(reader.GetOrdinal("CreatedDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
                 LastLoginDate = reader.IsDBNull(reader.GetOrdinal("LastLoginDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("LastLoginDate")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                IsActive = reader.IsDBNull(reader.GetOrdinal("IsActive")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 URL = reader.IsDBNull(reader.GetOrdinal("URL")) ? null : reader.GetString(reader.GetOrdinal("URL"))
             };
         }
