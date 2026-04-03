@@ -613,16 +613,17 @@ function editTransporter(transporter) {
 function saveTransporter() {
     var id = $('#transporterId').val();
     var phoneNumber = ($('#phoneNumber').val() || '').trim();
-    var idNumber = ($('#idNumber').val() || '').trim();
+    var idNumber = normalizeIdNumber($('#idNumber').val());
     var mobileRegex = /^1[3-9]\d{9}$/;
-    var idNumberRegex = /^[1-9]\d{5}(18|19|20)?\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/;
+    var idNumber18Regex = /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/;
+    var idNumber15Regex = /^[1-9]\d{5}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}$/;
 
     if (!mobileRegex.test(phoneNumber)) {
         alert('请输入有效的11位手机号');
         return;
     }
 
-    if (idNumber && !idNumberRegex.test(idNumber)) {
+    if (idNumber && !isValidIdNumber(idNumber, idNumber18Regex, idNumber15Regex)) {
         alert('请输入有效的身份证号');
         return;
     }
@@ -659,6 +660,35 @@ function saveTransporter() {
             }
         }
     });
+}
+
+function normalizeIdNumber(value) {
+    if (!value) return '';
+    return value
+        .replace(/\s+/g, '')
+        .replace(/[０-９]/g, function (ch) { return String.fromCharCode(ch.charCodeAt(0) - 65248); })
+        .replace(/ｘ/g, 'X')
+        .replace(/x/g, 'X');
+}
+
+function isValidIdNumber(idNumber, idNumber18Regex, idNumber15Regex) {
+    if (idNumber15Regex.test(idNumber)) {
+        return true;
+    }
+
+    if (!idNumber18Regex.test(idNumber)) {
+        return false;
+    }
+
+    var weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+    var checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+    var sum = 0;
+
+    for (var i = 0; i < 17; i++) {
+        sum += parseInt(idNumber.charAt(i), 10) * weights[i];
+    }
+
+    return checkCodes[sum % 11] === idNumber.charAt(17);
 }
 
 function deleteTransporter(id) {
