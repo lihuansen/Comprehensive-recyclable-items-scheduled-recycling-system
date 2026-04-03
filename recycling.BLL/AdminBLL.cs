@@ -14,6 +14,8 @@ namespace recycling.BLL
         private readonly AdminDAL _adminDAL;
         private static readonly Regex ChinaMobileRegex = new Regex(@"^1[3-9]\d{9}$", RegexOptions.Compiled);
         private static readonly Regex ChinaIdNumberRegex = new Regex(@"^[1-9]\d{5}(18|19|20)?\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$", RegexOptions.Compiled);
+        private static readonly int[] ChinaIdNumberWeights = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 };
+        private static readonly char[] ChinaIdNumberCheckCodes = { '1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2' };
 
         public AdminBLL()
         {
@@ -504,7 +506,7 @@ namespace recycling.BLL
                 return (false, "请输入有效的11位手机号");
             }
 
-            if (!string.IsNullOrEmpty(transporter.IDNumber) && !ChinaIdNumberRegex.IsMatch(transporter.IDNumber))
+            if (!string.IsNullOrEmpty(transporter.IDNumber) && !IsValidChinaIdNumber(transporter.IDNumber))
             {
                 return (false, "请输入有效的身份证号");
             }
@@ -573,7 +575,7 @@ namespace recycling.BLL
                 return (false, "请输入有效的11位手机号");
             }
 
-            if (!string.IsNullOrEmpty(transporter.IDNumber) && !ChinaIdNumberRegex.IsMatch(transporter.IDNumber))
+            if (!string.IsNullOrEmpty(transporter.IDNumber) && !IsValidChinaIdNumber(transporter.IDNumber))
             {
                 return (false, "请输入有效的身份证号");
             }
@@ -794,6 +796,33 @@ namespace recycling.BLL
                 }
                 return builder.ToString();
             }
+        }
+
+        /// <summary>
+        /// Validate China resident ID number (format + checksum)
+        /// </summary>
+        private bool IsValidChinaIdNumber(string idNumber)
+        {
+            if (string.IsNullOrEmpty(idNumber))
+            {
+                return false;
+            }
+
+            idNumber = idNumber.Trim();
+            if (!ChinaIdNumberRegex.IsMatch(idNumber))
+            {
+                return false;
+            }
+
+            int sum = 0;
+            for (int i = 0; i < 17; i++)
+            {
+                sum += (idNumber[i] - '0') * ChinaIdNumberWeights[i];
+            }
+
+            char expectedCheckCode = ChinaIdNumberCheckCodes[sum % 11];
+            char actualCheckCode = char.ToUpperInvariant(idNumber[17]);
+            return actualCheckCode == expectedCheckCode;
         }
 
         #endregion
