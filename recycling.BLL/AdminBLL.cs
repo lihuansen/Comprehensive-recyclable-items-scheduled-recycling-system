@@ -682,6 +682,17 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) AddSortingCenterWorker(SortingCenterWorkers worker, string password)
         {
+            if (worker == null)
+            {
+                return (false, "基地人员信息不能为空");
+            }
+
+            worker.Username = worker.Username?.Trim();
+            worker.PhoneNumber = worker.PhoneNumber?.Trim();
+            worker.IDNumber = NormalizeChinaIdNumber(worker.IDNumber);
+            worker.FullName = worker.FullName?.Trim();
+            password = password?.Trim();
+
             if (string.IsNullOrEmpty(worker.Username))
             {
                 return (false, "用户名不能为空");
@@ -697,6 +708,36 @@ namespace recycling.BLL
                 return (false, "手机号不能为空");
             }
 
+            if (string.IsNullOrEmpty(worker.IDNumber))
+            {
+                return (false, "身份证号不能为空");
+            }
+
+            if (!ChinaMobileRegex.IsMatch(worker.PhoneNumber))
+            {
+                return (false, "请输入有效的11位手机号");
+            }
+
+            if (!IsValidChinaIdNumber(worker.IDNumber))
+            {
+                return (false, "请输入有效的身份证号");
+            }
+
+            if (_adminDAL.IsSortingCenterWorkerUsernameExists(worker.Username))
+            {
+                return (false, "用户名已存在，请更换其他用户名");
+            }
+
+            if (_adminDAL.IsSortingCenterWorkerPhoneNumberExists(worker.PhoneNumber))
+            {
+                return (false, "手机号已存在，请更换其他手机号");
+            }
+
+            if (_adminDAL.IsSortingCenterWorkerIDNumberExists(worker.IDNumber))
+            {
+                return (false, "身份证号已存在，请核对后重试");
+            }
+
             worker.PasswordHash = HashPassword(password);
             worker.IsActive = true;
             worker.Available = true;
@@ -710,6 +751,16 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) UpdateSortingCenterWorker(SortingCenterWorkers worker)
         {
+            if (worker == null)
+            {
+                return (false, "基地人员信息不能为空");
+            }
+
+            worker.Username = worker.Username?.Trim();
+            worker.PhoneNumber = worker.PhoneNumber?.Trim();
+            worker.IDNumber = NormalizeChinaIdNumber(worker.IDNumber);
+            worker.FullName = worker.FullName?.Trim();
+
             if (worker.WorkerID <= 0)
             {
                 return (false, "Invalid worker ID");
@@ -723,6 +774,36 @@ namespace recycling.BLL
             if (string.IsNullOrEmpty(worker.PhoneNumber))
             {
                 return (false, "手机号不能为空");
+            }
+
+            if (string.IsNullOrEmpty(worker.IDNumber))
+            {
+                return (false, "身份证号不能为空");
+            }
+
+            if (!ChinaMobileRegex.IsMatch(worker.PhoneNumber))
+            {
+                return (false, "请输入有效的11位手机号");
+            }
+
+            if (!IsValidChinaIdNumber(worker.IDNumber))
+            {
+                return (false, "请输入有效的身份证号");
+            }
+
+            if (_adminDAL.IsSortingCenterWorkerUsernameExists(worker.Username, worker.WorkerID))
+            {
+                return (false, "用户名已存在，请更换其他用户名");
+            }
+
+            if (_adminDAL.IsSortingCenterWorkerPhoneNumberExists(worker.PhoneNumber, worker.WorkerID))
+            {
+                return (false, "手机号已存在，请更换其他手机号");
+            }
+
+            if (_adminDAL.IsSortingCenterWorkerIDNumberExists(worker.IDNumber, worker.WorkerID))
+            {
+                return (false, "身份证号已存在，请核对后重试");
             }
 
             bool result = _adminDAL.UpdateSortingCenterWorker(worker);

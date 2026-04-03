@@ -2514,6 +2514,81 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Check whether sorting center worker username already exists
+        /// </summary>
+        public bool IsSortingCenterWorkerUsernameExists(string username, int? excludeWorkerId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM SortingCenterWorkers WHERE Username = @Username";
+                if (excludeWorkerId.HasValue)
+                {
+                    sql += " AND WorkerID <> @WorkerID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", username);
+                if (excludeWorkerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
+        /// Check whether sorting center worker phone number already exists
+        /// </summary>
+        public bool IsSortingCenterWorkerPhoneNumberExists(string phoneNumber, int? excludeWorkerId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM SortingCenterWorkers WHERE PhoneNumber = @PhoneNumber";
+                if (excludeWorkerId.HasValue)
+                {
+                    sql += " AND WorkerID <> @WorkerID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                if (excludeWorkerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
+        /// Check whether sorting center worker ID number already exists
+        /// </summary>
+        public bool IsSortingCenterWorkerIDNumberExists(string idNumber, int? excludeWorkerId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM SortingCenterWorkers WHERE IDNumber = @IDNumber";
+                if (excludeWorkerId.HasValue)
+                {
+                    sql += " AND WorkerID <> @WorkerID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@IDNumber", idNumber);
+                if (excludeWorkerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
         /// Update sorting center worker information
         /// </summary>
         public bool UpdateSortingCenterWorker(SortingCenterWorkers worker)
