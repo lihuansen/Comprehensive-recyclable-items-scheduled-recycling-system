@@ -141,28 +141,81 @@ namespace recycling.DAL
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"UPDATE HomepageCarousel SET 
-                              MediaType = @MediaType,
-                              MediaUrl = @MediaUrl,
-                              Title = @Title,
-                              Description = @Description,
-                              DisplayOrder = @DisplayOrder,
-                              IsActive = @IsActive,
-                              UpdatedDate = @UpdatedDate
-                              WHERE CarouselID = @CarouselID";
-
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@CarouselID", carousel.CarouselID);
-                cmd.Parameters.AddWithValue("@MediaType", carousel.MediaType);
-                cmd.Parameters.AddWithValue("@MediaUrl", carousel.MediaUrl);
-                cmd.Parameters.AddWithValue("@Title", carousel.Title ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Description", carousel.Description ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@DisplayOrder", carousel.DisplayOrder);
-                cmd.Parameters.AddWithValue("@IsActive", carousel.IsActive);
-                cmd.Parameters.AddWithValue("@UpdatedDate", carousel.UpdatedDate ?? (object)DBNull.Value);
-
                 conn.Open();
-                return cmd.ExecuteNonQuery() > 0;
+                using (SqlTransaction transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // Get current display order for swap logic
+                        int currentDisplayOrder = 0;
+                        string currentOrderSql = "SELECT DisplayOrder FROM HomepageCarousel WHERE CarouselID = @CarouselID";
+                        SqlCommand currentOrderCmd = new SqlCommand(currentOrderSql, conn, transaction);
+                        currentOrderCmd.Parameters.AddWithValue("@CarouselID", carousel.CarouselID);
+                        object currentOrderObj = currentOrderCmd.ExecuteScalar();
+                        if (currentOrderObj == null || currentOrderObj == DBNull.Value)
+                        {
+                            transaction.Rollback();
+                            return false;
+                        }
+                        currentDisplayOrder = Convert.ToInt32(currentOrderObj);
+
+                        int targetDisplayOrder = carousel.DisplayOrder ?? 0;
+
+                        // If target order is occupied by another carousel, swap orders
+                        if (targetDisplayOrder != currentDisplayOrder)
+                        {
+                            string conflictSql = @"SELECT TOP 1 CarouselID 
+                                                   FROM HomepageCarousel 
+                                                   WHERE DisplayOrder = @DisplayOrder AND CarouselID <> @CarouselID
+                                                   ORDER BY CarouselID ASC";
+                            SqlCommand conflictCmd = new SqlCommand(conflictSql, conn, transaction);
+                            conflictCmd.Parameters.AddWithValue("@DisplayOrder", targetDisplayOrder);
+                            conflictCmd.Parameters.AddWithValue("@CarouselID", carousel.CarouselID);
+                            object conflictCarouselIdObj = conflictCmd.ExecuteScalar();
+
+                            if (conflictCarouselIdObj != null && conflictCarouselIdObj != DBNull.Value)
+                            {
+                                int conflictCarouselId = Convert.ToInt32(conflictCarouselIdObj);
+                                string swapSql = @"UPDATE HomepageCarousel 
+                                                   SET DisplayOrder = @NewDisplayOrder, UpdatedDate = GETDATE()
+                                                   WHERE CarouselID = @CarouselID";
+                                SqlCommand swapCmd = new SqlCommand(swapSql, conn, transaction);
+                                swapCmd.Parameters.AddWithValue("@NewDisplayOrder", currentDisplayOrder);
+                                swapCmd.Parameters.AddWithValue("@CarouselID", conflictCarouselId);
+                                swapCmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        string updateSql = @"UPDATE HomepageCarousel SET 
+                                           MediaType = @MediaType,
+                                           MediaUrl = @MediaUrl,
+                                           Title = @Title,
+                                           Description = @Description,
+                                           DisplayOrder = @DisplayOrder,
+                                           IsActive = @IsActive,
+                                           UpdatedDate = @UpdatedDate
+                                           WHERE CarouselID = @CarouselID";
+
+                        SqlCommand updateCmd = new SqlCommand(updateSql, conn, transaction);
+                        updateCmd.Parameters.AddWithValue("@CarouselID", carousel.CarouselID);
+                        updateCmd.Parameters.AddWithValue("@MediaType", carousel.MediaType);
+                        updateCmd.Parameters.AddWithValue("@MediaUrl", carousel.MediaUrl);
+                        updateCmd.Parameters.AddWithValue("@Title", carousel.Title ?? (object)DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@Description", carousel.Description ?? (object)DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@DisplayOrder", targetDisplayOrder);
+                        updateCmd.Parameters.AddWithValue("@IsActive", carousel.IsActive);
+                        updateCmd.Parameters.AddWithValue("@UpdatedDate", carousel.UpdatedDate ?? (object)DBNull.Value);
+
+                        bool updated = updateCmd.ExecuteNonQuery() > 0;
+                        transaction.Commit();
+                        return updated;
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
             }
         }
 
