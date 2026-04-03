@@ -159,7 +159,9 @@ namespace recycling.DAL
                         }
                         currentDisplayOrder = Convert.ToInt32(currentOrderObj);
 
-                        int targetDisplayOrder = carousel.DisplayOrder ?? 0;
+                        int targetDisplayOrder = carousel.DisplayOrder.HasValue
+                            ? carousel.DisplayOrder.Value
+                            : currentDisplayOrder;
 
                         // If target order is occupied by another carousel, swap orders
                         if (targetDisplayOrder != currentDisplayOrder)
