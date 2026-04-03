@@ -2521,11 +2521,12 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "SELECT COUNT(*) FROM SortingCenterWorkers WHERE Username = @Username";
+                string sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE Username = @Username";
                 if (excludeWorkerId.HasValue)
                 {
                     sql += " AND WorkerID <> @WorkerID";
                 }
+                sql += ") THEN 1 ELSE 0 END";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", username);
@@ -2534,7 +2535,7 @@ namespace recycling.DAL
                     cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
                 }
 
-                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                return Convert.ToInt32(cmd.ExecuteScalar()) == 1;
             }
         }
 
@@ -2546,11 +2547,12 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "SELECT COUNT(*) FROM SortingCenterWorkers WHERE PhoneNumber = @PhoneNumber";
+                string sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE PhoneNumber = @PhoneNumber";
                 if (excludeWorkerId.HasValue)
                 {
                     sql += " AND WorkerID <> @WorkerID";
                 }
+                sql += ") THEN 1 ELSE 0 END";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
@@ -2559,7 +2561,7 @@ namespace recycling.DAL
                     cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
                 }
 
-                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                return Convert.ToInt32(cmd.ExecuteScalar()) == 1;
             }
         }
 
@@ -2571,11 +2573,12 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "SELECT COUNT(*) FROM SortingCenterWorkers WHERE IDNumber = @IDNumber";
+                string sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE IDNumber = @IDNumber";
                 if (excludeWorkerId.HasValue)
                 {
                     sql += " AND WorkerID <> @WorkerID";
                 }
+                sql += ") THEN 1 ELSE 0 END";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@IDNumber", idNumber);
@@ -2584,7 +2587,7 @@ namespace recycling.DAL
                     cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
                 }
 
-                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                return Convert.ToInt32(cmd.ExecuteScalar()) == 1;
             }
         }
 
