@@ -2514,6 +2514,75 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Check whether sorting center worker username already exists
+        /// </summary>
+        public bool IsSortingCenterWorkerUsernameExists(string username, int? excludeWorkerId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = excludeWorkerId.HasValue
+                    ? "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE Username = @Username AND WorkerID <> @WorkerID) THEN 1 ELSE 0 END"
+                    : "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE Username = @Username) THEN 1 ELSE 0 END";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", username);
+                if (excludeWorkerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) == 1;
+            }
+        }
+
+        /// <summary>
+        /// Check whether sorting center worker phone number already exists
+        /// </summary>
+        public bool IsSortingCenterWorkerPhoneNumberExists(string phoneNumber, int? excludeWorkerId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = excludeWorkerId.HasValue
+                    ? "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE PhoneNumber = @PhoneNumber AND WorkerID <> @WorkerID) THEN 1 ELSE 0 END"
+                    : "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE PhoneNumber = @PhoneNumber) THEN 1 ELSE 0 END";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                if (excludeWorkerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) == 1;
+            }
+        }
+
+        /// <summary>
+        /// Check whether sorting center worker ID number already exists
+        /// </summary>
+        public bool IsSortingCenterWorkerIDNumberExists(string idNumber, int? excludeWorkerId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = excludeWorkerId.HasValue
+                    ? "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE IDNumber = @IDNumber AND WorkerID <> @WorkerID) THEN 1 ELSE 0 END"
+                    : "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE IDNumber = @IDNumber) THEN 1 ELSE 0 END";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@IDNumber", idNumber);
+                if (excludeWorkerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@WorkerID", excludeWorkerId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) == 1;
+            }
+        }
+
+        /// <summary>
         /// Update sorting center worker information
         /// </summary>
         public bool UpdateSortingCenterWorker(SortingCenterWorkers worker)

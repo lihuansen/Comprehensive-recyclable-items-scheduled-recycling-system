@@ -710,19 +710,57 @@ function editWorker(worker) {
 
 function saveWorker() {
     var id = $('#workerId').val();
+    var username = $.trim($('#username').val());
+    var phoneNumber = $.trim($('#phoneNumber').val());
+    var idNumber = $.trim($('#idNumber').val());
+    var password = $('#password').val();
+    var chinaMobileRegex = /^1[3-9]\d{9}$/;
+    var chinaId15Regex = /^[1-9]\d{5}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}$/;
+    var chinaId18Regex = /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/;
+
+    if (!username) {
+        alert('用户名不能为空');
+        return;
+    }
+
+    if (!id && !$.trim(password)) {
+        alert('密码不能为空');
+        return;
+    }
+
+    if (!phoneNumber) {
+        alert('手机号不能为空');
+        return;
+    }
+
+    if (!idNumber) {
+        alert('身份证号不能为空');
+        return;
+    }
+
+    if (!chinaMobileRegex.test(phoneNumber)) {
+        alert('请输入有效的11位手机号');
+        return;
+    }
+
+    if (!(chinaId15Regex.test(idNumber) || chinaId18Regex.test(idNumber))) {
+        alert('请输入有效的身份证号');
+        return;
+    }
+
     var data = {
         WorkerID: id || 0,
-        Username: $('#username').val(),
-        PhoneNumber: $('#phoneNumber').val(),
-        FullName: $('#fullName').val(),
-        IDNumber: $('#idNumber').val(),
+        Username: username,
+        PhoneNumber: phoneNumber,
+        FullName: $.trim($('#fullName').val()),
+        IDNumber: idNumber,
         SortingCenterID: 1,
         SortingCenterName: null,
         CurrentStatus: $('#currentStatus').val(),
         Available: $('#available').is(':checked'),
         IsActive: $('#isActive').is(':checked')
     };
-    if (!id) data.password = $('#password').val();
+    if (!id) data.password = password;
     data.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
     
     $.ajax({
