@@ -922,7 +922,7 @@ namespace recycling.BLL
                 return (false, "身份证号已存在，请核对后重试");
             }
 
-            return (true, "校验通过");
+            return (true, string.Empty);
         }
 
         #endregion

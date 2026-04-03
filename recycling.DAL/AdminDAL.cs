@@ -2521,12 +2521,9 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE Username = @Username";
-                if (excludeWorkerId.HasValue)
-                {
-                    sql += " AND WorkerID <> @WorkerID";
-                }
-                sql += ") THEN 1 ELSE 0 END";
+                string sql = excludeWorkerId.HasValue
+                    ? "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE Username = @Username AND WorkerID <> @WorkerID) THEN 1 ELSE 0 END"
+                    : "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE Username = @Username) THEN 1 ELSE 0 END";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", username);
@@ -2547,12 +2544,9 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE PhoneNumber = @PhoneNumber";
-                if (excludeWorkerId.HasValue)
-                {
-                    sql += " AND WorkerID <> @WorkerID";
-                }
-                sql += ") THEN 1 ELSE 0 END";
+                string sql = excludeWorkerId.HasValue
+                    ? "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE PhoneNumber = @PhoneNumber AND WorkerID <> @WorkerID) THEN 1 ELSE 0 END"
+                    : "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE PhoneNumber = @PhoneNumber) THEN 1 ELSE 0 END";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
@@ -2573,12 +2567,9 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE IDNumber = @IDNumber";
-                if (excludeWorkerId.HasValue)
-                {
-                    sql += " AND WorkerID <> @WorkerID";
-                }
-                sql += ") THEN 1 ELSE 0 END";
+                string sql = excludeWorkerId.HasValue
+                    ? "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE IDNumber = @IDNumber AND WorkerID <> @WorkerID) THEN 1 ELSE 0 END"
+                    : "SELECT CASE WHEN EXISTS (SELECT 1 FROM SortingCenterWorkers WHERE IDNumber = @IDNumber) THEN 1 ELSE 0 END";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@IDNumber", idNumber);
