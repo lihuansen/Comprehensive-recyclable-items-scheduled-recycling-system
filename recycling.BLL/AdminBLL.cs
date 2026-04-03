@@ -13,7 +13,8 @@ namespace recycling.BLL
     {
         private readonly AdminDAL _adminDAL;
         private static readonly Regex ChinaMobileRegex = new Regex(@"^1[3-9]\d{9}$", RegexOptions.Compiled);
-        private static readonly Regex ChinaIdNumberRegex = new Regex(@"^[1-9]\d{5}(18|19|20)?\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$", RegexOptions.Compiled);
+        private static readonly Regex ChinaIdNumber18Regex = new Regex(@"^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$", RegexOptions.Compiled);
+        private static readonly Regex ChinaIdNumber15Regex = new Regex(@"^[1-9]\d{5}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}$", RegexOptions.Compiled);
         private static readonly int[] ChinaIdNumberWeights = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 };
         private static readonly char[] ChinaIdNumberCheckCodes = { '1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2' };
 
@@ -476,7 +477,7 @@ namespace recycling.BLL
 
             transporter.Username = transporter.Username?.Trim();
             transporter.PhoneNumber = transporter.PhoneNumber?.Trim();
-            transporter.IDNumber = transporter.IDNumber?.Trim();
+            transporter.IDNumber = NormalizeChinaIdNumber(transporter.IDNumber);
             transporter.Region = transporter.Region?.Trim();
             transporter.FullName = transporter.FullName?.Trim();
             password = password?.Trim();
@@ -546,7 +547,7 @@ namespace recycling.BLL
 
             transporter.Username = transporter.Username?.Trim();
             transporter.PhoneNumber = transporter.PhoneNumber?.Trim();
-            transporter.IDNumber = transporter.IDNumber?.Trim();
+            transporter.IDNumber = NormalizeChinaIdNumber(transporter.IDNumber);
             transporter.Region = transporter.Region?.Trim();
             transporter.FullName = transporter.FullName?.Trim();
 
@@ -808,8 +809,14 @@ namespace recycling.BLL
                 return false;
             }
 
-            idNumber = idNumber.Trim();
-            if (!ChinaIdNumberRegex.IsMatch(idNumber))
+            idNumber = NormalizeChinaIdNumber(idNumber);
+
+            if (ChinaIdNumber15Regex.IsMatch(idNumber))
+            {
+                return true;
+            }
+
+            if (!ChinaIdNumber18Regex.IsMatch(idNumber))
             {
                 return false;
             }
@@ -823,6 +830,39 @@ namespace recycling.BLL
             char expectedCheckCode = ChinaIdNumberCheckCodes[sum % 11];
             char actualCheckCode = char.ToUpperInvariant(idNumber[17]);
             return actualCheckCode == expectedCheckCode;
+        }
+
+        private string NormalizeChinaIdNumber(string idNumber)
+        {
+            if (string.IsNullOrWhiteSpace(idNumber))
+            {
+                return string.Empty;
+            }
+
+            StringBuilder normalized = new StringBuilder(idNumber.Length);
+            foreach (char c in idNumber.Trim())
+            {
+                if (char.IsWhiteSpace(c))
+                {
+                    continue;
+                }
+
+                if (c >= '０' && c <= '９')
+                {
+                    normalized.Append((char)('0' + (c - '０')));
+                    continue;
+                }
+
+                if (c == 'ｘ' || c == 'Ｘ')
+                {
+                    normalized.Append('X');
+                    continue;
+                }
+
+                normalized.Append(c);
+            }
+
+            return normalized.ToString();
         }
 
         #endregion
