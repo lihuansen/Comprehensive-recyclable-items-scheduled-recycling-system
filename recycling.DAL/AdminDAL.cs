@@ -2494,8 +2494,8 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, Available, CurrentStatus, IsActive, CreatedDate, Rating) 
-                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @Available, @CurrentStatus, @IsActive, GETDATE(), 0)";
+                string sql = @"INSERT INTO SortingCenterWorkers (Username, PasswordHash, FullName, PhoneNumber, IDNumber, SortingCenterID, SortingCenterName, Available, CurrentStatus, TotalItemsProcessed, TotalWeightProcessed, money, IsActive, CreatedDate, Rating) 
+                    VALUES (@Username, @PasswordHash, @FullName, @PhoneNumber, @IDNumber, @SortingCenterID, @SortingCenterName, @Available, @CurrentStatus, @TotalItemsProcessed, @TotalWeightProcessed, @money, @IsActive, GETDATE(), 0)";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Username", worker.Username);
@@ -2504,9 +2504,12 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
-                cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SortingCenterName", "深圳基地");
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
+                cmd.Parameters.AddWithValue("@TotalItemsProcessed", 0);
+                cmd.Parameters.AddWithValue("@TotalWeightProcessed", 0.00m);
+                cmd.Parameters.AddWithValue("@money", 0.00m);
                 cmd.Parameters.AddWithValue("@IsActive", worker.IsActive);
 
                 return cmd.ExecuteNonQuery() > 0;
