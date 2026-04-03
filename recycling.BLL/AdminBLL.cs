@@ -853,7 +853,7 @@ namespace recycling.BLL
                     continue;
                 }
 
-                if (c == 'ｘ' || c == 'Ｘ')
+                if (c == 'x' || c == 'ｘ' || c == 'Ｘ')
                 {
                     normalized.Append('X');
                     continue;
