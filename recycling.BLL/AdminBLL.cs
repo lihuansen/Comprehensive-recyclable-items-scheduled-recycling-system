@@ -13,6 +13,7 @@ namespace recycling.BLL
     {
         private readonly AdminDAL _adminDAL;
         private static readonly Regex ChinaMobileRegex = new Regex(@"^1[3-9]\d{9}$", RegexOptions.Compiled);
+        private static readonly Regex ChinaIdNumberRegex = new Regex(@"^[1-9]\d{5}(18|19|20)?\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$", RegexOptions.Compiled);
 
         public AdminBLL()
         {
@@ -503,6 +504,11 @@ namespace recycling.BLL
                 return (false, "请输入有效的11位手机号");
             }
 
+            if (!string.IsNullOrEmpty(transporter.IDNumber) && !ChinaIdNumberRegex.IsMatch(transporter.IDNumber))
+            {
+                return (false, "请输入有效的身份证号");
+            }
+
             if (_adminDAL.IsTransporterUsernameExists(transporter.Username))
             {
                 return (false, "用户名已存在，请更换其他用户名");
@@ -531,6 +537,17 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) UpdateTransporter(Transporters transporter)
         {
+            if (transporter == null)
+            {
+                return (false, "运输人员信息不能为空");
+            }
+
+            transporter.Username = transporter.Username?.Trim();
+            transporter.PhoneNumber = transporter.PhoneNumber?.Trim();
+            transporter.IDNumber = transporter.IDNumber?.Trim();
+            transporter.Region = transporter.Region?.Trim();
+            transporter.FullName = transporter.FullName?.Trim();
+
             if (transporter.TransporterID <= 0)
             {
                 return (false, "Invalid transporter ID");
@@ -549,6 +566,31 @@ namespace recycling.BLL
             if (string.IsNullOrEmpty(transporter.Region))
             {
                 return (false, "区域不能为空");
+            }
+
+            if (!ChinaMobileRegex.IsMatch(transporter.PhoneNumber))
+            {
+                return (false, "请输入有效的11位手机号");
+            }
+
+            if (!string.IsNullOrEmpty(transporter.IDNumber) && !ChinaIdNumberRegex.IsMatch(transporter.IDNumber))
+            {
+                return (false, "请输入有效的身份证号");
+            }
+
+            if (_adminDAL.IsTransporterUsernameExists(transporter.Username, transporter.TransporterID))
+            {
+                return (false, "用户名已存在，请更换其他用户名");
+            }
+
+            if (_adminDAL.IsTransporterPhoneNumberExists(transporter.PhoneNumber, transporter.TransporterID))
+            {
+                return (false, "手机号已存在，请更换其他手机号");
+            }
+
+            if (!string.IsNullOrEmpty(transporter.IDNumber) && _adminDAL.IsTransporterIDNumberExists(transporter.IDNumber, transporter.TransporterID))
+            {
+                return (false, "身份证号已存在，请核对后重试");
             }
 
             bool result = _adminDAL.UpdateTransporter(transporter);
