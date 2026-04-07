@@ -125,6 +125,104 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 分页查询所有可回收物（管理端使用，不过滤IsActive状态）
+        /// </summary>
+        public PagedResult<RecyclableItems> GetPagedItemsForAdmin(RecyclableQueryModel query)
+        {
+            var result = new PagedResult<RecyclableItems>
+            {
+                PageIndex = query.PageIndex,
+                PageSize = query.PageSize
+            };
+
+            var whereConditions = new List<string>();
+            var parameters = new Dictionary<string, object>();
+
+            if (!string.IsNullOrEmpty(query.Keyword))
+            {
+                whereConditions.Add("(Name LIKE '%' + @Keyword + '%' OR Description LIKE '%' + @Keyword + '%')");
+                parameters["@Keyword"] = query.Keyword;
+            }
+
+            if (!string.IsNullOrEmpty(query.Category))
+            {
+                whereConditions.Add("CategoryName = @CategoryName");
+                parameters["@CategoryName"] = query.Category;
+            }
+
+            if (query.MinPrice.HasValue)
+            {
+                whereConditions.Add("PricePerKg >= @MinPrice");
+                parameters["@MinPrice"] = query.MinPrice.Value;
+            }
+            if (query.MaxPrice.HasValue)
+            {
+                whereConditions.Add("PricePerKg <= @MaxPrice");
+                parameters["@MaxPrice"] = query.MaxPrice.Value;
+            }
+
+            string whereClause = whereConditions.Count > 0
+                ? "WHERE " + string.Join(" AND ", whereConditions)
+                : "";
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string countSql = $"SELECT COUNT(1) FROM RecyclableItems {whereClause}";
+                SqlCommand cmd = new SqlCommand(countSql, conn);
+                foreach (var param in parameters)
+                {
+                    cmd.Parameters.AddWithValue(param.Key, param.Value);
+                }
+                conn.Open();
+                result.TotalCount = (int)cmd.ExecuteScalar();
+            }
+
+            if (result.TotalCount > 0)
+            {
+                int skip = (query.PageIndex - 1) * query.PageSize;
+                string dataSql = $@"
+                    SELECT * FROM (
+                        SELECT ROW_NUMBER() OVER (ORDER BY SortOrder ASC, ItemId ASC) AS RowNum, *
+                        FROM RecyclableItems
+                        {whereClause}
+                    ) AS T
+                    WHERE RowNum > @Skip AND RowNum <= @Skip + @PageSize";
+
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    SqlCommand cmd = new SqlCommand(dataSql, conn);
+                    foreach (var param in parameters)
+                    {
+                        cmd.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+                    cmd.Parameters.AddWithValue("@Skip", skip);
+                    cmd.Parameters.AddWithValue("@PageSize", query.PageSize);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Items.Add(new RecyclableItems
+                            {
+                                ItemId = Convert.ToInt32(reader["ItemId"]),
+                                Name = reader["Name"].ToString(),
+                                Category = reader["Category"].ToString(),
+                                CategoryName = reader["CategoryName"].ToString(),
+                                PricePerKg = Convert.ToDecimal(reader["PricePerKg"]),
+                                Description = reader["Description"] != DBNull.Value ? reader["Description"].ToString() : null,
+                                SortOrder = Convert.ToInt32(reader["SortOrder"]),
+                                IsActive = Convert.ToBoolean(reader["IsActive"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// 获取所有品类（去重，含中文名称）
         /// </summary>
         public Dictionary<string, string> GetAllCategories()

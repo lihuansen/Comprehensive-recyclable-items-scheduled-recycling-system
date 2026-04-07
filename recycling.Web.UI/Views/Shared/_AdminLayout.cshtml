@@ -298,21 +298,36 @@
             <div class="navbar-user-info">
                 @if (Session["LoginStaff"] != null)
                 {
-                    var admin = (recycling.Model.Admins)Session["LoginStaff"];
-                    <div style="display: inline-flex; align-items: center; gap: 10px;">
-                        @if (!string.IsNullOrEmpty(admin.URL))
-                        {
-                            <img src="@admin.URL" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid white;" />
-                        }
-                        else
-                        {
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; border: 2px solid white;">
-                                <i class="fas fa-user-shield" style="font-size: 14px;"></i>
-                            </div>
-                        }
-                        <span>您好，管理员：@admin.Username</span>
-                    </div>
-                    @Html.ActionLink("退出登录", "Logout", "Staff")
+                    string _displayName = null;
+                    string _avatarUrl = null;
+                    var _staffRole = Session["StaffRole"] as string;
+                    if (_staffRole == "admin")
+                    {
+                        var _admin = Session["LoginStaff"] as recycling.Model.Admins;
+                        if (_admin != null) { _displayName = _admin.Username; _avatarUrl = _admin.URL; }
+                    }
+                    else if (_staffRole == "superadmin")
+                    {
+                        var _superAdmin = Session["LoginStaff"] as recycling.Model.SuperAdmins;
+                        if (_superAdmin != null) { _displayName = _superAdmin.Username; _avatarUrl = _superAdmin.URL; }
+                    }
+                    if (_displayName != null)
+                    {
+                        <div style="display: inline-flex; align-items: center; gap: 10px;">
+                            @if (!string.IsNullOrEmpty(_avatarUrl))
+                            {
+                                <img src="@_avatarUrl" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid white;" />
+                            }
+                            else
+                            {
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; border: 2px solid white;">
+                                    <i class="fas fa-user-shield" style="font-size: 14px;"></i>
+                                </div>
+                            }
+                            <span>您好，管理员：@_displayName</span>
+                        </div>
+                        @Html.ActionLink("退出登录", "Logout", "Staff")
+                    }
                 }
             </div>
 
