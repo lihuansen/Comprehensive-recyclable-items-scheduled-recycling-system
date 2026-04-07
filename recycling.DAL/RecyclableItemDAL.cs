@@ -245,21 +245,58 @@ namespace recycling.DAL
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"INSERT INTO RecyclableItems 
-                              (Name, Category, CategoryName, PricePerKg, Description, SortOrder, IsActive)
-                              VALUES (@Name, @Category, @CategoryName, @PricePerKg, @Description, @SortOrder, @IsActive)";
-
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Name", item.Name);
-                cmd.Parameters.AddWithValue("@Category", item.Category);
-                cmd.Parameters.AddWithValue("@CategoryName", item.CategoryName);
-                cmd.Parameters.AddWithValue("@PricePerKg", item.PricePerKg);
-                cmd.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@SortOrder", item.SortOrder);
-                cmd.Parameters.AddWithValue("@IsActive", item.IsActive);
-
                 conn.Open();
-                return cmd.ExecuteNonQuery() > 0;
+                using (SqlTransaction transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        int targetSortOrder = item.SortOrder.HasValue ? item.SortOrder.Value : 0;
+
+                        string conflictSql = "SELECT COUNT(1) FROM RecyclableItems WHERE SortOrder = @SortOrder";
+                        SqlCommand conflictCmd = new SqlCommand(conflictSql, conn, transaction);
+                        conflictCmd.Parameters.AddWithValue("@SortOrder", targetSortOrder);
+                        int conflictCount = Convert.ToInt32(conflictCmd.ExecuteScalar());
+
+                        if (conflictCount > 0)
+                        {
+                            string tempShiftSql = @"UPDATE RecyclableItems
+                                                    SET SortOrder = SortOrder + 1000000
+                                                    WHERE SortOrder >= @SortOrder";
+                            SqlCommand tempShiftCmd = new SqlCommand(tempShiftSql, conn, transaction);
+                            tempShiftCmd.Parameters.AddWithValue("@SortOrder", targetSortOrder);
+                            tempShiftCmd.ExecuteNonQuery();
+
+                            string normalizeShiftSql = @"UPDATE RecyclableItems
+                                                         SET SortOrder = SortOrder - 999999
+                                                         WHERE SortOrder >= @SortOrder";
+                            SqlCommand normalizeShiftCmd = new SqlCommand(normalizeShiftSql, conn, transaction);
+                            normalizeShiftCmd.Parameters.AddWithValue("@SortOrder", targetSortOrder + 1000000);
+                            normalizeShiftCmd.ExecuteNonQuery();
+                        }
+
+                        string sql = @"INSERT INTO RecyclableItems 
+                                      (Name, Category, CategoryName, PricePerKg, Description, SortOrder, IsActive)
+                                      VALUES (@Name, @Category, @CategoryName, @PricePerKg, @Description, @SortOrder, @IsActive)";
+
+                        SqlCommand cmd = new SqlCommand(sql, conn, transaction);
+                        cmd.Parameters.AddWithValue("@Name", item.Name);
+                        cmd.Parameters.AddWithValue("@Category", item.Category);
+                        cmd.Parameters.AddWithValue("@CategoryName", item.CategoryName);
+                        cmd.Parameters.AddWithValue("@PricePerKg", item.PricePerKg);
+                        cmd.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@SortOrder", targetSortOrder);
+                        cmd.Parameters.AddWithValue("@IsActive", item.IsActive ?? true);
+
+                        bool inserted = cmd.ExecuteNonQuery() > 0;
+                        transaction.Commit();
+                        return inserted;
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
             }
         }
 
@@ -270,28 +307,100 @@ namespace recycling.DAL
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = @"UPDATE RecyclableItems SET 
-                              Name = @Name,
-                              Category = @Category,
-                              CategoryName = @CategoryName,
-                              PricePerKg = @PricePerKg,
-                              Description = @Description,
-                              SortOrder = @SortOrder,
-                              IsActive = @IsActive
-                              WHERE ItemId = @ItemId";
-
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@ItemId", item.ItemId);
-                cmd.Parameters.AddWithValue("@Name", item.Name);
-                cmd.Parameters.AddWithValue("@Category", item.Category);
-                cmd.Parameters.AddWithValue("@CategoryName", item.CategoryName);
-                cmd.Parameters.AddWithValue("@PricePerKg", item.PricePerKg);
-                cmd.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@SortOrder", item.SortOrder);
-                cmd.Parameters.AddWithValue("@IsActive", item.IsActive);
-
                 conn.Open();
-                return cmd.ExecuteNonQuery() > 0;
+                using (SqlTransaction transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        int currentSortOrder = 0;
+                        string currentOrderSql = "SELECT SortOrder FROM RecyclableItems WHERE ItemId = @ItemId";
+                        SqlCommand currentOrderCmd = new SqlCommand(currentOrderSql, conn, transaction);
+                        currentOrderCmd.Parameters.AddWithValue("@ItemId", item.ItemId);
+                        object currentOrderObj = currentOrderCmd.ExecuteScalar();
+
+                        if (currentOrderObj == null || currentOrderObj == DBNull.Value)
+                        {
+                            transaction.Rollback();
+                            return false;
+                        }
+
+                        currentSortOrder = Convert.ToInt32(currentOrderObj);
+                        int targetSortOrder = item.SortOrder.HasValue ? item.SortOrder.Value : currentSortOrder;
+
+                        if (targetSortOrder != currentSortOrder)
+                        {
+                            string conflictSql = @"SELECT TOP 1 ItemId
+                                                   FROM RecyclableItems
+                                                   WHERE SortOrder = @SortOrder AND ItemId <> @ItemId
+                                                   ORDER BY ItemId ASC";
+                            SqlCommand conflictCmd = new SqlCommand(conflictSql, conn, transaction);
+                            conflictCmd.Parameters.AddWithValue("@SortOrder", targetSortOrder);
+                            conflictCmd.Parameters.AddWithValue("@ItemId", item.ItemId);
+                            object conflictItemIdObj = conflictCmd.ExecuteScalar();
+
+                            if (conflictItemIdObj != null && conflictItemIdObj != DBNull.Value)
+                            {
+                                int conflictItemId = Convert.ToInt32(conflictItemIdObj);
+                                string tempSortSql = "SELECT ISNULL(MIN(SortOrder), 0) - 1 FROM RecyclableItems";
+                                SqlCommand tempSortCmd = new SqlCommand(tempSortSql, conn, transaction);
+                                int tempSortOrder = Convert.ToInt32(tempSortCmd.ExecuteScalar());
+
+                                string tempMoveSql = @"UPDATE RecyclableItems
+                                                       SET SortOrder = @TempSortOrder
+                                                       WHERE ItemId = @ItemId";
+                                SqlCommand tempMoveCmd = new SqlCommand(tempMoveSql, conn, transaction);
+                                tempMoveCmd.Parameters.AddWithValue("@TempSortOrder", tempSortOrder);
+                                tempMoveCmd.Parameters.AddWithValue("@ItemId", conflictItemId);
+                                tempMoveCmd.ExecuteNonQuery();
+
+                                string moveCurrentSql = @"UPDATE RecyclableItems
+                                                          SET SortOrder = @TargetSortOrder
+                                                          WHERE ItemId = @ItemId";
+                                SqlCommand moveCurrentCmd = new SqlCommand(moveCurrentSql, conn, transaction);
+                                moveCurrentCmd.Parameters.AddWithValue("@TargetSortOrder", targetSortOrder);
+                                moveCurrentCmd.Parameters.AddWithValue("@ItemId", item.ItemId);
+                                moveCurrentCmd.ExecuteNonQuery();
+
+                                string swapBackSql = @"UPDATE RecyclableItems
+                                                       SET SortOrder = @CurrentSortOrder
+                                                       WHERE ItemId = @ItemId";
+                                SqlCommand swapBackCmd = new SqlCommand(swapBackSql, conn, transaction);
+                                swapBackCmd.Parameters.AddWithValue("@CurrentSortOrder", currentSortOrder);
+                                swapBackCmd.Parameters.AddWithValue("@ItemId", conflictItemId);
+                                swapBackCmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        string sql = @"UPDATE RecyclableItems SET 
+                                      Name = @Name,
+                                      Category = @Category,
+                                      CategoryName = @CategoryName,
+                                      PricePerKg = @PricePerKg,
+                                      Description = @Description,
+                                      SortOrder = @SortOrder,
+                                      IsActive = @IsActive
+                                      WHERE ItemId = @ItemId";
+
+                        SqlCommand cmd = new SqlCommand(sql, conn, transaction);
+                        cmd.Parameters.AddWithValue("@ItemId", item.ItemId);
+                        cmd.Parameters.AddWithValue("@Name", item.Name);
+                        cmd.Parameters.AddWithValue("@Category", item.Category);
+                        cmd.Parameters.AddWithValue("@CategoryName", item.CategoryName);
+                        cmd.Parameters.AddWithValue("@PricePerKg", item.PricePerKg);
+                        cmd.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@SortOrder", targetSortOrder);
+                        cmd.Parameters.AddWithValue("@IsActive", item.IsActive ?? true);
+
+                        bool updated = cmd.ExecuteNonQuery() > 0;
+                        transaction.Commit();
+                        return updated;
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
             }
         }
 
