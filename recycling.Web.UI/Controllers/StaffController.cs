@@ -42,6 +42,19 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// Extract model state validation errors as a single message.
+        /// </summary>
+        private string GetModelStateErrorMessage()
+        {
+            var errors = string.Join("；", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => string.IsNullOrEmpty(e.ErrorMessage) ? (e.Exception?.Message ?? string.Empty) : e.ErrorMessage)
+                .Where(m => !string.IsNullOrEmpty(m)));
+
+            return string.IsNullOrEmpty(errors) ? "请求参数无效" : errors;
+        }
+
+        /// <summary>
         /// Helper method to escape CSV fields (handles commas, quotes, newlines)
         /// </summary>
         private string EscapeCsvField(string field)
@@ -3613,11 +3626,7 @@ namespace recycling.Web.UI.Controllers
 
                 if (!ModelState.IsValid)
                 {
-                    var errors = string.Join("；", ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => string.IsNullOrEmpty(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
-                        .Where(m => !string.IsNullOrEmpty(m)));
-                    return JsonContent(new { success = false, message = string.IsNullOrEmpty(errors) ? "请求参数无效" : errors });
+                    return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
 
                 var (success, message) = _recyclableItemBLL.Add(item);
@@ -3656,11 +3665,7 @@ namespace recycling.Web.UI.Controllers
 
                 if (!ModelState.IsValid)
                 {
-                    var errors = string.Join("；", ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => string.IsNullOrEmpty(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
-                        .Where(m => !string.IsNullOrEmpty(m)));
-                    return JsonContent(new { success = false, message = string.IsNullOrEmpty(errors) ? "请求参数无效" : errors });
+                    return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
 
                 var (success, message) = _recyclableItemBLL.Update(item);

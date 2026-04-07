@@ -431,16 +431,32 @@
             var itemIdValue = $.trim($('#itemId').val());
             var priceValue = $.trim($('#pricePerKg').val());
             var sortOrderValue = $.trim($('#sortOrder').val());
+            var itemId = parseInt(itemIdValue, 10);
+            var pricePerKg = parseFloat(priceValue);
+            var sortOrder = parseInt(sortOrderValue, 10);
+
+            if (isEditMode && (isNaN(itemId) || itemId <= 0)) {
+                alert('无效的物品ID，请刷新页面后重试');
+                return;
+            }
+
+            if (isNaN(pricePerKg)) {
+                alert('价格格式无效，请输入正确的数字');
+                return;
+            }
+
+            sortOrder = isNaN(sortOrder) ? 0 : sortOrder;
+            var itemIdForSubmit = isEditMode ? itemId : 0;
 
             var data = {
-                ItemId: itemIdValue === '' ? 0 : itemIdValue,
+                ItemId: itemIdForSubmit,
                 Name: $.trim($('#name').val()),
                 Category: $.trim($('#category').val()),
                 CategoryName: $.trim($('#categoryName').val()),
-                PricePerKg: priceValue,
+                PricePerKg: pricePerKg,
                 Description: $.trim($('#description').val()),
-                SortOrder: sortOrderValue === '' ? 0 : sortOrderValue,
-                IsActive: $('#isActive').val(),
+                SortOrder: sortOrder,
+                IsActive: $('#isActive').val() === 'true',
                 __RequestVerificationToken: getAntiForgeryToken()
             };
 
