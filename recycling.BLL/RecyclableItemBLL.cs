@@ -105,6 +105,15 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) Add(RecyclableItems item)
         {
+            if (item == null)
+            {
+                return (false, "请求数据无效");
+            }
+
+            item.Name = item.Name?.Trim();
+            item.Category = item.Category?.Trim();
+            item.CategoryName = item.CategoryName?.Trim();
+
             // Validation
             if (string.IsNullOrEmpty(item.Name))
             {
@@ -121,17 +130,25 @@ namespace recycling.BLL
                 return (false, "品类名称不能为空");
             }
 
-            if (item.PricePerKg < 0)
+            if (!item.PricePerKg.HasValue)
+            {
+                return (false, "价格不能为空");
+            }
+
+            if (item.PricePerKg.Value < 0)
             {
                 return (false, "价格不能为负数");
             }
 
-            if (item.SortOrder < 0)
+            if (!item.SortOrder.HasValue || item.SortOrder.Value < 0)
             {
                 item.SortOrder = 0;
             }
 
-            item.IsActive = true;
+            if (!item.IsActive.HasValue)
+            {
+                item.IsActive = true;
+            }
 
             try
             {
@@ -149,6 +166,15 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) Update(RecyclableItems item)
         {
+            if (item == null)
+            {
+                return (false, "请求数据无效");
+            }
+
+            item.Name = item.Name?.Trim();
+            item.Category = item.Category?.Trim();
+            item.CategoryName = item.CategoryName?.Trim();
+
             // Validation
             if (item.ItemId <= 0)
             {
@@ -170,14 +196,24 @@ namespace recycling.BLL
                 return (false, "品类名称不能为空");
             }
 
-            if (item.PricePerKg < 0)
+            if (!item.PricePerKg.HasValue)
+            {
+                return (false, "价格不能为空");
+            }
+
+            if (item.PricePerKg.Value < 0)
             {
                 return (false, "价格不能为负数");
             }
 
-            if (item.SortOrder < 0)
+            if (!item.SortOrder.HasValue || item.SortOrder.Value < 0)
             {
                 item.SortOrder = 0;
+            }
+
+            if (!item.IsActive.HasValue)
+            {
+                item.IsActive = true;
             }
 
             try
