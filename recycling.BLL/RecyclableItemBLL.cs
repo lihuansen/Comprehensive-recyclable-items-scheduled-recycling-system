@@ -12,6 +12,14 @@ namespace recycling.BLL
     {
         // 依赖DAL层，与UserBLL中依赖UserDAL的方式一致
         private readonly RecyclableItemDAL _recyclableItemDAL = new RecyclableItemDAL();
+        private static readonly Dictionary<string, string> CategoryNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "glass", "玻璃" },
+            { "metal", "金属" },
+            { "plastic", "塑料" },
+            { "paper", "纸类" },
+            { "fabric", "纺织品" }
+        };
 
         /// <summary>
         /// 分页查询可回收物（处理参数有效性，调用DAL层）
@@ -110,9 +118,7 @@ namespace recycling.BLL
                 return (false, "请求数据无效");
             }
 
-            item.Name = item.Name?.Trim();
-            item.Category = item.Category?.Trim();
-            item.CategoryName = item.CategoryName?.Trim();
+            NormalizeItemFields(item);
 
             // Validation
             if (string.IsNullOrEmpty(item.Name))
@@ -171,9 +177,7 @@ namespace recycling.BLL
                 return (false, "请求数据无效");
             }
 
-            item.Name = item.Name?.Trim();
-            item.Category = item.Category?.Trim();
-            item.CategoryName = item.CategoryName?.Trim();
+            NormalizeItemFields(item);
 
             // Validation
             if (item.ItemId <= 0)
@@ -281,6 +285,33 @@ namespace recycling.BLL
             catch (Exception ex)
             {
                 throw new Exception("获取最大排序值失败：" + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Normalize recyclable item fields for consistent validation and persistence.
+        /// </summary>
+        private static void NormalizeItemFields(RecyclableItems item)
+        {
+            if (item == null)
+            {
+                return;
+            }
+
+            item.Name = item.Name?.Trim();
+            item.Category = item.Category?.Trim();
+            item.CategoryName = item.CategoryName?.Trim();
+
+            if (!string.IsNullOrEmpty(item.Category) && string.IsNullOrEmpty(item.CategoryName))
+            {
+                if (CategoryNameMap.TryGetValue(item.Category, out string categoryName))
+                {
+                    item.CategoryName = categoryName;
+                }
+                else
+                {
+                    item.CategoryName = item.Category;
+                }
             }
         }
     }
