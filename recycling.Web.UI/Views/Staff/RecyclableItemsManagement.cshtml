@@ -181,6 +181,7 @@
             </div>
             <div class="modal-body">
                 <form id="itemForm">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" id="itemId" name="ItemId" value="0" />
                     
                     <div class="form-group">
@@ -244,6 +245,7 @@
         var currentPage = 1;
         var pageSize = 10;
         var isEditMode = false;
+        var errorCodesWithServerMessages = [400, 404, 409, 422];
 
         var categoryMap = {
             'glass': '玻璃',
@@ -255,7 +257,11 @@
 
         // Helper function to get anti-forgery token
         function getAntiForgeryToken() {
-            return $('input[name="__RequestVerificationToken"]').val();
+            var token = $('#itemForm input[name="__RequestVerificationToken"]').val();
+            if (!token) {
+                token = $('.container-fluid > input[name="__RequestVerificationToken"]').first().val();
+            }
+            return token || '';
         }
 
         $(document).ready(function () {
@@ -476,8 +482,14 @@
                         alert('保存失败：' + response.message);
                     }
                 },
-                error: function () {
-                    alert('保存失败，请稍后重试');
+                error: function (xhr) {
+                    var message = '保存失败，请稍后重试';
+                    var statusCode = xhr && typeof xhr.status === 'number' ? xhr.status : 0;
+                    var canShowServerMessage = errorCodesWithServerMessages.includes(statusCode);
+                    if (canShowServerMessage && xhr.responseJSON && xhr.responseJSON.message) {
+                        message = '保存失败：' + xhr.responseJSON.message;
+                    }
+                    alert(message);
                 }
             });
         }
