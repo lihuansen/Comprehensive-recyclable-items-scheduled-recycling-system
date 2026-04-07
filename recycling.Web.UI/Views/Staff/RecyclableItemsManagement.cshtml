@@ -471,9 +471,6 @@
                 url: url,
                 type: 'POST',
                 dataType: 'json',
-                headers: {
-                    'RequestVerificationToken': getAntiForgeryToken()
-                },
                 data: data,
                 success: function (response) {
                     if (response.success) {
@@ -495,6 +492,7 @@
                                 message = '保存失败：' + responseObj.message;
                             }
                         } catch (e) {
+                            // Keep default fallback message when server response is not JSON.
                         }
                     }
                     alert(message);
