@@ -303,6 +303,10 @@ namespace recycling.BLL
                 {
                     item.CategoryName = categoryName;
                 }
+                else
+                {
+                    item.CategoryName = item.Category;
+                }
             }
         }
     }
