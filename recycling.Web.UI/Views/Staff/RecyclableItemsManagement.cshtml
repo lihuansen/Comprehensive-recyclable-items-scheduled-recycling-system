@@ -245,6 +245,7 @@
         var currentPage = 1;
         var pageSize = 10;
         var isEditMode = false;
+        var safeClientErrorCodes = [400, 401, 403, 404, 409, 422];
 
         var categoryMap = {
             'glass': '玻璃',
@@ -483,7 +484,7 @@
                 },
                 error: function (xhr) {
                     var message = '保存失败，请稍后重试';
-                    var canShowServerMessage = xhr && [400, 401, 403, 404, 409, 422].indexOf(xhr.status) !== -1;
+                    var canShowServerMessage = xhr && safeClientErrorCodes.includes(xhr.status);
                     if (canShowServerMessage && xhr.responseJSON && xhr.responseJSON.message) {
                         message = '保存失败：' + xhr.responseJSON.message;
                     }
