@@ -3560,7 +3560,7 @@ namespace recycling.Web.UI.Controllers
                     PageIndex = page,
                     PageSize = pageSize
                 };
-                var result = _recyclableItemBLL.GetPagedItems(query);
+                var result = _recyclableItemBLL.GetPagedItemsForAdmin(query);
                 return JsonContent(new { success = true, data = result });
             }
             catch (Exception ex)

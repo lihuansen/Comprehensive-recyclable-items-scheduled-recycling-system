@@ -39,6 +39,20 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 分页查询所有可回收物（管理端使用，不过滤IsActive状态）
+        /// </summary>
+        public PagedResult<RecyclableItems> GetPagedItemsForAdmin(RecyclableQueryModel query)
+        {
+            if (query == null)
+                throw new ArgumentNullException("查询参数不能为空");
+
+            if (query.PageIndex < 1)
+                query.PageIndex = 1;
+
+            return _recyclableItemDAL.GetPagedItemsForAdmin(query);
+        }
+
+        /// <summary>
         /// 获取所有可回收物品类（供筛选下拉框使用）
         /// </summary>
         public Dictionary<string, string> GetAllCategories()
