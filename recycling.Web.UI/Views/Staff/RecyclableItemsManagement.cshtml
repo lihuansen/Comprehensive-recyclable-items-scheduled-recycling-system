@@ -483,18 +483,9 @@
                 },
                 error: function (xhr) {
                     var message = '保存失败，请稍后重试';
-                    var canShowServerMessage = xhr && xhr.status > 0 && xhr.status < 500;
+                    var canShowServerMessage = xhr && [400, 401, 403, 404, 409, 422].indexOf(xhr.status) !== -1;
                     if (canShowServerMessage && xhr.responseJSON && xhr.responseJSON.message) {
                         message = '保存失败：' + xhr.responseJSON.message;
-                    } else if (canShowServerMessage && xhr.responseText) {
-                        try {
-                            var responseObj = JSON.parse(xhr.responseText);
-                            if (responseObj && responseObj.message) {
-                                message = '保存失败：' + responseObj.message;
-                            }
-                        } catch (e) {
-                            // Keep default fallback message when server response is not JSON.
-                        }
                     }
                     alert(message);
                 }
