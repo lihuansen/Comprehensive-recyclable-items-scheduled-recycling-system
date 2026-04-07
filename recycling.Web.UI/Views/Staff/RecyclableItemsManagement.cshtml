@@ -483,9 +483,10 @@
                 },
                 error: function (xhr) {
                     var message = '保存失败，请稍后重试';
-                    if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+                    var canShowServerMessage = xhr && xhr.status > 0 && xhr.status < 500;
+                    if (canShowServerMessage && xhr.responseJSON && xhr.responseJSON.message) {
                         message = '保存失败：' + xhr.responseJSON.message;
-                    } else if (xhr && xhr.responseText) {
+                    } else if (canShowServerMessage && xhr.responseText) {
                         try {
                             var responseObj = JSON.parse(xhr.responseText);
                             if (responseObj && responseObj.message) {
