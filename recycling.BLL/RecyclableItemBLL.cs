@@ -293,6 +293,11 @@ namespace recycling.BLL
         /// </summary>
         private static void NormalizeItemFields(RecyclableItems item)
         {
+            if (item == null)
+            {
+                return;
+            }
+
             item.Name = item.Name?.Trim();
             item.Category = item.Category?.Trim();
             item.CategoryName = item.CategoryName?.Trim();
