@@ -428,15 +428,19 @@
             // Update category name based on selected category
             updateCategoryName();
 
+            var itemIdValue = $.trim($('#itemId').val());
+            var priceValue = $.trim($('#pricePerKg').val());
+            var sortOrderValue = $.trim($('#sortOrder').val());
+
             var data = {
-                ItemId: parseInt($('#itemId').val()),
-                Name: $('#name').val(),
-                Category: $('#category').val(),
-                CategoryName: $('#categoryName').val(),
-                PricePerKg: parseFloat($('#pricePerKg').val()),
-                Description: $('#description').val(),
-                SortOrder: parseInt($('#sortOrder').val()),
-                IsActive: $('#isActive').val() === 'true',
+                ItemId: itemIdValue === '' ? 0 : itemIdValue,
+                Name: $.trim($('#name').val()),
+                Category: $.trim($('#category').val()),
+                CategoryName: $.trim($('#categoryName').val()),
+                PricePerKg: priceValue,
+                Description: $.trim($('#description').val()),
+                SortOrder: sortOrderValue === '' ? 0 : sortOrderValue,
+                IsActive: $('#isActive').val(),
                 __RequestVerificationToken: getAntiForgeryToken()
             };
 

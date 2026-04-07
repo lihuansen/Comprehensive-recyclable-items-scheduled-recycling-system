@@ -3606,8 +3606,19 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请先登录" });
 
                 var staffRole = Session["StaffRole"] as string;
-                if (staffRole != "admin" && staffRole != "superadmin")
+                bool isAdminRole = string.Equals(staffRole, "admin", StringComparison.OrdinalIgnoreCase)
+                                   || string.Equals(staffRole, "superadmin", StringComparison.OrdinalIgnoreCase);
+                if (!isAdminRole)
                     return JsonContent(new { success = false, message = "权限不足" });
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = string.Join("；", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => string.IsNullOrEmpty(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
+                        .Where(m => !string.IsNullOrEmpty(m)));
+                    return JsonContent(new { success = false, message = string.IsNullOrEmpty(errors) ? "请求参数无效" : errors });
+                }
 
                 var (success, message) = _recyclableItemBLL.Add(item);
                 
@@ -3638,8 +3649,19 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请先登录" });
 
                 var staffRole = Session["StaffRole"] as string;
-                if (staffRole != "admin" && staffRole != "superadmin")
+                bool isAdminRole = string.Equals(staffRole, "admin", StringComparison.OrdinalIgnoreCase)
+                                   || string.Equals(staffRole, "superadmin", StringComparison.OrdinalIgnoreCase);
+                if (!isAdminRole)
                     return JsonContent(new { success = false, message = "权限不足" });
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = string.Join("；", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => string.IsNullOrEmpty(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
+                        .Where(m => !string.IsNullOrEmpty(m)));
+                    return JsonContent(new { success = false, message = string.IsNullOrEmpty(errors) ? "请求参数无效" : errors });
+                }
 
                 var (success, message) = _recyclableItemBLL.Update(item);
                 
