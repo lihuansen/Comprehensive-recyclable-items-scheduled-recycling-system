@@ -298,25 +298,25 @@
             <div class="navbar-user-info">
                 @if (Session["LoginStaff"] != null)
                 {
-                    string _displayName = null;
-                    string _avatarUrl = null;
-                    var _staffRole = Session["StaffRole"] as string;
-                    if (_staffRole == "admin")
+                    string displayName = null;
+                    string avatarUrl = null;
+                    var staffRole = Session["StaffRole"] as string;
+                    if (staffRole == "admin")
                     {
-                        var _admin = Session["LoginStaff"] as recycling.Model.Admins;
-                        if (_admin != null) { _displayName = _admin.Username; _avatarUrl = _admin.URL; }
+                        var admin = Session["LoginStaff"] as recycling.Model.Admins;
+                        if (admin != null) { displayName = admin.Username; avatarUrl = admin.URL; }
                     }
-                    else if (_staffRole == "superadmin")
+                    else if (staffRole == "superadmin")
                     {
-                        var _superAdmin = Session["LoginStaff"] as recycling.Model.SuperAdmins;
-                        if (_superAdmin != null) { _displayName = _superAdmin.Username; _avatarUrl = _superAdmin.URL; }
+                        var superAdmin = Session["LoginStaff"] as recycling.Model.SuperAdmins;
+                        if (superAdmin != null) { displayName = superAdmin.Username; avatarUrl = superAdmin.URL; }
                     }
-                    if (_displayName != null)
+                    if (displayName != null)
                     {
                         <div style="display: inline-flex; align-items: center; gap: 10px;">
-                            @if (!string.IsNullOrEmpty(_avatarUrl))
+                            @if (!string.IsNullOrEmpty(avatarUrl))
                             {
-                                <img src="@_avatarUrl" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid white;" />
+                                <img src="@avatarUrl" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid white;" />
                             }
                             else
                             {
@@ -324,7 +324,7 @@
                                     <i class="fas fa-user-shield" style="font-size: 14px;"></i>
                                 </div>
                             }
-                            <span>您好，管理员：@_displayName</span>
+                            <span>您好，管理员：@displayName</span>
                         </div>
                         @Html.ActionLink("退出登录", "Logout", "Staff")
                     }
