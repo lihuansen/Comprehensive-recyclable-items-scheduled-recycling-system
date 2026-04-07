@@ -245,7 +245,7 @@
         var currentPage = 1;
         var pageSize = 10;
         var isEditMode = false;
-        var errorCodesWithServerMessages = [400, 401, 403, 404, 409, 422];
+        var errorCodesWithServerMessages = [400, 404, 409, 422];
 
         var categoryMap = {
             'glass': '玻璃',
@@ -259,7 +259,7 @@
         function getAntiForgeryToken() {
             var token = $('#itemForm input[name="__RequestVerificationToken"]').val();
             if (!token) {
-                token = $('input[name="__RequestVerificationToken"]').first().val();
+                token = $('.container-fluid > input[name="__RequestVerificationToken"]').first().val();
             }
             return token || '';
         }
