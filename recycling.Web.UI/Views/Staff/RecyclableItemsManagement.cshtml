@@ -181,6 +181,7 @@
             </div>
             <div class="modal-body">
                 <form id="itemForm">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" id="itemId" name="ItemId" value="0" />
                     
                     <div class="form-group">
@@ -255,7 +256,11 @@
 
         // Helper function to get anti-forgery token
         function getAntiForgeryToken() {
-            return $('input[name="__RequestVerificationToken"]').val();
+            var token = $('#itemForm input[name="__RequestVerificationToken"]').val();
+            if (!token) {
+                token = $('input[name="__RequestVerificationToken"]').first().val();
+            }
+            return token || '';
         }
 
         $(document).ready(function () {
@@ -466,6 +471,9 @@
                 url: url,
                 type: 'POST',
                 dataType: 'json',
+                headers: {
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
                 data: data,
                 success: function (response) {
                     if (response.success) {
@@ -476,8 +484,20 @@
                         alert('保存失败：' + response.message);
                     }
                 },
-                error: function () {
-                    alert('保存失败，请稍后重试');
+                error: function (xhr) {
+                    var message = '保存失败，请稍后重试';
+                    if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+                        message = '保存失败：' + xhr.responseJSON.message;
+                    } else if (xhr && xhr.responseText) {
+                        try {
+                            var responseObj = JSON.parse(xhr.responseText);
+                            if (responseObj && responseObj.message) {
+                                message = '保存失败：' + responseObj.message;
+                            }
+                        } catch (e) {
+                        }
+                    }
+                    alert(message);
                 }
             });
         }
