@@ -150,8 +150,6 @@ namespace recycling.BLL
                 item.IsActive = true;
             }
 
-            item.IsActive = true;
-
             try
             {
                 bool result = _recyclableItemDAL.Add(item);

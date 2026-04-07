@@ -267,7 +267,7 @@ namespace recycling.DAL
                             tempShiftCmd.ExecuteNonQuery();
 
                             string normalizeShiftSql = @"UPDATE RecyclableItems
-                                                         SET SortOrder = SortOrder - 999999
+                                                         SET SortOrder = SortOrder - 1000000 + 1
                                                          WHERE SortOrder >= @SortOrder";
                             SqlCommand normalizeShiftCmd = new SqlCommand(normalizeShiftSql, conn, transaction);
                             normalizeShiftCmd.Parameters.AddWithValue("@SortOrder", targetSortOrder + 1000000);
