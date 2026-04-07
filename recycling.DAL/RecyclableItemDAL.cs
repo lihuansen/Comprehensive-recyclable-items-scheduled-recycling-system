@@ -285,7 +285,7 @@ namespace recycling.DAL
                         cmd.Parameters.AddWithValue("@PricePerKg", item.PricePerKg);
                         cmd.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@SortOrder", targetSortOrder);
-                        cmd.Parameters.AddWithValue("@IsActive", item.IsActive ?? true);
+                        cmd.Parameters.AddWithValue("@IsActive", item.IsActive);
 
                         bool inserted = cmd.ExecuteNonQuery() > 0;
                         transaction.Commit();
@@ -341,7 +341,7 @@ namespace recycling.DAL
                             if (conflictItemIdObj != null && conflictItemIdObj != DBNull.Value)
                             {
                                 int conflictItemId = Convert.ToInt32(conflictItemIdObj);
-                                string tempSortSql = "SELECT ISNULL(MIN(SortOrder), 0) - 1 FROM RecyclableItems";
+                                string tempSortSql = "SELECT ISNULL(MAX(SortOrder), 0) + 1000000 FROM RecyclableItems";
                                 SqlCommand tempSortCmd = new SqlCommand(tempSortSql, conn, transaction);
                                 int tempSortOrder = Convert.ToInt32(tempSortCmd.ExecuteScalar());
 
@@ -389,7 +389,7 @@ namespace recycling.DAL
                         cmd.Parameters.AddWithValue("@PricePerKg", item.PricePerKg);
                         cmd.Parameters.AddWithValue("@Description", item.Description ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@SortOrder", targetSortOrder);
-                        cmd.Parameters.AddWithValue("@IsActive", item.IsActive ?? true);
+                        cmd.Parameters.AddWithValue("@IsActive", item.IsActive);
 
                         bool updated = cmd.ExecuteNonQuery() > 0;
                         transaction.Commit();

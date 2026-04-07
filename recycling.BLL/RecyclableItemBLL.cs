@@ -145,6 +145,11 @@ namespace recycling.BLL
                 item.SortOrder = 0;
             }
 
+            if (!item.IsActive.HasValue)
+            {
+                item.IsActive = true;
+            }
+
             item.IsActive = true;
 
             try
@@ -206,6 +211,11 @@ namespace recycling.BLL
             if (!item.SortOrder.HasValue || item.SortOrder.Value < 0)
             {
                 item.SortOrder = 0;
+            }
+
+            if (!item.IsActive.HasValue)
+            {
+                item.IsActive = true;
             }
 
             try
