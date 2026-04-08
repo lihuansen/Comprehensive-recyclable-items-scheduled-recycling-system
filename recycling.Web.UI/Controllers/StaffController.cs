@@ -78,6 +78,21 @@ namespace recycling.Web.UI.Controllers
             return string.IsNullOrEmpty(errors) ? "请求参数无效" : errors;
         }
 
+        private static RecyclableItems MapToRecyclableItem(RecyclableItemInputModel input)
+        {
+            return new RecyclableItems
+            {
+                ItemID = input?.ItemId ?? 0,
+                Name = input?.Name,
+                Category = input?.Category,
+                CategoryName = input?.CategoryName,
+                PricePerKg = input?.PricePerKg,
+                Description = input?.Description,
+                SortOrder = input?.SortOrder,
+                IsActive = input?.IsActive
+            };
+        }
+
         /// <summary>
         /// Helper method to escape CSV fields (handles commas, quotes, newlines)
         /// </summary>
@@ -3653,17 +3668,7 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
 
-                var item = new RecyclableItems
-                {
-                    ItemID = input?.ItemId ?? 0,
-                    Name = input?.Name,
-                    Category = input?.Category,
-                    CategoryName = input?.CategoryName,
-                    PricePerKg = input?.PricePerKg,
-                    Description = input?.Description,
-                    SortOrder = input?.SortOrder,
-                    IsActive = input?.IsActive
-                };
+                var item = MapToRecyclableItem(input);
 
                 var (success, message) = _recyclableItemBLL.Add(item);
                 
@@ -3704,17 +3709,7 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
 
-                var item = new RecyclableItems
-                {
-                    ItemID = input?.ItemId ?? 0,
-                    Name = input?.Name,
-                    Category = input?.Category,
-                    CategoryName = input?.CategoryName,
-                    PricePerKg = input?.PricePerKg,
-                    Description = input?.Description,
-                    SortOrder = input?.SortOrder,
-                    IsActive = input?.IsActive
-                };
+                var item = MapToRecyclableItem(input);
 
                 var (success, message) = _recyclableItemBLL.Update(item);
                 
