@@ -80,16 +80,21 @@ namespace recycling.Web.UI.Controllers
 
         private static RecyclableItems MapToRecyclableItem(RecyclableItemInputModel input)
         {
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
             return new RecyclableItems
             {
-                ItemID = input?.ItemId ?? 0,
-                Name = input?.Name,
-                Category = input?.Category,
-                CategoryName = input?.CategoryName,
-                PricePerKg = input?.PricePerKg,
-                Description = input?.Description,
-                SortOrder = input?.SortOrder,
-                IsActive = input?.IsActive
+                ItemID = input.ItemId,
+                Name = input.Name,
+                Category = input.Category,
+                CategoryName = input.CategoryName,
+                PricePerKg = input.PricePerKg,
+                Description = input.Description,
+                SortOrder = input.SortOrder,
+                IsActive = input.IsActive
             };
         }
 
@@ -3668,6 +3673,11 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
 
+                if (input == null)
+                {
+                    return JsonContent(new { success = false, message = "请求数据无效" });
+                }
+
                 var item = MapToRecyclableItem(input);
 
                 var (success, message) = _recyclableItemBLL.Add(item);
@@ -3707,6 +3717,11 @@ namespace recycling.Web.UI.Controllers
                 if (!ModelState.IsValid)
                 {
                     return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
+                }
+
+                if (input == null)
+                {
+                    return JsonContent(new { success = false, message = "请求数据无效" });
                 }
 
                 var item = MapToRecyclableItem(input);
