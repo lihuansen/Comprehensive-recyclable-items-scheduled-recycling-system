@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.ComponentModel.DataAnnotations;
 using recycling.BLL;
 using recycling.DAL;
 using recycling.Model;
@@ -28,6 +29,29 @@ namespace recycling.Web.UI.Controllers
         private readonly TransportationOrderBLL _transportationOrderBLL = new TransportationOrderBLL();
         private readonly WarehouseReceiptBLL _warehouseReceiptBLL = new WarehouseReceiptBLL();
 
+        public class RecyclableItemInputModel
+        {
+            public int ItemId { get; set; }
+
+            [StringLength(50)]
+            public string Name { get; set; }
+
+            [StringLength(50)]
+            public string Category { get; set; }
+
+            [StringLength(50)]
+            public string CategoryName { get; set; }
+
+            public decimal? PricePerKg { get; set; }
+
+            [StringLength(200)]
+            public string Description { get; set; }
+
+            public int? SortOrder { get; set; }
+
+            public bool? IsActive { get; set; }
+        }
+
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
         private static readonly string[] AllowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
@@ -52,6 +76,26 @@ namespace recycling.Web.UI.Controllers
                 .Where(m => !string.IsNullOrEmpty(m)));
 
             return string.IsNullOrEmpty(errors) ? "请求参数无效" : errors;
+        }
+
+        private static RecyclableItems MapToRecyclableItem(RecyclableItemInputModel input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            return new RecyclableItems
+            {
+                ItemID = input.ItemId,
+                Name = input.Name,
+                Category = input.Category,
+                CategoryName = input.CategoryName,
+                PricePerKg = input.PricePerKg,
+                Description = input.Description,
+                SortOrder = input.SortOrder,
+                IsActive = input.IsActive
+            };
         }
 
         /// <summary>
@@ -3611,7 +3655,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ContentResult AddRecyclableItem(RecyclableItems item)
+        public ContentResult AddRecyclableItem(RecyclableItemInputModel input)
         {
             try
             {
@@ -3628,6 +3672,13 @@ namespace recycling.Web.UI.Controllers
                 {
                     return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
+
+                if (input == null)
+                {
+                    return JsonContent(new { success = false, message = "请求数据无效" });
+                }
+
+                var item = MapToRecyclableItem(input);
 
                 var (success, message) = _recyclableItemBLL.Add(item);
                 
@@ -3650,7 +3701,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ContentResult UpdateRecyclableItem(RecyclableItems item)
+        public ContentResult UpdateRecyclableItem(RecyclableItemInputModel input)
         {
             try
             {
@@ -3667,6 +3718,13 @@ namespace recycling.Web.UI.Controllers
                 {
                     return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
+
+                if (input == null)
+                {
+                    return JsonContent(new { success = false, message = "请求数据无效" });
+                }
+
+                var item = MapToRecyclableItem(input);
 
                 var (success, message) = _recyclableItemBLL.Update(item);
                 
