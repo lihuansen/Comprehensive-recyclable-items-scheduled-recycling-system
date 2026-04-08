@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.ComponentModel.DataAnnotations;
 using recycling.BLL;
 using recycling.DAL;
 using recycling.Model;
@@ -27,6 +28,29 @@ namespace recycling.Web.UI.Controllers
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
         private readonly TransportationOrderBLL _transportationOrderBLL = new TransportationOrderBLL();
         private readonly WarehouseReceiptBLL _warehouseReceiptBLL = new WarehouseReceiptBLL();
+
+        public class RecyclableItemInputModel
+        {
+            public int ItemId { get; set; }
+
+            [StringLength(50)]
+            public string Name { get; set; }
+
+            [StringLength(50)]
+            public string Category { get; set; }
+
+            [StringLength(50)]
+            public string CategoryName { get; set; }
+
+            public decimal? PricePerKg { get; set; }
+
+            [StringLength(200)]
+            public string Description { get; set; }
+
+            public int? SortOrder { get; set; }
+
+            public bool? IsActive { get; set; }
+        }
 
         // File upload constants
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
@@ -3611,7 +3635,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ContentResult AddRecyclableItem(RecyclableItems item)
+        public ContentResult AddRecyclableItem(RecyclableItemInputModel input)
         {
             try
             {
@@ -3628,6 +3652,18 @@ namespace recycling.Web.UI.Controllers
                 {
                     return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
+
+                var item = new RecyclableItems
+                {
+                    ItemID = input?.ItemId ?? 0,
+                    Name = input?.Name,
+                    Category = input?.Category,
+                    CategoryName = input?.CategoryName,
+                    PricePerKg = input?.PricePerKg,
+                    Description = input?.Description,
+                    SortOrder = input?.SortOrder,
+                    IsActive = input?.IsActive
+                };
 
                 var (success, message) = _recyclableItemBLL.Add(item);
                 
@@ -3650,7 +3686,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ContentResult UpdateRecyclableItem(RecyclableItems item)
+        public ContentResult UpdateRecyclableItem(RecyclableItemInputModel input)
         {
             try
             {
@@ -3667,6 +3703,18 @@ namespace recycling.Web.UI.Controllers
                 {
                     return JsonContent(new { success = false, message = GetModelStateErrorMessage() });
                 }
+
+                var item = new RecyclableItems
+                {
+                    ItemID = input?.ItemId ?? 0,
+                    Name = input?.Name,
+                    Category = input?.Category,
+                    CategoryName = input?.CategoryName,
+                    PricePerKg = input?.PricePerKg,
+                    Description = input?.Description,
+                    SortOrder = input?.SortOrder,
+                    IsActive = input?.IsActive
+                };
 
                 var (success, message) = _recyclableItemBLL.Update(item);
                 
