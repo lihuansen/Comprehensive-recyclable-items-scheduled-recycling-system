@@ -629,7 +629,11 @@
                         <label for="manualCategorySelect"><strong>品类：</strong> <span style="color: red;">*</span></label>
                         <select class="form-control" id="manualCategorySelect">
                             <option value="">请选择品类</option>
-                            @foreach (var category in (System.Collections.Generic.IDictionary<string, string>)(ViewBag.ManualCategoryOptions ?? recycling.Model.RecyclingCategories.AllCategories))
+                            @{
+                                var manualCategoryOptions = ViewBag.ManualCategoryOptions as System.Collections.Generic.IDictionary<string, string>
+                                    ?? recycling.Model.RecyclingCategories.AllCategories;
+                            }
+                            @foreach (var category in manualCategoryOptions)
                             {
                                 <option value="@category.Key">@category.Value</option>
                             }
@@ -1268,7 +1272,7 @@
         var weight = parseFloat($('#manualWeight').val());
         var price = parseFloat($('#manualPrice').val());
 
-        if (!categoryKey || !categoryName || categoryName === '请选择品类') {
+        if (!categoryKey || !categoryName) {
             alert('请选择品类');
             return;
         }
