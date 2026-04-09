@@ -1,0 +1,226 @@
+@model recycling.Model.WarehouseReceiptSubdivisionViewModel
+@using Newtonsoft.Json
+@{
+    ViewBag.Title = "入库单细分";
+    Layout = "~/Views/Shared/_SortingCenterWorkerLayout.cshtml";
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .subdivision-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .card { background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.06); margin-bottom: 20px; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid #eee; font-weight: 600; color: #2c3e50; }
+    .card-body { padding: 20px; }
+    .info-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .info-item { background: #f8f9fa; border-radius: 8px; padding: 10px; }
+    .info-label { color: #666; font-size: 12px; }
+    .info-value { color: #2c3e50; font-weight: 600; margin-top: 4px; }
+    .category-block { border: 1px solid #e6e6e6; border-radius: 8px; margin-bottom: 16px; }
+    .category-header { padding: 12px 14px; background: #f8fbff; border-bottom: 1px solid #e6e6e6; display: flex; justify-content: space-between; align-items: center; }
+    .category-title { font-weight: 600; color: #2c3e50; }
+    .category-target { color: #555; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: left; }
+    th { color: #444; background: #fafafa; }
+    .text-right { text-align: right; }
+    .weight-input { width: 120px; text-align: right; }
+    .status-ok { color: #27ae60; font-weight: 600; }
+    .status-error { color: #e74c3c; font-weight: 600; }
+    .actions { display: flex; justify-content: space-between; margin-top: 20px; }
+    .btn { border: none; border-radius: 6px; padding: 10px 16px; cursor: pointer; }
+    .btn-back { background: #95a5a6; color: #fff; }
+    .btn-save { background: #27ae60; color: #fff; }
+    .btn-save:disabled { background: #bdc3c7; cursor: not-allowed; }
+    @@media (max-width: 992px) { .info-grid { grid-template-columns: repeat(2,1fr);} }
+</style>
+
+<div class="subdivision-container">
+    <div class="card">
+        <div class="card-header">入库单细分</div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div class="info-item"><div class="info-label">入库单号</div><div class="info-value">@Model.ReceiptNumber</div></div>
+                <div class="info-item"><div class="info-label">状态</div><div class="info-value">@Model.Status</div></div>
+                <div class="info-item"><div class="info-label">入库总重量(kg)</div><div class="info-value" id="receiptTotalWeight">@Model.TotalWeight.ToString("F2")</div></div>
+                <div class="info-item"><div class="info-label">细分状态</div><div class="info-value">@(Model.IsRefined ? "已细分" : "未细分")</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">按大类细分（每个大类细分重量之和必须等于原重量）</div>
+        <div class="card-body" id="subdivisionArea"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">汇总</div>
+        <div class="card-body">
+            <div>细分总重量：<span id="totalWeightText">0.00</span> kg</div>
+            <div>细分总价值：<span id="totalPriceText">¥0.00</span></div>
+            <div id="overallStatus" class="status-error">请完成细分并满足重量守恒</div>
+            <div class="actions">
+                <button class="btn btn-back" onclick="goBack()">返回仓库管理</button>
+                <button id="saveBtn" class="btn btn-save" onclick="saveSubdivision()" disabled>保存细分</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var receiptId = @Model.ReceiptID;
+    var receiptTotalWeight = @Model.TotalWeight.ToString("F2");
+    var weightTolerance = @Model.ValidationTolerance.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+    var parentCategories = @Html.Raw(JsonConvert.SerializeObject(Model.Categories));
+    var templateGroups = @Html.Raw(JsonConvert.SerializeObject(Model.SubdivisionTemplates));
+
+    function goBack() {
+        window.location.href = '@Url.Action("BaseWarehouseManagement", "Staff")';
+    }
+
+    function escapeHtml(v) {
+        return $('<div>').text(v || '').html();
+    }
+
+    function findTemplateOptions(parentKey) {
+        for (var i = 0; i < templateGroups.length; i++) {
+            if (templateGroups[i].ParentCategoryKey === parentKey) return templateGroups[i].Options || [];
+        }
+        return [];
+    }
+
+    function buildRows(parentKey, parentName, parentWeight, options) {
+        var html = '';
+        for (var i = 0; i < options.length; i++) {
+            var opt = options[i];
+            var defaultWeight = (i === 0) ? Number(parentWeight) : 0;
+            var rowPrice = defaultWeight * Number(opt.PricePerKg || 0);
+            var subKey = parentKey + '_' + (opt.SubCategoryKey || ('sub' + i));
+            var subName = (opt.SubCategoryName || ('细分' + (i + 1)));
+            html += '<tr class="sub-row" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '" data-sub-key="' + escapeHtml(subKey) + '" data-sub-name="' + escapeHtml(subName) + '">' +
+                '<td>' + escapeHtml(opt.SubCategoryName) + '</td>' +
+                '<td class="text-right">' + Number(opt.PricePerKg || 0).toFixed(2) + '</td>' +
+                '<td class="text-right"><input class="weight-input" type="number" min="0" step="0.01" value="' + defaultWeight.toFixed(2) + '" data-price-per-kg="' + Number(opt.PricePerKg || 0).toFixed(2) + '" oninput="recalc()" /></td>' +
+                '<td class="text-right amount-cell">¥' + rowPrice.toFixed(2) + '</td>' +
+            '</tr>';
+        }
+        return html;
+    }
+
+    function renderCategories() {
+        var area = $('#subdivisionArea');
+        area.empty();
+
+        for (var i = 0; i < parentCategories.length; i++) {
+            var parent = parentCategories[i];
+            var options = findTemplateOptions(parent.CategoryKey);
+            if (!options || options.length === 0) {
+                continue;
+            }
+
+            var block = '<div class="category-block" data-parent-key="' + escapeHtml(parent.CategoryKey) + '" data-target-weight="' + Number(parent.Weight || 0).toFixed(2) + '">' +
+                '<div class="category-header"><div class="category-title">' + escapeHtml(parent.CategoryName) + '</div>' +
+                '<div class="category-target">目标重量：' + Number(parent.Weight || 0).toFixed(2) + ' kg | 当前：<span class="current-weight">0.00</span> kg | 差值：<span class="diff-weight">0.00</span></div></div>' +
+                '<div><table><thead><tr><th>细分类</th><th class="text-right">单价(元/kg)</th><th class="text-right">重量(kg)</th><th class="text-right">金额(元)</th></tr></thead>' +
+                '<tbody>' + buildRows(parent.CategoryKey, parent.CategoryName, parent.Weight || 0, options) + '</tbody></table></div></div>';
+            area.append(block);
+        }
+
+        recalc();
+    }
+
+    function recalc() {
+        var totalWeight = 0;
+        var totalPrice = 0;
+        var allCategoryValid = true;
+
+        $('.category-block').each(function () {
+            var block = $(this);
+            var target = Number(block.data('target-weight') || 0);
+            var current = 0;
+
+            block.find('tbody tr').each(function () {
+                var row = $(this);
+                var input = row.find('input.weight-input');
+                var weight = Number(input.val() || 0);
+                if (weight < 0) weight = 0;
+                var ppk = Number(input.data('price-per-kg') || 0);
+                var amount = weight * ppk;
+
+                current += weight;
+                totalWeight += weight;
+                totalPrice += amount;
+                row.find('.amount-cell').text('¥' + amount.toFixed(2));
+            });
+
+            var diff = current - target;
+            block.find('.current-weight').text(current.toFixed(2));
+            block.find('.diff-weight').text(diff.toFixed(2));
+            block.find('.diff-weight').removeClass('status-ok status-error').addClass(Math.abs(diff) <= weightTolerance ? 'status-ok' : 'status-error');
+
+            if (Math.abs(diff) > weightTolerance) allCategoryValid = false;
+        });
+
+        $('#totalWeightText').text(totalWeight.toFixed(2));
+        $('#totalPriceText').text('¥' + totalPrice.toFixed(2));
+
+        var receiptWeight = Number(receiptTotalWeight || 0);
+        var overallValid = allCategoryValid && Math.abs(totalWeight - receiptWeight) <= weightTolerance;
+        $('#overallStatus').removeClass('status-ok status-error').addClass(overallValid ? 'status-ok' : 'status-error')
+            .text(overallValid ? '校验通过，可保存细分' : '请完成细分并满足重量守恒');
+
+        $('#saveBtn').prop('disabled', !overallValid);
+    }
+
+    function collectSubdivisionData() {
+        var items = [];
+        $('.sub-row').each(function () {
+            var row = $(this);
+            var weight = Number(row.find('input.weight-input').val() || 0);
+            if (weight <= 0) return;
+
+            var pricePerKg = Number(row.find('input.weight-input').data('price-per-kg') || 0);
+            items.push({
+                categoryKey: row.data('sub-key'),
+                categoryName: row.data('sub-name'),
+                parentCategoryKey: row.data('parent-key'),
+                parentCategoryName: row.data('parent-name'),
+                weight: Number(weight.toFixed(2)),
+                pricePerKg: Number(pricePerKg.toFixed(2)),
+                totalAmount: Number((weight * pricePerKg).toFixed(2))
+            });
+        });
+        return items;
+    }
+
+    function saveSubdivision() {
+        var data = collectSubdivisionData();
+        if (!data || data.length === 0) {
+            alert('请至少填写一条细分明细');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveWarehouseReceiptSubdivision", "Staff")',
+            type: 'POST',
+            data: {
+                receiptId: receiptId,
+                subdivisionsJson: JSON.stringify(data),
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert('细分保存成功，返回后可执行入库。');
+                    goBack();
+                } else {
+                    alert('保存失败：' + (response.message || '未知错误'));
+                }
+            },
+            error: function () {
+                alert('保存失败，请稍后重试');
+            }
+        });
+    }
+
+    $(document).ready(function () { renderCategories(); });
+</script>

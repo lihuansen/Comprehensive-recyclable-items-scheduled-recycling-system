@@ -5184,6 +5184,85 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 入库单细分页面
+        /// </summary>
+        public ActionResult WarehouseReceiptSubdivision(int receiptId)
+        {
+            if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                return RedirectToAction("Login", "Staff");
+
+            var worker = (SortingCenterWorkers)Session["LoginStaff"];
+            ViewBag.StaffName = worker.Username;
+            ViewBag.DisplayName = "基地工作人员";
+            ViewBag.StaffRole = "sortingcenterworker";
+
+            var warehouseReceiptDAL = new WarehouseReceiptDAL();
+            var receipt = warehouseReceiptDAL.GetWarehouseReceiptById(receiptId);
+            if (receipt == null)
+            {
+                TempData["ErrorMessage"] = "入库单不存在";
+                return RedirectToAction("BaseWarehouseManagement");
+            }
+
+            if (!receipt.WorkerID.HasValue || receipt.WorkerID.Value != worker.WorkerID)
+            {
+                TempData["ErrorMessage"] = "您无权细分该入库单";
+                return RedirectToAction("BaseWarehouseManagement");
+            }
+
+            if (receipt.Status != "待入库")
+            {
+                TempData["ErrorMessage"] = "仅待入库状态允许细分";
+                return RedirectToAction("BaseWarehouseManagement");
+            }
+
+            var categoryItems = ParseReceiptCategoriesForSubdivision(receipt.ItemCategories);
+            if (categoryItems == null || !categoryItems.Any())
+            {
+                TempData["ErrorMessage"] = "入库单缺少可细分的品类信息";
+                return RedirectToAction("BaseWarehouseManagement");
+            }
+
+            var viewModel = new WarehouseReceiptSubdivisionViewModel
+            {
+                ReceiptID = receipt.ReceiptID,
+                ReceiptNumber = receipt.ReceiptNumber,
+                TotalWeight = receipt.TotalWeight ?? 0,
+                Status = receipt.Status,
+                IsRefined = warehouseReceiptDAL.IsReceiptRefined(receipt.ItemCategories),
+                ValidationTolerance = _warehouseReceiptBLL.GetSubdivisionWeightTolerance(),
+                Categories = categoryItems,
+                SubdivisionTemplates = _warehouseReceiptBLL.GetSubdivisionTemplates(categoryItems)
+            };
+
+            return View(viewModel);
+        }
+
+        /// <summary>
+        /// 保存入库单细分结果
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult SaveWarehouseReceiptSubdivision(int receiptId, string subdivisionsJson)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
+                {
+                    return JsonContent(new { success = false, message = "请先登录" });
+                }
+
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                var (success, message) = _warehouseReceiptBLL.SaveWarehouseReceiptSubdivision(receiptId, worker.WorkerID, subdivisionsJson);
+                return JsonContent(new { success = success, message = message });
+            }
+            catch (Exception ex)
+            {
+                return JsonContent(new { success = false, message = $"保存细分失败：{ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// 处理入库单入库（AJAX）
         /// Process warehouse receipt warehousing
         /// </summary>
@@ -5220,6 +5299,61 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 return JsonContent(new { success = false, message = $"处理入库单失败：{ex.Message}" });
+            }
+        }
+
+        private List<WarehouseReceiptCategoryItemViewModel> ParseReceiptCategoriesForSubdivision(string itemCategoriesJson)
+        {
+            if (string.IsNullOrWhiteSpace(itemCategoriesJson))
+            {
+                return new List<WarehouseReceiptCategoryItemViewModel>();
+            }
+
+            try
+            {
+                var categories = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(itemCategoriesJson)
+                    ?? new List<WarehouseReceiptCategoryItemViewModel>();
+
+                categories = categories
+                    .Where(c => c != null && !string.IsNullOrWhiteSpace(c.CategoryKey) && c.Weight > 0)
+                    .ToList();
+
+                if (!categories.Any())
+                {
+                    return new List<WarehouseReceiptCategoryItemViewModel>();
+                }
+
+                var isRefined = categories.All(c => !string.IsNullOrWhiteSpace(c.ParentCategoryKey));
+                if (!isRefined)
+                {
+                    return categories
+                        .GroupBy(c => c.CategoryKey.Trim())
+                        .Select(g => new WarehouseReceiptCategoryItemViewModel
+                        {
+                            CategoryKey = g.Key,
+                            CategoryName = g.FirstOrDefault()?.CategoryName ?? g.Key,
+                            Weight = g.Sum(x => x.Weight)
+                        }).ToList();
+                }
+
+                return categories
+                    .GroupBy(c => c.ParentCategoryKey.Trim())
+                    .Select(g => new WarehouseReceiptCategoryItemViewModel
+                    {
+                        CategoryKey = g.Key,
+                        CategoryName = g.FirstOrDefault()?.ParentCategoryName ?? g.Key,
+                        Weight = g.Sum(x => x.Weight)
+                    }).ToList();
+            }
+            catch (JsonException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ParseReceiptCategoriesForSubdivision JSON parse failed: {ex.Message}");
+                return new List<WarehouseReceiptCategoryItemViewModel>();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ParseReceiptCategoriesForSubdivision failed: {ex.Message}");
+                return new List<WarehouseReceiptCategoryItemViewModel>();
             }
         }
 

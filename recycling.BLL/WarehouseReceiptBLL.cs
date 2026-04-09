@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 using recycling.Model;
 using recycling.DAL;
 
@@ -15,6 +17,44 @@ namespace recycling.BLL
         private readonly TransportationOrderDAL _transportDAL = new TransportationOrderDAL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
         private readonly BaseStaffNotificationBLL _baseStaffNotificationBLL = new BaseStaffNotificationBLL();
+        // 重量校验容差（单位kg），用于处理小数四舍五入导致的微小误差
+        private const decimal WeightTolerance = 0.01m;
+        private const int CategoryFieldMaxLength = 50;
+
+        private static readonly Dictionary<string, List<WarehouseSubdivisionTemplateOptionViewModel>> DefaultSubdivisionTemplates =
+            new Dictionary<string, List<WarehouseSubdivisionTemplateOptionViewModel>>
+            {
+                ["glass"] = new List<WarehouseSubdivisionTemplateOptionViewModel>
+                {
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "clear", SubCategoryName = "白玻璃", PricePerKg = 0.30m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "green", SubCategoryName = "绿玻璃", PricePerKg = 0.25m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "brown", SubCategoryName = "棕玻璃", PricePerKg = 0.28m }
+                },
+                ["metal"] = new List<WarehouseSubdivisionTemplateOptionViewModel>
+                {
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "aluminum", SubCategoryName = "铝制品", PricePerKg = 6.50m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "steel", SubCategoryName = "钢铁制品", PricePerKg = 2.80m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "mixed", SubCategoryName = "混合金属", PricePerKg = 3.60m }
+                },
+                ["plastic"] = new List<WarehouseSubdivisionTemplateOptionViewModel>
+                {
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "pet", SubCategoryName = "PET塑料", PricePerKg = 2.60m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "hdpe", SubCategoryName = "HDPE塑料", PricePerKg = 2.30m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "pp", SubCategoryName = "PP塑料", PricePerKg = 1.80m }
+                },
+                ["paper"] = new List<WarehouseSubdivisionTemplateOptionViewModel>
+                {
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "newspaper", SubCategoryName = "报纸", PricePerKg = 1.20m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "cardboard", SubCategoryName = "纸板", PricePerKg = 0.95m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "mixed", SubCategoryName = "混合废纸", PricePerKg = 0.70m }
+                },
+                ["fabric"] = new List<WarehouseSubdivisionTemplateOptionViewModel>
+                {
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "cotton", SubCategoryName = "棉织物", PricePerKg = 1.40m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "polyester", SubCategoryName = "化纤织物", PricePerKg = 1.10m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "mixed", SubCategoryName = "混合织物", PricePerKg = 0.90m }
+                }
+            };
 
         /// <summary>
         /// 创建入库单（状态为"待入库"，不写入库存）
@@ -149,6 +189,11 @@ namespace recycling.BLL
                 if (receipt.Status != "待入库")
                 {
                     return (false, $"入库单状态不正确，当前状态：{receipt.Status}");
+                }
+
+                if (!_dal.IsReceiptRefined(receipt.ItemCategories))
+                {
+                    return (false, "请先完成入库单细分，再执行入库");
                 }
 
                 // 2. 处理入库（写入库存并更新状态）
@@ -338,6 +383,207 @@ namespace recycling.BLL
                 System.Diagnostics.Debug.WriteLine($"GetWarehouseDetailWithRecycler BLL Error: {ex.Message}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// 获取细分模板（按大类）
+        /// </summary>
+        public List<WarehouseSubdivisionTemplateGroupViewModel> GetSubdivisionTemplates(IEnumerable<WarehouseReceiptCategoryItemViewModel> categories)
+        {
+            var result = new List<WarehouseSubdivisionTemplateGroupViewModel>();
+            var categoryList = categories?.ToList() ?? new List<WarehouseReceiptCategoryItemViewModel>();
+
+            foreach (var category in categoryList)
+            {
+                var key = (category?.CategoryKey ?? string.Empty).Trim();
+                var name = string.IsNullOrWhiteSpace(category?.CategoryName) ? "未命名大类" : category.CategoryName.Trim();
+
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    continue;
+                }
+
+                if (!DefaultSubdivisionTemplates.TryGetValue(key, out var options))
+                {
+                    options = new List<WarehouseSubdivisionTemplateOptionViewModel>
+                    {
+                        new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "normal", SubCategoryName = "标准分拣", PricePerKg = 1.00m },
+                        new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "high", SubCategoryName = "高质量分拣", PricePerKg = 1.20m }
+                    };
+                }
+
+                result.Add(new WarehouseSubdivisionTemplateGroupViewModel
+                {
+                    ParentCategoryKey = key,
+                    ParentCategoryName = name,
+                    Options = options.Select(o => new WarehouseSubdivisionTemplateOptionViewModel
+                    {
+                        SubCategoryKey = o.SubCategoryKey,
+                        SubCategoryName = o.SubCategoryName,
+                        PricePerKg = o.PricePerKg
+                    }).ToList()
+                });
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 保存入库单细分数据
+        /// </summary>
+        public (bool success, string message) SaveWarehouseReceiptSubdivision(int receiptId, int workerId, string subdivisionsJson)
+        {
+            try
+            {
+                if (receiptId <= 0)
+                {
+                    return (false, "入库单参数无效");
+                }
+
+                if (string.IsNullOrWhiteSpace(subdivisionsJson))
+                {
+                    return (false, "细分数据不能为空");
+                }
+
+                var receipt = _dal.GetWarehouseReceiptById(receiptId);
+                if (receipt == null)
+                {
+                    return (false, "入库单不存在");
+                }
+
+                if (receipt.Status != "待入库")
+                {
+                    return (false, "当前入库单状态不允许细分");
+                }
+
+                if (!receipt.WorkerID.HasValue || receipt.WorkerID.Value != workerId)
+                {
+                    return (false, "仅入库单创建人可执行细分");
+                }
+
+                var originalCategories = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(
+                    string.IsNullOrWhiteSpace(receipt.ItemCategories) ? "[]" : receipt.ItemCategories) ?? new List<WarehouseReceiptCategoryItemViewModel>();
+
+                var originalWeightMap = originalCategories
+                    .Where(c => c != null && !string.IsNullOrWhiteSpace(c.CategoryKey) && c.Weight > 0)
+                    .GroupBy(c => c.CategoryKey.Trim())
+                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Weight));
+
+                if (!originalWeightMap.Any())
+                {
+                    return (false, "原始品类数据无效，无法细分");
+                }
+
+                var submitted = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(subdivisionsJson) ?? new List<WarehouseReceiptCategoryItemViewModel>();
+                if (!submitted.Any())
+                {
+                    return (false, "请至少提供一条细分明细");
+                }
+
+                var normalized = new List<WarehouseReceiptCategoryItemViewModel>();
+                var groupedWeight = new Dictionary<string, decimal>();
+                decimal totalWeight = 0;
+                decimal totalPrice = 0;
+
+                foreach (var item in submitted)
+                {
+                    if (item == null) continue;
+
+                    var parentKey = (item.ParentCategoryKey ?? string.Empty).Trim();
+                    var parentName = (item.ParentCategoryName ?? string.Empty).Trim();
+                    var subKey = (item.CategoryKey ?? string.Empty).Trim();
+                    var subName = (item.CategoryName ?? string.Empty).Trim();
+                    var weight = item.Weight;
+                    var pricePerKg = item.PricePerKg ?? 0;
+
+                    if (string.IsNullOrWhiteSpace(parentKey) || string.IsNullOrWhiteSpace(subKey) || string.IsNullOrWhiteSpace(subName))
+                    {
+                        return (false, "细分项存在空类别字段");
+                    }
+
+                    if (parentKey.Length > CategoryFieldMaxLength || subKey.Length > CategoryFieldMaxLength || subName.Length > CategoryFieldMaxLength)
+                    {
+                        return (false, "细分项类别字段长度超限");
+                    }
+
+                    if (!originalWeightMap.ContainsKey(parentKey))
+                    {
+                        return (false, $"细分项所属大类无效：{parentKey}");
+                    }
+
+                    if (weight <= 0)
+                    {
+                        return (false, "细分项重量必须大于0");
+                    }
+
+                    if (pricePerKg < 0)
+                    {
+                        return (false, "细分项单价不能为负数");
+                    }
+
+                    var amount = Math.Round(weight * pricePerKg, 2, MidpointRounding.AwayFromZero);
+
+                    if (!groupedWeight.ContainsKey(parentKey))
+                    {
+                        groupedWeight[parentKey] = 0;
+                    }
+                    groupedWeight[parentKey] += weight;
+                    totalWeight += weight;
+                    totalPrice += amount;
+
+                    normalized.Add(new WarehouseReceiptCategoryItemViewModel
+                    {
+                        CategoryKey = subKey,
+                        CategoryName = subName,
+                        ParentCategoryKey = parentKey,
+                        ParentCategoryName = string.IsNullOrWhiteSpace(parentName)
+                            ? originalCategories.FirstOrDefault(c => c?.CategoryKey == parentKey)?.CategoryName ?? parentKey
+                            : parentName,
+                        Weight = Math.Round(weight, 2, MidpointRounding.AwayFromZero),
+                        PricePerKg = Math.Round(pricePerKg, 2, MidpointRounding.AwayFromZero),
+                        TotalAmount = amount
+                    });
+                }
+
+                foreach (var original in originalWeightMap)
+                {
+                    if (!groupedWeight.ContainsKey(original.Key))
+                    {
+                        return (false, $"大类 {original.Key} 尚未完成细分");
+                    }
+
+                    if (Math.Abs(groupedWeight[original.Key] - original.Value) > WeightTolerance)
+                    {
+                        return (false, $"大类 {original.Key} 细分重量与原重量不一致");
+                    }
+                }
+
+                var receiptTotalWeight = receipt.TotalWeight ?? 0;
+                if (Math.Abs(totalWeight - receiptTotalWeight) > WeightTolerance)
+                {
+                    return (false, "细分总重量必须与入库单总重量一致");
+                }
+
+                var normalizedJson = JsonConvert.SerializeObject(normalized);
+                var updateResult = _dal.UpdateWarehouseReceiptSubdivision(receiptId, normalizedJson, Math.Round(totalPrice, 2, MidpointRounding.AwayFromZero));
+
+                return updateResult
+                    ? (true, "细分保存成功")
+                    : (false, "保存失败，请确认入库单状态仍为待入库");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SaveWarehouseReceiptSubdivision BLL Error: {ex.Message}");
+                return (false, $"保存细分失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 获取细分校验容差（kg）
+        /// </summary>
+        public decimal GetSubdivisionWeightTolerance()
+        {
+            return WeightTolerance;
         }
     }
 }

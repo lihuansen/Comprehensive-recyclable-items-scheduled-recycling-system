@@ -465,9 +465,21 @@
                                             var isAssignedToMe = !receipt.AssignedWorkerID.HasValue || receipt.AssignedWorkerID.Value == currentWorkerId;
                                             if (isAssignedToMe)
                                             {
-                                                <button class="btn-warehouse" onclick="processWarehouse(@receipt.ReceiptID)">
-                                                    <i class="fas fa-warehouse"></i> 入库
+                                                <button class="btn-secondary" onclick="goToSubdivision(@receipt.ReceiptID)" style="margin-right: 6px;">
+                                                    <i class="fas fa-sliders-h"></i> 细分
                                                 </button>
+                                                if (receipt.IsRefined)
+                                                {
+                                                    <button class="btn-warehouse" onclick="processWarehouse(@receipt.ReceiptID)">
+                                                        <i class="fas fa-warehouse"></i> 入库
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn-warehouse" disabled title="请先完成细分后再入库" style="opacity:0.6;cursor:not-allowed;">
+                                                        <i class="fas fa-lock"></i> 先细分
+                                                    </button>
+                                                }
                                             }
                                             else
                                             {
@@ -772,6 +784,8 @@
         UNKNOWN_TRANSPORTER: '未知',
         UNKNOWN_CATEGORY: '未知类别'
     };
+    // 细分类键允许字符：字母/数字/下划线/短横线，最大50位（需与 WarehouseReceiptBLL.CategoryFieldMaxLength 保持一致）
+    var CATEGORY_KEY_PATTERN = /^[a-zA-Z0-9_-]{1,50}$/;
 
     // 辅助函数：从AJAX错误响应中提取错误信息
     // Helper function: Extract error message from AJAX error response
@@ -1068,7 +1082,7 @@
             },
             success: function (response) {
                 if (response.success) {
-                    alert('入库单创建成功！\n\n入库单号：' + response.receiptNumber + '\n\n提示：请在入库单列表中点击"入库"按钮完成入库操作。');
+                    alert('入库单创建成功！\n\n入库单号：' + response.receiptNumber + '\n\n提示：请先在入库单列表点击\"细分\"，完成后再入库。');
                     cancelSelection();
                     loadCompletedTransportOrders();
                     loadWarehouseReceipts();
@@ -1109,6 +1123,15 @@
                 console.error('入库错误详情:', error, xhr.responseText);
             }
         });
+    }
+
+    // 跳转到入库单细分页面
+    function goToSubdivision(receiptId) {
+        if (!receiptId) {
+            alert('入库单参数无效');
+            return;
+        }
+        window.location.href = '@Url.Action("WarehouseReceiptSubdivision", "Staff")' + '?receiptId=' + encodeURIComponent(receiptId);
     }
 
     // 加载入库记录（自动加载+手动刷新）
@@ -1159,7 +1182,12 @@
                     // 只有指定的基地工作人员才能操作入库按钮
                     var isAssignedToMe = !receipt.AssignedWorkerID || receipt.AssignedWorkerID === currentWorkerID;
                     if (isAssignedToMe) {
-                        actionButton = '<button class="btn-warehouse" onclick="processWarehouse(' + receipt.ReceiptID + ')"><i class="fas fa-warehouse"></i> 入库</button>';
+                        actionButton = '<button class="btn-secondary" style="margin-right:6px;" onclick="goToSubdivision(' + receipt.ReceiptID + ')"><i class="fas fa-sliders-h"></i> 细分</button>';
+                        if (receipt.IsRefined) {
+                            actionButton += '<button class="btn-warehouse" onclick="processWarehouse(' + receipt.ReceiptID + ')"><i class="fas fa-warehouse"></i> 入库</button>';
+                        } else {
+                            actionButton += '<button class="btn-warehouse" disabled title="请先完成细分后再入库" style="opacity:0.6;cursor:not-allowed;"><i class="fas fa-lock"></i> 先细分</button>';
+                        }
                     } else {
                         actionButton = '<span style="color: #e67e22; font-size: 12px;"><i class="fas fa-lock"></i> 非指定人员</span>';
                     }
@@ -1254,8 +1282,7 @@
         // 验证类别键是否有效（严格的白名单验证）
         isValidCategoryKey: function(categoryKey) {
             if (!categoryKey || typeof categoryKey !== 'string') return false;
-            // 严格的白名单：只允许预定义的类别键
-            return this.categoryIcons.hasOwnProperty(categoryKey);
+            return CATEGORY_KEY_PATTERN.test(categoryKey);
         },
 
         // 安全地转义 jQuery 选择器（使用更全面的转义）
@@ -1328,8 +1355,9 @@
                 return; // 跳过无效的类别
             }
 
-            var icon = InventoryManager.categoryIcons[item.categoryKey] || 'fa-box';
-            var color = InventoryManager.categoryColors[item.categoryKey] || '#3498db';
+            var baseCategoryKey = (item.categoryKey || '').split('_')[0];
+            var icon = InventoryManager.categoryIcons[baseCategoryKey] || 'fa-box';
+            var color = InventoryManager.categoryColors[baseCategoryKey] || '#3498db';
             
             // 清理类别键用于 data 属性
             var safeCategoryKey = escapeHtml(item.categoryKey);
@@ -1601,8 +1629,9 @@
             var categoryKey = card.data('category');
             
             if (categoryKey && InventoryManager.isValidCategoryKey(categoryKey)) {
-                var icon = InventoryManager.categoryIcons[categoryKey] || 'fa-box';
-                var color = InventoryManager.categoryColors[categoryKey] || '#3498db';
+                var baseCategoryKey = String(categoryKey).split('_')[0];
+                var icon = InventoryManager.categoryIcons[baseCategoryKey] || 'fa-box';
+                var color = InventoryManager.categoryColors[baseCategoryKey] || '#3498db';
                 
                 // 应用渐变背景色 - Apply gradient background color
                 card.css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + InventoryManager.adjustColor(color, -20) + ' 100%)');

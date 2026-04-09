@@ -63,6 +63,62 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 从JSON字典中安全提取decimal值
+        /// </summary>
+        private decimal? ExtractDecimalFromJson(Dictionary<string, object> category, string key)
+        {
+            if (!category.ContainsKey(key) || category[key] == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                if (category[key] is string str)
+                {
+                    return decimal.TryParse(str, out var parsed) ? (decimal?)parsed : null;
+                }
+                return Convert.ToDecimal(category[key]);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ExtractDecimalFromJson failed for key '{key}': {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 判断ItemCategories是否已完成细分
+        /// </summary>
+        public bool IsReceiptRefined(string itemCategoriesJson)
+        {
+            if (string.IsNullOrWhiteSpace(itemCategoriesJson))
+            {
+                return false;
+            }
+
+            try
+            {
+                var categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategoriesJson);
+                if (categories == null || categories.Count == 0)
+                {
+                    return false;
+                }
+
+                return categories.All(c =>
+                    c != null &&
+                    c.ContainsKey("parentCategoryKey") &&
+                    c["parentCategoryKey"] != null &&
+                    !string.IsNullOrWhiteSpace(c["parentCategoryKey"].ToString()));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"IsReceiptRefined parse failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// 预加载所有活动的类别价格
         /// Preload all active category prices to avoid N+1 queries
         /// </summary>
@@ -398,7 +454,18 @@ namespace recycling.DAL
 
                                 // 计算价格
                                 decimal? price = null;
-                                if (categoryPrices.ContainsKey(categoryKey))
+                                var totalAmount = ExtractDecimalFromJson(category, "totalAmount");
+                                var pricePerKgFromJson = ExtractDecimalFromJson(category, "pricePerKg");
+
+                                if (totalAmount.HasValue)
+                                {
+                                    price = totalAmount.Value;
+                                }
+                                else if (pricePerKgFromJson.HasValue)
+                                {
+                                    price = weight * pricePerKgFromJson.Value;
+                                }
+                                else if (categoryPrices.ContainsKey(categoryKey))
                                 {
                                     price = weight * categoryPrices[categoryKey];
                                 }
@@ -611,7 +678,8 @@ namespace recycling.DAL
                                     CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
                                     WorkerName = reader["WorkerName"] == DBNull.Value ? null : reader["WorkerName"].ToString(),
-                                    AssignedWorkerID = reader["AssignedWorkerID"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["AssignedWorkerID"])
+                                    AssignedWorkerID = reader["AssignedWorkerID"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["AssignedWorkerID"]),
+                                    IsRefined = IsReceiptRefined(validatedItemCategories)
                                 });
                             }
                         }
@@ -683,6 +751,40 @@ namespace recycling.DAL
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// 更新待入库单的细分后类别信息与总价
+        /// </summary>
+        public bool UpdateWarehouseReceiptSubdivision(int receiptId, string refinedCategoriesJson, decimal totalPrice)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string sql = @"
+                        UPDATE WarehouseReceipts
+                        SET ItemCategories = @ItemCategories,
+                            Price = @Price
+                        WHERE ReceiptID = @ReceiptID
+                          AND Status = N'待入库'";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ReceiptID", receiptId);
+                        cmd.Parameters.AddWithValue("@ItemCategories", refinedCategoriesJson);
+                        cmd.Parameters.AddWithValue("@Price", totalPrice);
+                        return cmd.ExecuteNonQuery() > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateWarehouseReceiptSubdivision Error: {ex.Message}");
+                throw new Exception($"保存细分数据失败: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
