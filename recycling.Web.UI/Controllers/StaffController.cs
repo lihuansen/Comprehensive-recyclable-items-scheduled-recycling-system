@@ -5393,7 +5393,7 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ParseExistingReceiptSubdivisions failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"ParseExistingReceiptSubdivisions failed: {ex}");
                 return new List<WarehouseReceiptCategoryItemViewModel>();
             }
         }

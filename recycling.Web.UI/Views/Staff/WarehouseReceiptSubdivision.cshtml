@@ -100,25 +100,20 @@
     }
 
     function normalizeSubKeyForCompare(parentKey, subKey) {
-        var p = (parentKey || '').toString().toLowerCase();
-        var s = (subKey || '').toString().toLowerCase();
-        if (!p || !s) return s;
-        var prefix = p + '_';
-        if (s.indexOf(prefix) === 0) return s.substring(prefix.length);
-        return s;
+        var normalizedParentKey = (parentKey || '').toString().toLowerCase();
+        var normalizedSubKey = (subKey || '').toString().toLowerCase();
+        if (!normalizedParentKey || !normalizedSubKey) return normalizedSubKey;
+        var prefix = normalizedParentKey + '_';
+        if (normalizedSubKey.indexOf(prefix) === 0) return normalizedSubKey.substring(prefix.length);
+        return normalizedSubKey;
     }
 
     function createRow(parentKey, parentName, options, defaultWeight, selectedSubKey, manualSubName, manualPricePerKg) {
         var first = options && options.length > 0 ? options[0] : { SubCategoryKey: 'default', SubCategoryName: '默认细类', PricePerKg: 1.00 };
         var selectedNormalized = normalizeSubKeyForCompare(parentKey, selectedSubKey);
-        var matchedOption = null;
-        for (var i = 0; i < (options || []).length; i++) {
-            var opt = options[i];
-            if (normalizeSubKeyForCompare(parentKey, opt.SubCategoryKey) === selectedNormalized) {
-                matchedOption = opt;
-                break;
-            }
-        }
+        var matchedOption = (options || []).find(function (opt) {
+            return normalizeSubKeyForCompare(parentKey, opt.SubCategoryKey) === selectedNormalized;
+        });
 
         var isManual = !!selectedSubKey && !matchedOption;
         var selectedValue = isManual ? '__manual__' : ((matchedOption && matchedOption.SubCategoryKey) || first.SubCategoryKey || 'default');
