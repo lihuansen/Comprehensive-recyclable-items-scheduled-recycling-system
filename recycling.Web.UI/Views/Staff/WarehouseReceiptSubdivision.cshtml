@@ -32,6 +32,10 @@
     .btn-back { background: #95a5a6; color: #fff; }
     .btn-save { background: #27ae60; color: #fff; }
     .btn-save:disabled { background: #bdc3c7; cursor: not-allowed; }
+    .sub-input-group { display: flex; gap: 8px; align-items: center; }
+    .sub-input-group .sub-select { flex: 1; min-width: 140px; }
+    .sub-input-group .manual-sub-name { flex: 1; min-width: 140px; }
+    .row-error { color: #e74c3c; font-size: 12px; margin-top: 4px; display: none; }
     @@media (max-width: 992px) { .info-grid { grid-template-columns: repeat(2,1fr);} }
 </style>
 
@@ -114,6 +118,7 @@
 
     function buildCategorySelect(options, selectedKey) {
         var html = '<select class="sub-select" onchange="onSubCategoryChanged(this)">';
+        html += '<option value="">请选择细分类</option>';
         for (var i = 0; i < options.length; i++) {
             var opt = options[i];
             var key = (opt.SubCategoryKey || ('sub' + i));
@@ -121,7 +126,7 @@
             html += '<option value="' + escapeHtml(key) + '" data-name="' + escapeHtml(opt.SubCategoryName || key) + '" data-price="' + Number(opt.PricePerKg || 0).toFixed(2) + '"' + selected + '>' +
                 escapeHtml(opt.SubCategoryName || key) + '</option>';
         }
-        html += '<option value="__manual__">手动输入细类</option></select>';
+        html += '</select>';
         return html;
     }
 
@@ -140,15 +145,18 @@
         var selectedTemplateOption = findOptionBySubKey(parentKey, options, selectedSubKey);
 
         var isManual = !!selectedSubKey && !selectedTemplateOption;
-        var selectedValue = isManual ? '__manual__' : ((selectedTemplateOption && selectedTemplateOption.SubCategoryKey) || first.SubCategoryKey || 'default');
+        var selectedValue = isManual ? '' : ((selectedTemplateOption && selectedTemplateOption.SubCategoryKey) || first.SubCategoryKey || 'default');
         var ppk = Number(isManual ? (manualPricePerKg || first.PricePerKg || 1) : ((selectedTemplateOption && selectedTemplateOption.PricePerKg) || first.PricePerKg || 0));
         var rowWeight = Number(defaultWeight || 0);
         var amount = rowWeight * ppk;
         var row = '' +
             '<tr class="sub-row" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '">' +
             '<td>' +
+            '<div class="sub-input-group">' +
             buildCategorySelect(options && options.length > 0 ? options : [first], selectedValue) +
-            '<input type="text" class="manual-sub-name" style="' + (isManual ? 'display:block;' : 'display:none;') + 'margin-top:6px;width:95%;" maxlength="50" placeholder="请输入手动输入的细类名称" value="' + escapeHtml(manualSubName || '') + '" oninput="recalc()" />' +
+            '<input type="text" class="manual-sub-name" maxlength="50" placeholder="无下拉项时可手动输入细类" value="' + escapeHtml(manualSubName || '') + '" oninput="recalc()" />' +
+            '</div>' +
+            '<div class="row-error"></div>' +
             '</td>' +
             '<td class="text-right"><span class="price-per-kg">' + ppk.toFixed(2) + '</span></td>' +
             '<td class="text-right"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" data-price-per-kg="' + ppk.toFixed(2) + '" oninput="recalc()" /></td>' +
@@ -162,20 +170,13 @@
         var row = $(selectEl).closest('tr');
         var val = $(selectEl).val();
         var input = row.find('.weight-input');
-        var manualInput = row.find('.manual-sub-name');
+        var selected = $(selectEl).find('option:selected');
+        var defaultPrice = Number(row.closest('.category-block').data('default-price') || 1);
+        var ppk = Number(selected.data('price') || defaultPrice);
 
-        if (val === '__manual__') {
-            manualInput.show();
-            var defaultPrice = Number(row.closest('.category-block').data('default-price') || 1);
-            input.data('price-per-kg', defaultPrice.toFixed(2));
-            row.find('.price-per-kg').text(defaultPrice.toFixed(2));
-        } else {
-            manualInput.hide();
-            var selected = $(selectEl).find('option:selected');
-            var ppk = Number(selected.data('price') || 0);
-            input.data('price-per-kg', ppk.toFixed(2));
-            row.find('.price-per-kg').text(ppk.toFixed(2));
-        }
+        if (!val) ppk = defaultPrice;
+        input.data('price-per-kg', ppk.toFixed(2));
+        row.find('.price-per-kg').text(ppk.toFixed(2));
         recalc();
     }
 
@@ -243,7 +244,7 @@
                 '</div>' +
                 '<div style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">' +
                 '<button type="button" class="btn btn-save" style="padding:6px 10px;margin-right:8px;" onclick="addSubRow(this)">新增细类</button>' +
-                '<button type="button" class="btn btn-back" style="padding:6px 10px;" onclick="recalc()">重新校验</button>' +
+                '<button type="button" class="btn btn-back" style="padding:6px 10px;" onclick="recalc()">计算重量</button>' +
                 '</div>' +
                 '<div><table><thead><tr><th>细分类</th><th class="text-right">单价(元/kg)</th><th class="text-right">重量(kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
                 '<tbody>' + rowsHtml + '</tbody></table></div></div>';
@@ -263,9 +264,19 @@
         var selectedOption = select.find('option:selected');
         var subName = '';
         var subKey = '';
+        var manualName = (row.find('.manual-sub-name').val() || '').trim();
+        var hasSelectValue = !!(selectedVal || '').toString().trim();
+        var hasManualValue = !!manualName;
 
-        if (selectedVal === '__manual__') {
-            subName = (row.find('.manual-sub-name').val() || '').trim();
+        if (hasSelectValue && hasManualValue) {
+            return { isValid: false, errorMessage: "下拉细分类和手动输入不能同时填写", subKey: "", subName: "" };
+        }
+        if (!hasSelectValue && !hasManualValue) {
+            return { isValid: false, errorMessage: "请填写下拉细分类或手动细类中的一项", subKey: "", subName: "" };
+        }
+
+        if (hasManualValue) {
+            subName = manualName;
             var index = row.index() + 1;
             subKey = 'manual' + index;
         } else {
@@ -275,6 +286,8 @@
 
         if (!subKey) subKey = 'sub';
         return {
+            isValid: true,
+            errorMessage: "",
             subKey: (parentKey + '_' + subKey).substring(0, 50),
             subName: subName
         };
@@ -302,11 +315,16 @@
 
                 if (weight > 0) {
                     var subData = getSubCategoryData(row);
-                    if (!subData.subName) {
+                    var rowError = row.find('.row-error');
+                    if (!subData.isValid || !subData.subName) {
                         hasInvalidSubName = true;
+                        rowError.text(subData.errorMessage || '细分类填写不完整').show();
                     } else {
                         validSubCount++;
+                        rowError.hide().text('');
                     }
+                } else {
+                    row.find('.row-error').hide().text('');
                 }
 
                 current += weight;
@@ -354,8 +372,9 @@
                 if (weight <= 0) return;
 
                 var subData = getSubCategoryData(row);
-                if (!subData.subName) {
+                if (!subData.isValid || !subData.subName) {
                     hasError = true;
+                    row.find('.row-error').text(subData.errorMessage || '细分类填写不完整').show();
                     return;
                 }
 

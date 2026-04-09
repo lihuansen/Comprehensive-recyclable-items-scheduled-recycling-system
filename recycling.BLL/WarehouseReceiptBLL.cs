@@ -24,7 +24,7 @@ namespace recycling.BLL
         private const decimal DefaultManualSubCategoryPricePerKg = 1.00m;
 
         private static readonly Dictionary<string, List<WarehouseSubdivisionTemplateOptionViewModel>> DefaultSubdivisionTemplates =
-            new Dictionary<string, List<WarehouseSubdivisionTemplateOptionViewModel>>
+            new Dictionary<string, List<WarehouseSubdivisionTemplateOptionViewModel>>(StringComparer.OrdinalIgnoreCase)
             {
                 ["glass"] = new List<WarehouseSubdivisionTemplateOptionViewModel>
                 {
@@ -57,6 +57,18 @@ namespace recycling.BLL
                     new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "mixed", SubCategoryName = "混合织物", PricePerKg = 0.90m }
                 }
             };
+        private static readonly Dictionary<string, string> CategoryTemplateAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["塑料"] = "plastic",
+            ["塑料类"] = "plastic",
+            ["塑胶"] = "plastic",
+            ["玻璃"] = "glass",
+            ["金属"] = "metal",
+            ["纸"] = "paper",
+            ["纸类"] = "paper",
+            ["织物"] = "fabric",
+            ["纺织品"] = "fabric"
+        };
 
         /// <summary>
         /// 创建入库单（状态为"待入库"，不写入库存）
@@ -405,7 +417,8 @@ namespace recycling.BLL
                     continue;
                 }
 
-                if (!DefaultSubdivisionTemplates.TryGetValue(key, out var options))
+                var templateKey = ResolveTemplateParentKey(key, name);
+                if (!DefaultSubdivisionTemplates.TryGetValue(templateKey, out var options))
                 {
                     options = new List<WarehouseSubdivisionTemplateOptionViewModel>
                     {
@@ -435,14 +448,16 @@ namespace recycling.BLL
         /// </summary>
         private decimal ResolvePricePerKg(string parentKey, string subKey, string subName, decimal? submittedPricePerKg)
         {
-            if (!string.IsNullOrWhiteSpace(parentKey) &&
-                DefaultSubdivisionTemplates.TryGetValue(parentKey.Trim(), out var options) &&
+            var templateParentKey = ResolveTemplateParentKey(parentKey, null);
+            if (!string.IsNullOrWhiteSpace(templateParentKey) &&
+                DefaultSubdivisionTemplates.TryGetValue(templateParentKey, out var options) &&
                 options != null && options.Any())
             {
                 var matched = options.FirstOrDefault(o =>
                     (!string.IsNullOrWhiteSpace(subKey) &&
-                     (string.Equals(o.SubCategoryKey, subKey, StringComparison.OrdinalIgnoreCase) ||
-                      string.Equals($"{parentKey}_{o.SubCategoryKey}", subKey, StringComparison.OrdinalIgnoreCase))) ||
+                      (string.Equals(o.SubCategoryKey, subKey, StringComparison.OrdinalIgnoreCase) ||
+                       string.Equals($"{parentKey}_{o.SubCategoryKey}", subKey, StringComparison.OrdinalIgnoreCase) ||
+                       string.Equals($"{templateParentKey}_{o.SubCategoryKey}", subKey, StringComparison.OrdinalIgnoreCase))) ||
                     (!string.IsNullOrWhiteSpace(subName) &&
                      string.Equals(o.SubCategoryName, subName, StringComparison.OrdinalIgnoreCase)));
 
@@ -460,6 +475,45 @@ namespace recycling.BLL
             }
 
             return DefaultManualSubCategoryPricePerKg;
+        }
+
+        private string ResolveTemplateParentKey(string parentKey, string parentName)
+        {
+            var key = (parentKey ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = (parentName ?? string.Empty).Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return string.Empty;
+            }
+
+            if (DefaultSubdivisionTemplates.ContainsKey(key))
+            {
+                return key;
+            }
+
+            if (CategoryTemplateAliases.TryGetValue(key, out var aliasKey))
+            {
+                return aliasKey;
+            }
+
+            var normalizedKey = key.Replace(" ", string.Empty).Replace("_", string.Empty).Replace("-", string.Empty);
+            if (CategoryTemplateAliases.TryGetValue(normalizedKey, out aliasKey))
+            {
+                return aliasKey;
+            }
+
+            if (normalizedKey.IndexOf("plastic", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                normalizedKey.IndexOf("塑料", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                normalizedKey.IndexOf("塑胶", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "plastic";
+            }
+
+            return key;
         }
 
         /// <summary>
