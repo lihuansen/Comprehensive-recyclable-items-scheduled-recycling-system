@@ -2115,8 +2115,6 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请选择基地工作人员" });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"CreateTransportationOrder 客户端传入快照: weight={estimatedWeight}, value={itemTotalValue}, categoriesLength={(itemCategories ?? string.Empty).Length}");
-
                 var storagePointBll = new StoragePointBLL();
                 var summary = storagePointBll.GetStoragePointSummary(staff.RecyclerID);
                 if (summary == null || summary.Count == 0 || !summary.Any(s => s.TotalWeight > 0))
@@ -2131,6 +2129,7 @@ namespace recycling.Web.UI.Controllers
                 {
                     return JsonContent(new { success = false, message = "暂存点重量数据无效，无法创建运输单" });
                 }
+                System.Diagnostics.Debug.WriteLine($"CreateTransportationOrder 服务端快照: categories={validSummary.Count}, weight={calculatedWeight}, value={calculatedValue}");
 
                 // 创建运输单对象
                 // 目的地固定为"深圳基地"：根据业务需求，当前所有运输都统一送往深圳基地集中分拣中心

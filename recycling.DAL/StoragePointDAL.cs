@@ -212,7 +212,7 @@ namespace recycling.DAL
 
                         if (fallbackOrderId == null || fallbackOrderId == DBNull.Value)
                         {
-                            throw new Exception("当前数据库结构要求关联预约单，且未找到可关联的预约单，请先完成一笔预约单后重试");
+                            throw new Exception("当前数据库结构要求Inventory记录关联有效预约单（可能为OrderID非空或外键约束），且未找到可关联预约单，请先完成一笔预约单后重试");
                         }
 
                         using (SqlCommand cmd = new SqlCommand(insertSql, conn))
