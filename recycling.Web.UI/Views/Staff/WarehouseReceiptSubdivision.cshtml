@@ -69,7 +69,7 @@
 
 <script>
     var receiptId = @Model.ReceiptID;
-    var receiptTotalWeight = @Model.TotalWeight.ToString("F2");
+    var receiptTotalWeight = @Model.TotalWeight.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
     var weightTolerance = @Model.ValidationTolerance.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
     var parentCategories = @Html.Raw(JsonConvert.SerializeObject(Model.Categories));
     var templateGroups = @Html.Raw(JsonConvert.SerializeObject(Model.SubdivisionTemplates));
@@ -84,6 +84,30 @@
             if (templateGroups[i].ParentCategoryKey === parentKey) return templateGroups[i].Options || [];
         }
         return [];
+    }
+
+    function findOptionBySubKey(parentKey, options, selectedSubKey) {
+        var selectedNormalized = stripParentPrefixFromSubKey(parentKey, selectedSubKey);
+        for (var i = 0; i < (options || []).length; i++) {
+            var current = options[i];
+            if (stripParentPrefixFromSubKey(parentKey, current.SubCategoryKey) === selectedNormalized) {
+                return current;
+            }
+        }
+        return null;
+    }
+
+    function findExistingRowsByParent(parentKey) {
+        var rows = [];
+        for (var i = 0; i < (existingSubdivisions || []).length; i++) {
+            var item = existingSubdivisions[i];
+            if (!item) continue;
+            var itemParentKey = (item.ParentCategoryKey || '').toString().toLowerCase();
+            if (itemParentKey === (parentKey || '').toString().toLowerCase() && Number(item.Weight || 0) > 0) {
+                rows.push(item);
+            }
+        }
+        return rows;
     }
 
     function buildCategorySelect(options, selectedKey) {
@@ -111,9 +135,7 @@
     function createRow(parentKey, parentName, options, defaultWeight, selectedSubKey, manualSubName, manualPricePerKg) {
         var first = options && options.length > 0 ? options[0] : { SubCategoryKey: 'default', SubCategoryName: '默认细类', PricePerKg: 1.00 };
         var selectedNormalized = stripParentPrefixFromSubKey(parentKey, selectedSubKey);
-        var selectedTemplateOption = (options || []).find(function (opt) {
-            return stripParentPrefixFromSubKey(parentKey, opt.SubCategoryKey) === selectedNormalized;
-        });
+        var selectedTemplateOption = findOptionBySubKey(parentKey, options, selectedSubKey);
 
         var isManual = !!selectedSubKey && !selectedTemplateOption;
         var selectedValue = isManual ? '__manual__' : ((selectedTemplateOption && selectedTemplateOption.SubCategoryKey) || first.SubCategoryKey || 'default');
@@ -193,11 +215,7 @@
             var defaultPrice = Number(options[0].PricePerKg || 1);
             var parentKey = (parent.CategoryKey || '').toString();
             var parentName = (parent.CategoryName || '').toString();
-            var parentExistingRows = (existingSubdivisions || []).filter(function (x) {
-                return (x &&
-                    (x.ParentCategoryKey || '').toString().toLowerCase() === parentKey.toLowerCase() &&
-                    Number(x.Weight || 0) > 0);
-            });
+            var parentExistingRows = findExistingRowsByParent(parentKey);
             var rowsHtml = '';
             if (parentExistingRows.length > 0) {
                 for (var r = 0; r < parentExistingRows.length; r++) {
@@ -370,6 +388,7 @@
         $.ajax({
             url: '@Url.Action("SaveWarehouseReceiptSubdivision", "Staff")',
             type: 'POST',
+            dataType: 'json',
             data: {
                 receiptId: receiptId,
                 subdivisionsJson: JSON.stringify(data),
