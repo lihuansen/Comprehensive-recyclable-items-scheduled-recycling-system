@@ -579,6 +579,7 @@
                     <tr>
                         <th>入库单号</th>
                         <th>品类</th>
+                        <th>细类</th>
                         <th>重量(kg)</th>
                         <th>价值(元)</th>
                         <th>回收员</th>
@@ -595,12 +596,18 @@
                         {
                             // 只使用白名单中的类别键
                             var categoryKey = item.CategoryKey ?? "";
-                            var badgeClass = validCategoryKeys.Contains(categoryKey) ? "badge-" + categoryKey : "badge-unknown";
+                            var categoryRootKey = categoryKey.Contains("_") ? categoryKey.Split('_')[0] : categoryKey;
+                            var badgeClass = validCategoryKeys.Contains(categoryRootKey) ? "badge-" + categoryRootKey : "badge-unknown";
                             var price = item.Price.HasValue ? string.Format("¥{0:F2}", item.Price.Value) : "-";
                             var createdDate = item.CreatedDate.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+                            var parentCategoryName = string.IsNullOrWhiteSpace(item.ParentCategoryName) ? item.CategoryName : item.ParentCategoryName;
+                            var subCategoryName = string.IsNullOrWhiteSpace(item.SubCategoryName)
+                                ? (string.IsNullOrWhiteSpace(item.ParentCategoryName) ? "-" : item.CategoryName)
+                                : item.SubCategoryName;
                             <tr>
                                 <td><strong>@Html.Encode(item.OrderNumber)</strong></td>
-                                <td><span class="badge-inventory @badgeClass">@Html.Encode(item.CategoryName)</span></td>
+                                <td><span class="badge-inventory @badgeClass">@Html.Encode(parentCategoryName)</span></td>
+                                <td>@Html.Encode(subCategoryName)</td>
                                 <td>@item.Weight.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)</td>
                                 <td>@price</td>
                                 <td>@Html.Encode(item.RecyclerName ?? "-")</td>
@@ -611,7 +618,7 @@
                     else
                     {
                         <tr id="inventoryDetailEmptyRow">
-                            <td colspan="6" class="empty-details-message">
+                            <td colspan="7" class="empty-details-message">
                                 暂无明细数据
                             </td>
                         </tr>
@@ -1311,7 +1318,8 @@
         // 获取已验证的 badge class 名称
         getBadgeClass: function(categoryKey) {
             if (!this.isValidCategoryKey(categoryKey)) return 'badge-unknown';
-            return 'badge-' + categoryKey;
+            var root = categoryKey.indexOf('_') > -1 ? categoryKey.split('_')[0] : categoryKey;
+            return 'badge-' + root;
         }
     };
 
@@ -1451,7 +1459,7 @@
         var tbody = $('#inventoryDetailTableBody');
         tbody.empty();
         var errorRow = $('<tr>').append(
-            $('<td>').attr('colspan', '6').addClass('empty-details-message').html(
+            $('<td>').attr('colspan', '7').addClass('empty-details-message').html(
                 '<i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i> ' + escapeHtml(message)
             )
         );
@@ -1466,7 +1474,7 @@
 
         if (!data.Items || data.Items.length === 0) {
             var emptyRow = $('<tr>').append(
-                $('<td>').attr('colspan', '6').addClass('empty-details-message').text('暂无明细数据')
+                $('<td>').attr('colspan', '7').addClass('empty-details-message').text('暂无明细数据')
             );
             tbody.append(emptyRow);
             $('#inventoryPaginationContainer').hide();
@@ -1481,7 +1489,10 @@
 
             var row = $('<tr>');
             row.append($('<td>').html('<strong>' + escapeHtml(item.OrderNumber) + '</strong>'));
-            row.append($('<td>').html('<span class="badge-inventory ' + badgeClass + '">' + escapeHtml(item.CategoryName) + '</span>'));
+            var parentCategoryName = item.ParentCategoryName || item.CategoryName || '-';
+            var subCategoryName = item.SubCategoryName || (item.ParentCategoryName ? (item.CategoryName || '-') : '-');
+            row.append($('<td>').html('<span class="badge-inventory ' + badgeClass + '">' + escapeHtml(parentCategoryName) + '</span>'));
+            row.append($('<td>').text(subCategoryName));
             row.append($('<td>').text(item.Weight.toFixed(2)));
             row.append($('<td>').text(price));
             row.append($('<td>').text(item.RecyclerName || '-'));
