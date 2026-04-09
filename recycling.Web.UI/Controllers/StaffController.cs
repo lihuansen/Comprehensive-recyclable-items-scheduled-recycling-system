@@ -1892,6 +1892,11 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请填写品类名称" });
                 }
 
+                if (string.IsNullOrWhiteSpace(categoryKey))
+                {
+                    return JsonContent(new { success = false, message = "请选择有效品类" });
+                }
+
                 if (weight <= 0)
                 {
                     return JsonContent(new { success = false, message = "重量必须大于0" });
@@ -1903,14 +1908,7 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 string normalizedCategoryName = categoryName.Trim();
-                string normalizedCategoryKey = string.IsNullOrWhiteSpace(categoryKey)
-                    ? normalizedCategoryName.Replace(" ", "")
-                    : categoryKey.Trim();
-
-                if (string.IsNullOrWhiteSpace(normalizedCategoryKey))
-                {
-                    return JsonContent(new { success = false, message = "请选择有效品类" });
-                }
+                string normalizedCategoryKey = categoryKey.Trim();
 
                 var storagePointBLL = new StoragePointBLL();
                 bool result = storagePointBLL.AddManualStoragePointItem(

@@ -630,8 +630,7 @@
                         <select class="form-control" id="manualCategorySelect">
                             <option value="">请选择品类</option>
                             @{
-                                var manualCategoryOptions = ViewBag.ManualCategoryOptions as System.Collections.Generic.IDictionary<string, string>
-                                    ?? recycling.Model.RecyclingCategories.AllCategories;
+                                var manualCategoryOptions = (System.Collections.Generic.IDictionary<string, string>)ViewBag.ManualCategoryOptions;
                             }
                             @foreach (var category in manualCategoryOptions)
                             {
