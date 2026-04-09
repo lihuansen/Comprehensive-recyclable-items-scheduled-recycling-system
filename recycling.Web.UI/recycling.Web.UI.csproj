@@ -251,6 +251,7 @@
     <Content Include="Views\Staff\BaseManagement.cshtml" />
     <Content Include="Views\Staff\BaseTransportationManagement.cshtml" />
     <Content Include="Views\Staff\BaseWarehouseManagement.cshtml" />
+    <Content Include="Views\Staff\WarehouseReceiptSubdivision.cshtml" />
     <Content Include="Views\Staff\TransportationManagement.cshtml" />
     <Content Include="Views\Staff\TransporterDashboard.cshtml" />
     <Content Include="Views\Staff\TransporterProfile.cshtml" />

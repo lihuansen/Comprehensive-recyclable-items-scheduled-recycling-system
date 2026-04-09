@@ -79,6 +79,11 @@ namespace recycling.Model
         /// Assigned worker ID from transport order
         /// </summary>
         public int? AssignedWorkerID { get; set; }
+
+        /// <summary>
+        /// 是否已完成细分
+        /// </summary>
+        public bool IsRefined { get; set; }
     }
 
     /// <summary>
@@ -138,5 +143,54 @@ namespace recycling.Model
         /// Base contact person name
         /// </summary>
         public string BaseContactPerson { get; set; }
+    }
+
+    /// <summary>
+    /// 入库单细分页面视图模型
+    /// </summary>
+    public class WarehouseReceiptSubdivisionViewModel
+    {
+        public int ReceiptID { get; set; }
+        public string ReceiptNumber { get; set; }
+        public decimal TotalWeight { get; set; }
+        public string Status { get; set; }
+        public bool IsRefined { get; set; }
+        public decimal ValidationTolerance { get; set; }
+        public List<WarehouseReceiptCategoryItemViewModel> Categories { get; set; } = new List<WarehouseReceiptCategoryItemViewModel>();
+        public List<WarehouseSubdivisionTemplateGroupViewModel> SubdivisionTemplates { get; set; } = new List<WarehouseSubdivisionTemplateGroupViewModel>();
+    }
+
+    /// <summary>
+    /// 入库单类别项
+    /// </summary>
+    public class WarehouseReceiptCategoryItemViewModel
+    {
+        public string CategoryKey { get; set; }
+        public string CategoryName { get; set; }
+        public decimal Weight { get; set; }
+        public decimal? PricePerKg { get; set; }
+        public decimal? TotalAmount { get; set; }
+        public string ParentCategoryKey { get; set; }
+        public string ParentCategoryName { get; set; }
+    }
+
+    /// <summary>
+    /// 细分模板分组（按大类）
+    /// </summary>
+    public class WarehouseSubdivisionTemplateGroupViewModel
+    {
+        public string ParentCategoryKey { get; set; }
+        public string ParentCategoryName { get; set; }
+        public List<WarehouseSubdivisionTemplateOptionViewModel> Options { get; set; } = new List<WarehouseSubdivisionTemplateOptionViewModel>();
+    }
+
+    /// <summary>
+    /// 细分模板选项
+    /// </summary>
+    public class WarehouseSubdivisionTemplateOptionViewModel
+    {
+        public string SubCategoryKey { get; set; }
+        public string SubCategoryName { get; set; }
+        public decimal PricePerKg { get; set; }
     }
 }
