@@ -222,7 +222,8 @@
         }
     }
 
-    .btn-contact-transport {
+    .btn-contact-transport,
+    .btn-add-item {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
@@ -236,12 +237,14 @@
         margin-bottom: 20px;
     }
 
-    .btn-contact-transport:hover {
+    .btn-contact-transport:hover,
+    .btn-add-item:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     }
 
-    .btn-contact-transport i {
+    .btn-contact-transport i,
+    .btn-add-item i {
         margin-right: 8px;
     }
 
@@ -250,28 +253,6 @@
         display: flex;
         gap: 12px;
         flex-wrap: wrap;
-    }
-
-    .btn-add-item {
-        background: linear-gradient(135deg, #20bf6b 0%, #26de81 100%);
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 25px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .btn-add-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    }
-
-    .btn-add-item i {
-        margin-right: 8px;
     }
 
     .modal-overlay {
@@ -645,13 +626,14 @@
             <div class="order-form">
                 <form id="addStorageItemForm">
                     <div class="form-group">
-                        <label for="manualCategoryName"><strong>品类名称：</strong> <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="manualCategoryName" maxlength="50" placeholder="例如：塑料、纸类、金属" />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="manualCategoryKey"><strong>品类编码：</strong> <span style="color: gray;">(可选)</span></label>
-                        <input type="text" class="form-control" id="manualCategoryKey" maxlength="50" placeholder="不填则自动使用品类名称" />
+                        <label for="manualCategorySelect"><strong>品类：</strong> <span style="color: red;">*</span></label>
+                        <select class="form-control" id="manualCategorySelect">
+                            <option value="">请选择品类</option>
+                            @foreach (var category in (System.Collections.Generic.IDictionary<string, string>)(ViewBag.ManualCategoryOptions ?? recycling.Model.RecyclingCategories.AllCategories))
+                            {
+                                <option value="@category.Key">@category.Value</option>
+                            }
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -1233,8 +1215,7 @@
     }
 
     function openAddItemModal() {
-        $('#manualCategoryName').val('');
-        $('#manualCategoryKey').val('');
+        $('#manualCategorySelect').val('');
         $('#manualWeight').val('');
         $('#manualPrice').val('');
         $('#addItemModal').show();
@@ -1281,13 +1262,14 @@
     });
 
     function submitManualStorageItem() {
-        var categoryName = $('#manualCategoryName').val().trim();
-        var categoryKey = $('#manualCategoryKey').val().trim();
+        var $categorySelect = $('#manualCategorySelect');
+        var categoryKey = ($categorySelect.val() || '').trim();
+        var categoryName = ($categorySelect.find('option:selected').text() || '').trim();
         var weight = parseFloat($('#manualWeight').val());
         var price = parseFloat($('#manualPrice').val());
 
-        if (!categoryName) {
-            alert('请填写品类名称');
+        if (!categoryKey || !categoryName || categoryName === '请选择品类') {
+            alert('请选择品类');
             return;
         }
 
@@ -1296,8 +1278,8 @@
             return;
         }
 
-        if (isNaN(price) || price < 0) {
-            alert('金额不能小于0');
+        if (isNaN(price) || price <= 0) {
+            alert('金额必须大于0');
             return;
         }
 
