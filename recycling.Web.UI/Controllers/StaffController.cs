@@ -5223,7 +5223,7 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("BaseWarehouseManagement");
             }
 
-            var existingSubdivisions = ParseExistingReceiptSubdivisions(receipt.ItemCategories);
+            var existingSubdivisions = ParseExistingReceiptSubdivisions(receipt.ReceiptID, receipt.ItemCategories);
 
             var viewModel = new WarehouseReceiptSubdivisionViewModel
             {
@@ -5360,7 +5360,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        private List<WarehouseReceiptCategoryItemViewModel> ParseExistingReceiptSubdivisions(string itemCategoriesJson)
+        private List<WarehouseReceiptCategoryItemViewModel> ParseExistingReceiptSubdivisions(int receiptId, string itemCategoriesJson)
         {
             if (string.IsNullOrWhiteSpace(itemCategoriesJson))
             {
@@ -5393,7 +5393,7 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ParseExistingReceiptSubdivisions failed: {ex}");
+                System.Diagnostics.Debug.WriteLine($"ParseExistingReceiptSubdivisions failed for receipt {receiptId}: {ex}");
                 return new List<WarehouseReceiptCategoryItemViewModel>();
             }
         }

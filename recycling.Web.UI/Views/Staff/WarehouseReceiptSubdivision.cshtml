@@ -99,7 +99,7 @@
         return html;
     }
 
-    function normalizeSubKeyForCompare(parentKey, subKey) {
+    function stripParentPrefixFromSubKey(parentKey, subKey) {
         var normalizedParentKey = (parentKey || '').toString().toLowerCase();
         var normalizedSubKey = (subKey || '').toString().toLowerCase();
         if (!normalizedParentKey || !normalizedSubKey) return normalizedSubKey;
@@ -110,14 +110,14 @@
 
     function createRow(parentKey, parentName, options, defaultWeight, selectedSubKey, manualSubName, manualPricePerKg) {
         var first = options && options.length > 0 ? options[0] : { SubCategoryKey: 'default', SubCategoryName: '默认细类', PricePerKg: 1.00 };
-        var selectedNormalized = normalizeSubKeyForCompare(parentKey, selectedSubKey);
-        var matchedOption = (options || []).find(function (opt) {
-            return normalizeSubKeyForCompare(parentKey, opt.SubCategoryKey) === selectedNormalized;
+        var selectedNormalized = stripParentPrefixFromSubKey(parentKey, selectedSubKey);
+        var selectedTemplateOption = (options || []).find(function (opt) {
+            return stripParentPrefixFromSubKey(parentKey, opt.SubCategoryKey) === selectedNormalized;
         });
 
-        var isManual = !!selectedSubKey && !matchedOption;
-        var selectedValue = isManual ? '__manual__' : ((matchedOption && matchedOption.SubCategoryKey) || first.SubCategoryKey || 'default');
-        var ppk = Number(isManual ? (manualPricePerKg || first.PricePerKg || 1) : ((matchedOption && matchedOption.PricePerKg) || first.PricePerKg || 0));
+        var isManual = !!selectedSubKey && !selectedTemplateOption;
+        var selectedValue = isManual ? '__manual__' : ((selectedTemplateOption && selectedTemplateOption.SubCategoryKey) || first.SubCategoryKey || 'default');
+        var ppk = Number(isManual ? (manualPricePerKg || first.PricePerKg || 1) : ((selectedTemplateOption && selectedTemplateOption.PricePerKg) || first.PricePerKg || 0));
         var rowWeight = Number(defaultWeight || 0);
         var amount = rowWeight * ppk;
         var row = '' +
