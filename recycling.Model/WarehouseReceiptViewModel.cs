@@ -158,6 +158,7 @@ namespace recycling.Model
         public decimal ValidationTolerance { get; set; }
         public List<WarehouseReceiptCategoryItemViewModel> Categories { get; set; } = new List<WarehouseReceiptCategoryItemViewModel>();
         public List<WarehouseSubdivisionTemplateGroupViewModel> SubdivisionTemplates { get; set; } = new List<WarehouseSubdivisionTemplateGroupViewModel>();
+        public List<WarehouseReceiptCategoryItemViewModel> ExistingSubdivisions { get; set; } = new List<WarehouseReceiptCategoryItemViewModel>();
     }
 
     /// <summary>

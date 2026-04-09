@@ -73,6 +73,7 @@
     var weightTolerance = @Model.ValidationTolerance.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
     var parentCategories = @Html.Raw(JsonConvert.SerializeObject(Model.Categories));
     var templateGroups = @Html.Raw(JsonConvert.SerializeObject(Model.SubdivisionTemplates));
+    var existingSubdivisions = @Html.Raw(JsonConvert.SerializeObject(Model.ExistingSubdivisions));
     var maxSubCategoryCount = 10;
 
     function goBack() { window.location.href = '@Url.Action("BaseWarehouseManagement", "Staff")'; }
@@ -98,16 +99,37 @@
         return html;
     }
 
-    function createRow(parentKey, parentName, options, defaultWeight) {
+    function normalizeSubKeyForCompare(parentKey, subKey) {
+        var p = (parentKey || '').toString().toLowerCase();
+        var s = (subKey || '').toString().toLowerCase();
+        if (!p || !s) return s;
+        var prefix = p + '_';
+        if (s.indexOf(prefix) === 0) return s.substring(prefix.length);
+        return s;
+    }
+
+    function createRow(parentKey, parentName, options, defaultWeight, selectedSubKey, manualSubName, manualPricePerKg) {
         var first = options && options.length > 0 ? options[0] : { SubCategoryKey: 'default', SubCategoryName: '默认细类', PricePerKg: 1.00 };
-        var ppk = Number(first.PricePerKg || 0);
+        var selectedNormalized = normalizeSubKeyForCompare(parentKey, selectedSubKey);
+        var matchedOption = null;
+        for (var i = 0; i < (options || []).length; i++) {
+            var opt = options[i];
+            if (normalizeSubKeyForCompare(parentKey, opt.SubCategoryKey) === selectedNormalized) {
+                matchedOption = opt;
+                break;
+            }
+        }
+
+        var isManual = !!selectedSubKey && !matchedOption;
+        var selectedValue = isManual ? '__manual__' : ((matchedOption && matchedOption.SubCategoryKey) || first.SubCategoryKey || 'default');
+        var ppk = Number(isManual ? (manualPricePerKg || first.PricePerKg || 1) : ((matchedOption && matchedOption.PricePerKg) || first.PricePerKg || 0));
         var rowWeight = Number(defaultWeight || 0);
         var amount = rowWeight * ppk;
         var row = '' +
             '<tr class="sub-row" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '">' +
             '<td>' +
-            buildCategorySelect(options && options.length > 0 ? options : [first], first.SubCategoryKey || 'default') +
-            '<input type="text" class="manual-sub-name" style="display:none;margin-top:6px;width:95%;" maxlength="50" placeholder="请输入手动输入的细类名称" oninput="recalc()" />' +
+            buildCategorySelect(options && options.length > 0 ? options : [first], selectedValue) +
+            '<input type="text" class="manual-sub-name" style="' + (isManual ? 'display:block;' : 'display:none;') + 'margin-top:6px;width:95%;" maxlength="50" placeholder="请输入手动输入的细类名称" value="' + escapeHtml(manualSubName || '') + '" oninput="recalc()" />' +
             '</td>' +
             '<td class="text-right"><span class="price-per-kg">' + ppk.toFixed(2) + '</span></td>' +
             '<td class="text-right"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" data-price-per-kg="' + ppk.toFixed(2) + '" oninput="recalc()" /></td>' +
@@ -174,10 +196,34 @@
             }
 
             var defaultPrice = Number(options[0].PricePerKg || 1);
+            var parentKey = (parent.CategoryKey || '').toString();
+            var parentName = (parent.CategoryName || '').toString();
+            var parentExistingRows = (existingSubdivisions || []).filter(function (x) {
+                return (x &&
+                    (x.ParentCategoryKey || '').toString().toLowerCase() === parentKey.toLowerCase() &&
+                    Number(x.Weight || 0) > 0);
+            });
+            var rowsHtml = '';
+            if (parentExistingRows.length > 0) {
+                for (var r = 0; r < parentExistingRows.length; r++) {
+                    var existing = parentExistingRows[r];
+                    rowsHtml += createRow(
+                        parentKey,
+                        parentName,
+                        options,
+                        existing.Weight || 0,
+                        existing.CategoryKey || '',
+                        existing.CategoryName || '',
+                        existing.PricePerKg || defaultPrice);
+                }
+            } else {
+                rowsHtml = createRow(parentKey, parentName, options, parent.Weight || 0);
+            }
+
             var block = '' +
-                '<div class="category-block" data-parent-key="' + escapeHtml(parent.CategoryKey) + '" data-parent-name="' + escapeHtml(parent.CategoryName) + '" data-target-weight="' + Number(parent.Weight || 0).toFixed(2) + '" data-default-price="' + defaultPrice.toFixed(2) + '">' +
+                '<div class="category-block" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '" data-target-weight="' + Number(parent.Weight || 0).toFixed(2) + '" data-default-price="' + defaultPrice.toFixed(2) + '">' +
                 '<div class="category-header">' +
-                '<div class="category-title">' + escapeHtml(parent.CategoryName) + '</div>' +
+                '<div class="category-title">' + escapeHtml(parentName) + '</div>' +
                 '<div class="category-target">原始重量：' + Number(parent.Weight || 0).toFixed(2) + ' kg | 当前：<span class="current-weight">0.00</span> kg | 余量：<span class="diff-weight">0.00</span> kg | <span class="category-status status-error">待计算</span></div>' +
                 '</div>' +
                 '<div style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">' +
@@ -185,7 +231,7 @@
                 '<button type="button" class="btn btn-back" style="padding:6px 10px;" onclick="recalc()">重新校验</button>' +
                 '</div>' +
                 '<div><table><thead><tr><th>细分类</th><th class="text-right">单价(元/kg)</th><th class="text-right">重量(kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
-                '<tbody>' + createRow(parent.CategoryKey, parent.CategoryName, options, parent.Weight || 0) + '</tbody></table></div></div>';
+                '<tbody>' + rowsHtml + '</tbody></table></div></div>';
 
             var jqBlock = $(block);
             jqBlock.data('template-options', options);

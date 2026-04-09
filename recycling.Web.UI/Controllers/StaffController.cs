@@ -5223,6 +5223,8 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("BaseWarehouseManagement");
             }
 
+            var existingSubdivisions = ParseExistingReceiptSubdivisions(receipt.ItemCategories);
+
             var viewModel = new WarehouseReceiptSubdivisionViewModel
             {
                 ReceiptID = receipt.ReceiptID,
@@ -5232,7 +5234,8 @@ namespace recycling.Web.UI.Controllers
                 IsRefined = warehouseReceiptDAL.IsReceiptRefined(receipt.ItemCategories),
                 ValidationTolerance = _warehouseReceiptBLL.GetSubdivisionWeightTolerance(),
                 Categories = categoryItems,
-                SubdivisionTemplates = _warehouseReceiptBLL.GetSubdivisionTemplates(categoryItems)
+                SubdivisionTemplates = _warehouseReceiptBLL.GetSubdivisionTemplates(categoryItems),
+                ExistingSubdivisions = existingSubdivisions
             };
 
             return View(viewModel);
@@ -5353,6 +5356,44 @@ namespace recycling.Web.UI.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"ParseReceiptCategoriesForSubdivision failed: {ex.Message}");
+                return new List<WarehouseReceiptCategoryItemViewModel>();
+            }
+        }
+
+        private List<WarehouseReceiptCategoryItemViewModel> ParseExistingReceiptSubdivisions(string itemCategoriesJson)
+        {
+            if (string.IsNullOrWhiteSpace(itemCategoriesJson))
+            {
+                return new List<WarehouseReceiptCategoryItemViewModel>();
+            }
+
+            try
+            {
+                var categories = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(itemCategoriesJson)
+                    ?? new List<WarehouseReceiptCategoryItemViewModel>();
+
+                return categories
+                    .Where(c => c != null &&
+                                !string.IsNullOrWhiteSpace(c.ParentCategoryKey) &&
+                                !string.IsNullOrWhiteSpace(c.ParentCategoryName) &&
+                                !string.IsNullOrWhiteSpace(c.CategoryKey) &&
+                                !string.IsNullOrWhiteSpace(c.CategoryName) &&
+                                c.Weight > 0)
+                    .Select(c => new WarehouseReceiptCategoryItemViewModel
+                    {
+                        CategoryKey = c.CategoryKey.Trim(),
+                        CategoryName = c.CategoryName.Trim(),
+                        ParentCategoryKey = c.ParentCategoryKey.Trim(),
+                        ParentCategoryName = c.ParentCategoryName.Trim(),
+                        Weight = c.Weight,
+                        PricePerKg = c.PricePerKg,
+                        TotalAmount = c.TotalAmount
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ParseExistingReceiptSubdivisions failed: {ex.Message}");
                 return new List<WarehouseReceiptCategoryItemViewModel>();
             }
         }
