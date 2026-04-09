@@ -342,10 +342,13 @@ namespace recycling.DAL
                 var categories = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(itemCategoriesJson)
                     ?? new List<WarehouseReceiptCategoryItemViewModel>();
 
-                return categories
-                    .Where(c => c != null && !string.IsNullOrWhiteSpace(c.CategoryKey) && !string.IsNullOrWhiteSpace(c.ParentCategoryKey))
-                    .GroupBy(c => c.CategoryKey.Trim(), StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                var map = new Dictionary<string, WarehouseReceiptCategoryItemViewModel>(StringComparer.OrdinalIgnoreCase);
+                foreach (var category in categories.Where(c => c != null && !string.IsNullOrWhiteSpace(c.CategoryKey) && !string.IsNullOrWhiteSpace(c.ParentCategoryKey)))
+                {
+                    map[category.CategoryKey.Trim()] = category;
+                }
+
+                return map;
             }
             catch
             {

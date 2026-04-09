@@ -451,7 +451,7 @@ namespace recycling.BLL
                     return Math.Round(matched.PricePerKg, 2, MidpointRounding.AwayFromZero);
                 }
 
-                return Math.Round(options.Average(o => o.PricePerKg), 2, MidpointRounding.AwayFromZero);
+                return DefaultManualSubCategoryPricePerKg;
             }
 
             if (submittedPricePerKg.HasValue && submittedPricePerKg.Value >= 0)
@@ -563,7 +563,7 @@ namespace recycling.BLL
 
                     if (groupedSubCategoryKeys[parentKey].Count > MaxSubdivisionsPerParent)
                     {
-                        return (false, $"大类 {parentKey} 细分类最多允许 {MaxSubdivisionsPerParent} 种");
+                        return (false, $"大类 {parentKey} 细分类最多允许 {MaxSubdivisionsPerParent} 个");
                     }
 
                     var pricePerKg = ResolvePricePerKg(parentKey, subKey, subName, item.PricePerKg);

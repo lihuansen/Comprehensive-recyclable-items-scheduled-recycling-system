@@ -94,7 +94,7 @@
             html += '<option value="' + escapeHtml(key) + '" data-name="' + escapeHtml(opt.SubCategoryName || key) + '" data-price="' + Number(opt.PricePerKg || 0).toFixed(2) + '"' + selected + '>' +
                 escapeHtml(opt.SubCategoryName || key) + '</option>';
         }
-        html += '<option value="__manual__">手写细类</option></select>';
+        html += '<option value="__manual__">手动输入细类</option></select>';
         return html;
     }
 
@@ -107,7 +107,7 @@
             '<tr class="sub-row" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '">' +
             '<td>' +
             buildCategorySelect(options && options.length > 0 ? options : [first], first.SubCategoryKey || 'default') +
-            '<input type="text" class="manual-sub-name" style="display:none;margin-top:6px;width:95%;" maxlength="50" placeholder="请输入手写细类名称" oninput="recalc()" />' +
+            '<input type="text" class="manual-sub-name" style="display:none;margin-top:6px;width:95%;" maxlength="50" placeholder="请输入手动输入的细类名称" oninput="recalc()" />' +
             '</td>' +
             '<td class="text-right"><span class="price-per-kg">' + ppk.toFixed(2) + '</span></td>' +
             '<td class="text-right"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" data-price-per-kg="' + ppk.toFixed(2) + '" oninput="recalc()" /></td>' +
@@ -142,7 +142,7 @@
         var block = $(btn).closest('.category-block');
         var rows = block.find('tbody tr.sub-row');
         if (rows.length >= maxSubCategoryCount) {
-            alert('每个大类最多添加 ' + maxSubCategoryCount + ' 种细类');
+            alert('每个大类最多添加 ' + maxSubCategoryCount + ' 个细类');
             return;
         }
         var options = block.data('template-options') || [];
@@ -155,7 +155,7 @@
     function removeSubRow(btn) {
         var block = $(btn).closest('.category-block');
         if (block.find('tbody tr.sub-row').length <= 1) {
-            alert('每个大类至少保留1条细分类输入行');
+            alert('每个大类至少保留1个细分类输入行');
             return;
         }
         $(btn).closest('tr').remove();
@@ -312,7 +312,7 @@
         });
 
         if (hasError) {
-            alert('存在已填写重量但未填写细类名称的数据，请先修正');
+            alert('存在已填写重量但未填写细类名称的数据，请检查各大类中的手动输入行');
             return null;
         }
         return items;
