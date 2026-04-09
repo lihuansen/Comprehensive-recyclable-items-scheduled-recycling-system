@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Linq;
+using Newtonsoft.Json;
 using recycling.Model;
 
 namespace recycling.DAL
@@ -250,16 +252,19 @@ namespace recycling.DAL
                     SELECT 
                         i.InventoryID, 
                         i.OrderID, 
-                        'AP' + RIGHT('000000' + CAST(i.OrderID AS VARCHAR(6)), 6) AS OrderNumber,
+                        ISNULL(i.ReceiptID, i.OrderID) AS ReceiptIdForMatch,
+                        ISNULL(wr.ReceiptNumber, 'WR' + RIGHT('000000' + CAST(i.OrderID AS VARCHAR(6)), 6)) AS OrderNumber,
                         i.CategoryKey, 
                         i.CategoryName, 
                         i.Weight, 
                         i.Price, 
                         i.RecyclerID, 
                         ISNULL(r.Username, '未知回收员') AS RecyclerName,
-                        i.CreatedDate
+                        i.CreatedDate,
+                        wr.ItemCategories
                     FROM Inventory i
                     LEFT JOIN Recyclers r ON i.RecyclerID = r.RecyclerID
+                    LEFT JOIN WarehouseReceipts wr ON (i.ReceiptID = wr.ReceiptID OR (i.ReceiptID IS NULL AND i.OrderID = wr.ReceiptID))
                     WHERE (@CategoryKey IS NULL OR @CategoryKey = '' OR i.CategoryKey = @CategoryKey)
                       AND i.InventoryType = @InventoryType
                     ORDER BY i.CreatedDate DESC
@@ -274,14 +279,42 @@ namespace recycling.DAL
 
                     using (var reader = cmd.ExecuteReader())
                     {
+                        var refinedCategoryMapCache = new Dictionary<int, Dictionary<string, WarehouseReceiptCategoryItemViewModel>>();
+
                         while (reader.Read())
                         {
+                            var receiptIdForMatch = Convert.ToInt32(reader["ReceiptIdForMatch"]);
+                            var currentCategoryKey = reader["CategoryKey"].ToString();
+                            var currentCategoryName = reader["CategoryName"].ToString();
+                            var itemCategoriesJson = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
+
+                            string parentCategoryName = string.Empty;
+                            string subCategoryName = currentCategoryName;
+
+                            if (inventoryType == "Warehouse" && receiptIdForMatch > 0 && !string.IsNullOrWhiteSpace(itemCategoriesJson))
+                            {
+                                if (!refinedCategoryMapCache.ContainsKey(receiptIdForMatch))
+                                {
+                                    refinedCategoryMapCache[receiptIdForMatch] = BuildRefinedCategoryMap(itemCategoriesJson);
+                                }
+
+                                var refinedMap = refinedCategoryMapCache[receiptIdForMatch];
+                                if (refinedMap != null && refinedMap.ContainsKey(currentCategoryKey))
+                                {
+                                    var refinedItem = refinedMap[currentCategoryKey];
+                                    parentCategoryName = refinedItem.ParentCategoryName ?? string.Empty;
+                                    subCategoryName = string.IsNullOrWhiteSpace(refinedItem.CategoryName) ? currentCategoryName : refinedItem.CategoryName;
+                                }
+                            }
+
                             result.Items.Add(new InventoryDetailViewModel
                             {
                                 InventoryID = Convert.ToInt32(reader["InventoryID"]),
                                 OrderID = Convert.ToInt32(reader["OrderID"]),
                                 OrderNumber = reader["OrderNumber"].ToString(),
                                 CategoryKey = reader["CategoryKey"].ToString(),
+                                ParentCategoryName = parentCategoryName,
+                                SubCategoryName = subCategoryName,
                                 CategoryName = reader["CategoryName"].ToString(),
                                 Weight = Convert.ToDecimal(reader["Weight"]),
                                 Price = reader.IsDBNull(reader.GetOrdinal("Price")) ? (decimal?)null : Convert.ToDecimal(reader["Price"]),
@@ -295,6 +328,32 @@ namespace recycling.DAL
             }
 
             return result;
+        }
+
+        private Dictionary<string, WarehouseReceiptCategoryItemViewModel> BuildRefinedCategoryMap(string itemCategoriesJson)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(itemCategoriesJson))
+                {
+                    return new Dictionary<string, WarehouseReceiptCategoryItemViewModel>(StringComparer.OrdinalIgnoreCase);
+                }
+
+                var categories = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(itemCategoriesJson)
+                    ?? new List<WarehouseReceiptCategoryItemViewModel>();
+
+                var map = new Dictionary<string, WarehouseReceiptCategoryItemViewModel>(StringComparer.OrdinalIgnoreCase);
+                foreach (var category in categories.Where(c => c != null && !string.IsNullOrWhiteSpace(c.CategoryKey) && !string.IsNullOrWhiteSpace(c.ParentCategoryKey)))
+                {
+                    map[category.CategoryKey.Trim()] = category;
+                }
+
+                return map;
+            }
+            catch
+            {
+                return new Dictionary<string, WarehouseReceiptCategoryItemViewModel>(StringComparer.OrdinalIgnoreCase);
+            }
         }
     }
 }

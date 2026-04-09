@@ -11,6 +11,8 @@ namespace recycling.Model
         public int OrderID { get; set; }
         public string OrderNumber { get; set; }
         public string CategoryKey { get; set; }
+        public string ParentCategoryName { get; set; }
+        public string SubCategoryName { get; set; }
         public string CategoryName { get; set; }
         public decimal Weight { get; set; }
         public decimal? Price { get; set; }

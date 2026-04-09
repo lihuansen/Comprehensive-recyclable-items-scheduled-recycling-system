@@ -20,6 +20,8 @@ namespace recycling.BLL
         // 重量校验容差（单位kg），用于处理小数四舍五入导致的微小误差
         private const decimal WeightTolerance = 0.01m;
         private const int CategoryFieldMaxLength = 50;
+        private const int MaxSubdivisionsPerParent = 10;
+        private const decimal DefaultManualSubCategoryPricePerKg = 1.00m;
 
         private static readonly Dictionary<string, List<WarehouseSubdivisionTemplateOptionViewModel>> DefaultSubdivisionTemplates =
             new Dictionary<string, List<WarehouseSubdivisionTemplateOptionViewModel>>
@@ -429,6 +431,38 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 根据细分类解析单价（优先系统模板，手写细类使用该大类模板均价）
+        /// </summary>
+        private decimal ResolvePricePerKg(string parentKey, string subKey, string subName, decimal? submittedPricePerKg)
+        {
+            if (!string.IsNullOrWhiteSpace(parentKey) &&
+                DefaultSubdivisionTemplates.TryGetValue(parentKey.Trim(), out var options) &&
+                options != null && options.Any())
+            {
+                var matched = options.FirstOrDefault(o =>
+                    (!string.IsNullOrWhiteSpace(subKey) &&
+                     (string.Equals(o.SubCategoryKey, subKey, StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals($"{parentKey}_{o.SubCategoryKey}", subKey, StringComparison.OrdinalIgnoreCase))) ||
+                    (!string.IsNullOrWhiteSpace(subName) &&
+                     string.Equals(o.SubCategoryName, subName, StringComparison.OrdinalIgnoreCase)));
+
+                if (matched != null)
+                {
+                    return Math.Round(matched.PricePerKg, 2, MidpointRounding.AwayFromZero);
+                }
+
+                return Math.Round(options.Average(o => o.PricePerKg), 2, MidpointRounding.AwayFromZero);
+            }
+
+            if (submittedPricePerKg.HasValue && submittedPricePerKg.Value >= 0)
+            {
+                return Math.Round(submittedPricePerKg.Value, 2, MidpointRounding.AwayFromZero);
+            }
+
+            return DefaultManualSubCategoryPricePerKg;
+        }
+
+        /// <summary>
         /// 保存入库单细分数据
         /// </summary>
         public (bool success, string message) SaveWarehouseReceiptSubdivision(int receiptId, int workerId, string subdivisionsJson)
@@ -482,6 +516,7 @@ namespace recycling.BLL
 
                 var normalized = new List<WarehouseReceiptCategoryItemViewModel>();
                 var groupedWeight = new Dictionary<string, decimal>();
+                var groupedSubCategoryKeys = new Dictionary<string, HashSet<string>>();
                 decimal totalWeight = 0;
                 decimal totalPrice = 0;
 
@@ -493,18 +528,22 @@ namespace recycling.BLL
                     var parentName = (item.ParentCategoryName ?? string.Empty).Trim();
                     var subKey = (item.CategoryKey ?? string.Empty).Trim();
                     var subName = (item.CategoryName ?? string.Empty).Trim();
-                    var weight = item.Weight;
-                    var pricePerKg = item.PricePerKg ?? 0;
+                    var weight = Math.Round(item.Weight, 2, MidpointRounding.AwayFromZero);
 
                     if (string.IsNullOrWhiteSpace(parentKey) || string.IsNullOrWhiteSpace(subKey) || string.IsNullOrWhiteSpace(subName))
                     {
                         return (false, "细分项存在空类别字段");
                     }
 
-                    if (parentKey.Length > CategoryFieldMaxLength || subKey.Length > CategoryFieldMaxLength || subName.Length > CategoryFieldMaxLength)
+                    var normalizedSubKey = subKey.StartsWith(parentKey + "_", StringComparison.OrdinalIgnoreCase)
+                        ? subKey
+                        : $"{parentKey}_{subKey}";
+
+                    if (parentKey.Length > CategoryFieldMaxLength || normalizedSubKey.Length > CategoryFieldMaxLength || subName.Length > CategoryFieldMaxLength)
                     {
                         return (false, "细分项类别字段长度超限");
                     }
+                    subKey = normalizedSubKey;
 
                     if (!originalWeightMap.ContainsKey(parentKey))
                     {
@@ -516,11 +555,18 @@ namespace recycling.BLL
                         return (false, "细分项重量必须大于0");
                     }
 
-                    if (pricePerKg < 0)
+                    if (!groupedSubCategoryKeys.ContainsKey(parentKey))
                     {
-                        return (false, "细分项单价不能为负数");
+                        groupedSubCategoryKeys[parentKey] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    }
+                    groupedSubCategoryKeys[parentKey].Add(subKey);
+
+                    if (groupedSubCategoryKeys[parentKey].Count > MaxSubdivisionsPerParent)
+                    {
+                        return (false, $"大类 {parentKey} 细分类最多允许 {MaxSubdivisionsPerParent} 个");
                     }
 
+                    var pricePerKg = ResolvePricePerKg(parentKey, subKey, subName, item.PricePerKg);
                     var amount = Math.Round(weight * pricePerKg, 2, MidpointRounding.AwayFromZero);
 
                     if (!groupedWeight.ContainsKey(parentKey))
@@ -539,8 +585,8 @@ namespace recycling.BLL
                         ParentCategoryName = string.IsNullOrWhiteSpace(parentName)
                             ? originalCategories.FirstOrDefault(c => c?.CategoryKey == parentKey)?.CategoryName ?? parentKey
                             : parentName,
-                        Weight = Math.Round(weight, 2, MidpointRounding.AwayFromZero),
-                        PricePerKg = Math.Round(pricePerKg, 2, MidpointRounding.AwayFromZero),
+                        Weight = weight,
+                        PricePerKg = pricePerKg,
                         TotalAmount = amount
                     });
                 }
@@ -552,16 +598,21 @@ namespace recycling.BLL
                         return (false, $"大类 {original.Key} 尚未完成细分");
                     }
 
-                    if (Math.Abs(groupedWeight[original.Key] - original.Value) > WeightTolerance)
+                    if (groupedWeight[original.Key] <= 0)
                     {
-                        return (false, $"大类 {original.Key} 细分重量与原重量不一致");
+                        return (false, $"大类 {original.Key} 细分重量必须大于0");
+                    }
+
+                    if (groupedWeight[original.Key] - original.Value > WeightTolerance)
+                    {
+                        return (false, $"大类 {original.Key} 细分重量不能超过原重量");
                     }
                 }
 
                 var receiptTotalWeight = receipt.TotalWeight ?? 0;
-                if (Math.Abs(totalWeight - receiptTotalWeight) > WeightTolerance)
+                if (totalWeight - receiptTotalWeight > WeightTolerance)
                 {
-                    return (false, "细分总重量必须与入库单总重量一致");
+                    return (false, "细分总重量不能超过入库单总重量");
                 }
 
                 var normalizedJson = JsonConvert.SerializeObject(normalized);

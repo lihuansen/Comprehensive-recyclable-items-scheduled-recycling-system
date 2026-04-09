@@ -49,7 +49,7 @@
     </div>
 
     <div class="card">
-        <div class="card-header">按大类细分（每个大类细分重量之和必须等于原重量）</div>
+        <div class="card-header">按大类细分（每个大类细分重量之和不可超过原重量，可因杂质减少）</div>
         <div class="card-body" id="subdivisionArea"></div>
     </div>
 
@@ -58,7 +58,7 @@
         <div class="card-body">
             <div>细分总重量：<span id="totalWeightText">0.00</span> kg</div>
             <div>细分总价值：<span id="totalPriceText">¥0.00</span></div>
-            <div id="overallStatus" class="status-error">请完成细分并满足重量守恒</div>
+            <div id="overallStatus" class="status-error">请完成细分并确保各大类及总重量不超重</div>
             <div class="actions">
                 <button class="btn btn-back" onclick="goBack()">返回仓库管理</button>
                 <button id="saveBtn" class="btn btn-save" onclick="saveSubdivision()" disabled>保存细分</button>
@@ -73,14 +73,10 @@
     var weightTolerance = @Model.ValidationTolerance.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
     var parentCategories = @Html.Raw(JsonConvert.SerializeObject(Model.Categories));
     var templateGroups = @Html.Raw(JsonConvert.SerializeObject(Model.SubdivisionTemplates));
+    var maxSubCategoryCount = 10;
 
-    function goBack() {
-        window.location.href = '@Url.Action("BaseWarehouseManagement", "Staff")';
-    }
-
-    function escapeHtml(v) {
-        return $('<div>').text(v || '').html();
-    }
+    function goBack() { window.location.href = '@Url.Action("BaseWarehouseManagement", "Staff")'; }
+    function escapeHtml(v) { return $('<div>').text(v || '').html(); }
 
     function findTemplateOptions(parentKey) {
         for (var i = 0; i < templateGroups.length; i++) {
@@ -89,22 +85,81 @@
         return [];
     }
 
-    function buildRows(parentKey, parentName, parentWeight, options) {
-        var html = '';
+    function buildCategorySelect(options, selectedKey) {
+        var html = '<select class="sub-select" onchange="onSubCategoryChanged(this)">';
         for (var i = 0; i < options.length; i++) {
             var opt = options[i];
-            var defaultWeight = (i === 0) ? Number(parentWeight) : 0;
-            var rowPrice = defaultWeight * Number(opt.PricePerKg || 0);
-            var subKey = parentKey + '_' + (opt.SubCategoryKey || ('sub' + i));
-            var subName = (opt.SubCategoryName || ('细分' + (i + 1)));
-            html += '<tr class="sub-row" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '" data-sub-key="' + escapeHtml(subKey) + '" data-sub-name="' + escapeHtml(subName) + '">' +
-                '<td>' + escapeHtml(opt.SubCategoryName) + '</td>' +
-                '<td class="text-right">' + Number(opt.PricePerKg || 0).toFixed(2) + '</td>' +
-                '<td class="text-right"><input class="weight-input" type="number" min="0" step="0.01" value="' + defaultWeight.toFixed(2) + '" data-price-per-kg="' + Number(opt.PricePerKg || 0).toFixed(2) + '" oninput="recalc()" /></td>' +
-                '<td class="text-right amount-cell">¥' + rowPrice.toFixed(2) + '</td>' +
-            '</tr>';
+            var key = (opt.SubCategoryKey || ('sub' + i));
+            var selected = selectedKey === key ? ' selected' : '';
+            html += '<option value="' + escapeHtml(key) + '" data-name="' + escapeHtml(opt.SubCategoryName || key) + '" data-price="' + Number(opt.PricePerKg || 0).toFixed(2) + '"' + selected + '>' +
+                escapeHtml(opt.SubCategoryName || key) + '</option>';
         }
+        html += '<option value="__manual__">手动输入细类</option></select>';
         return html;
+    }
+
+    function createRow(parentKey, parentName, options, defaultWeight) {
+        var first = options && options.length > 0 ? options[0] : { SubCategoryKey: 'default', SubCategoryName: '默认细类', PricePerKg: 1.00 };
+        var ppk = Number(first.PricePerKg || 0);
+        var rowWeight = Number(defaultWeight || 0);
+        var amount = rowWeight * ppk;
+        var row = '' +
+            '<tr class="sub-row" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '">' +
+            '<td>' +
+            buildCategorySelect(options && options.length > 0 ? options : [first], first.SubCategoryKey || 'default') +
+            '<input type="text" class="manual-sub-name" style="display:none;margin-top:6px;width:95%;" maxlength="50" placeholder="请输入手动输入的细类名称" oninput="recalc()" />' +
+            '</td>' +
+            '<td class="text-right"><span class="price-per-kg">' + ppk.toFixed(2) + '</span></td>' +
+            '<td class="text-right"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" data-price-per-kg="' + ppk.toFixed(2) + '" oninput="recalc()" /></td>' +
+            '<td class="text-right amount-cell">¥' + amount.toFixed(2) + '</td>' +
+            '<td class="text-right"><button type="button" class="btn btn-back" style="padding:6px 10px;" onclick="removeSubRow(this)">删除</button></td>' +
+            '</tr>';
+        return row;
+    }
+
+    function onSubCategoryChanged(selectEl) {
+        var row = $(selectEl).closest('tr');
+        var val = $(selectEl).val();
+        var input = row.find('.weight-input');
+        var manualInput = row.find('.manual-sub-name');
+
+        if (val === '__manual__') {
+            manualInput.show();
+            var defaultPrice = Number(row.closest('.category-block').data('default-price') || 1);
+            input.data('price-per-kg', defaultPrice.toFixed(2));
+            row.find('.price-per-kg').text(defaultPrice.toFixed(2));
+        } else {
+            manualInput.hide();
+            var selected = $(selectEl).find('option:selected');
+            var ppk = Number(selected.data('price') || 0);
+            input.data('price-per-kg', ppk.toFixed(2));
+            row.find('.price-per-kg').text(ppk.toFixed(2));
+        }
+        recalc();
+    }
+
+    function addSubRow(btn) {
+        var block = $(btn).closest('.category-block');
+        var rows = block.find('tbody tr.sub-row');
+        if (rows.length >= maxSubCategoryCount) {
+            alert('每个大类最多添加 ' + maxSubCategoryCount + ' 个细类');
+            return;
+        }
+        var options = block.data('template-options') || [];
+        var parentKey = block.data('parent-key');
+        var parentName = block.data('parent-name');
+        block.find('tbody').append(createRow(parentKey, parentName, options, 0));
+        recalc();
+    }
+
+    function removeSubRow(btn) {
+        var block = $(btn).closest('.category-block');
+        if (block.find('tbody tr.sub-row').length <= 1) {
+            alert('每个大类至少保留1个细分类输入行');
+            return;
+        }
+        $(btn).closest('tr').remove();
+        recalc();
     }
 
     function renderCategories() {
@@ -115,18 +170,53 @@
             var parent = parentCategories[i];
             var options = findTemplateOptions(parent.CategoryKey);
             if (!options || options.length === 0) {
-                continue;
+                options = [{ SubCategoryKey: 'default', SubCategoryName: '默认细类', PricePerKg: 1.00 }];
             }
 
-            var block = '<div class="category-block" data-parent-key="' + escapeHtml(parent.CategoryKey) + '" data-target-weight="' + Number(parent.Weight || 0).toFixed(2) + '">' +
-                '<div class="category-header"><div class="category-title">' + escapeHtml(parent.CategoryName) + '</div>' +
-                '<div class="category-target">目标重量：' + Number(parent.Weight || 0).toFixed(2) + ' kg | 当前：<span class="current-weight">0.00</span> kg | 差值：<span class="diff-weight">0.00</span></div></div>' +
-                '<div><table><thead><tr><th>细分类</th><th class="text-right">单价(元/kg)</th><th class="text-right">重量(kg)</th><th class="text-right">金额(元)</th></tr></thead>' +
-                '<tbody>' + buildRows(parent.CategoryKey, parent.CategoryName, parent.Weight || 0, options) + '</tbody></table></div></div>';
-            area.append(block);
+            var defaultPrice = Number(options[0].PricePerKg || 1);
+            var block = '' +
+                '<div class="category-block" data-parent-key="' + escapeHtml(parent.CategoryKey) + '" data-parent-name="' + escapeHtml(parent.CategoryName) + '" data-target-weight="' + Number(parent.Weight || 0).toFixed(2) + '" data-default-price="' + defaultPrice.toFixed(2) + '">' +
+                '<div class="category-header">' +
+                '<div class="category-title">' + escapeHtml(parent.CategoryName) + '</div>' +
+                '<div class="category-target">原始重量：' + Number(parent.Weight || 0).toFixed(2) + ' kg | 当前：<span class="current-weight">0.00</span> kg | 余量：<span class="diff-weight">0.00</span> kg | <span class="category-status status-error">待计算</span></div>' +
+                '</div>' +
+                '<div style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">' +
+                '<button type="button" class="btn btn-save" style="padding:6px 10px;margin-right:8px;" onclick="addSubRow(this)">新增细类</button>' +
+                '<button type="button" class="btn btn-back" style="padding:6px 10px;" onclick="recalc()">重新校验</button>' +
+                '</div>' +
+                '<div><table><thead><tr><th>细分类</th><th class="text-right">单价(元/kg)</th><th class="text-right">重量(kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
+                '<tbody>' + createRow(parent.CategoryKey, parent.CategoryName, options, parent.Weight || 0) + '</tbody></table></div></div>';
+
+            var jqBlock = $(block);
+            jqBlock.data('template-options', options);
+            area.append(jqBlock);
         }
 
         recalc();
+    }
+
+    function getSubCategoryData(row) {
+        var parentKey = row.data('parent-key');
+        var select = row.find('.sub-select');
+        var selectedVal = select.val();
+        var selectedOption = select.find('option:selected');
+        var subName = '';
+        var subKey = '';
+
+        if (selectedVal === '__manual__') {
+            subName = (row.find('.manual-sub-name').val() || '').trim();
+            var index = row.index() + 1;
+            subKey = 'manual' + index;
+        } else {
+            subName = (selectedOption.data('name') || selectedOption.text() || '').toString().trim();
+            subKey = (selectedVal || '').toString().trim();
+        }
+
+        if (!subKey) subKey = 'sub';
+        return {
+            subKey: (parentKey + '_' + subKey).substring(0, 50),
+            subName: subName
+        };
     }
 
     function recalc() {
@@ -138,6 +228,8 @@
             var block = $(this);
             var target = Number(block.data('target-weight') || 0);
             var current = 0;
+            var validSubCount = 0;
+            var hasInvalidSubName = false;
 
             block.find('tbody tr').each(function () {
                 var row = $(this);
@@ -147,53 +239,87 @@
                 var ppk = Number(input.data('price-per-kg') || 0);
                 var amount = weight * ppk;
 
+                if (weight > 0) {
+                    var subData = getSubCategoryData(row);
+                    if (!subData.subName) {
+                        hasInvalidSubName = true;
+                    } else {
+                        validSubCount++;
+                    }
+                }
+
                 current += weight;
                 totalWeight += weight;
                 totalPrice += amount;
                 row.find('.amount-cell').text('¥' + amount.toFixed(2));
             });
 
-            var diff = current - target;
+            var diff = target - current;
             block.find('.current-weight').text(current.toFixed(2));
             block.find('.diff-weight').text(diff.toFixed(2));
-            block.find('.diff-weight').removeClass('status-ok status-error').addClass(Math.abs(diff) <= weightTolerance ? 'status-ok' : 'status-error');
 
-            if (Math.abs(diff) > weightTolerance) allCategoryValid = false;
+            var overWeight = current - target > Number(weightTolerance || 0);
+            var categoryValid = !overWeight && !hasInvalidSubName && validSubCount > 0;
+            block.find('.diff-weight').removeClass('status-ok status-error').addClass(overWeight ? 'status-error' : 'status-ok');
+            block.find('.category-status').removeClass('status-ok status-error')
+                .addClass(categoryValid ? 'status-ok' : 'status-error')
+                .text(categoryValid ? '校验通过' : (overWeight ? '超出原始重量' : '请完善细类名称和重量'));
+
+            if (!categoryValid) allCategoryValid = false;
         });
 
         $('#totalWeightText').text(totalWeight.toFixed(2));
         $('#totalPriceText').text('¥' + totalPrice.toFixed(2));
 
         var receiptWeight = Number(receiptTotalWeight || 0);
-        var overallValid = allCategoryValid && Math.abs(totalWeight - receiptWeight) <= weightTolerance;
+        var overallValid = allCategoryValid && (totalWeight - receiptWeight) <= Number(weightTolerance || 0) && totalWeight > 0;
         $('#overallStatus').removeClass('status-ok status-error').addClass(overallValid ? 'status-ok' : 'status-error')
-            .text(overallValid ? '校验通过，可保存细分' : '请完成细分并满足重量守恒');
-
+            .text(overallValid ? '校验通过，可保存细分' : '请完成细分并确保各大类及总重量不超重');
         $('#saveBtn').prop('disabled', !overallValid);
     }
 
     function collectSubdivisionData() {
         var items = [];
-        $('.sub-row').each(function () {
-            var row = $(this);
-            var weight = Number(row.find('input.weight-input').val() || 0);
-            if (weight <= 0) return;
+        var hasError = false;
 
-            var pricePerKg = Number(row.find('input.weight-input').data('price-per-kg') || 0);
-            items.push({
-                categoryKey: row.data('sub-key'),
-                categoryName: row.data('sub-name'),
-                parentCategoryKey: row.data('parent-key'),
-                parentCategoryName: row.data('parent-name'),
-                weight: Number(weight.toFixed(2)),
-                pricePerKg: Number(pricePerKg.toFixed(2)),
-                totalAmount: Number((weight * pricePerKg).toFixed(2))
+        $('.category-block').each(function () {
+            var parentBlock = $(this);
+            var parentKey = (parentBlock.data('parent-key') || '').toString();
+            var parentName = (parentBlock.data('parent-name') || '').toString();
+
+            parentBlock.find('.sub-row').each(function () {
+                var row = $(this);
+                var weight = Number(row.find('input.weight-input').val() || 0);
+                if (weight <= 0) return;
+
+                var subData = getSubCategoryData(row);
+                if (!subData.subName) {
+                    hasError = true;
+                    return;
+                }
+
+                var pricePerKg = Number(row.find('input.weight-input').data('price-per-kg') || 0);
+                items.push({
+                    categoryKey: subData.subKey,
+                    categoryName: subData.subName.substring(0, 50),
+                    parentCategoryKey: parentKey,
+                    parentCategoryName: parentName,
+                    weight: Number(weight.toFixed(2)),
+                    pricePerKg: Number(pricePerKg.toFixed(2)),
+                    totalAmount: Number((weight * pricePerKg).toFixed(2))
+                });
             });
         });
+
+        if (hasError) {
+            alert('存在已填写重量但未填写细类名称的数据，请检查各大类中的手动输入行');
+            return null;
+        }
         return items;
     }
 
     function saveSubdivision() {
+        recalc();
         var data = collectSubdivisionData();
         if (!data || data.length === 0) {
             alert('请至少填写一条细分明细');
@@ -216,9 +342,7 @@
                     alert('保存失败：' + (response.message || '未知错误'));
                 }
             },
-            error: function () {
-                alert('保存失败，请稍后重试');
-            }
+            error: function () { alert('保存失败，请稍后重试'); }
         });
     }
 
