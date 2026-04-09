@@ -1693,6 +1693,7 @@ namespace recycling.Web.UI.Controllers
 
             ViewBag.RecyclerName = staff.Username;
             ViewBag.Region = staff.Region;
+            ViewBag.ManualCategoryOptions = RecyclingCategories.AllCategories;
 
             return View();
         }
@@ -1886,6 +1887,11 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
                 }
 
+                if (string.IsNullOrWhiteSpace(categoryKey))
+                {
+                    return JsonContent(new { success = false, message = "请选择有效品类" });
+                }
+
                 if (string.IsNullOrWhiteSpace(categoryName))
                 {
                     return JsonContent(new { success = false, message = "请填写品类名称" });
@@ -1896,15 +1902,13 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "重量必须大于0" });
                 }
 
-                if (price < 0)
+                if (price <= 0)
                 {
-                    return JsonContent(new { success = false, message = "金额不能小于0" });
+                    return JsonContent(new { success = false, message = "金额必须大于0" });
                 }
 
                 string normalizedCategoryName = categoryName.Trim();
-                string normalizedCategoryKey = string.IsNullOrWhiteSpace(categoryKey)
-                    ? normalizedCategoryName.Replace(" ", "")
-                    : categoryKey.Trim();
+                string normalizedCategoryKey = categoryKey.Trim();
 
                 var storagePointBLL = new StoragePointBLL();
                 bool result = storagePointBLL.AddManualStoragePointItem(
