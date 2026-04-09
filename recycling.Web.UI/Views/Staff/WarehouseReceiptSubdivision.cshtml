@@ -90,7 +90,8 @@
         var selectedNormalized = stripParentPrefixFromSubKey(parentKey, selectedSubKey);
         for (var i = 0; i < (options || []).length; i++) {
             var current = options[i];
-            if (stripParentPrefixFromSubKey(parentKey, current.SubCategoryKey) === selectedNormalized) {
+            var currentNormalized = stripParentPrefixFromSubKey(parentKey, current.SubCategoryKey);
+            if (currentNormalized === selectedNormalized) {
                 return current;
             }
         }
@@ -99,11 +100,12 @@
 
     function findExistingRowsByParent(parentKey) {
         var rows = [];
+        var normalizedParentKey = (parentKey || '').toString().toLowerCase();
         for (var i = 0; i < (existingSubdivisions || []).length; i++) {
             var item = existingSubdivisions[i];
             if (!item) continue;
             var itemParentKey = (item.ParentCategoryKey || '').toString().toLowerCase();
-            if (itemParentKey === (parentKey || '').toString().toLowerCase() && Number(item.Weight || 0) > 0) {
+            if (itemParentKey === normalizedParentKey && Number(item.Weight || 0) > 0) {
                 rows.push(item);
             }
         }
