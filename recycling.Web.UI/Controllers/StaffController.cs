@@ -2117,7 +2117,7 @@ namespace recycling.Web.UI.Controllers
 
                 var storagePointBll = new StoragePointBLL();
                 var summary = storagePointBll.GetStoragePointSummary(staff.RecyclerID);
-                if (summary == null || summary.Count == 0 || !summary.Any(s => s.TotalWeight > 0))
+                if (summary == null || !summary.Any(s => s.TotalWeight > 0))
                 {
                     return JsonContent(new { success = false, message = "暂存点没有可运输的物品，请先添加或完成回收后再创建运输单" });
                 }

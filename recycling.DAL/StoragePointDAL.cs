@@ -181,22 +181,11 @@ namespace recycling.DAL
                         INSERT INTO Inventory (OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate, InventoryType)
                         VALUES (@OrderID, @CategoryKey, @CategoryName, @Weight, @Price, @RecyclerID, @CreatedDate, N'StoragePoint')";
 
-                    try
+                    object orderIdValue = DBNull.Value;
+                    if (!IsInventoryOrderIdNullable(conn))
                     {
-                        using (SqlCommand cmd = new SqlCommand(insertSql, conn))
-                        {
-                            cmd.Parameters.Add("@OrderID", SqlDbType.Int).Value = DBNull.Value;
-                            cmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
-                            cmd.Parameters.AddWithValue("@CategoryName", categoryName);
-                            cmd.Parameters.AddWithValue("@Weight", weight);
-                            cmd.Parameters.AddWithValue("@Price", price);
-                            cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                            cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
-                            return cmd.ExecuteNonQuery() > 0;
-                        }
-                    }
-                    catch (SqlException ex) when (ex.Number == 515 || ex.Number == 547)
-                    {
+                        // Inventory.OrderID 设计上关联 Appointments.AppointmentID
+                        // 如果数据库仍要求非空，则复用该回收员最近的预约单ID作为兼容方案
                         string fallbackOrderSql = @"
                             SELECT TOP 1 AppointmentID
                             FROM Appointments
@@ -212,20 +201,22 @@ namespace recycling.DAL
 
                         if (fallbackOrderId == null || fallbackOrderId == DBNull.Value)
                         {
-                            throw new Exception("当前数据库结构要求Inventory记录关联有效预约单（可能为OrderID非空或外键约束），且未找到可关联预约单，请先完成一笔预约单后重试");
+                            throw new Exception("无法添加物品：需要先完成至少一笔预约单才能手动添加物品");
                         }
 
-                        using (SqlCommand cmd = new SqlCommand(insertSql, conn))
-                        {
-                            cmd.Parameters.Add("@OrderID", SqlDbType.Int).Value = Convert.ToInt32(fallbackOrderId);
-                            cmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
-                            cmd.Parameters.AddWithValue("@CategoryName", categoryName);
-                            cmd.Parameters.AddWithValue("@Weight", weight);
-                            cmd.Parameters.AddWithValue("@Price", price);
-                            cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                            cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
-                            return cmd.ExecuteNonQuery() > 0;
-                        }
+                        orderIdValue = Convert.ToInt32(fallbackOrderId);
+                    }
+
+                    using (SqlCommand cmd = new SqlCommand(insertSql, conn))
+                    {
+                        cmd.Parameters.Add("@OrderID", SqlDbType.Int).Value = orderIdValue;
+                        cmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
+                        cmd.Parameters.AddWithValue("@CategoryName", categoryName);
+                        cmd.Parameters.AddWithValue("@Weight", weight);
+                        cmd.Parameters.AddWithValue("@Price", price);
+                        cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                        cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                        return cmd.ExecuteNonQuery() > 0;
                     }
                 }
             }
@@ -238,6 +229,21 @@ namespace recycling.DAL
             {
                 System.Diagnostics.Debug.WriteLine($"Error in AddManualStoragePointItem: {ex.Message}");
                 throw;
+            }
+        }
+
+        private bool IsInventoryOrderIdNullable(SqlConnection conn)
+        {
+            const string sql = @"
+                SELECT IS_NULLABLE
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'Inventory'
+                  AND COLUMN_NAME = 'OrderID'";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                var result = cmd.ExecuteScalar()?.ToString();
+                return string.Equals(result, "YES", StringComparison.OrdinalIgnoreCase);
             }
         }
 
