@@ -69,6 +69,21 @@ namespace recycling.BLL
             ["织物"] = "fabric",
             ["纺织品"] = "fabric"
         };
+        private static readonly Dictionary<string, string> CategoryTemplateKeywordAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["plastic"] = "plastic",
+            ["塑料"] = "plastic",
+            ["塑胶"] = "plastic",
+            ["glass"] = "glass",
+            ["玻璃"] = "glass",
+            ["metal"] = "metal",
+            ["金属"] = "metal",
+            ["paper"] = "paper",
+            ["纸"] = "paper",
+            ["fabric"] = "fabric",
+            ["织物"] = "fabric",
+            ["纺织"] = "fabric"
+        };
 
         /// <summary>
         /// 创建入库单（状态为"待入库"，不写入库存）
@@ -500,20 +515,40 @@ namespace recycling.BLL
                 return aliasKey;
             }
 
-            var normalizedKey = key.Replace(" ", string.Empty).Replace("_", string.Empty).Replace("-", string.Empty);
+            var normalizedKey = NormalizeCategoryToken(key);
             if (CategoryTemplateAliases.TryGetValue(normalizedKey, out aliasKey))
             {
                 return aliasKey;
             }
 
-            if (normalizedKey.IndexOf("plastic", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                normalizedKey.IndexOf("塑料", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                normalizedKey.IndexOf("塑胶", StringComparison.OrdinalIgnoreCase) >= 0)
+            foreach (var keywordAlias in CategoryTemplateKeywordAliases)
             {
-                return "plastic";
+                if (normalizedKey.IndexOf(keywordAlias.Key, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return keywordAlias.Value;
+                }
             }
 
             return key;
+        }
+
+        private static string NormalizeCategoryToken(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            var chars = new List<char>(input.Length);
+            foreach (var c in input)
+            {
+                if (char.IsWhiteSpace(c) || c == '_' || c == '-')
+                {
+                    continue;
+                }
+                chars.Add(c);
+            }
+            return new string(chars.ToArray());
         }
 
         /// <summary>
