@@ -1887,14 +1887,14 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
                 }
 
-                if (string.IsNullOrWhiteSpace(categoryName))
-                {
-                    return JsonContent(new { success = false, message = "请填写品类名称" });
-                }
-
                 if (string.IsNullOrWhiteSpace(categoryKey))
                 {
                     return JsonContent(new { success = false, message = "请选择有效品类" });
+                }
+
+                if (string.IsNullOrWhiteSpace(categoryName))
+                {
+                    return JsonContent(new { success = false, message = "请填写品类名称" });
                 }
 
                 if (weight <= 0)
