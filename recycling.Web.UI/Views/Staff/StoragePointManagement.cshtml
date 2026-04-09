@@ -245,6 +245,35 @@
         margin-right: 8px;
     }
 
+    .action-buttons {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-add-item {
+        background: linear-gradient(135deg, #20bf6b 0%, #26de81 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-add-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-add-item i {
+        margin-right: 8px;
+    }
+
     .modal-overlay {
         display: none;
         position: fixed;
@@ -479,8 +508,11 @@
         </div>
     </div>
 
-    <!-- 联系运输人员按钮 -->
-    <div style="margin-bottom: 20px;">
+    <!-- 操作按钮 -->
+    <div class="action-buttons">
+        <button class="btn-add-item" id="btnAddStorageItem">
+            <i class="glyphicon glyphicon-plus"></i> 添加物品
+        </button>
         <button class="btn-contact-transport" id="btnContactTransport">
             <i class="glyphicon glyphicon-phone"></i> 联系运输人员
         </button>
@@ -602,6 +634,46 @@
             </div>
         </div>
     </div>
+
+    <!-- 手动添加暂存点物品模态框 -->
+    <div class="modal-overlay" id="addItemModal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3><i class="glyphicon glyphicon-plus-sign"></i> 添加暂存点物品</h3>
+                <button class="modal-close" id="btnCloseAddItemModal">&times;</button>
+            </div>
+            <div class="order-form">
+                <form id="addStorageItemForm">
+                    <div class="form-group">
+                        <label for="manualCategoryName"><strong>品类名称：</strong> <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="manualCategoryName" maxlength="50" placeholder="例如：塑料、纸类、金属" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualCategoryKey"><strong>品类编码：</strong> <span style="color: gray;">(可选)</span></label>
+                        <input type="text" class="form-control" id="manualCategoryKey" maxlength="50" placeholder="不填则自动使用品类名称" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualWeight"><strong>重量 (kg)：</strong> <span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="manualWeight" min="0.01" step="0.01" placeholder="请输入重量" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualPrice"><strong>金额 (元)：</strong> <span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="manualPrice" min="0" step="0.01" placeholder="请输入金额" />
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn btn-default" style="flex: 1;" onclick="closeAddItemModal()">取消</button>
+                        <button type="submit" class="btn btn-success" style="flex: 2;">
+                            <i class="glyphicon glyphicon-ok"></i> 保存并加入暂存点
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section scripts {
@@ -615,6 +687,10 @@
         // Bind contact transport button
         $('#btnContactTransport').on('click', function() {
             showTransporterModal();
+        });
+
+        $('#btnAddStorageItem').on('click', function() {
+            openAddItemModal();
         });
         
         // Bind modal close events
@@ -742,7 +818,7 @@
         $cards.empty();
 
         if (data.length === 0) {
-            $cards.html('<div class="empty-state"><i class="glyphicon glyphicon-inbox"></i><p>暂无库存数据</p><p style="color: #999; font-size: 14px; margin-top: 10px;">完成订单后，回收物品会自动记录到库存中</p></div>');
+            $cards.html('<div class="empty-state"><i class="glyphicon glyphicon-inbox"></i><p>暂无库存数据</p><p style="color: #999; font-size: 14px; margin-top: 10px;">完成订单后会自动入库，也可点击“添加物品”手动录入</p></div>');
             updateStats(0, 0, 0);
             // 重置全局数据
             storagePointData = {
@@ -868,9 +944,10 @@
         }
 
         data.forEach(function (item) {
+            var orderDisplayText = item.isManualEntry ? '手动录入' : ('AP' + String(item.orderId).padStart(6, '0'));
             var row = $('<tr></tr>');
             row.html(
-                '<td>AP' + String(item.orderId).padStart(6, '0') + '</td>' +
+                '<td>' + orderDisplayText + '</td>' +
                 '<td>' + item.categoryName + '</td>' +
                 '<td>' + item.weight.toFixed(2) + '</td>' +
                 '<td>¥' + (item.price || 0).toFixed(2) + '</td>' +
@@ -1155,6 +1232,18 @@
         $('#createOrderModal').hide();
     }
 
+    function openAddItemModal() {
+        $('#manualCategoryName').val('');
+        $('#manualCategoryKey').val('');
+        $('#manualWeight').val('');
+        $('#manualPrice').val('');
+        $('#addItemModal').show();
+    }
+
+    function closeAddItemModal() {
+        $('#addItemModal').hide();
+    }
+
     // 绑定创建运输单表单提交事件
     $(document).ready(function() {
         // 绑定关闭按钮
@@ -1174,7 +1263,78 @@
             e.preventDefault();
             createTransportationOrder();
         });
+
+        $('#btnCloseAddItemModal').on('click', function() {
+            closeAddItemModal();
+        });
+
+        $('#addItemModal').on('click', function(e) {
+            if (e.target.id === 'addItemModal') {
+                closeAddItemModal();
+            }
+        });
+
+        $('#addStorageItemForm').on('submit', function(e) {
+            e.preventDefault();
+            submitManualStorageItem();
+        });
     });
+
+    function submitManualStorageItem() {
+        var categoryName = $('#manualCategoryName').val().trim();
+        var categoryKey = $('#manualCategoryKey').val().trim();
+        var weight = parseFloat($('#manualWeight').val());
+        var price = parseFloat($('#manualPrice').val());
+
+        if (!categoryName) {
+            alert('请填写品类名称');
+            return;
+        }
+
+        if (!weight || weight <= 0) {
+            alert('重量必须大于0');
+            return;
+        }
+
+        if (isNaN(price) || price < 0) {
+            alert('金额不能小于0');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("AddStoragePointItem", "Staff")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: tokenValue,
+                categoryName: categoryName,
+                categoryKey: categoryKey,
+                weight: weight,
+                price: price
+            },
+            beforeSend: function() {
+                $('#addStorageItemForm button[type="submit"]').prop('disabled', true).html('<i class="glyphicon glyphicon-refresh glyphicon-spin"></i> 保存中...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('添加成功，已加入暂存点');
+                    closeAddItemModal();
+                    loadSummary();
+                } else {
+                    alert('添加失败：' + response.message);
+                }
+            },
+            error: function(xhr) {
+                var errorMsg = '添加失败，请重试';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                alert(errorMsg);
+            },
+            complete: function() {
+                $('#addStorageItemForm button[type="submit"]').prop('disabled', false).html('<i class="glyphicon glyphicon-ok"></i> 保存并加入暂存点');
+            }
+        });
+    }
 
     // 创建运输单
     function createTransportationOrder() {

@@ -1822,7 +1822,8 @@ namespace recycling.Web.UI.Controllers
                     categoryName = d.CategoryName,
                     weight = d.Weight,
                     price = d.Price,
-                    createdDate = d.CreatedDate.ToString("yyyy-MM-dd HH:mm")
+                    createdDate = d.CreatedDate.ToString("yyyy-MM-dd HH:mm"),
+                    isManualEntry = d.IsManualEntry
                 }).ToList();
 
                 return JsonContent(new { success = true, data = result });
@@ -1864,6 +1865,70 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 回收员手动添加暂存点物品（AJAX）
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ContentResult AddStoragePointItem(string categoryName, string categoryKey, decimal weight, decimal price)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    return JsonContent(new { success = false, message = "未登录，请重新登录" });
+                }
+
+                var staff = Session["LoginStaff"] as Recyclers;
+                var role = Session["StaffRole"] as string;
+
+                if (staff == null || role != "recycler")
+                {
+                    return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
+                }
+
+                if (string.IsNullOrWhiteSpace(categoryName))
+                {
+                    return JsonContent(new { success = false, message = "请填写品类名称" });
+                }
+
+                if (weight <= 0)
+                {
+                    return JsonContent(new { success = false, message = "重量必须大于0" });
+                }
+
+                if (price < 0)
+                {
+                    return JsonContent(new { success = false, message = "金额不能小于0" });
+                }
+
+                string normalizedCategoryName = categoryName.Trim();
+                string normalizedCategoryKey = string.IsNullOrWhiteSpace(categoryKey)
+                    ? normalizedCategoryName.Replace(" ", "")
+                    : categoryKey.Trim();
+
+                var storagePointBLL = new StoragePointBLL();
+                bool result = storagePointBLL.AddManualStoragePointItem(
+                    staff.RecyclerID,
+                    normalizedCategoryKey,
+                    normalizedCategoryName,
+                    weight,
+                    price);
+
+                if (!result)
+                {
+                    return JsonContent(new { success = false, message = "添加失败，请重试" });
+                }
+
+                return JsonContent(new { success = true, message = "添加成功" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddStoragePointItem 错误: {ex.Message}");
+                return JsonContent(new { success = false, message = $"添加失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// Get available transporters in the same region as the recycler (AJAX)
         /// </summary>
         [HttpPost]
@@ -1898,14 +1963,6 @@ namespace recycling.Web.UI.Controllers
                 if (!hasStoragePointItems)
                 {
                     return JsonContent(new { success = false, message = "暂存点没有物品，无需联系运输人员" });
-                }
-
-                // Check if recycler already has an active (non-completed, non-cancelled) transport order
-                var transportOrderBLL = new TransportationOrderBLL();
-                bool hasActiveOrder = transportOrderBLL.HasActiveTransportOrdersForRecycler(staff.RecyclerID);
-                if (hasActiveOrder)
-                {
-                    return JsonContent(new { success = false, message = "当前暂存点物品已创建了运输单，请等待运输单完成后再创建新单" });
                 }
 
                 // Get transporters in the same region who are active and available (excluding those already working)
@@ -2053,14 +2110,26 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请填写取货地址" });
                 }
 
-                if (estimatedWeight <= 0)
-                {
-                    return JsonContent(new { success = false, message = "预估重量必须大于0" });
-                }
-
                 if (assignedWorkerID <= 0)
                 {
                     return JsonContent(new { success = false, message = "请选择基地工作人员" });
+                }
+
+                System.Diagnostics.Debug.WriteLine($"CreateTransportationOrder 客户端传入快照: weight={estimatedWeight}, value={itemTotalValue}, categoriesLength={(itemCategories ?? string.Empty).Length}");
+
+                var storagePointBll = new StoragePointBLL();
+                var summary = storagePointBll.GetStoragePointSummary(staff.RecyclerID);
+                if (summary == null || summary.Count == 0 || !summary.Any(s => s.TotalWeight > 0))
+                {
+                    return JsonContent(new { success = false, message = "暂存点没有可运输的物品，请先添加或完成回收后再创建运输单" });
+                }
+
+                var validSummary = summary.Where(s => s.TotalWeight > 0).ToList();
+                decimal calculatedWeight = validSummary.Sum(s => s.TotalWeight);
+                decimal calculatedValue = validSummary.Sum(s => s.TotalPrice);
+                if (calculatedWeight <= 0)
+                {
+                    return JsonContent(new { success = false, message = "暂存点重量数据无效，无法创建运输单" });
                 }
 
                 // 创建运输单对象
@@ -2077,78 +2146,40 @@ namespace recycling.Web.UI.Controllers
                     ContactPhone = staff.PhoneNumber, // 回收员电话
                     BaseContactPerson = baseContactPerson, // 基地联系人（从下拉列表选择）
                     BaseContactPhone = baseContactPhone, // 基地联系电话（自动填充）
-                    EstimatedWeight = estimatedWeight,
-                    ItemTotalValue = itemTotalValue,
+                    EstimatedWeight = calculatedWeight,
+                    ItemTotalValue = calculatedValue,
                     ItemCategories = null, // 将在解析品类信息后设置为格式化文本
                     SpecialInstructions = specialInstructions,
                     AssignedWorkerID = assignedWorkerID > 0 ? (int?)assignedWorkerID : null
                 };
 
-                // 解析品类详细信息（如果提供的是JSON格式）
-                List<TransportationOrderCategories> categoryDetails = null;
-                string formattedCategories = null; // 存储格式化的品类文本
-                try
+                // 使用服务端暂存点快照生成品类信息，避免客户端数据被篡改或滞后
+                List<TransportationOrderCategories> categoryDetails = new List<TransportationOrderCategories>();
+                var categoryLines = new List<string>();
+                foreach (var item in validSummary)
                 {
-                    // 尝试解析 JSON 格式的品类数据
-                    if (!string.IsNullOrWhiteSpace(itemCategories))
+                    decimal pricePerKg = 0;
+                    if (item.TotalWeight > 0 && item.TotalPrice > 0)
                     {
-                        // 检查是否是JSON数组格式
-                        if (itemCategories.Trim().StartsWith("["))
-                        {
-                            var categoryList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategories);
-                            if (categoryList != null && categoryList.Count > 0)
-                            {
-                                categoryDetails = new List<TransportationOrderCategories>();
-                                var categoryLines = new List<string>();
-                                
-                                foreach (var cat in categoryList)
-                                {
-                                    var categoryDetail = new TransportationOrderCategories
-                                    {
-                                        CategoryKey = cat.ContainsKey("categoryKey") ? cat["categoryKey"]?.ToString() : "",
-                                        CategoryName = cat.ContainsKey("categoryName") ? cat["categoryName"]?.ToString() : "",
-                                        Weight = cat.ContainsKey("weight") ? Convert.ToDecimal(cat["weight"]) : 0,
-                                        PricePerKg = cat.ContainsKey("pricePerKg") ? Convert.ToDecimal(cat["pricePerKg"]) : 0,
-                                        TotalAmount = cat.ContainsKey("totalAmount") ? Convert.ToDecimal(cat["totalAmount"]) : 0,
-                                        CreatedDate = DateTime.Now
-                                    };
-                                    
-                                    // 如果没有提供totalAmount，根据weight和pricePerKg计算
-                                    if (categoryDetail.TotalAmount == 0 && categoryDetail.Weight > 0 && categoryDetail.PricePerKg > 0)
-                                    {
-                                        categoryDetail.TotalAmount = categoryDetail.Weight * categoryDetail.PricePerKg;
-                                    }
-                                    
-                                    categoryDetails.Add(categoryDetail);
-                                    
-                                    // 构建可读格式：品类名称 重量kg 单价¥X.XX/kg 金额¥X.XX
-                                    // 处理可能为null的CategoryName
-                                    var categoryName = string.IsNullOrWhiteSpace(categoryDetail.CategoryName) 
-                                        ? "未知品类" 
-                                        : categoryDetail.CategoryName;
-                                    var line = $"{categoryName} {categoryDetail.Weight:F2}kg 单价¥{categoryDetail.PricePerKg:F2}/kg 金额¥{categoryDetail.TotalAmount:F2}";
-                                    categoryLines.Add(line);
-                                }
-                                
-                                // 将格式化的品类文本用换行符连接
-                                formattedCategories = string.Join("\n", categoryLines);
-                                
-                                System.Diagnostics.Debug.WriteLine($"成功解析 {categoryDetails.Count} 条品类详细信息");
-                            }
-                        }
+                        pricePerKg = Math.Round(item.TotalPrice / item.TotalWeight, 2);
                     }
-                }
-                catch (Exception parseEx)
-                {
-                    // 解析失败不影响运输单创建，只是不会保存详细的品类信息
-                    System.Diagnostics.Debug.WriteLine($"解析品类详细信息失败: {parseEx.Message}");
-                    categoryDetails = null;
+
+                    var categoryDetail = new TransportationOrderCategories
+                    {
+                        CategoryKey = item.CategoryKey,
+                        CategoryName = item.CategoryName,
+                        Weight = item.TotalWeight,
+                        PricePerKg = pricePerKg,
+                        TotalAmount = item.TotalPrice,
+                        CreatedDate = DateTime.Now
+                    };
+
+                    categoryDetails.Add(categoryDetail);
+                    var categoryName = string.IsNullOrWhiteSpace(categoryDetail.CategoryName) ? "未知品类" : categoryDetail.CategoryName;
+                    categoryLines.Add($"{categoryName} {categoryDetail.Weight:F2}kg 单价¥{categoryDetail.PricePerKg:F2}/kg 金额¥{categoryDetail.TotalAmount:F2}");
                 }
 
-                // 如果成功格式化了品类信息，则使用格式化的文本；否则保留原始JSON
-                order.ItemCategories = !string.IsNullOrWhiteSpace(formattedCategories) 
-                    ? formattedCategories 
-                    : itemCategories;
+                order.ItemCategories = string.Join("\n", categoryLines);
 
                 // 调用BLL创建运输单
                 var transportOrderBLL = new TransportationOrderBLL();

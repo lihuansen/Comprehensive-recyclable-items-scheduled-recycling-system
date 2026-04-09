@@ -36,5 +36,10 @@ namespace recycling.Model
         /// 完成日期
         /// </summary>
         public DateTime CreatedDate { get; set; }
+
+        /// <summary>
+        /// 是否为回收员手动录入
+        /// </summary>
+        public bool IsManualEntry { get; set; }
     }
 }

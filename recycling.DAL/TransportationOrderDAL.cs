@@ -243,6 +243,19 @@ namespace recycling.DAL
                                 }
                             }
 
+                            // 创建运输单时立即将当前暂存点物品转为运输中，确保后续新增物品可独立创建新运输单
+                            string moveInventorySql = @"
+                                UPDATE Inventory
+                                SET InventoryType = N'InTransit'
+                                WHERE RecyclerID = @RecyclerID
+                                  AND InventoryType = N'StoragePoint'";
+                            using (SqlCommand moveCmd = new SqlCommand(moveInventorySql, conn, transaction))
+                            {
+                                moveCmd.Parameters.AddWithValue("@RecyclerID", order.RecyclerID);
+                                int movedRows = moveCmd.ExecuteNonQuery();
+                                System.Diagnostics.Debug.WriteLine($"CreateTransportationOrder moved {movedRows} storage items to InTransit for recycler {order.RecyclerID}");
+                            }
+
                             transaction.Commit();
                             return (orderId, order.OrderNumber);
                         }
@@ -813,7 +826,6 @@ namespace recycling.DAL
 
         /// <summary>
         /// 开始运输（更新状态为运输中并记录取货时间）
-        /// Also moves inventory from StoragePoint to InTransit state
         /// DEPRECATED: Use ConfirmPickupLocation instead to follow new workflow
         /// </summary>
         public bool StartTransportation(int orderId)
@@ -828,31 +840,12 @@ namespace recycling.DAL
                     {
                         try
                         {
-                            // 1. Get the RecyclerID from the transport order
-                            string getRecyclerSql = @"
-                                SELECT RecyclerID 
-                                FROM TransportationOrders 
-                                WHERE TransportOrderID = @OrderID";
-                            
-                            int recyclerID;
-                            using (SqlCommand cmd = new SqlCommand(getRecyclerSql, conn, transaction))
-                            {
-                                cmd.Parameters.AddWithValue("@OrderID", orderId);
-                                var result = cmd.ExecuteScalar();
-                                if (result == null)
-                                {
-                                    transaction.Rollback();
-                                    return false;
-                                }
-                                recyclerID = Convert.ToInt32(result);
-                            }
-                            
-                            // 2. Check which columns exist
+                            // 1. Check which columns exist
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasPickupConfirmedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupConfirmedDate");
                             bool hasPickupDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupDate");
                             
-                            // 3. Build dynamic UPDATE SQL based on available columns
+                            // 2. Build dynamic UPDATE SQL based on available columns
                             string updateOrderSql = "UPDATE TransportationOrders SET Status = '运输中'";
                             
                             if (hasPickupDate)
@@ -889,30 +882,6 @@ namespace recycling.DAL
                                 return false;
                             }
                             
-                            // 4. Move inventory from StoragePoint to InTransit
-                            // This ensures goods are not visible in storage point during transport
-                            string moveInventorySql = @"
-                                UPDATE Inventory 
-                                SET InventoryType = N'InTransit'
-                                WHERE RecyclerID = @RecyclerID 
-                                  AND InventoryType = N'StoragePoint'";
-
-                            int movedRows;
-                            using (SqlCommand cmd = new SqlCommand(moveInventorySql, conn, transaction))
-                            {
-                                cmd.Parameters.AddWithValue("@RecyclerID", recyclerID);
-                                movedRows = cmd.ExecuteNonQuery();
-                                System.Diagnostics.Debug.WriteLine($"Moved {movedRows} inventory items from StoragePoint to InTransit for recycler {recyclerID}");
-                            }
-                            
-                            // Validate that inventory was moved
-                            // Note: It's valid to have 0 rows if the storage point is empty (goods already transported)
-                            // But we log a warning for tracking purposes
-                            if (movedRows == 0)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Warning: No inventory items moved for recycler {recyclerID}. Storage point may be empty.");
-                            }
-                            
                             transaction.Commit();
                             return true;
                         }
@@ -947,31 +916,12 @@ namespace recycling.DAL
                     {
                         try
                         {
-                            // 1. Get the RecyclerID from the transport order
-                            string getRecyclerSql = @"
-                                SELECT RecyclerID 
-                                FROM TransportationOrders 
-                                WHERE TransportOrderID = @OrderID";
-                            
-                            int recyclerID;
-                            using (SqlCommand cmd = new SqlCommand(getRecyclerSql, conn, transaction))
-                            {
-                                cmd.Parameters.AddWithValue("@OrderID", orderId);
-                                var result = cmd.ExecuteScalar();
-                                if (result == null)
-                                {
-                                    transaction.Rollback();
-                                    return false;
-                                }
-                                recyclerID = Convert.ToInt32(result);
-                            }
-                            
-                            // 2. Check which columns exist
+                            // 1. Check which columns exist
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasPickupConfirmedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupConfirmedDate");
                             bool hasStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "Stage");
                             
-                            // 3. Build dynamic UPDATE SQL based on available columns
+                            // 2. Build dynamic UPDATE SQL based on available columns
                             string updateOrderSql = "UPDATE TransportationOrders SET Status = N'运输中'";
                             
                             if (hasTransportStage)
@@ -1125,31 +1075,12 @@ namespace recycling.DAL
                     {
                         try
                         {
-                            // 1. Get the RecyclerID from the transport order
-                            string getRecyclerSql = @"
-                                SELECT RecyclerID 
-                                FROM TransportationOrders 
-                                WHERE TransportOrderID = @OrderID";
-                            
-                            int recyclerID;
-                            using (SqlCommand cmd = new SqlCommand(getRecyclerSql, conn, transaction))
-                            {
-                                cmd.Parameters.AddWithValue("@OrderID", orderId);
-                                var result = cmd.ExecuteScalar();
-                                if (result == null)
-                                {
-                                    transaction.Rollback();
-                                    return false;
-                                }
-                                recyclerID = Convert.ToInt32(result);
-                            }
-                            
-                            // 2. Check which columns exist
+                            // 1. Check which columns exist
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasLoadingCompletedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "LoadingCompletedDate");
                             bool hasStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "Stage");
                             
-                            // 3. Build dynamic UPDATE SQL based on available columns
+                            // 2. Build dynamic UPDATE SQL based on available columns
                             string updateOrderSql = "UPDATE TransportationOrders SET ";
                             List<string> setClauses = new List<string>();
                             
@@ -1222,28 +1153,6 @@ namespace recycling.DAL
                             {
                                 transaction.Rollback();
                                 return false;
-                            }
-                            
-                            // 4. Move inventory from StoragePoint to InTransit
-                            // This ensures goods are not visible in storage point during transport
-                            string moveInventorySql = @"
-                                UPDATE Inventory 
-                                SET InventoryType = N'InTransit'
-                                WHERE RecyclerID = @RecyclerID 
-                                  AND InventoryType = N'StoragePoint'";
-
-                            int movedRows;
-                            using (SqlCommand cmd = new SqlCommand(moveInventorySql, conn, transaction))
-                            {
-                                cmd.Parameters.AddWithValue("@RecyclerID", recyclerID);
-                                movedRows = cmd.ExecuteNonQuery();
-                                System.Diagnostics.Debug.WriteLine($"Moved {movedRows} inventory items from StoragePoint to InTransit for recycler {recyclerID}");
-                            }
-                            
-                            // Note: It's valid to have 0 rows if the storage point is empty
-                            if (movedRows == 0)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Warning: No inventory items moved for recycler {recyclerID}. Storage point may be empty.");
                             }
                             
                             transaction.Commit();
