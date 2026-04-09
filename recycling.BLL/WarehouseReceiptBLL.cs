@@ -451,7 +451,7 @@ namespace recycling.BLL
                     return Math.Round(matched.PricePerKg, 2, MidpointRounding.AwayFromZero);
                 }
 
-                return DefaultManualSubCategoryPricePerKg;
+                return Math.Round(options.Average(o => o.PricePerKg), 2, MidpointRounding.AwayFromZero);
             }
 
             if (submittedPricePerKg.HasValue && submittedPricePerKg.Value >= 0)
@@ -535,15 +535,15 @@ namespace recycling.BLL
                         return (false, "细分项存在空类别字段");
                     }
 
-                    if (subKey.StartsWith(parentKey + "_", StringComparison.OrdinalIgnoreCase) == false)
-                    {
-                        subKey = $"{parentKey}_{subKey}";
-                    }
+                    var normalizedSubKey = subKey.StartsWith(parentKey + "_", StringComparison.OrdinalIgnoreCase)
+                        ? subKey
+                        : $"{parentKey}_{subKey}";
 
-                    if (parentKey.Length > CategoryFieldMaxLength || subKey.Length > CategoryFieldMaxLength || subName.Length > CategoryFieldMaxLength)
+                    if (parentKey.Length > CategoryFieldMaxLength || normalizedSubKey.Length > CategoryFieldMaxLength || subName.Length > CategoryFieldMaxLength)
                     {
                         return (false, "细分项类别字段长度超限");
                     }
+                    subKey = normalizedSubKey;
 
                     if (!originalWeightMap.ContainsKey(parentKey))
                     {
