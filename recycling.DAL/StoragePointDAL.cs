@@ -132,12 +132,13 @@ namespace recycling.DAL
                             {
                                 details.Add(new StoragePointDetail
                                 {
-                                    OrderID = Convert.ToInt32(reader["OrderID"]),
+                                    OrderID = reader["OrderID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["OrderID"]),
                                     CategoryKey = reader["CategoryKey"]?.ToString() ?? "",
                                     CategoryName = reader["CategoryName"]?.ToString() ?? "未知类别",
                                     Weight = reader["Weight"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Weight"]),
                                     Price = reader["Price"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Price"]),
-                                    CreatedDate = reader["CreatedDate"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(reader["CreatedDate"])
+                                    CreatedDate = reader["CreatedDate"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(reader["CreatedDate"]),
+                                    IsManualEntry = reader["OrderID"] == DBNull.Value || Convert.ToInt32(reader["OrderID"]) <= 0
                                 });
                             }
                             catch (Exception ex)
@@ -163,6 +164,87 @@ namespace recycling.DAL
             }
 
             return details;
+        }
+
+        /// <summary>
+        /// 回收员手动添加暂存点物品
+        /// </summary>
+        public bool AddManualStoragePointItem(int recyclerId, string categoryKey, string categoryName, decimal weight, decimal price)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    const string insertSql = @"
+                        INSERT INTO Inventory (OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate, InventoryType)
+                        VALUES (@OrderID, @CategoryKey, @CategoryName, @Weight, @Price, @RecyclerID, @CreatedDate, N'StoragePoint')";
+
+                    object orderIdValue = DBNull.Value;
+                    if (!IsInventoryOrderIdNullable(conn))
+                    {
+                        // Inventory.OrderID 设计上关联 Appointments.AppointmentID
+                        // 如果数据库仍要求非空，则复用该回收员最近的预约单ID作为兼容方案
+                        string fallbackOrderSql = @"
+                            SELECT TOP 1 AppointmentID
+                            FROM Appointments
+                            WHERE RecyclerID = @RecyclerID
+                            ORDER BY UpdatedDate DESC, CreatedDate DESC, AppointmentID DESC";
+
+                        object fallbackOrderId;
+                        using (SqlCommand fallbackCmd = new SqlCommand(fallbackOrderSql, conn))
+                        {
+                            fallbackCmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                            fallbackOrderId = fallbackCmd.ExecuteScalar();
+                        }
+
+                        if (fallbackOrderId == null || fallbackOrderId == DBNull.Value)
+                        {
+                            throw new Exception("无法添加物品：需要先完成至少一笔预约单才能手动添加物品");
+                        }
+
+                        orderIdValue = Convert.ToInt32(fallbackOrderId);
+                    }
+
+                    using (SqlCommand cmd = new SqlCommand(insertSql, conn))
+                    {
+                        cmd.Parameters.Add("@OrderID", SqlDbType.Int).Value = orderIdValue;
+                        cmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
+                        cmd.Parameters.AddWithValue("@CategoryName", categoryName);
+                        cmd.Parameters.AddWithValue("@Weight", weight);
+                        cmd.Parameters.AddWithValue("@Price", price);
+                        cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                        cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                        return cmd.ExecuteNonQuery() > 0;
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"SQL Error in AddManualStoragePointItem: {sqlEx.Message}");
+                throw new Exception($"数据库更新错误 (代码: {sqlEx.Number}): {sqlEx.Message}", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in AddManualStoragePointItem: {ex.Message}");
+                throw;
+            }
+        }
+
+        private bool IsInventoryOrderIdNullable(SqlConnection conn)
+        {
+            const string sql = @"
+                SELECT IS_NULLABLE
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'Inventory'
+                  AND COLUMN_NAME = 'OrderID'";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                var result = cmd.ExecuteScalar()?.ToString();
+                return string.Equals(result, "YES", StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         /// <summary>

@@ -61,5 +61,38 @@ namespace recycling.BLL
 
             return _storagePointDAL.ClearStoragePointForRecycler(recyclerId);
         }
+
+        /// <summary>
+        /// 回收员手动添加暂存点物品
+        /// </summary>
+        public bool AddManualStoragePointItem(int recyclerId, string categoryKey, string categoryName, decimal weight, decimal price)
+        {
+            if (recyclerId <= 0)
+            {
+                throw new ArgumentException("回收员ID无效");
+            }
+
+            if (string.IsNullOrWhiteSpace(categoryName))
+            {
+                throw new ArgumentException("品类不能为空");
+            }
+
+            if (weight <= 0)
+            {
+                throw new ArgumentException("重量必须大于0");
+            }
+
+            if (price < 0)
+            {
+                throw new ArgumentException("金额不能小于0");
+            }
+
+            return _storagePointDAL.AddManualStoragePointItem(
+                recyclerId,
+                string.IsNullOrWhiteSpace(categoryKey) ? categoryName.Trim() : categoryKey.Trim(),
+                categoryName.Trim(),
+                weight,
+                price);
+        }
     }
 }
