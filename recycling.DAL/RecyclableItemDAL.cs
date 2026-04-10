@@ -512,7 +512,8 @@ namespace recycling.DAL
                 string sql = @"SELECT COUNT(1)
                                FROM RecyclableItems
                                WHERE Name = @Name
-                                 AND Category = @Category";
+                                 AND Category = @Category
+                                 AND IsActive = 1";
 
                 if (excludeItemId.HasValue)
                 {
@@ -520,8 +521,8 @@ namespace recycling.DAL
                 }
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Name", name);
-                cmd.Parameters.AddWithValue("@Category", category);
+                cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 50).Value = (object)name ?? DBNull.Value;
+                cmd.Parameters.Add("@Category", SqlDbType.NVarChar, 50).Value = (object)category ?? DBNull.Value;
                 if (excludeItemId.HasValue)
                 {
                     cmd.Parameters.AddWithValue("@ExcludeItemId", excludeItemId.Value);
