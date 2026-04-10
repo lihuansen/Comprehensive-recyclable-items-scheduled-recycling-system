@@ -260,10 +260,11 @@
                 .replace(/'/g, '&#39;');
         }
 
-        function formatCount(count) {
+        function formatCountDisplay(count) {
             return '(' + count + ')';
         }
 
+        // 依赖 formatCountDisplay 的“(数字)”格式来提取数值
         function parseCount(text) {
             return parseInt(String(text || '').replace(/[()\s]/g, ''), 10) || 0;
         }
@@ -273,9 +274,9 @@
             var unread = Math.max(0, unreadCount || 0);
             var read = Math.max(0, total - unread);
 
-            document.getElementById('count-all').textContent = formatCount(total);
-            document.getElementById('count-unread').textContent = formatCount(unread);
-            document.getElementById('count-read').textContent = formatCount(read);
+            document.getElementById('count-all').textContent = formatCountDisplay(total);
+            document.getElementById('count-unread').textContent = formatCountDisplay(unread);
+            document.getElementById('count-read').textContent = formatCountDisplay(read);
         }
 
         function bindFilterEvents() {
@@ -449,7 +450,10 @@
 
         function markAllAsRead() {
             var unread = parseCount(document.getElementById('count-unread').textContent);
-            if (unread <= 0) return;
+            if (unread <= 0) {
+                alert('当前没有未读消息');
+                return;
+            }
             if (!confirm('确定要将所有消息标记为已读吗？')) return;
 
             fetch('@Url.Action("MarkAllNotificationsAsRead", "Home")', {
