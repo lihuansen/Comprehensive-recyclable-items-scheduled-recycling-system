@@ -114,6 +114,10 @@
             line-height: 1.2;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
+        
+        .nav-top-badge:empty {
+            display: none;
+        }
 
         /* 消息未读数徽章样式 */
         .nav-message-badge {
@@ -272,21 +276,25 @@
 
             @{
                 var navBadgeCounts = ViewBag.NavBadgeCounts as System.Collections.Generic.IDictionary<string, int>;
-                Func<string, string> getNavBadgeText = key =>
+                Func<string, int> getNavBadgeCount = key =>
                 {
                     if (navBadgeCounts != null && navBadgeCounts.ContainsKey(key))
                     {
-                        var count = navBadgeCounts[key];
-                        return count > 99 ? "99+" : count.ToString();
+                        return Math.Max(0, navBadgeCounts[key]);
                     }
-                    return "1";
+                    return 0;
+                };
+                Func<string, string> getNavBadgeText = key =>
+                {
+                    var count = getNavBadgeCount(key);
+                    return count > 0 ? (count > 99 ? "99+" : count.ToString()) : string.Empty;
                 };
             }
 
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("订单管理", "Recycler_OrderManagement", "Staff")<span class="nav-top-badge">@getNavBadgeText("recycler-order")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("订单管理", "Recycler_OrderManagement", "Staff")<span class="nav-top-badge js-nav-tip-badge" data-tip-key="recycler-order" data-tip-count="@getNavBadgeCount("recycler-order")">@getNavBadgeText("recycler-order")</span></li>
                         <li class="normal-nav" id="nav-message-center-item">
                             @Html.ActionLink("消息中心", "Message_Center", "Staff")
                             <span id="recycler-message-badge" class="nav-message-badge"></span>
@@ -301,9 +309,9 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("暂存点管理", "StoragePointManagement", "Staff")<span class="nav-top-badge">@getNavBadgeText("recycler-storage-point")</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("用户评价", "UserReviews", "Staff")<span class="nav-top-badge">@getNavBadgeText("recycler-review")</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "RecyclerProfile", "Staff")<span class="nav-top-badge">@getNavBadgeText("recycler-profile")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("暂存点管理", "StoragePointManagement", "Staff")<span class="nav-top-badge js-nav-tip-badge" data-tip-key="recycler-storage-point" data-tip-count="@getNavBadgeCount("recycler-storage-point")">@getNavBadgeText("recycler-storage-point")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("用户评价", "UserReviews", "Staff")<span class="nav-top-badge js-nav-tip-badge" data-tip-key="recycler-review" data-tip-count="@getNavBadgeCount("recycler-review")">@getNavBadgeText("recycler-review")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "RecyclerProfile", "Staff")<span class="nav-top-badge js-nav-tip-badge" data-tip-key="recycler-profile" data-tip-count="@getNavBadgeCount("recycler-profile")">@getNavBadgeText("recycler-profile")</span></li>
                     </ul>
                 </div>
             </div>
@@ -319,6 +327,93 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script>
+        (function () {
+            var storageKey = 'navTipBadgeDismissedCounts';
+
+            function readMap() {
+                try {
+                    var raw = localStorage.getItem(storageKey);
+                    return raw ? JSON.parse(raw) : {};
+                } catch (e) {
+                    return {};
+                }
+            }
+
+            function writeMap(map) {
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(map || {}));
+                } catch (e) {
+                }
+            }
+
+            function toCount(value) {
+                var parsed = parseInt(value, 10);
+                return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+            }
+
+            function applyNavTipBadges() {
+                var dismissedMap = readMap();
+                var changed = false;
+
+                document.querySelectorAll('.js-nav-tip-badge').forEach(function (badge) {
+                    var key = badge.getAttribute('data-tip-key') || '';
+                    var count = toCount(badge.getAttribute('data-tip-count'));
+                    var dismissedCount = toCount(dismissedMap[key]);
+
+                    if (!key || count <= 0) {
+                        badge.textContent = '';
+                        if (key && dismissedMap[key]) {
+                            delete dismissedMap[key];
+                            changed = true;
+                        }
+                        return;
+                    }
+
+                    if (dismissedCount === count) {
+                        badge.textContent = '';
+                        return;
+                    }
+
+                    if (dismissedMap[key] && dismissedCount !== count) {
+                        delete dismissedMap[key];
+                        changed = true;
+                    }
+
+                    badge.textContent = count > 99 ? '99+' : String(count);
+                });
+
+                if (changed) {
+                    writeMap(dismissedMap);
+                }
+            }
+
+            document.addEventListener('click', function (event) {
+                var navItem = event.target.closest('.nav-tip-item');
+                if (!navItem) return;
+
+                var badge = navItem.querySelector('.js-nav-tip-badge');
+                if (!badge) return;
+
+                var key = badge.getAttribute('data-tip-key') || '';
+                var count = toCount(badge.getAttribute('data-tip-count'));
+                if (!key || count <= 0) return;
+
+                var dismissedMap = readMap();
+                dismissedMap[key] = count;
+                writeMap(dismissedMap);
+                badge.textContent = '';
+            });
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', applyNavTipBadges);
+            } else {
+                applyNavTipBadges();
+            }
+
+            window.refreshNavTipBadges = applyNavTipBadges;
+        })();
+    </script>
     @RenderSection("scripts", required: false)
 
     @* 回收员未读消息数加载脚本 *@

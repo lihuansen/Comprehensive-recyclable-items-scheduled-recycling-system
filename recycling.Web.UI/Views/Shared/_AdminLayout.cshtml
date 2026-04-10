@@ -143,6 +143,10 @@
             line-height: 1.2;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
+        
+        .nav-top-badge:empty {
+            display: none;
+        }
 
         .dropdown-toggle:after {
             content: ' ▼';
@@ -354,14 +358,18 @@
 
             @{
                 var navBadgeCounts = ViewBag.NavBadgeCounts as System.Collections.Generic.IDictionary<string, int>;
-                Func<string, string> getNavBadgeText = key =>
+                Func<string, int> getNavBadgeCount = key =>
                 {
                     if (navBadgeCounts != null && navBadgeCounts.ContainsKey(key))
                     {
-                        var count = navBadgeCounts[key];
-                        return count > 99 ? "99+" : count.ToString();
+                        return Math.Max(0, navBadgeCounts[key]);
                     }
-                    return "1";
+                    return 0;
+                };
+                Func<string, string> getNavBadgeText = key =>
+                {
+                    var count = getNavBadgeCount(key);
+                    return count > 0 ? (count > 99 ? "99+" : count.ToString()) : string.Empty;
                 };
             }
 
@@ -369,7 +377,7 @@
                 <div class="nav-container">
                     <ul class="left-navs">
                         <li class="dropdown-nav">
-                            <span class="dropdown-toggle nav-tip-toggle">角色管理<span class="nav-top-badge">@getNavBadgeText("admin-role-management")</span></span>
+                            <span class="dropdown-toggle nav-tip-toggle">角色管理<span class="nav-top-badge js-nav-tip-badge" data-tip-key="admin-role-management" data-tip-count="@getNavBadgeCount("admin-role-management")">@getNavBadgeText("admin-role-management")</span></span>
                             <div class="dropdown-menu-custom">
                                 @Html.ActionLink("账号管理", "AccountSelfManagement", "Staff")
                                 @Html.ActionLink("用户管理", "UserManagement", "Staff")
@@ -379,7 +387,7 @@
                             </div>
                         </li>
                         <li class="dropdown-nav">
-                            <span class="dropdown-toggle nav-tip-toggle">内容管理<span class="nav-top-badge">@getNavBadgeText("admin-content-management")</span></span>
+                            <span class="dropdown-toggle nav-tip-toggle">内容管理<span class="nav-top-badge js-nav-tip-badge" data-tip-key="admin-content-management" data-tip-count="@getNavBadgeCount("admin-content-management")">@getNavBadgeText("admin-content-management")</span></span>
                             <div class="dropdown-menu-custom">
                                 @Html.ActionLink("首页页面管理", "HomepageManagement", "Staff")
                                 @Html.ActionLink("仓库管理", "WarehouseManagement", "Staff")
@@ -396,7 +404,7 @@
 
                     <ul class="right-navs">
                         <li class="dropdown-nav">
-                            <span class="dropdown-toggle nav-tip-toggle">系统管理<span class="nav-top-badge">@getNavBadgeText("admin-system-management")</span></span>
+                            <span class="dropdown-toggle nav-tip-toggle">系统管理<span class="nav-top-badge js-nav-tip-badge" data-tip-key="admin-system-management" data-tip-count="@getNavBadgeCount("admin-system-management")">@getNavBadgeText("admin-system-management")</span></span>
                             <div class="dropdown-menu-custom">
                                 @Html.ActionLink("反馈管理", "FeedbackManagement", "Staff")
                                 @Html.ActionLink("日志管理", "LogManagement", "Staff")
@@ -417,6 +425,93 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script>
+        (function () {
+            var storageKey = 'navTipBadgeDismissedCounts';
+
+            function readMap() {
+                try {
+                    var raw = localStorage.getItem(storageKey);
+                    return raw ? JSON.parse(raw) : {};
+                } catch (e) {
+                    return {};
+                }
+            }
+
+            function writeMap(map) {
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(map || {}));
+                } catch (e) {
+                }
+            }
+
+            function toCount(value) {
+                var parsed = parseInt(value, 10);
+                return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+            }
+
+            function applyNavTipBadges() {
+                var dismissedMap = readMap();
+                var changed = false;
+
+                document.querySelectorAll('.js-nav-tip-badge').forEach(function (badge) {
+                    var key = badge.getAttribute('data-tip-key') || '';
+                    var count = toCount(badge.getAttribute('data-tip-count'));
+                    var dismissedCount = toCount(dismissedMap[key]);
+
+                    if (!key || count <= 0) {
+                        badge.textContent = '';
+                        if (key && dismissedMap[key]) {
+                            delete dismissedMap[key];
+                            changed = true;
+                        }
+                        return;
+                    }
+
+                    if (dismissedCount === count) {
+                        badge.textContent = '';
+                        return;
+                    }
+
+                    if (dismissedMap[key] && dismissedCount !== count) {
+                        delete dismissedMap[key];
+                        changed = true;
+                    }
+
+                    badge.textContent = count > 99 ? '99+' : String(count);
+                });
+
+                if (changed) {
+                    writeMap(dismissedMap);
+                }
+            }
+
+            document.addEventListener('click', function (event) {
+                var navItem = event.target.closest('.nav-tip-item, .dropdown-nav');
+                if (!navItem) return;
+
+                var badge = navItem.querySelector('.js-nav-tip-badge');
+                if (!badge) return;
+
+                var key = badge.getAttribute('data-tip-key') || '';
+                var count = toCount(badge.getAttribute('data-tip-count'));
+                if (!key || count <= 0) return;
+
+                var dismissedMap = readMap();
+                dismissedMap[key] = count;
+                writeMap(dismissedMap);
+                badge.textContent = '';
+            });
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', applyNavTipBadges);
+            } else {
+                applyNavTipBadges();
+            }
+
+            window.refreshNavTipBadges = applyNavTipBadges;
+        })();
+    </script>
     @RenderSection("scripts", required: false)
 </body>
 </html>
