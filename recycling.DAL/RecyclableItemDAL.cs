@@ -503,6 +503,37 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Check whether a recyclable item with the same Name + Category already exists.
+        /// </summary>
+        public bool ExistsByNameAndCategory(string name, string category, int? excludeItemId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"SELECT COUNT(1)
+                               FROM RecyclableItems
+                               WHERE Name = @Name
+                                 AND Category = @Category";
+
+                if (excludeItemId.HasValue)
+                {
+                    sql += " AND ItemId <> @ExcludeItemId";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Name", name);
+                cmd.Parameters.AddWithValue("@Category", category);
+                if (excludeItemId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@ExcludeItemId", excludeItemId.Value);
+                }
+
+                conn.Open();
+                int count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
+            }
+        }
+
+        /// <summary>
         /// Delete recyclable item (soft delete by setting IsActive = false)
         /// </summary>
         public bool Delete(int itemId)
