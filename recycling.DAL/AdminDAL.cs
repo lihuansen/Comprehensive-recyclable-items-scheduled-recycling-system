@@ -1264,10 +1264,17 @@ namespace recycling.DAL
         /// </summary>
         public bool IsAdminUsernameExists(string username, int? excludeAdminId = null)
         {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return false;
+            }
+
+            username = username.Trim();
+
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "SELECT COUNT(*) FROM Admins WHERE Username = @Username";
+                string sql = "SELECT COUNT(*) FROM Admins WHERE Username COLLATE SQL_Latin1_General_CP1_CI_AS = @Username COLLATE SQL_Latin1_General_CP1_CI_AS";
                 if (excludeAdminId.HasValue)
                 {
                     sql += " AND AdminID <> @AdminID";
