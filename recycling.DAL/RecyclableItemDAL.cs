@@ -507,6 +507,11 @@ namespace recycling.DAL
         /// </summary>
         public bool ExistsByNameAndCategory(string name, string category, int? excludeItemId = null)
         {
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(category))
+            {
+                return false;
+            }
+
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = @"SELECT COUNT(1)
@@ -525,7 +530,7 @@ namespace recycling.DAL
                 cmd.Parameters.Add("@Category", SqlDbType.NVarChar, 50).Value = (object)category ?? DBNull.Value;
                 if (excludeItemId.HasValue)
                 {
-                    cmd.Parameters.AddWithValue("@ExcludeItemId", excludeItemId.Value);
+                    cmd.Parameters.Add("@ExcludeItemId", SqlDbType.Int).Value = excludeItemId.Value;
                 }
 
                 conn.Open();
