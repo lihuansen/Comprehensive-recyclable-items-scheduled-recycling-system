@@ -365,7 +365,7 @@
             }
 
             document.addEventListener('click', function (event) {
-                var navItem = event.target.closest('.nav-tip-item');
+                var navItem = event.target.closest('.nav-tip-item, .dropdown-nav');
                 if (!navItem) return;
 
                 var badge = navItem.querySelector('.js-nav-tip-badge');
