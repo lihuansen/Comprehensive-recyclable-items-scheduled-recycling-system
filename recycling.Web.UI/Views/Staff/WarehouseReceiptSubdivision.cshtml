@@ -66,7 +66,6 @@
         <div class="card-header">汇总</div>
         <div class="card-body">
             <div>细分总重量：<span id="totalWeightText">0.00</span> kg</div>
-            <div>细分总价值：<span id="totalPriceText">¥0.00</span></div>
             <div id="overallStatus" class="status-error">请完成细分并确保各大类及总重量不超重</div>
             <div class="actions">
                 <button class="btn btn-back" onclick="goBack()">返回仓库管理</button>
@@ -123,7 +122,7 @@
     }
 
     function buildCategorySelect(options, selectedKey) {
-        var html = '<select class="sub-select" onchange="onSubCategoryChanged(this)">';
+        var html = '<select class="sub-select" onchange="recalc()">';
         if (!options || options.length === 0) {
             html += '<option value="">暂无下拉选项，请在下方手动输入</option>';
         } else {
@@ -133,7 +132,7 @@
             var opt = options[i];
             var key = (opt.SubCategoryKey || ('sub' + i));
             var selected = selectedKey === key ? ' selected' : '';
-            html += '<option value="' + escapeHtml(key) + '" data-name="' + escapeHtml(opt.SubCategoryName || key) + '" data-price="' + Number(opt.PricePerKg || 0).toFixed(2) + '"' + selected + '>' +
+            html += '<option value="' + escapeHtml(key) + '" data-name="' + escapeHtml(opt.SubCategoryName || key) + '"' + selected + '>' +
                 escapeHtml(opt.SubCategoryName || key) + '</option>';
         }
         html += '</select>';
@@ -149,15 +148,12 @@
         return normalizedSubKey;
     }
 
-    function createRow(parentKey, parentName, options, defaultWeight, selectedSubKey, manualSubName, manualPricePerKg) {
+    function createRow(parentKey, parentName, options, defaultWeight, selectedSubKey, manualSubName) {
         var selectedTemplateOption = findOptionBySubKey(parentKey, options, selectedSubKey);
 
         var isManual = !!selectedSubKey && !selectedTemplateOption;
         var selectedValue = isManual ? '' : ((selectedTemplateOption && selectedTemplateOption.SubCategoryKey) || '');
-        var defaultPrice = options && options.length > 0 ? Number(options[0].PricePerKg || 1) : 1;
-        var ppk = Number(isManual ? (manualPricePerKg || defaultPrice) : ((selectedTemplateOption && selectedTemplateOption.PricePerKg) || defaultPrice));
         var rowWeight = Number(defaultWeight || 0);
-        var amount = rowWeight * ppk;
         var row = '' +
             '<tr class="sub-row" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '">' +
             '<td>' +
@@ -165,31 +161,15 @@
             buildCategorySelect(options || [], selectedValue) +
             '<input type="text" class="manual-sub-name" maxlength="50" placeholder="无下拉项时可手动输入细类" value="' + escapeHtml(manualSubName || '') + '" oninput="recalc()" />' +
             '</div>' +
-            '<div class="sub-weight-row"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" data-price-per-kg="' + ppk.toFixed(2) + '" oninput="recalc()" placeholder="请输入重量(kg)" /></div>' +
+            '<div class="sub-weight-row"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" oninput="recalc()" placeholder="请输入重量(kg)" /></div>' +
             '<div class="row-error"></div>' +
             '</td>' +
-            '<td class="text-right"><span class="price-per-kg">' + ppk.toFixed(2) + '</span></td>' +
-            '<td class="text-right amount-cell">¥' + amount.toFixed(2) + '</td>' +
             '<td class="text-right">' +
             '<button type="button" class="btn btn-save row-action-btn btn-plus" onclick="addSubRow(this)">＋</button> ' +
             '<button type="button" class="btn btn-back row-action-btn btn-minus" onclick="removeSubRow(this)">－</button>' +
             '</td>' +
             '</tr>';
         return row;
-    }
-
-    function onSubCategoryChanged(selectEl) {
-        var row = $(selectEl).closest('tr');
-        var val = $(selectEl).val();
-        var input = row.find('.weight-input');
-        var selected = $(selectEl).find('option:selected');
-        var defaultPrice = Number(row.closest('.category-block').data('default-price') || 1);
-        var ppk = Number(selected.data('price') || defaultPrice);
-
-        if (!val) ppk = defaultPrice;
-        input.data('price-per-kg', ppk.toFixed(2));
-        row.find('.price-per-kg').text(ppk.toFixed(2));
-        recalc();
     }
 
     function addSubRow(btn) {
@@ -245,7 +225,6 @@
             var options = findTemplateOptions(parent.CategoryKey);
             if (!options) options = [];
 
-            var defaultPrice = options.length > 0 ? Number(options[0].PricePerKg || 1) : 1;
             var parentKey = (parent.CategoryKey || '').toString();
             var parentName = (parent.CategoryName || '').toString();
             var parentExistingRows = findExistingRowsByParent(parentKey);
@@ -259,20 +238,19 @@
                         options,
                         existing.Weight || 0,
                         existing.CategoryKey || '',
-                        existing.CategoryName || '',
-                        existing.PricePerKg || defaultPrice);
+                        existing.CategoryName || '');
                 }
             } else {
                 rowsHtml = createRow(parentKey, parentName, options, parent.Weight || 0);
             }
 
             var block = '' +
-                '<div class="category-block" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '" data-target-weight="' + Number(parent.Weight || 0).toFixed(2) + '" data-default-price="' + defaultPrice.toFixed(2) + '">' +
+                '<div class="category-block" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '" data-target-weight="' + Number(parent.Weight || 0).toFixed(2) + '">' +
                 '<div class="category-header">' +
                 '<div class="category-title">' + escapeHtml(parentName) + '</div>' +
                 '<div class="category-target">原始重量：' + Number(parent.Weight || 0).toFixed(2) + ' kg | 当前：<span class="current-weight">0.00</span> kg | 余量：<span class="diff-weight">0.00</span> kg | <span class="category-status status-error">待计算</span></div>' +
                 '</div>' +
-                '<div><table><thead><tr><th>细分类组合(下拉/手动 + 下方重量)</th><th class="text-right">单价(元/kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
+                '<div><table><thead><tr><th>细分类组合(下拉/手动 + 下方重量)</th><th class="text-right">操作</th></tr></thead>' +
                 '<tbody>' + rowsHtml + '</tbody></table></div>' +
                 '<div class="category-footer">细类总重：<span class="category-total-weight">0.00</span> kg（需 ≤ 原始重量）</div>' +
                 '</div>';
@@ -324,7 +302,6 @@
 
     function recalc() {
         var totalWeight = 0;
-        var totalPrice = 0;
         var allCategoryValid = true;
 
         $('.category-block').each(function () {
@@ -339,8 +316,6 @@
                 var input = row.find('input.weight-input');
                 var weight = Number(input.val() || 0);
                 if (weight < 0) weight = 0;
-                var ppk = Number(input.data('price-per-kg') || 0);
-                var amount = weight * ppk;
 
                 if (weight > 0) {
                     var subData = getSubCategoryData(row);
@@ -358,8 +333,6 @@
 
                 current += weight;
                 totalWeight += weight;
-                totalPrice += amount;
-                row.find('.amount-cell').text('¥' + amount.toFixed(2));
             });
 
             var diff = target - current;
@@ -378,7 +351,6 @@
         });
 
         $('#totalWeightText').text(totalWeight.toFixed(2));
-        $('#totalPriceText').text('¥' + totalPrice.toFixed(2));
 
         var receiptWeight = Number(receiptTotalWeight || 0);
         var overallValid = allCategoryValid && (totalWeight - receiptWeight) <= Number(weightTolerance || 0) && totalWeight > 0;
@@ -408,15 +380,12 @@
                     return;
                 }
 
-                var pricePerKg = Number(row.find('input.weight-input').data('price-per-kg') || 0);
                 items.push({
                     categoryKey: subData.subKey,
                     categoryName: subData.subName.substring(0, 50),
                     parentCategoryKey: parentKey,
                     parentCategoryName: parentName,
-                    weight: Number(weight.toFixed(2)),
-                    pricePerKg: Number(pricePerKg.toFixed(2)),
-                    totalAmount: Number((weight * pricePerKg).toFixed(2))
+                    weight: Number(weight.toFixed(2))
                 });
             });
         });
