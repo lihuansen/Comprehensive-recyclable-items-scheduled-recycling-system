@@ -464,15 +464,39 @@ namespace recycling.DAL
                             }
                             
                             List<Dictionary<string, object>> categories = null;
-                            
+
+                            // 细分后保存的JSON为PascalCase键（来自WarehouseReceiptCategoryItemViewModel序列化），
+                            // 而后续处理逻辑依赖camelCase键名。先尝试强类型反序列化并转换为camelCase字典，
+                            // 若不成功再降级为直接字典反序列化（兼容原有camelCase格式）。
                             try
                             {
-                                categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(receipt.ItemCategories);
+                                var typedCategories = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(receipt.ItemCategories);
+                                if (typedCategories != null && typedCategories.Any(c => c != null && !string.IsNullOrWhiteSpace(c.CategoryKey)))
+                                {
+                                    var camelSettings = new JsonSerializerSettings
+                                    {
+                                        ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+                                    };
+                                    string camelJson = JsonConvert.SerializeObject(typedCategories, camelSettings);
+                                    categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(camelJson);
+                                }
                             }
-                            catch (JsonException)
+                            catch (JsonException ex)
                             {
-                                // 不暴露内部异常详情，只提供用户友好的错误信息
-                                throw new Exception("物品类别数据格式错误，请检查数据格式是否正确");
+                                System.Diagnostics.Debug.WriteLine($"ProcessWarehouseReceipt typed parse failed: {ex}");
+                            }
+
+                            if (categories == null)
+                            {
+                                try
+                                {
+                                    categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(receipt.ItemCategories);
+                                }
+                                catch (JsonException)
+                                {
+                                    // 不暴露内部异常详情，只提供用户友好的错误信息
+                                    throw new Exception("物品类别数据格式错误，请检查数据格式是否正确");
+                                }
                             }
                             
                             if (categories == null || categories.Count == 0)
