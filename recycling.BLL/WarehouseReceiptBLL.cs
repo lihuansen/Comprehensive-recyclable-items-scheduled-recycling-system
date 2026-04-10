@@ -20,7 +20,7 @@ namespace recycling.BLL
         // 重量校验容差（单位kg），用于处理小数四舍五入导致的微小误差
         private const decimal WeightTolerance = 0.01m;
         private const int CategoryFieldMaxLength = 50;
-        private const int MaxSubdivisionsPerParent = 10;
+        private const int MaxSubdivisionsPerParent = 5;
         private const decimal DefaultManualSubCategoryPricePerKg = 1.00m;
 
         private static readonly Dictionary<string, List<WarehouseSubdivisionTemplateOptionViewModel>> DefaultSubdivisionTemplates =

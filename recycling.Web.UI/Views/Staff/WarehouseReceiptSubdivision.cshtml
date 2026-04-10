@@ -35,6 +35,8 @@
     .sub-input-group { display: flex; gap: 8px; align-items: center; }
     .sub-input-group .sub-select { flex: 1; min-width: 140px; }
     .sub-input-group .manual-sub-name { flex: 1; min-width: 140px; }
+    .sub-weight-row { margin-top: 8px; }
+    .sub-weight-row .weight-input { width: 180px; }
     .row-action-btn { min-width: 30px; padding: 4px 8px; font-weight: 700; }
     .row-action-btn:disabled { opacity: .5; cursor: not-allowed; }
     .category-footer { padding: 10px 12px; border-top: 1px solid #f0f0f0; color: #444; font-weight: 600; }
@@ -81,7 +83,7 @@
     var parentCategories = @Html.Raw(JsonConvert.SerializeObject(Model.Categories));
     var templateGroups = @Html.Raw(JsonConvert.SerializeObject(Model.SubdivisionTemplates));
     var existingSubdivisions = @Html.Raw(JsonConvert.SerializeObject(Model.ExistingSubdivisions));
-    var maxSubCategoryCount = 10;
+    var maxSubCategoryCount = 5;
 
     function goBack() { window.location.href = '@Url.Action("BaseWarehouseManagement", "Staff")'; }
     function escapeHtml(v) { return $('<div>').text(v || '').html(); }
@@ -121,7 +123,11 @@
 
     function buildCategorySelect(options, selectedKey) {
         var html = '<select class="sub-select" onchange="onSubCategoryChanged(this)">';
-        html += '<option value="">请选择细分类</option>';
+        if (!options || options.length === 0) {
+            html += '<option value="">暂无下拉选项，请在下方手动输入</option>';
+        } else {
+            html += '<option value="">请选择细分类</option>';
+        }
         for (var i = 0; i < options.length; i++) {
             var opt = options[i];
             var key = (opt.SubCategoryKey || ('sub' + i));
@@ -143,26 +149,25 @@
     }
 
     function createRow(parentKey, parentName, options, defaultWeight, selectedSubKey, manualSubName, manualPricePerKg) {
-        var first = options && options.length > 0 ? options[0] : { SubCategoryKey: 'default', SubCategoryName: '默认细类', PricePerKg: 1.00 };
-        var selectedNormalized = stripParentPrefixFromSubKey(parentKey, selectedSubKey);
         var selectedTemplateOption = findOptionBySubKey(parentKey, options, selectedSubKey);
 
         var isManual = !!selectedSubKey && !selectedTemplateOption;
-        var selectedValue = isManual ? '' : ((selectedTemplateOption && selectedTemplateOption.SubCategoryKey) || first.SubCategoryKey || 'default');
-        var ppk = Number(isManual ? (manualPricePerKg || first.PricePerKg || 1) : ((selectedTemplateOption && selectedTemplateOption.PricePerKg) || first.PricePerKg || 0));
+        var selectedValue = isManual ? '' : ((selectedTemplateOption && selectedTemplateOption.SubCategoryKey) || '');
+        var defaultPrice = options && options.length > 0 ? Number(options[0].PricePerKg || 1) : 1;
+        var ppk = Number(isManual ? (manualPricePerKg || defaultPrice) : ((selectedTemplateOption && selectedTemplateOption.PricePerKg) || defaultPrice));
         var rowWeight = Number(defaultWeight || 0);
         var amount = rowWeight * ppk;
         var row = '' +
             '<tr class="sub-row" data-parent-key="' + escapeHtml(parentKey) + '" data-parent-name="' + escapeHtml(parentName) + '">' +
             '<td>' +
             '<div class="sub-input-group">' +
-            buildCategorySelect(options && options.length > 0 ? options : [first], selectedValue) +
+            buildCategorySelect(options || [], selectedValue) +
             '<input type="text" class="manual-sub-name" maxlength="50" placeholder="无下拉项时可手动输入细类" value="' + escapeHtml(manualSubName || '') + '" oninput="recalc()" />' +
             '</div>' +
+            '<div class="sub-weight-row"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" data-price-per-kg="' + ppk.toFixed(2) + '" oninput="recalc()" placeholder="请输入重量(kg)" /></div>' +
             '<div class="row-error"></div>' +
             '</td>' +
             '<td class="text-right"><span class="price-per-kg">' + ppk.toFixed(2) + '</span></td>' +
-            '<td class="text-right"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" data-price-per-kg="' + ppk.toFixed(2) + '" oninput="recalc()" /></td>' +
             '<td class="text-right amount-cell">¥' + amount.toFixed(2) + '</td>' +
             '<td class="text-right">' +
             '<button type="button" class="btn btn-save row-action-btn btn-plus" onclick="addSubRow(this)">＋</button> ' +
@@ -237,11 +242,9 @@
         for (var i = 0; i < parentCategories.length; i++) {
             var parent = parentCategories[i];
             var options = findTemplateOptions(parent.CategoryKey);
-            if (!options || options.length === 0) {
-                options = [{ SubCategoryKey: 'default', SubCategoryName: '默认细类', PricePerKg: 1.00 }];
-            }
+            if (!options) options = [];
 
-            var defaultPrice = Number(options[0].PricePerKg || 1);
+            var defaultPrice = options.length > 0 ? Number(options[0].PricePerKg || 1) : 1;
             var parentKey = (parent.CategoryKey || '').toString();
             var parentName = (parent.CategoryName || '').toString();
             var parentExistingRows = findExistingRowsByParent(parentKey);
@@ -268,7 +271,7 @@
                 '<div class="category-title">' + escapeHtml(parentName) + '</div>' +
                 '<div class="category-target">原始重量：' + Number(parent.Weight || 0).toFixed(2) + ' kg | 当前：<span class="current-weight">0.00</span> kg | 余量：<span class="diff-weight">0.00</span> kg | <span class="category-status status-error">待计算</span></div>' +
                 '</div>' +
-                '<div><table><thead><tr><th>细分类</th><th class="text-right">单价(元/kg)</th><th class="text-right">重量(kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
+                '<div><table><thead><tr><th>细分类组合(下拉/手动 + 下方重量)</th><th class="text-right">单价(元/kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
                 '<tbody>' + rowsHtml + '</tbody></table></div>' +
                 '<div class="category-footer">细类总重：<span class="category-total-weight">0.00</span> kg（需 ≤ 原始重量）</div>' +
                 '</div>';
