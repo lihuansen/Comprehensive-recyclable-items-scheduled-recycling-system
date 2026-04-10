@@ -155,12 +155,19 @@ namespace recycling.DAL
                 return true;
             }
 
-            var matchedPair = category.FirstOrDefault(kvp =>
-                string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase));
-
-            if (!string.IsNullOrWhiteSpace(matchedPair.Key) && matchedPair.Value != null)
+            foreach (var pair in category)
             {
-                value = matchedPair.Value.ToString();
+                if (!string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (pair.Value == null)
+                {
+                    return false;
+                }
+
+                value = pair.Value.ToString();
                 return true;
             }
 
