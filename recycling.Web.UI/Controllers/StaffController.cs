@@ -4826,7 +4826,7 @@ namespace recycling.Web.UI.Controllers
         /// <summary>
         /// 基地工作人员 - 消息中心页面
         /// </summary>
-        public ActionResult SortingCenterWorkerMessageCenter()
+        public ActionResult SortingCenterWorkerMessageCenter(int page = 1)
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
                 return RedirectToAction("Login", "Staff");
@@ -4839,8 +4839,20 @@ namespace recycling.Web.UI.Controllers
             // 加载通知
             try
             {
+                const int pageSize = 10;
+                if (page < 1) page = 1;
+
                 var notificationBLL = new BaseStaffNotificationBLL();
-                var notifications = notificationBLL.GetWorkerNotifications(worker.WorkerID, 1, 50);
+                int totalCount = notificationBLL.GetTotalCount(worker.WorkerID);
+                int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                if (totalPages <= 0) totalPages = 1;
+                if (page > totalPages) page = totalPages;
+
+                var notifications = notificationBLL.GetWorkerNotifications(worker.WorkerID, page, pageSize);
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.PageSize = pageSize;
+                ViewBag.TotalCount = totalCount;
                 return View(notifications);
             }
             catch (Exception ex)

@@ -71,13 +71,13 @@ namespace recycling.Model
             switch (type)
             {
                 case TransportOrderCreated:
-                    return "运输单创建";
+                    return "运输开始";
                 case TransportOrderCompleted:
-                    return "运输单完成";
+                    return "运输到达";
                 case WarehouseReceiptCreated:
-                    return "入库单创建";
+                    return "细分完成";
                 case WarehouseInventoryWritten:
-                    return "仓库写入";
+                    return "入库完成";
                 default:
                     return "系统通知";
             }

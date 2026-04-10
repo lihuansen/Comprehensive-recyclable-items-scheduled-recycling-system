@@ -174,23 +174,6 @@ namespace recycling.BLL
 
                 var (receiptId, receiptNumber) = _dal.CreateWarehouseReceipt(receipt);
 
-                // 6. 发送入库单创建通知给基地工作人员
-                try
-                {
-                    _baseStaffNotificationBLL.SendWarehouseReceiptCreatedNotification(
-                        receiptId,
-                        receiptNumber,
-                        transportOrderId,
-                        transportOrder.OrderNumber,
-                        totalWeight,
-                        workerId);
-                }
-                catch (Exception notifyEx)
-                {
-                    // 通知失败不影响入库操作
-                    System.Diagnostics.Debug.WriteLine($"发送基地工作人员入库单创建通知失败: {notifyEx.Message}");
-                }
-
                 return (true, "入库单创建成功", receiptId, receiptNumber);
             }
             catch (Exception ex)
@@ -707,9 +690,31 @@ namespace recycling.BLL
                 var normalizedJson = JsonConvert.SerializeObject(normalized);
                 var updateResult = _dal.UpdateWarehouseReceiptSubdivision(receiptId, normalizedJson, Math.Round(totalPrice, 2, MidpointRounding.AwayFromZero));
 
-                return updateResult
-                    ? (true, "细分保存成功")
-                    : (false, "保存失败，请确认入库单状态仍为待入库");
+                if (!updateResult)
+                {
+                    return (false, "保存失败，请确认入库单状态仍为待入库");
+                }
+
+                try
+                {
+                    var transportOrder = receipt.TransportOrderID.HasValue
+                        ? _transportDAL.GetTransportationOrderById(receipt.TransportOrderID.Value)
+                        : null;
+
+                    _baseStaffNotificationBLL.SendWarehouseReceiptCreatedNotification(
+                        receipt.ReceiptID,
+                        receipt.ReceiptNumber,
+                        receipt.TransportOrderID ?? 0,
+                        transportOrder?.OrderNumber ?? "未知运输单",
+                        receipt.TotalWeight ?? 0,
+                        workerId);
+                }
+                catch (Exception notifyEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"发送基地工作人员细分完成通知失败: {notifyEx.Message}");
+                }
+
+                return (true, "细分保存成功");
             }
             catch (Exception ex)
             {
