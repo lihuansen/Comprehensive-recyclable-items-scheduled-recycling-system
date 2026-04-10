@@ -172,6 +172,11 @@ namespace recycling.BLL
 
             try
             {
+                if (_recyclableItemDAL.ExistsByNameAndCategory(item.Name, item.Category))
+                {
+                    return (false, $"该品类下已存在名为“{item.Name}”的物品，请勿重复添加");
+                }
+
                 bool result = _recyclableItemDAL.Add(item);
                 return result ? (true, "添加可回收物品成功") : (false, "添加可回收物品失败");
             }
@@ -236,6 +241,11 @@ namespace recycling.BLL
 
             try
             {
+                if (_recyclableItemDAL.ExistsByNameAndCategory(item.Name, item.Category, item.ItemId))
+                {
+                    return (false, $"该品类下已存在名为“{item.Name}”的物品，请调整名称或品类后重试");
+                }
+
                 bool result = _recyclableItemDAL.Update(item);
                 return result ? (true, "更新可回收物品成功") : (false, "更新可回收物品失败");
             }
