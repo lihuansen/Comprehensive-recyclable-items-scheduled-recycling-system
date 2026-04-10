@@ -99,6 +99,23 @@ namespace recycling.DAL
 
             try
             {
+                // 优先兼容当前系统保存的PascalCase结构（WarehouseReceiptCategoryItemViewModel）
+                var typedCategories = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(itemCategoriesJson);
+                if (typedCategories != null && typedCategories.Count > 0)
+                {
+                    return typedCategories.All(c =>
+                        c != null &&
+                        !string.IsNullOrWhiteSpace(c.ParentCategoryKey));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"IsReceiptRefined typed parse failed: {ex.Message}");
+            }
+
+            try
+            {
+                // 兼容历史字典结构（camelCase / PascalCase 键名）
                 var categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(itemCategoriesJson);
                 if (categories == null || categories.Count == 0)
                 {
@@ -106,16 +123,55 @@ namespace recycling.DAL
                 }
 
                 return categories.All(c =>
-                    c != null &&
-                    c.ContainsKey("parentCategoryKey") &&
-                    c["parentCategoryKey"] != null &&
-                    !string.IsNullOrWhiteSpace(c["parentCategoryKey"].ToString()));
+                {
+                    if (c == null) return false;
+                    string parentCategoryKey;
+                    return TryGetCategoryFieldValue(c, "parentCategoryKey", out parentCategoryKey)
+                        && !string.IsNullOrWhiteSpace(parentCategoryKey);
+                });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"IsReceiptRefined parse failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"IsReceiptRefined dictionary parse failed: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 从字典中按键名（大小写不敏感）读取字符串字段
+        /// </summary>
+        private bool TryGetCategoryFieldValue(Dictionary<string, object> category, string key, out string value)
+        {
+            value = null;
+            if (category == null || string.IsNullOrWhiteSpace(key))
+            {
+                return false;
+            }
+
+            object directValue;
+            if (category.TryGetValue(key, out directValue) && directValue != null)
+            {
+                value = directValue.ToString();
+                return true;
+            }
+
+            foreach (var pair in category)
+            {
+                if (!string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (pair.Value == null)
+                {
+                    return false;
+                }
+
+                value = pair.Value.ToString();
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
