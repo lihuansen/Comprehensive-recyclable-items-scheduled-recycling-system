@@ -697,14 +697,23 @@ namespace recycling.BLL
 
                 try
                 {
-                    var transportOrder = receipt.TransportOrderID.HasValue
-                        ? _transportDAL.GetTransportationOrderById(receipt.TransportOrderID.Value)
-                        : null;
+                    TransportationOrders transportOrder = null;
+                    if (receipt.TransportOrderID.HasValue)
+                    {
+                        try
+                        {
+                            transportOrder = _transportDAL.GetTransportationOrderById(receipt.TransportOrderID.Value);
+                        }
+                        catch (Exception transportEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"读取运输单失败（TransportOrderID={receipt.TransportOrderID.Value}）: {transportEx.Message}");
+                        }
+                    }
 
                     _baseStaffNotificationBLL.SendWarehouseReceiptCreatedNotification(
                         receipt.ReceiptID,
                         receipt.ReceiptNumber,
-                        receipt.TransportOrderID ?? 0,
+                        receipt.TransportOrderID,
                         transportOrder?.OrderNumber ?? string.Empty,
                         receipt.TotalWeight ?? 0,
                         workerId);

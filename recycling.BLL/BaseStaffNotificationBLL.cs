@@ -137,7 +137,7 @@ namespace recycling.BLL
         /// 发送细分完成通知
         /// </summary>
         public bool SendWarehouseReceiptCreatedNotification(int warehouseReceiptId, string receiptNumber, 
-            int transportOrderId, string orderNumber, decimal totalWeight, int createdByWorkerId)
+            int? transportOrderId, string orderNumber, decimal totalWeight, int createdByWorkerId)
         {
             try
             {
