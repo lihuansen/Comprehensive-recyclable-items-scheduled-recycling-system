@@ -1194,7 +1194,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult GetUserNotifications(int pageIndex = 1, int pageSize = 20)
+        public JsonResult GetUserNotifications(int pageIndex = 1, int pageSize = 10)
         {
             try
             {
@@ -1205,7 +1205,7 @@ namespace recycling.Web.UI.Controllers
 
                 // 验证分页参数，防止DoS攻击
                 if (pageIndex < 1) pageIndex = 1;
-                if (pageSize < 1) pageSize = 20;
+                if (pageSize < 1) pageSize = 10;
                 if (pageSize > 100) pageSize = 100; // 限制最大页面大小
 
                 var user = (Users)Session["LoginUser"];
