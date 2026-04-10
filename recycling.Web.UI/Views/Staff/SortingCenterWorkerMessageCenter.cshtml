@@ -247,6 +247,8 @@
     @{
         int currentPage = ViewBag.CurrentPage ?? 1;
         int totalPages = ViewBag.TotalPages ?? 1;
+        int startPage = Math.Max(1, currentPage - 2);
+        int endPage = Math.Min(totalPages, currentPage + 2);
     }
     @if (totalPages > 1)
     {
@@ -256,10 +258,32 @@
                     <a href="@(currentPage <= 1 ? "javascript:void(0);" : Url.Action("SortingCenterWorkerMessageCenter", "Staff", new { page = currentPage - 1 }))">上一页</a>
                 </li>
 
-                @for (int i = 1; i <= totalPages; i++)
+                @if (startPage > 1)
+                {
+                    <li>
+                        <a href="@Url.Action("SortingCenterWorkerMessageCenter", "Staff", new { page = 1 })">1</a>
+                    </li>
+                    if (startPage > 2)
+                    {
+                        <li class="disabled"><a href="javascript:void(0);">...</a></li>
+                    }
+                }
+
+                @for (int i = startPage; i <= endPage; i++)
                 {
                     <li class="@(i == currentPage ? "active" : "")">
                         <a href="@Url.Action("SortingCenterWorkerMessageCenter", "Staff", new { page = i })">@i</a>
+                    </li>
+                }
+
+                @if (endPage < totalPages)
+                {
+                    if (endPage < totalPages - 1)
+                    {
+                        <li class="disabled"><a href="javascript:void(0);">...</a></li>
+                    }
+                    <li>
+                        <a href="@Url.Action("SortingCenterWorkerMessageCenter", "Staff", new { page = totalPages })">@totalPages</a>
                     </li>
                 }
 

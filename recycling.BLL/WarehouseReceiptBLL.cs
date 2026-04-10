@@ -705,7 +705,7 @@ namespace recycling.BLL
                         receipt.ReceiptID,
                         receipt.ReceiptNumber,
                         receipt.TransportOrderID ?? 0,
-                        transportOrder?.OrderNumber ?? "未知运输单",
+                        transportOrder?.OrderNumber ?? string.Empty,
                         receipt.TotalWeight ?? 0,
                         workerId);
                 }
