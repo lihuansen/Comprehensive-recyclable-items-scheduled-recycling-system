@@ -76,6 +76,7 @@
     </div>
 </div>
 
+@section scripts {
 <script>
     var receiptId = @Model.ReceiptID;
     var receiptTotalWeight = @Model.TotalWeight.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
@@ -458,3 +459,4 @@
 
     $(document).ready(function () { renderCategories(); });
 </script>
+}
