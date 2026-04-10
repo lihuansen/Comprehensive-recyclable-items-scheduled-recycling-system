@@ -35,6 +35,9 @@
     .sub-input-group { display: flex; gap: 8px; align-items: center; }
     .sub-input-group .sub-select { flex: 1; min-width: 140px; }
     .sub-input-group .manual-sub-name { flex: 1; min-width: 140px; }
+    .row-action-btn { min-width: 30px; padding: 4px 8px; font-weight: 700; }
+    .row-action-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .category-footer { padding: 10px 12px; border-top: 1px solid #f0f0f0; color: #444; font-weight: 600; }
     .row-error { color: #e74c3c; font-size: 12px; margin-top: 4px; display: none; }
     @@media (max-width: 992px) { .info-grid { grid-template-columns: repeat(2,1fr);} }
 </style>
@@ -161,7 +164,10 @@
             '<td class="text-right"><span class="price-per-kg">' + ppk.toFixed(2) + '</span></td>' +
             '<td class="text-right"><input class="weight-input" type="number" min="0" step="0.01" value="' + rowWeight.toFixed(2) + '" data-price-per-kg="' + ppk.toFixed(2) + '" oninput="recalc()" /></td>' +
             '<td class="text-right amount-cell">¥' + amount.toFixed(2) + '</td>' +
-            '<td class="text-right"><button type="button" class="btn btn-back" style="padding:6px 10px;" onclick="removeSubRow(this)">删除</button></td>' +
+            '<td class="text-right">' +
+            '<button type="button" class="btn btn-save row-action-btn btn-plus" onclick="addSubRow(this)">＋</button> ' +
+            '<button type="button" class="btn btn-back row-action-btn btn-minus" onclick="removeSubRow(this)">－</button>' +
+            '</td>' +
             '</tr>';
         return row;
     }
@@ -191,6 +197,7 @@
         var parentKey = block.data('parent-key');
         var parentName = block.data('parent-name');
         block.find('tbody').append(createRow(parentKey, parentName, options, 0));
+        updateRowActionButtons(block);
         recalc();
     }
 
@@ -201,7 +208,26 @@
             return;
         }
         $(btn).closest('tr').remove();
+        updateRowActionButtons(block);
         recalc();
+    }
+
+    function updateRowActionButtons(block) {
+        var rows = block.find('tbody tr.sub-row');
+        var count = rows.length;
+        rows.each(function (idx) {
+            var row = $(this);
+            var plusBtn = row.find('.btn-plus');
+            var minusBtn = row.find('.btn-minus');
+            plusBtn.prop('disabled', count >= maxSubCategoryCount);
+            if (idx === 0 || count <= 1) {
+                minusBtn.prop('disabled', true);
+                minusBtn.css('visibility', 'hidden');
+            } else {
+                minusBtn.prop('disabled', false);
+                minusBtn.css('visibility', 'visible');
+            }
+        });
     }
 
     function renderCategories() {
@@ -242,16 +268,15 @@
                 '<div class="category-title">' + escapeHtml(parentName) + '</div>' +
                 '<div class="category-target">原始重量：' + Number(parent.Weight || 0).toFixed(2) + ' kg | 当前：<span class="current-weight">0.00</span> kg | 余量：<span class="diff-weight">0.00</span> kg | <span class="category-status status-error">待计算</span></div>' +
                 '</div>' +
-                '<div style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">' +
-                '<button type="button" class="btn btn-save" style="padding:6px 10px;margin-right:8px;" onclick="addSubRow(this)">新增细类</button>' +
-                '<button type="button" class="btn btn-back" style="padding:6px 10px;" onclick="recalc()">计算重量</button>' +
-                '</div>' +
                 '<div><table><thead><tr><th>细分类</th><th class="text-right">单价(元/kg)</th><th class="text-right">重量(kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
-                '<tbody>' + rowsHtml + '</tbody></table></div></div>';
+                '<tbody>' + rowsHtml + '</tbody></table></div>' +
+                '<div class="category-footer">细类总重：<span class="category-total-weight">0.00</span> kg（需 ≤ 原始重量）</div>' +
+                '</div>';
 
             var jqBlock = $(block);
             jqBlock.data('template-options', options);
             area.append(jqBlock);
+            updateRowActionButtons(jqBlock);
         }
 
         recalc();
@@ -336,6 +361,7 @@
             var diff = target - current;
             block.find('.current-weight').text(current.toFixed(2));
             block.find('.diff-weight').text(diff.toFixed(2));
+            block.find('.category-total-weight').text(current.toFixed(2));
 
             var overWeight = current - target > Number(weightTolerance || 0);
             var categoryValid = !overWeight && !hasInvalidSubName && validSubCount > 0;
