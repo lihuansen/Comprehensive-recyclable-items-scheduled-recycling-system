@@ -97,6 +97,26 @@
             margin: 0 8px;
         }
 
+        .normal-nav.nav-tip-item {
+            position: relative;
+        }
+
+        .nav-top-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
         /* 带徽章的导航项需要相对定位 */
         .normal-nav.has-badge {
             position: relative;
@@ -314,8 +334,8 @@
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav">@Html.ActionLink("首页", "Index", "Home")</li>
-                        <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("首页", "Index", "Home")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("我的订单", "Order", "Home")<span class="nav-top-badge">1</span></li>
                         <li class="normal-nav has-badge" id="nav-message-item">
                             @Html.ActionLink("我的消息", "Message", "Home")
                             <span id="nav-unread-badge" class="nav-unread-badge"></span>
@@ -330,9 +350,9 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav">@Html.ActionLink("帮助中心", "Help", "Home")</li>
-                        <li class="normal-nav">@Html.ActionLink("问题反馈", "Feedback", "Home")</li>
-                        <li class="normal-nav">@Html.ActionLink("个人中心", "Profile", "Home")</li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("帮助中心", "Help", "Home")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("问题反馈", "Feedback", "Home")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("个人中心", "Profile", "Home")<span class="nav-top-badge">1</span></li>
                     </ul>
                 </div>
             </div>

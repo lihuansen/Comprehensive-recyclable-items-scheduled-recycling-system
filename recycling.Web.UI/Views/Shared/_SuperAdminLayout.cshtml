@@ -98,6 +98,26 @@
             margin: 0 8px;
         }
 
+        .normal-nav.nav-tip-item {
+            position: relative;
+        }
+
+        .nav-top-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
         .left-navs, .right-navs {
             display: flex;
             align-items: center;
@@ -235,7 +255,7 @@
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav">@Html.ActionLink("数据看板", "DataDashboard", "Staff")</li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("数据看板", "DataDashboard", "Staff")<span class="nav-top-badge">1</span></li>
                     </ul>
 
                     <div class="diamond-nav">
@@ -246,8 +266,8 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav">@Html.ActionLink("管理员管理", "AdminManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("账号管理", "SuperAdminAccountManagement", "Staff")</li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("管理员管理", "AdminManagement", "Staff")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "SuperAdminAccountManagement", "Staff")<span class="nav-top-badge">1</span></li>
                     </ul>
                 </div>
             </div>

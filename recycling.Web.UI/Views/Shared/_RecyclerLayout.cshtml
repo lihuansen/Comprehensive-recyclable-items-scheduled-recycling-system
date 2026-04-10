@@ -99,6 +99,26 @@
             position: relative;
         }
 
+        .normal-nav.nav-tip-item {
+            position: relative;
+        }
+
+        .nav-top-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
         /* 消息未读数徽章样式 */
         .nav-message-badge {
             position: absolute;
@@ -257,7 +277,7 @@
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav">@Html.ActionLink("订单管理", "Recycler_OrderManagement", "Staff")</li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("订单管理", "Recycler_OrderManagement", "Staff")<span class="nav-top-badge">1</span></li>
                         <li class="normal-nav" id="nav-message-center-item">
                             @Html.ActionLink("消息中心", "Message_Center", "Staff")
                             <span id="recycler-message-badge" class="nav-message-badge"></span>
@@ -272,9 +292,9 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav">@Html.ActionLink("暂存点管理", "StoragePointManagement", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("用户评价", "UserReviews", "Staff")</li>
-                        <li class="normal-nav">@Html.ActionLink("账号管理", "RecyclerProfile", "Staff")</li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("暂存点管理", "StoragePointManagement", "Staff")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("用户评价", "UserReviews", "Staff")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "RecyclerProfile", "Staff")<span class="nav-top-badge">1</span></li>
                     </ul>
                 </div>
             </div>
