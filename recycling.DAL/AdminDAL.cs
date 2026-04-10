@@ -1260,6 +1260,31 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// Check whether admin username already exists
+        /// </summary>
+        public bool IsAdminUsernameExists(string username, int? excludeAdminId = null)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM Admins WHERE Username = @Username";
+                if (excludeAdminId.HasValue)
+                {
+                    sql += " AND AdminID <> @AdminID";
+                }
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", username);
+                if (excludeAdminId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@AdminID", excludeAdminId.Value);
+                }
+
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        /// <summary>
         /// Update admin information
         /// </summary>
         public bool UpdateAdmin(Admins admin)
