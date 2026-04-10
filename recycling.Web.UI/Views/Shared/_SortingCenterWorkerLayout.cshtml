@@ -116,6 +116,22 @@
             z-index: 10;
         }
 
+        .nav-top-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
         .left-navs, .right-navs {
             display: flex;
             align-items: center;
@@ -250,11 +266,25 @@
                 }
             </div>
 
+            @{
+                var navBadgeCounts = ViewBag.NavBadgeCounts as System.Collections.Generic.IDictionary<string, int>;
+                Func<string, string> getNavBadgeText = key =>
+                {
+                    if (navBadgeCounts != null && navBadgeCounts.ContainsKey(key))
+                    {
+                        var count = navBadgeCounts[key];
+                        return count > 99 ? "99+" : count.ToString();
+                    }
+                    return "1";
+                };
+            }
+
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav">
+                        <li class="normal-nav nav-tip-item">
                             @Html.ActionLink("基地管理", "BaseManagement", "Staff")
+                            <span class="nav-top-badge">@getNavBadgeText("base-management")</span>
                         </li>
                     </ul>
 
@@ -272,7 +302,7 @@
                                 <span id="messageBadge" class="badge" style="display: none; position: absolute; top: -5px; right: -10px; background-color: #d9534f; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold;"></span>
                             </a>
                         </li>
-                        <li class="normal-nav">@Html.ActionLink("账号管理", "SortingCenterWorkerProfile", "Staff")</li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "SortingCenterWorkerProfile", "Staff")<span class="nav-top-badge">@getNavBadgeText("base-profile")</span></li>
                     </ul>
                 </div>
             </div>
