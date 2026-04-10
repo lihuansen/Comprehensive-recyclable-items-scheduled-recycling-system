@@ -99,10 +99,6 @@
             position: relative;
         }
 
-        .normal-nav.nav-tip-item {
-            position: relative;
-        }
-
         .nav-top-badge {
             position: absolute;
             top: -5px;
@@ -274,10 +270,23 @@
                 }
             </div>
 
+            @{
+                var navBadgeCounts = ViewBag.NavBadgeCounts as System.Collections.Generic.IDictionary<string, int>;
+                Func<string, string> getNavBadgeText = key =>
+                {
+                    if (navBadgeCounts != null && navBadgeCounts.ContainsKey(key))
+                    {
+                        var count = navBadgeCounts[key];
+                        return count > 99 ? "99+" : count.ToString();
+                    }
+                    return "1";
+                };
+            }
+
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("订单管理", "Recycler_OrderManagement", "Staff")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("订单管理", "Recycler_OrderManagement", "Staff")<span class="nav-top-badge">@getNavBadgeText("recycler-order")</span></li>
                         <li class="normal-nav" id="nav-message-center-item">
                             @Html.ActionLink("消息中心", "Message_Center", "Staff")
                             <span id="recycler-message-badge" class="nav-message-badge"></span>
@@ -292,9 +301,9 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("暂存点管理", "StoragePointManagement", "Staff")<span class="nav-top-badge">1</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("用户评价", "UserReviews", "Staff")<span class="nav-top-badge">1</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "RecyclerProfile", "Staff")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("暂存点管理", "StoragePointManagement", "Staff")<span class="nav-top-badge">@getNavBadgeText("recycler-storage-point")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("用户评价", "UserReviews", "Staff")<span class="nav-top-badge">@getNavBadgeText("recycler-review")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "RecyclerProfile", "Staff")<span class="nav-top-badge">@getNavBadgeText("recycler-profile")</span></li>
                     </ul>
                 </div>
             </div>

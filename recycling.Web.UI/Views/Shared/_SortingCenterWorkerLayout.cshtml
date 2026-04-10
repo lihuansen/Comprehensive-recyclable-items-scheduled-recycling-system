@@ -116,10 +116,6 @@
             z-index: 10;
         }
 
-        .normal-nav.nav-tip-item {
-            position: relative;
-        }
-
         .nav-top-badge {
             position: absolute;
             top: -5px;
@@ -270,12 +266,25 @@
                 }
             </div>
 
+            @{
+                var navBadgeCounts = ViewBag.NavBadgeCounts as System.Collections.Generic.IDictionary<string, int>;
+                Func<string, string> getNavBadgeText = key =>
+                {
+                    if (navBadgeCounts != null && navBadgeCounts.ContainsKey(key))
+                    {
+                        var count = navBadgeCounts[key];
+                        return count > 99 ? "99+" : count.ToString();
+                    }
+                    return "1";
+                };
+            }
+
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
                         <li class="normal-nav nav-tip-item">
                             @Html.ActionLink("基地管理", "BaseManagement", "Staff")
-                            <span class="nav-top-badge">1</span>
+                            <span class="nav-top-badge">@getNavBadgeText("base-management")</span>
                         </li>
                     </ul>
 
@@ -293,7 +302,7 @@
                                 <span id="messageBadge" class="badge" style="display: none; position: absolute; top: -5px; right: -10px; background-color: #d9534f; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold;"></span>
                             </a>
                         </li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "SortingCenterWorkerProfile", "Staff")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "SortingCenterWorkerProfile", "Staff")<span class="nav-top-badge">@getNavBadgeText("base-profile")</span></li>
                     </ul>
                 </div>
             </div>

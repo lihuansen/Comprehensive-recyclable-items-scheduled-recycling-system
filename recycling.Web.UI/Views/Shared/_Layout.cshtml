@@ -331,11 +331,24 @@
                 }
             </div>
 
+            @{
+                var navBadgeCounts = ViewBag.NavBadgeCounts as System.Collections.Generic.IDictionary<string, int>;
+                Func<string, string> getNavBadgeText = key =>
+                {
+                    if (navBadgeCounts != null && navBadgeCounts.ContainsKey(key))
+                    {
+                        var count = navBadgeCounts[key];
+                        return count > 99 ? "99+" : count.ToString();
+                    }
+                    return "1";
+                };
+            }
+
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("首页", "Index", "Home")<span class="nav-top-badge">1</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("我的订单", "Order", "Home")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("首页", "Index", "Home")<span class="nav-top-badge">@getNavBadgeText("home-index")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("我的订单", "Order", "Home")<span class="nav-top-badge">@getNavBadgeText("home-order")</span></li>
                         <li class="normal-nav has-badge" id="nav-message-item">
                             @Html.ActionLink("我的消息", "Message", "Home")
                             <span id="nav-unread-badge" class="nav-unread-badge"></span>
@@ -350,9 +363,9 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("帮助中心", "Help", "Home")<span class="nav-top-badge">1</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("问题反馈", "Feedback", "Home")<span class="nav-top-badge">1</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("个人中心", "Profile", "Home")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("帮助中心", "Help", "Home")<span class="nav-top-badge">@getNavBadgeText("home-help")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("问题反馈", "Feedback", "Home")<span class="nav-top-badge">@getNavBadgeText("home-feedback")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("个人中心", "Profile", "Home")<span class="nav-top-badge">@getNavBadgeText("home-profile")</span></li>
                     </ul>
                 </div>
             </div>

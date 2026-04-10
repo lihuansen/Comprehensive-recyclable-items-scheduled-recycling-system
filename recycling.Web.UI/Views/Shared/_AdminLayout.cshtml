@@ -352,11 +352,24 @@
                 }
             </div>
 
+            @{
+                var navBadgeCounts = ViewBag.NavBadgeCounts as System.Collections.Generic.IDictionary<string, int>;
+                Func<string, string> getNavBadgeText = key =>
+                {
+                    if (navBadgeCounts != null && navBadgeCounts.ContainsKey(key))
+                    {
+                        var count = navBadgeCounts[key];
+                        return count > 99 ? "99+" : count.ToString();
+                    }
+                    return "1";
+                };
+            }
+
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
                         <li class="dropdown-nav">
-                            <span class="dropdown-toggle nav-tip-toggle">角色管理<span class="nav-top-badge">1</span></span>
+                            <span class="dropdown-toggle nav-tip-toggle">角色管理<span class="nav-top-badge">@getNavBadgeText("admin-role-management")</span></span>
                             <div class="dropdown-menu-custom">
                                 @Html.ActionLink("账号管理", "AccountSelfManagement", "Staff")
                                 @Html.ActionLink("用户管理", "UserManagement", "Staff")
@@ -366,7 +379,7 @@
                             </div>
                         </li>
                         <li class="dropdown-nav">
-                            <span class="dropdown-toggle nav-tip-toggle">内容管理<span class="nav-top-badge">1</span></span>
+                            <span class="dropdown-toggle nav-tip-toggle">内容管理<span class="nav-top-badge">@getNavBadgeText("admin-content-management")</span></span>
                             <div class="dropdown-menu-custom">
                                 @Html.ActionLink("首页页面管理", "HomepageManagement", "Staff")
                                 @Html.ActionLink("仓库管理", "WarehouseManagement", "Staff")
@@ -383,7 +396,7 @@
 
                     <ul class="right-navs">
                         <li class="dropdown-nav">
-                            <span class="dropdown-toggle nav-tip-toggle">系统管理<span class="nav-top-badge">1</span></span>
+                            <span class="dropdown-toggle nav-tip-toggle">系统管理<span class="nav-top-badge">@getNavBadgeText("admin-system-management")</span></span>
                             <div class="dropdown-menu-custom">
                                 @Html.ActionLink("反馈管理", "FeedbackManagement", "Staff")
                                 @Html.ActionLink("日志管理", "LogManagement", "Staff")

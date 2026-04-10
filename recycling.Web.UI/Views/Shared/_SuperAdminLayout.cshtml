@@ -252,10 +252,23 @@
                 }
             </div>
 
+            @{
+                var navBadgeCounts = ViewBag.NavBadgeCounts as System.Collections.Generic.IDictionary<string, int>;
+                Func<string, string> getNavBadgeText = key =>
+                {
+                    if (navBadgeCounts != null && navBadgeCounts.ContainsKey(key))
+                    {
+                        var count = navBadgeCounts[key];
+                        return count > 99 ? "99+" : count.ToString();
+                    }
+                    return "1";
+                };
+            }
+
             <div class="navbar-collapse collapse">
                 <div class="nav-container">
                     <ul class="left-navs">
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("数据看板", "DataDashboard", "Staff")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("数据看板", "DataDashboard", "Staff")<span class="nav-top-badge">@getNavBadgeText("superadmin-dashboard")</span></li>
                     </ul>
 
                     <div class="diamond-nav">
@@ -266,8 +279,8 @@
                     </div>
 
                     <ul class="right-navs">
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("管理员管理", "AdminManagement", "Staff")<span class="nav-top-badge">1</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "SuperAdminAccountManagement", "Staff")<span class="nav-top-badge">1</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("管理员管理", "AdminManagement", "Staff")<span class="nav-top-badge">@getNavBadgeText("superadmin-admin-management")</span></li>
+                        <li class="normal-nav nav-tip-item">@Html.ActionLink("账号管理", "SuperAdminAccountManagement", "Staff")<span class="nav-top-badge">@getNavBadgeText("superadmin-account-management")</span></li>
                     </ul>
                 </div>
             </div>
