@@ -124,7 +124,7 @@
     function buildCategorySelect(options, selectedKey) {
         var html = '<select class="sub-select" onchange="onSubCategoryChanged(this)">';
         if (!options || options.length === 0) {
-            html += '<option value="">暂无下拉选项，请在右侧手动输入</option>';
+            html += '<option value="">暂无下拉选项，请在下方手动输入</option>';
         } else {
             html += '<option value="">请选择细分类</option>';
         }
@@ -271,7 +271,7 @@
                 '<div class="category-title">' + escapeHtml(parentName) + '</div>' +
                 '<div class="category-target">原始重量：' + Number(parent.Weight || 0).toFixed(2) + ' kg | 当前：<span class="current-weight">0.00</span> kg | 余量：<span class="diff-weight">0.00</span> kg | <span class="category-status status-error">待计算</span></div>' +
                 '</div>' +
-                '<div><table><thead><tr><th>细分类组合(下拉+手动+重量)</th><th class="text-right">单价(元/kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
+                '<div><table><thead><tr><th>细分类组合(下拉/手动 + 下方重量)</th><th class="text-right">单价(元/kg)</th><th class="text-right">金额(元)</th><th class="text-right">操作</th></tr></thead>' +
                 '<tbody>' + rowsHtml + '</tbody></table></div>' +
                 '<div class="category-footer">细类总重：<span class="category-total-weight">0.00</span> kg（需 ≤ 原始重量）</div>' +
                 '</div>';
