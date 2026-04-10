@@ -151,6 +151,15 @@
         background-color: #5568d3;
     }
 
+    .btn-action {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-action:hover {
+        background-color: #138496;
+    }
+
     .btn-delete {
         background-color: #dc3545;
         color: white;
@@ -348,12 +357,12 @@
 
             if (n.relatedOrderId && n.notificationType !== 'OrderCancelled') {
                 if (n.notificationType === 'ReviewReminder') {
-                    actionButtons += '<button class="btn-mark-read" onclick="event.stopPropagation(); goToReview(' + n.relatedOrderId + ')">去评价</button>';
+                    actionButtons += '<button class="btn-action" onclick="event.stopPropagation(); goToReview(' + n.relatedOrderId + ')">去评价</button>';
                 } else {
-                    actionButtons += '<button class="btn-mark-read" onclick="event.stopPropagation(); goToOrder(' + n.relatedOrderId + ')">查看订单</button>';
+                    actionButtons += '<button class="btn-action" onclick="event.stopPropagation(); goToOrder(' + n.relatedOrderId + ')">查看订单</button>';
                 }
             } else if (n.relatedFeedbackId) {
-                actionButtons += '<button class="btn-mark-read" onclick="event.stopPropagation(); goToFeedback()">查看反馈</button>';
+                actionButtons += '<button class="btn-action" onclick="event.stopPropagation(); goToFeedback()">查看反馈</button>';
             }
 
             actionButtons += '<button class="btn-delete" onclick="event.stopPropagation(); deleteNotification(' + n.notificationId + ')"><i class="glyphicon glyphicon-trash"></i> 删除</button>';
@@ -439,6 +448,8 @@
         }
 
         function markAllAsRead() {
+            var unread = parseCount(document.getElementById('count-unread').textContent);
+            if (unread <= 0) return;
             if (!confirm('确定要将所有消息标记为已读吗？')) return;
 
             fetch('@Url.Action("MarkAllNotificationsAsRead", "Home")', {
