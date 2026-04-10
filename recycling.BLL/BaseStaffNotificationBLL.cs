@@ -82,16 +82,16 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 发送运输单创建通知
+        /// 发送运输开始通知
         /// </summary>
         public bool SendTransportOrderCreatedNotification(int transportOrderId, string orderNumber, 
             string recyclerName, string pickupAddress, decimal estimatedWeight)
         {
             try
             {
-                string title = "新运输单待处理";
-                string content = $"回收员 {recyclerName} 创建了运输单 {orderNumber}，" +
-                    $"取货地址：{pickupAddress}，预估重量：{estimatedWeight}kg。请关注运输进度。";
+                string title = "运输单开始往基地运了";
+                string content = $"运输单 {orderNumber} 已开始往基地运输，" +
+                    $"发起人：{recyclerName}，取货地址：{pickupAddress}，预估重量：{estimatedWeight}kg。";
 
                 return SendNotificationToAllWorkers(
                     title, 
@@ -108,16 +108,16 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 发送运输单完成通知
+        /// 发送运输到达通知
         /// </summary>
         public bool SendTransportOrderCompletedNotification(int transportOrderId, string orderNumber, 
             string transporterName, decimal actualWeight)
         {
             try
             {
-                string title = "运输单已完成";
-                string content = $"运输人员 {transporterName} 已完成运输单 {orderNumber}，" +
-                    $"实际重量：{actualWeight}kg。请及时创建入库单。";
+                string title = "运输到达";
+                string content = $"运输单 {orderNumber} 已到达基地，" +
+                    $"运输人员：{transporterName}，到达重量：{actualWeight}kg。";
 
                 return SendNotificationToAllWorkers(
                     title, 
@@ -134,18 +134,17 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 发送入库单创建通知
+        /// 发送细分完成通知
         /// </summary>
         public bool SendWarehouseReceiptCreatedNotification(int warehouseReceiptId, string receiptNumber, 
-            int transportOrderId, string orderNumber, decimal totalWeight, int createdByWorkerId)
+            int? transportOrderId, string orderNumber, decimal totalWeight, int createdByWorkerId)
         {
             try
             {
-                string title = "入库单已创建";
-                string content = $"入库单 {receiptNumber} 已创建，" +
-                    $"关联运输单：{orderNumber}，总重量：{totalWeight}kg。请及时写入仓库。";
+                string title = "细分完成";
+                string content = $"入库单 {receiptNumber} 细分已完成，" +
+                    $"关联运输单：{orderNumber}，细分总重量：{totalWeight}kg。";
 
-                // 发送给除创建者外的所有工作人员
                 return SendNotificationToAllWorkers(
                     title, 
                     content, 
@@ -161,16 +160,16 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 发送仓库库存写入通知
+        /// 发送入库完成通知
         /// </summary>
         public bool SendWarehouseInventoryWrittenNotification(int warehouseReceiptId, string receiptNumber, 
             string itemCategories, decimal totalWeight)
         {
             try
             {
-                string title = "仓库库存已更新";
-                string content = $"入库单 {receiptNumber} 的物品已成功写入仓库，" +
-                    $"物品类别：{itemCategories}，总重量：{totalWeight}kg。";
+                string title = "入库完成";
+                string content = $"入库单 {receiptNumber} 已完成入库，" +
+                    $"入库重量：{totalWeight}kg。";
 
                 return SendNotificationToAllWorkers(
                     title, 
