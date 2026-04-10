@@ -334,6 +334,16 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) AddAdmin(Admins admin, string password)
         {
+            if (admin == null)
+            {
+                return (false, "管理员信息不能为空");
+            }
+
+            admin.Username = admin.Username?.Trim();
+            admin.FullName = admin.FullName?.Trim();
+            admin.Character = admin.Character?.Trim();
+            password = password?.Trim();
+
             // Validation
             if (string.IsNullOrEmpty(admin.Username))
             {
@@ -350,6 +360,11 @@ namespace recycling.BLL
                 return (false, "姓名不能为空");
             }
 
+            if (_adminDAL.IsAdminUsernameExists(admin.Username))
+            {
+                return (false, "用户名已存在，请更换其他用户名");
+            }
+
             // Hash password
             admin.PasswordHash = HashPassword(password);
             admin.IsActive = true;
@@ -363,6 +378,15 @@ namespace recycling.BLL
         /// </summary>
         public (bool Success, string Message) UpdateAdmin(Admins admin)
         {
+            if (admin == null)
+            {
+                return (false, "管理员信息不能为空");
+            }
+
+            admin.Username = admin.Username?.Trim();
+            admin.FullName = admin.FullName?.Trim();
+            admin.Character = admin.Character?.Trim();
+
             // Validation
             if (admin.AdminID <= 0)
             {
@@ -377,6 +401,11 @@ namespace recycling.BLL
             if (string.IsNullOrEmpty(admin.FullName))
             {
                 return (false, "姓名不能为空");
+            }
+
+            if (_adminDAL.IsAdminUsernameExists(admin.Username, admin.AdminID))
+            {
+                return (false, "用户名已存在，请更换其他用户名");
             }
 
             bool result = _adminDAL.UpdateAdmin(admin);
