@@ -481,9 +481,9 @@ namespace recycling.DAL
                                     categories = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(camelJson);
                                 }
                             }
-                            catch (Exception ex)
+                            catch (JsonException ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"ProcessWarehouseReceipt typed parse failed: {ex.Message}");
+                                System.Diagnostics.Debug.WriteLine($"ProcessWarehouseReceipt typed parse failed: {ex}");
                             }
 
                             if (categories == null)
