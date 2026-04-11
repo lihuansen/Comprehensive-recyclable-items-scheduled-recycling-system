@@ -252,6 +252,66 @@
         box-shadow: none;
     }
 
+    .transit-order-item.has-receipt {
+        border-left: 4px solid #95a5a6;
+        opacity: 0.75;
+        cursor: not-allowed;
+    }
+
+    .transit-order-item.has-receipt:hover {
+        border-color: #95a5a6;
+        box-shadow: none;
+    }
+
+    .receipt-badge {
+        display: inline-block;
+        background: #95a5a6;
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+
+    .transit-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        padding: 12px 0 0;
+        border-top: 1px solid #f0f0f0;
+        margin-top: 10px;
+    }
+
+    .pagination-btn {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 7px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s ease;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        background: #2980b9;
+    }
+
+    .pagination-btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+    }
+
+    .page-info {
+        font-size: 13px;
+        color: #555;
+        min-width: 90px;
+        text-align: center;
+    }
+
     .order-info {
         display: flex;
         justify-content: space-between;
@@ -298,40 +358,22 @@
                 </button>
             </div>
 
-            <div id="transitOrdersLoading" class="loading-spinner" style="display: none;">
-                <div class="spinner"></div>
-                <p>加载中...</p>
+            <div id="transitOrdersList" class="transit-orders-list">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>加载中...</p>
+                </div>
             </div>
 
-            <div id="transitOrdersList" class="transit-orders-list">
-                @if (Model != null && Model.CompletedTransportOrders != null && Model.CompletedTransportOrders.Any())
-                {
-                    foreach (var order in Model.CompletedTransportOrders)
-                    {
-                        <div class="transit-order-item" 
-                             data-order-id="@order.TransportOrderID" 
-                             data-order-number="@order.OrderNumber" 
-                             data-estimated-weight="@order.EstimatedWeight" 
-                             data-recycler-name="@(order.RecyclerName ?? "")"
-                             data-transporter-name="@(order.TransporterName ?? "")"
-                             onclick="selectOrder(this)">
-                            <div class="order-info">
-                                <span class="order-number">@order.OrderNumber</span>
-                                <span class="order-weight">@order.EstimatedWeight.ToString("F2") kg</span>
-                            </div>
-                            <div class="order-details">
-                                回收员：@(order.RecyclerName ?? "-") | 运输人员：@(order.TransporterName ?? "-")
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>暂无可入库的运输单</p>
-                    </div>
-                }
+            <!-- 分页控件 -->
+            <div id="transitOrdersPagination" class="transit-pagination" style="display: none;">
+                <button class="pagination-btn" id="prevPageBtn" onclick="transitOrdersPrevPage()" disabled>
+                    <i class="fas fa-chevron-left"></i> 上一页
+                </button>
+                <span id="pageInfo" class="page-info"></span>
+                <button class="pagination-btn" id="nextPageBtn" onclick="transitOrdersNextPage()">
+                    下一页 <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
 
             <div id="receiptForm" style="display: none;">
@@ -822,8 +864,10 @@
     // 加载已完成的运输单（自动加载+手动刷新）
     // Load completed transport orders (auto-load + manual refresh)
     function loadCompletedTransportOrders() {
-        $('#transitOrdersLoading').show();
-        $('#transitOrdersList').hide().html('');
+        $('#transitOrdersPagination').hide();
+        $('#transitOrdersList').html(
+            '<div class="loading-spinner"><div class="spinner"></div><p>加载中...</p></div>'
+        ).show();
 
         $.ajax({
             url: '@Url.Action("GetCompletedTransportOrders", "Staff")',
@@ -840,59 +884,118 @@
             },
             error: function () {
                 $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>加载失败</p></div>').show();
-            },
-            complete: function () {
-                $('#transitOrdersLoading').hide();
             }
         });
     }
 
-    // 显示运输单列表
+    // 显示运输单列表（支持分页）
+    var allTransitOrders = [];          // 全部运输单数据
+    var transitOrdersCurrentPage = 1;  // 当前页码
+    var TRANSIT_PAGE_SIZE = 4;         // 每页条数
+
     function displayTransitOrders(orders) {
-        if (orders && orders.length > 0) {
-            var html = '';
-            // 使用for循环优化性能（比forEach快）
-            for (var i = 0; i < orders.length; i++) {
-                var order = orders[i];
-                
-                // 合并更新缓存：新数据覆盖现有条目，避免清空导致的竞态条件
-                // Merge into cache: new data overwrites existing entries, avoiding race condition from clearing
-                transportOrdersCache[order.TransportOrderID] = order;
-                
-                // 判断当前工作人员是否是该运输单的指定基地工作人员
-                var isAssigned = order.AssignedWorkerID && order.AssignedWorkerID === currentWorkerID;
-                var isOtherAssigned = order.AssignedWorkerID && order.AssignedWorkerID !== currentWorkerID;
-                var assignedClass = isAssigned ? ' assigned-to-me' : (isOtherAssigned ? ' assigned-to-other' : '');
-                var clickHandler = isOtherAssigned ? '' : 'onclick="selectOrder(this)"';
-                var cursorStyle = isOtherAssigned ? ' style="cursor: not-allowed; opacity: 0.6;"' : '';
-                
-                html += '<div class="transit-order-item' + assignedClass + '" data-order-id="' + order.TransportOrderID + '" ' +
-                    'data-order-number="' + order.OrderNumber + '" ' +
-                    'data-estimated-weight="' + order.EstimatedWeight + '" ' +
-                    'data-recycler-name="' + (order.RecyclerName || '') + '" ' +
-                    'data-transporter-name="' + (order.TransporterName || '') + '" ' +
-                    clickHandler + cursorStyle + '>' +
-                    '<div class="order-info">' +
-                    '<span class="order-number">' + order.OrderNumber + '</span>' +
-                    '<span class="order-weight">' + order.EstimatedWeight.toFixed(2) + ' kg</span>' +
-                    '</div>' +
-                    '<div class="order-details">' +
-                    '回收员：' + (order.RecyclerName || '-') + ' | ' +
-                    '运输人员：' + (order.TransporterName || '-');
-                
-                // 显示指定人员信息
-                if (isAssigned) {
-                    html += '<br/><span style="color: #27ae60; font-weight: bold;"><i class="fas fa-user-check"></i> 指定给我</span>';
-                } else if (isOtherAssigned) {
-                    html += '<br/><span style="color: #e67e22;"><i class="fas fa-user-lock"></i> 指定给：' + (order.BaseContactPerson || '其他人员') + '</span>';
-                }
-                
-                html += '</div>';
-                html += '</div>';
-            }
-            $('#transitOrdersList').html(html).show();
-        } else {
+        allTransitOrders = orders || [];
+
+        // 更新缓存
+        for (var i = 0; i < allTransitOrders.length; i++) {
+            var o = allTransitOrders[i];
+            transportOrdersCache[o.TransportOrderID] = o;
+        }
+
+        transitOrdersCurrentPage = 1;
+        renderTransitOrdersPage();
+    }
+
+    // 渲染当前页的运输单
+    function renderTransitOrdersPage() {
+        var orders = allTransitOrders;
+        if (!orders || orders.length === 0) {
             $('#transitOrdersList').html('<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无可入库的运输单</p></div>').show();
+            $('#transitOrdersPagination').hide();
+            return;
+        }
+
+        var totalPages = Math.ceil(orders.length / TRANSIT_PAGE_SIZE);
+        if (transitOrdersCurrentPage > totalPages) transitOrdersCurrentPage = totalPages;
+
+        var start = (transitOrdersCurrentPage - 1) * TRANSIT_PAGE_SIZE;
+        var end = Math.min(start + TRANSIT_PAGE_SIZE, orders.length);
+        var pageOrders = orders.slice(start, end);
+
+        var html = '';
+        for (var i = 0; i < pageOrders.length; i++) {
+            var order = pageOrders[i];
+
+            var isAssigned = order.AssignedWorkerID && order.AssignedWorkerID === currentWorkerID;
+            var isOtherAssigned = order.AssignedWorkerID && order.AssignedWorkerID !== currentWorkerID;
+            var hasReceipt = order.HasReceipt === true;
+
+            // 优先级：已创建 > 指定给他人 > 指定给我 > 普通
+            var itemClass = 'transit-order-item';
+            var clickHandler = '';
+            var extraStyle = '';
+            if (hasReceipt) {
+                itemClass += ' has-receipt';
+                extraStyle = ' style="cursor: not-allowed;"';
+            } else if (isOtherAssigned) {
+                itemClass += ' assigned-to-other';
+                extraStyle = ' style="cursor: not-allowed; opacity: 0.6;"';
+            } else {
+                if (isAssigned) itemClass += ' assigned-to-me';
+                clickHandler = 'onclick="selectOrder(this)"';
+            }
+
+            html += '<div class="' + itemClass + '" data-order-id="' + order.TransportOrderID + '" ' +
+                'data-order-number="' + escapeHtml(order.OrderNumber) + '" ' +
+                'data-estimated-weight="' + order.EstimatedWeight + '" ' +
+                'data-recycler-name="' + escapeHtml(order.RecyclerName || '') + '" ' +
+                'data-transporter-name="' + escapeHtml(order.TransporterName || '') + '" ' +
+                clickHandler + extraStyle + '>' +
+                '<div class="order-info">' +
+                '<span class="order-number">' + escapeHtml(order.OrderNumber) + '</span>' +
+                '<span class="order-weight">' + order.EstimatedWeight.toFixed(2) + ' kg</span>' +
+                '</div>' +
+                '<div class="order-details">' +
+                '回收员：' + escapeHtml(order.RecyclerName || '-') + ' | ' +
+                '运输人员：' + escapeHtml(order.TransporterName || '-');
+
+            if (hasReceipt) {
+                html += '<br/><span style="color: #7f8c8d;"><i class="fas fa-check-circle"></i> <span class="receipt-badge">已创建入库单</span></span>';
+            } else if (isAssigned) {
+                html += '<br/><span style="color: #27ae60; font-weight: bold;"><i class="fas fa-user-check"></i> 指定给我</span>';
+            } else if (isOtherAssigned) {
+                html += '<br/><span style="color: #e67e22;"><i class="fas fa-user-lock"></i> 指定给：' + escapeHtml(order.BaseContactPerson || '其他人员') + '</span>';
+            }
+
+            html += '</div>';
+            html += '</div>';
+        }
+
+        $('#transitOrdersList').html(html).show();
+
+        // 更新分页控件
+        if (orders.length > TRANSIT_PAGE_SIZE) {
+            $('#pageInfo').text('第 ' + transitOrdersCurrentPage + ' / ' + totalPages + ' 页');
+            $('#prevPageBtn').prop('disabled', transitOrdersCurrentPage <= 1);
+            $('#nextPageBtn').prop('disabled', transitOrdersCurrentPage >= totalPages);
+            $('#transitOrdersPagination').show();
+        } else {
+            $('#transitOrdersPagination').hide();
+        }
+    }
+
+    function transitOrdersPrevPage() {
+        if (transitOrdersCurrentPage > 1) {
+            transitOrdersCurrentPage--;
+            renderTransitOrdersPage();
+        }
+    }
+
+    function transitOrdersNextPage() {
+        var totalPages = Math.ceil(allTransitOrders.length / TRANSIT_PAGE_SIZE);
+        if (transitOrdersCurrentPage < totalPages) {
+            transitOrdersCurrentPage++;
+            renderTransitOrdersPage();
         }
     }
 
@@ -905,6 +1008,12 @@
         var orderData = transportOrdersCache[orderId];
         if (orderData && orderData.AssignedWorkerID && orderData.AssignedWorkerID !== currentWorkerID) {
             alert('您不是该运输单的指定基地工作人员，无法创建入库单');
+            return;
+        }
+
+        // 从缓存中检查是否已创建入库单（无需额外AJAX）
+        if (orderData && orderData.HasReceipt === true) {
+            alert('该运输单已创建入库单');
             return;
         }
         
@@ -953,6 +1062,7 @@
                     displayCategoriesPreview(itemCategories);
 
                     $('#transitOrdersList').hide();
+                    $('#transitOrdersPagination').hide();
                     $('#receiptForm').show();
                 } else {
                     alert('检查失败：' + response.message);
@@ -1035,6 +1145,10 @@
         selectedOrderId = null;
         $('#receiptForm').hide();
         $('#transitOrdersList').show();
+        // 若有分页，也恢复显示
+        if (allTransitOrders.length > TRANSIT_PAGE_SIZE) {
+            $('#transitOrdersPagination').show();
+        }
         $('.transit-order-item').removeClass('selected');
         $('#createReceiptForm')[0].reset();
         

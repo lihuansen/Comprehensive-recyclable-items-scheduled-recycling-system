@@ -143,6 +143,12 @@ namespace recycling.Model
         /// Base contact person name
         /// </summary>
         public string BaseContactPerson { get; set; }
+
+        /// <summary>
+        /// 是否已创建入库单
+        /// Whether a warehouse receipt has already been created for this transport order
+        /// </summary>
+        public bool HasReceipt { get; set; }
     }
 
     /// <summary>
