@@ -15,6 +15,21 @@ namespace recycling.DAL
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         /// <summary>
+        /// 获取用户订单总数（高效COUNT查询）
+        /// </summary>
+        public int GetUserOrderCount(int userId)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT COUNT(*) FROM Appointments WHERE UserID = @UserID";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+                conn.Open();
+                return (int)cmd.ExecuteScalar();
+            }
+        }
+
+        /// <summary>
         /// 根据用户ID和状态获取订单列表
         /// </summary>
         public List<AppointmentOrder> GetOrdersByUserAndStatus(int userId, string status = "all")

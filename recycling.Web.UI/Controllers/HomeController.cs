@@ -1297,6 +1297,30 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取用户订单总数（用于导航栏徽章）
+        /// </summary>
+        public JsonResult GetOrderNavBadgeCount()
+        {
+            try
+            {
+                if (Session["LoginUser"] == null)
+                {
+                    return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+                }
+
+                var user = (Users)Session["LoginUser"];
+                var count = _orderBLL.GetUserOrderCount(user.UserID);
+
+                return Json(new { success = true, count = count }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取订单导航徽章数失败: {ex.Message}");
+                return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
         /// 标记通知为已读（AJAX）
         /// </summary>
         [HttpPost]

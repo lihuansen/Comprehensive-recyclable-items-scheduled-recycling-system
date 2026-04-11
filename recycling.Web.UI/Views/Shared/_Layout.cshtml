@@ -523,6 +523,39 @@
                 window.updateNavUnreadBadge = updateUnreadBadge;
             })();
         </script>
+
+        @* 导航栏"我的订单"徽章计数脚本 *@
+        <script type="text/javascript">
+            (function() {
+                function updateOrderNavBadge() {
+                    fetch('@Url.Action("GetOrderNavBadgeCount", "Home")', {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (data.success) {
+                            var badge = document.querySelector('.js-nav-tip-badge[data-tip-key="home-order"]');
+                            if (badge) {
+                                badge.setAttribute('data-tip-count', data.count || 0);
+                                if (window.refreshNavTipBadges) window.refreshNavTipBadges();
+                            }
+                        }
+                    })
+                    .catch(function() {});
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateOrderNavBadge);
+                } else {
+                    updateOrderNavBadge();
+                }
+
+                setInterval(updateOrderNavBadge, 60000);
+
+                window.updateOrderNavBadge = updateOrderNavBadge;
+            })();
+        </script>
     }
     
     @RenderSection("scripts", required: false)
