@@ -2872,7 +2872,7 @@ namespace recycling.Web.UI.Controllers
         /// 超级管理员 - 获取管理员列表（API）
         /// </summary>
         [HttpGet]
-        public ContentResult GetAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public ContentResult GetAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             // Permission check
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
@@ -2882,7 +2882,7 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                var result = _adminBLL.GetAllAdmins(page, pageSize, searchTerm, isActive);
+                var result = _adminBLL.GetAllAdmins(page, pageSize, searchTerm, isActive, sortOrder);
                 return JsonContent(new { success = true, data = result });
             }
             catch (Exception ex)
@@ -4217,11 +4217,11 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取运输人员列表（API）
         /// </summary>
         [HttpGet]
-        public ContentResult GetTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public ContentResult GetTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             try
             {
-                var result = _adminBLL.GetAllTransporters(page, pageSize, searchTerm, isActive);
+                var result = _adminBLL.GetAllTransporters(page, pageSize, searchTerm, isActive, sortOrder);
                 return JsonContent(new { success = true, data = result });
             }
             catch (Exception ex)
@@ -4429,11 +4429,11 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取基地人员列表（API）
         /// </summary>
         [HttpGet]
-        public ContentResult GetSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public ContentResult GetSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             try
             {
-                var result = _adminBLL.GetAllSortingCenterWorkers(page, pageSize, searchTerm, isActive);
+                var result = _adminBLL.GetAllSortingCenterWorkers(page, pageSize, searchTerm, isActive, sortOrder);
                 return JsonContent(new { success = true, data = result });
             }
             catch (Exception ex)

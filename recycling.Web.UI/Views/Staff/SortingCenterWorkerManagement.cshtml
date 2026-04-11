@@ -176,15 +176,20 @@
 
     <div class="search-box">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、姓名、手机号...">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-control" id="statusFilter">
                     <option value="">全部状态</option>
                     <option value="true">激活</option>
                     <option value="false">禁用</option>
                 </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-default btn-block" onclick="toggleSortOrder()" title="切换ID排序" aria-label="ID顺序排列，点击切换为逆序" id="sortOrderBtn">
+                    <i class="fas fa-sort-amount-down" id="sortOrderIcon"></i> <span id="sortOrderText">顺序</span>
+                </button>
             </div>
             <div class="col-md-2">
                 <button class="btn btn-primary btn-block" onclick="searchWorkers()">
@@ -207,6 +212,8 @@
                     <th>用户名</th>
                     <th>姓名</th>
                     <th>手机号</th>
+                    <th>身份证号</th>
+                    <th>负责基地区域</th>
                     <th>评分</th>
                     <th>状态</th>
                     <th>操作</th>
@@ -214,7 +221,7 @@
             </thead>
             <tbody id="tableBody">
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="9" class="text-center">
                         <i class="fas fa-spinner fa-spin"></i> 加载中...
                     </td>
                 </tr>
@@ -316,7 +323,7 @@
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
+var currentPage = 1, pageSize = 8, searchTerm = '', statusFilter = null, sortOrder = 'ASC';
 var workerCache = {}; // Cache for worker data
 var dashboardVisible = true;
 var statusPieChart = null;
@@ -373,6 +380,16 @@ function toggleDashboard() {
         $('#dashboardSection').slideUp();
         $('#toggleBtnText').text('显示数据看板');
     }
+}
+
+// Toggle sort order
+function toggleSortOrder() {
+    sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
+    $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
+    $('#sortOrderText').text(sortOrder === 'ASC' ? '顺序' : '逆序');
+    $('#sortOrderBtn').attr('aria-label', sortOrder === 'ASC' ? 'ID顺序排列，点击切换为逆序' : 'ID逆序排列，点击切换为顺序');
+    currentPage = 1;
+    loadWorkers();
 }
 
 // Load comprehensive dashboard statistics
@@ -622,7 +639,7 @@ function loadWorkers() {
     $.ajax({
         url: '@Url.Action("GetSortingCenterWorkers", "Staff")',
         type: 'GET',
-        data: { page: currentPage, pageSize: pageSize, searchTerm: searchTerm, isActive: statusFilter },
+        data: { page: currentPage, pageSize: pageSize, searchTerm: searchTerm, isActive: statusFilter, sortOrder: sortOrder },
         success: function (response) {
             if (response.success) renderWorkers(response.data);
             else alert('加载失败: ' + response.message);
@@ -634,7 +651,7 @@ function renderWorkers(data) {
     var tbody = $('#tableBody');
     tbody.empty();
     if (data.Items.length === 0) {
-        tbody.append('<tr><td colspan="7" class="text-center">没有找到基地人员</td></tr>');
+        tbody.append('<tr><td colspan="9" class="text-center">没有找到基地人员</td></tr>');
         return;
     }
     data.Items.forEach(function (w) {
@@ -643,6 +660,8 @@ function renderWorkers(data) {
             '<td>' + escapeHtml(w.Username) + '</td>' +
             '<td>' + escapeHtml(w.FullName || '-') + '</td>' +
             '<td>' + escapeHtml(w.PhoneNumber) + '</td>' +
+            '<td>' + escapeHtml(w.IDNumber || '-') + '</td>' +
+            '<td>' + escapeHtml(w.SortingCenterName || '-') + '</td>' +
             '<td>' + (w.Rating ? w.Rating.toFixed(1) : '0.0') + ' ⭐</td>' +
             '<td>' +
                 '<span class="badge ' + (w.IsActive ? 'badge-active' : 'badge-inactive') + '">' + (w.IsActive ? '激活' : '禁用') + '</span> ' +
