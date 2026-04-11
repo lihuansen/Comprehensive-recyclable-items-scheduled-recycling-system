@@ -334,11 +334,11 @@ namespace recycling.BLL
         /// <summary>
         /// 获取运输中的订单列表
         /// </summary>
-        public List<TransportNotificationViewModel> GetInTransitOrders()
+        public List<TransportNotificationViewModel> GetInTransitOrders(int workerId)
         {
             try
             {
-                return _dal.GetInTransitOrders();
+                return _dal.GetInTransitOrders(workerId);
             }
             catch (Exception ex)
             {

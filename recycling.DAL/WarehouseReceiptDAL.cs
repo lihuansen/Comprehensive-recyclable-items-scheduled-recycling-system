@@ -1079,7 +1079,7 @@ namespace recycling.DAL
         /// <summary>
         /// 获取运输中的订单列表（用于基地管理）
         /// </summary>
-        public List<TransportNotificationViewModel> GetInTransitOrders()
+        public List<TransportNotificationViewModel> GetInTransitOrders(int workerId)
         {
             var orders = new List<TransportNotificationViewModel>();
 
@@ -1093,16 +1093,19 @@ namespace recycling.DAL
                         SELECT 
                             t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, 
                             t.ItemCategories, t.Status, t.CreatedDate,
+                            t.AssignedWorkerID, t.BaseContactPerson,
                             r.FullName AS RecyclerName,
                             tr.FullName AS TransporterName
                         FROM TransportationOrders t
                         LEFT JOIN Recyclers r ON t.RecyclerID = r.RecyclerID
                         LEFT JOIN Transporters tr ON t.TransporterID = tr.TransporterID
                         WHERE t.Status = N'运输中'
+                          AND t.AssignedWorkerID = @WorkerID
                         ORDER BY t.CreatedDate DESC";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
+                        cmd.Parameters.AddWithValue("@WorkerID", workerId);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
@@ -1122,7 +1125,9 @@ namespace recycling.DAL
                                     CreatedDate = reader["CreatedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CreatedDate"]),
                                     Status = reader["Status"].ToString(),
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
-                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString()
+                                    TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString(),
+                                    AssignedWorkerID = reader["AssignedWorkerID"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["AssignedWorkerID"]),
+                                    BaseContactPerson = reader["BaseContactPerson"] == DBNull.Value ? null : reader["BaseContactPerson"].ToString()
                                 });
                             }
                         }
