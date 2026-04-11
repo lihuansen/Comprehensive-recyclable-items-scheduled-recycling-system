@@ -115,6 +115,51 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 直接从核实后的品类/重量/金额列表写入库存记录
+        /// </summary>
+        public bool AddInventoryWithItems(int orderId, int recyclerId, List<(string CategoryKey, string CategoryName, decimal Weight, decimal Price)> items)
+        {
+            if (orderId <= 0 || recyclerId <= 0 || items == null || items.Count == 0) return false;
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (SqlTransaction trans = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        string insertSql = @"
+                            INSERT INTO Inventory (OrderID, CategoryKey, CategoryName, Weight, Price, RecyclerID, CreatedDate, InventoryType)
+                            VALUES (@OrderID, @CategoryKey, @CategoryName, @Weight, @Price, @RecyclerID, @CreatedDate, N'StoragePoint')";
+
+                        foreach (var item in items)
+                        {
+                            using (SqlCommand cmd = new SqlCommand(insertSql, conn, trans))
+                            {
+                                cmd.Parameters.AddWithValue("@OrderID", orderId);
+                                cmd.Parameters.AddWithValue("@CategoryKey", item.CategoryKey);
+                                cmd.Parameters.AddWithValue("@CategoryName", item.CategoryName);
+                                cmd.Parameters.AddWithValue("@Weight", item.Weight);
+                                cmd.Parameters.AddWithValue("@Price", item.Price);
+                                cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                                cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        trans.Commit();
+                        return true;
+                    }
+                    catch
+                    {
+                        trans.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 获取库存列表
         /// </summary>
         /// <param name="recyclerId">回收员ID（可选）</param>

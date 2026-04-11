@@ -1598,6 +1598,93 @@ namespace recycling.Web.UI.Controllers
             return Content(json, "application/json", System.Text.Encoding.UTF8);
         }
 
+        // 核实后完成订单（回收员填写实际品类/重量/金额后提交）
+        [HttpPost]
+        public ContentResult CompleteOrderWithVerification(int appointmentId, string itemsJson)
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null)
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请先登录" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                int recyclerId = recycler.RecyclerID;
+
+                if (appointmentId <= 0)
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "订单ID无效" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                if (string.IsNullOrWhiteSpace(itemsJson))
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "请至少填写一条品类信息" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                var rawItems = JsonConvert.DeserializeObject<List<VerificationItem>>(itemsJson);
+                if (rawItems == null || rawItems.Count == 0)
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "品类信息不能为空" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                if (rawItems.Count > 5)
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "品类最多5条" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                foreach (var item in rawItems)
+                {
+                    if (string.IsNullOrWhiteSpace(item.CategoryKey) || string.IsNullOrWhiteSpace(item.CategoryName))
+                    {
+                        var e = JsonConvert.SerializeObject(new { success = false, message = "品类不能为空" });
+                        return Content(e, "application/json", System.Text.Encoding.UTF8);
+                    }
+                    if (item.Weight <= 0)
+                    {
+                        var e = JsonConvert.SerializeObject(new { success = false, message = "重量必须大于0" });
+                        return Content(e, "application/json", System.Text.Encoding.UTF8);
+                    }
+                    if (item.Price < 0)
+                    {
+                        var e = JsonConvert.SerializeObject(new { success = false, message = "金额不能为负数" });
+                        return Content(e, "application/json", System.Text.Encoding.UTF8);
+                    }
+                }
+
+                var items = rawItems.Select(i => (i.CategoryKey.Trim(), i.CategoryName.Trim(), i.Weight, i.Price)).ToList();
+
+                var inventoryBll = new InventoryBLL();
+                bool inventoryAdded = inventoryBll.AddInventoryWithItems(appointmentId, recyclerId, items);
+                if (!inventoryAdded)
+                {
+                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
+                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                var orderBll = new OrderBLL();
+                var result = orderBll.CompleteOrder(appointmentId, recyclerId);
+                if (result.Success)
+                {
+                    _notificationBLL.SendOrderCompletedNotification(appointmentId);
+                    _notificationBLL.SendReviewReminderNotification(appointmentId);
+                }
+
+                var json = JsonConvert.SerializeObject(new { success = result.Success, message = result.Message });
+                return Content(json, "application/json", System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                var errorJson = JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+            }
+        }
+
         // 仓库管理页面 - 管理员端
         [AdminPermission(AdminPermissions.WarehouseManagement)]
         public ActionResult WarehouseManagement()
@@ -5473,5 +5560,16 @@ namespace recycling.Web.UI.Controllers
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// 回收员核实订单时填写的单条品类信息
+    /// </summary>
+    public class VerificationItem
+    {
+        public string CategoryKey { get; set; }
+        public string CategoryName { get; set; }
+        public decimal Weight { get; set; }
+        public decimal Price { get; set; }
     }
 }
