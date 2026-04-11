@@ -2408,11 +2408,11 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 获取用户列表（API）
         /// </summary>
         [HttpGet]
-        public ContentResult GetUsers(int page = 1, int pageSize = 20, string searchTerm = null)
+        public ContentResult GetUsers(int page = 1, int pageSize = 20, string searchTerm = null, string sortOrder = "ASC")
         {
             try
             {
-                var result = _adminBLL.GetAllUsers(page, pageSize, searchTerm);
+                var result = _adminBLL.GetAllUsers(page, pageSize, searchTerm, sortOrder);
                 return JsonContent(new { success = true, data = result });
             }
             catch (Exception ex)

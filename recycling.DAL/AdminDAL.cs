@@ -17,7 +17,7 @@ namespace recycling.DAL
         /// <summary>
         /// Get all users with pagination
         /// </summary>
-        public PagedResult<Users> GetAllUsers(int page = 1, int pageSize = 20, string searchTerm = null)
+        public PagedResult<Users> GetAllUsers(int page = 1, int pageSize = 20, string searchTerm = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Users>
             {
@@ -25,6 +25,9 @@ namespace recycling.DAL
                 PageSize = pageSize,
                 Items = new List<Users>()
             };
+
+            // Validate sort order to prevent SQL injection
+            string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -50,7 +53,7 @@ namespace recycling.DAL
                 {
                     sql += " AND (Username LIKE @SearchTerm OR Email LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm)";
                 }
-                sql += " ORDER BY RegistrationDate DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                sql += " ORDER BY UserID " + orderDirection + " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
