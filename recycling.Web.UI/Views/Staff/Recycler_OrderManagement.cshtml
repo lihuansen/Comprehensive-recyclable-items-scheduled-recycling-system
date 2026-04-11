@@ -1636,13 +1636,13 @@ select.form-control::-ms-expand {
                 }
 
                 var orderDetail = data.data;
-                currentIsUrgent = orderDetail.isUrgent || false;
+                currentIsUrgent = orderDetail.IsUrgent || false;
 
                 // 设置订单ID
                 document.getElementById('verifyAppointmentId').value = appointmentId;
 
                 // 初始化品类行（基于预约时的品类）
-                initVerificationRows(orderDetail.categories || []);
+                initVerificationRows(orderDetail.Categories || []);
 
                 // 打开模态框
                 $('#verifyOrderModal').modal('show');
@@ -1677,13 +1677,13 @@ select.form-control::-ms-expand {
             }
 
             categories.forEach(function(cat) {
-                var catKey = (cat.categoryKey || '').toLowerCase();
+                var catKey = (cat.CategoryKey || '').toLowerCase();
                 var displayNames = {
                     'glass': '玻璃', 'metal': '金属', 'plastic': '塑料', 'paper': '纸类',
                     'fabric': '纺织品', 'appliance': '家电', 'foam': '泡沫'
                 };
-                var catName = cat.categoryName || displayNames[catKey] || catKey;
-                var initWeight = (cat.weight && cat.weight > 0) ? cat.weight : '';
+                var catName = cat.CategoryName || displayNames[catKey] || catKey;
+                var initWeight = (cat.Weight && cat.Weight > 0) ? cat.Weight : '';
                 var rowId = 'ver-row-' + catKey + '-' + Date.now();
 
                 var rowHtml = '<div class="verification-row" id="' + rowId + '" data-category-key="' + catKey + '">' +
