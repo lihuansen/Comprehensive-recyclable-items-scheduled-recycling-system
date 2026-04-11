@@ -1492,6 +1492,30 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取回收员订单管理导航栏徽章数（待接单数量）
+        /// </summary>
+        public JsonResult GetRecyclerOrderNavBadgeCount()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                {
+                    return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var statistics = _recyclerOrderBLL.GetRecyclerOrderStatistics(recycler.RecyclerID);
+
+                return Json(new { success = true, count = statistics.PendingOrders }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取回收员订单导航徽章数失败: {ex.Message}");
+                return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
         /// 获取订单详情（AJAX）
         /// </summary>
         [HttpPost]

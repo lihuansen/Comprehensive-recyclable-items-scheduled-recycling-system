@@ -460,6 +460,39 @@
                 window.updateRecyclerMessageBadge = updateRecyclerMessageBadge;
             })();
         </script>
+
+        @* 回收员"订单管理"导航栏徽章计数脚本 *@
+        <script>
+            (function() {
+                function updateRecyclerOrderNavBadge() {
+                    fetch('@Url.Action("GetRecyclerOrderNavBadgeCount", "Staff")', {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (data.success) {
+                            var badge = document.querySelector('.js-nav-tip-badge[data-tip-key="recycler-order"]');
+                            if (badge) {
+                                badge.setAttribute('data-tip-count', data.count || 0);
+                                if (window.refreshNavTipBadges) window.refreshNavTipBadges();
+                            }
+                        }
+                    })
+                    .catch(function() {});
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateRecyclerOrderNavBadge);
+                } else {
+                    updateRecyclerOrderNavBadge();
+                }
+
+                setInterval(updateRecyclerOrderNavBadge, 60000);
+
+                window.updateRecyclerOrderNavBadge = updateRecyclerOrderNavBadge;
+            })();
+        </script>
     }
 </body>
 </html>
