@@ -1657,12 +1657,6 @@ namespace recycling.Web.UI.Controllers
                     return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
                 }
 
-                if (rawItems.Count > 5)
-                {
-                    var errorJson = JsonConvert.SerializeObject(new { success = false, message = "品类最多5条" });
-                    return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
-                }
-
                 foreach (var item in rawItems)
                 {
                     if (string.IsNullOrWhiteSpace(item.CategoryKey) || string.IsNullOrWhiteSpace(item.CategoryName))
@@ -1695,6 +1689,16 @@ namespace recycling.Web.UI.Controllers
                 {
                     var errorJson = JsonConvert.SerializeObject(new { success = false, message = "写入库存失败" });
                     return Content(errorJson, "application/json", System.Text.Encoding.UTF8);
+                }
+
+                // 同步预约单的实际重量和价格
+                var orderDal = new OrderDAL();
+                decimal totalWeight = items.Sum(i => i.Item3);
+                decimal totalPrice = items.Sum(i => i.Item4);
+                orderDal.UpdateAppointmentWeightAndPrice(appointmentId, totalWeight, totalPrice);
+                foreach (var item in items)
+                {
+                    orderDal.UpdateAppointmentCategoryWeight(appointmentId, item.Item1, item.Item3);
                 }
 
                 var orderBll = new OrderBLL();

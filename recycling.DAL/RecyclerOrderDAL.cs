@@ -611,7 +611,7 @@ namespace recycling.DAL
                 if (!string.IsNullOrEmpty(orderDetail.OrderNumber))
                 {
                     string categorySql = @"
-                        SELECT CategoryName, CategoryKey, QuestionsAnswers 
+                        SELECT CategoryName, CategoryKey, QuestionsAnswers, Weight
                         FROM AppointmentCategories 
                         WHERE AppointmentID = @AppointmentID";
 
@@ -626,7 +626,8 @@ namespace recycling.DAL
                                 {
                                     CategoryName = GetCategoryDisplayName(reader["CategoryName"] == DBNull.Value ? "" : reader["CategoryName"].ToString()),
                                     CategoryKey = reader["CategoryKey"] == DBNull.Value ? "" : reader["CategoryKey"].ToString(),
-                                    QuestionsAnswers = reader["QuestionsAnswers"] == DBNull.Value ? "" : reader["QuestionsAnswers"].ToString()
+                                    QuestionsAnswers = reader["QuestionsAnswers"] == DBNull.Value ? "" : reader["QuestionsAnswers"].ToString(),
+                                    Weight = reader["Weight"] == DBNull.Value ? 0m : Convert.ToDecimal(reader["Weight"])
                                 });
                             }
                         }
