@@ -82,6 +82,7 @@ namespace recycling.BLL
                     // 数据已通过SQL脚本初始化，此处仅提示（实际项目可记录日志）
                     throw new Exception("可回收物数据未初始化，请先执行数据库脚本");
                 }
+                _recyclableItemDAL.EnsureApplianceCategoryExists();
             }
             catch (Exception ex)
             {
