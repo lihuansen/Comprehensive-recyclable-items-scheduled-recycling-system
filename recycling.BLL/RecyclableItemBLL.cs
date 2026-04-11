@@ -18,7 +18,8 @@ namespace recycling.BLL
             { "metal", "金属" },
             { "plastic", "塑料" },
             { "paper", "纸类" },
-            { "fabric", "纺织品" }
+            { "fabric", "纺织品" },
+            { "appliance", "家电" }
         };
 
         /// <summary>

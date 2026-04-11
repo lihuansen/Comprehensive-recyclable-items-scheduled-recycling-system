@@ -55,6 +55,13 @@ namespace recycling.BLL
                     new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "cotton", SubCategoryName = "棉织物", PricePerKg = 1.40m },
                     new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "polyester", SubCategoryName = "化纤织物", PricePerKg = 1.10m },
                     new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "mixed", SubCategoryName = "混合织物", PricePerKg = 0.90m }
+                },
+                ["appliance"] = new List<WarehouseSubdivisionTemplateOptionViewModel>
+                {
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "large_appliance", SubCategoryName = "大型家电（冰箱/洗衣机）", PricePerKg = 1.50m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "air_conditioner", SubCategoryName = "空调", PricePerKg = 2.00m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "tv", SubCategoryName = "电视", PricePerKg = 1.00m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "small_appliance", SubCategoryName = "小型家电", PricePerKg = 1.20m }
                 }
             };
         private static readonly Dictionary<string, string> CategoryTemplateAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -67,7 +74,9 @@ namespace recycling.BLL
             ["纸"] = "paper",
             ["纸类"] = "paper",
             ["织物"] = "fabric",
-            ["纺织品"] = "fabric"
+            ["纺织品"] = "fabric",
+            ["家电"] = "appliance",
+            ["电器"] = "appliance"
         };
         private static readonly Dictionary<string, string> CategoryTemplateKeywordAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -82,7 +91,10 @@ namespace recycling.BLL
             ["纸"] = "paper",
             ["fabric"] = "fabric",
             ["织物"] = "fabric",
-            ["纺织"] = "fabric"
+            ["纺织"] = "fabric",
+            ["appliance"] = "appliance",
+            ["家电"] = "appliance",
+            ["电器"] = "appliance"
         };
 
         /// <summary>

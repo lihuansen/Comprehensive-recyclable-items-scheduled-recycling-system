@@ -1862,7 +1862,10 @@ function getQuestionTextByIdRecycler(questionId) {
         'plastic_type': '塑料类型',
         'plastic_color': '塑料颜色',
         'paper_type': '纸张类型',
-        'fabric_type': '纺织品类型'
+        'fabric_type': '纺织品类型',
+        'appliance_condition': '家电整体工作状态',
+        'appliance_clean': '是否已清洁处理',
+        'appliance_type': '家电类型'
     };
     return questionMap[questionId] || questionId;
 }
@@ -1908,7 +1911,13 @@ function getAnswerTextByValueRecycler(questionId, answerValue) {
         'office': '办公用纸',
         'cotton': '棉织品',
         'wool': '毛织品',
-        'synthetic': '化纤'
+        'synthetic': '化纤',
+        'working': '正常工作',
+        'broken': '无法使用/损坏',
+        'large_appliance': '大型家电（冰箱/洗衣机）',
+        'air_conditioner': '空调',
+        'tv': '电视',
+        'small_appliance': '小型家电'
     };
     return answerMap[answerValue] || answerValue;
 }
