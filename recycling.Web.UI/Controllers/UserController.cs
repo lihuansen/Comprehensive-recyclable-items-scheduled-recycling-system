@@ -827,7 +827,7 @@ namespace recycling.Web.UI.Controllers
 
                 TempData["SuccessMessage"] = $"预约成功！预约号：#AP{appointmentId:D6}，预估价格：¥{finalPrice:F2}。我们将在24小时内与您确认。";
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AppointmentSuccess", "User");
             }
             catch (Exception ex)
             {

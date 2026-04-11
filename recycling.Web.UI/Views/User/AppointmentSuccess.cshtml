@@ -1,0 +1,117 @@
+@{
+    ViewBag.Title = "预约成功";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    .success-container {
+        max-width: 600px;
+        margin: 60px auto;
+        padding: 40px 30px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+
+    .success-icon i {
+        font-size: 40px;
+        color: #fff;
+    }
+
+    .success-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #27ae60;
+        margin-bottom: 16px;
+    }
+
+    .success-message {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.8;
+        margin-bottom: 32px;
+        background: #f0faf4;
+        border-left: 4px solid #27ae60;
+        padding: 16px 20px;
+        border-radius: 8px;
+        text-align: left;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary-green {
+        padding: 14px 32px;
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: opacity 0.2s;
+    }
+
+    .btn-primary-green:hover {
+        opacity: 0.88;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .btn-outline {
+        padding: 14px 32px;
+        background: #fff;
+        border: 2px solid #27ae60;
+        border-radius: 10px;
+        color: #27ae60;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .btn-outline:hover {
+        background: #27ae60;
+        color: #fff;
+        text-decoration: none;
+    }
+</style>
+
+<div class="success-container">
+    <div class="success-icon">
+        <i class="fas fa-check"></i>
+    </div>
+    <h2 class="success-title">预约成功！</h2>
+    <div class="success-message">
+        <i class="fas fa-info-circle" style="color:#27ae60;margin-right:6px;"></i>
+        @ViewBag.SuccessMessage
+    </div>
+    <div class="action-buttons">
+        <a href="@Url.Action("Order", "Home")" class="btn-primary-green">
+            <i class="fas fa-list-alt"></i> 查看我的订单
+        </a>
+        <a href="@Url.Action("Index", "Home")" class="btn-outline">
+            <i class="fas fa-home"></i> 返回首页
+        </a>
+    </div>
+</div>
