@@ -1125,7 +1125,6 @@ select.form-control::-ms-expand {
         margin-bottom: 10px;
         flex-wrap: wrap;
     }
-    .verification-row .ver-select,
     .verification-row .ver-input {
         flex: 1;
         min-width: 80px;
@@ -1135,35 +1134,24 @@ select.form-control::-ms-expand {
         padding: 4px 8px;
         font-size: 13px;
     }
-    .verification-row .ver-select:focus,
     .verification-row .ver-input:focus {
         border-color: #28a745;
         box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.25);
         outline: none;
     }
-    .ver-btn-add, .ver-btn-remove {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        font-size: 18px;
-        line-height: 1;
+    .ver-category-text {
+        flex: 1.5;
+        min-width: 110px;
+        height: 36px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 13px;
+        background: #f8f9fa;
+        color: #495057;
         display: flex;
         align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
     }
-    .ver-btn-add {
-        background: #28a745;
-        color: white;
-    }
-    .ver-btn-add:hover { background: #218838; }
-    .ver-btn-remove {
-        background: #dc3545;
-        color: white;
-    }
-    .ver-btn-remove:hover { background: #c82333; }
     .ver-label {
         font-size: 12px;
         color: #6c757d;
@@ -1194,10 +1182,6 @@ select.form-control::-ms-expand {
                 </button>
             </div>
             <div class="modal-body">
-                <div class="alert" style="background-color: #d4edda; border-color: #c3e6cb; color: #155724;">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>提示：</strong>请根据现场实际收到的物品，核实并填写品类、重量和金额。最多可添加5条记录。
-                </div>
                 <input type="hidden" id="verifyAppointmentId" />
                 <div id="verificationItems">
                     <!-- 动态行由JS生成 -->
@@ -1633,99 +1617,126 @@ select.form-control::-ms-expand {
                 return;
             }
 
-            // 设置订单ID
-            document.getElementById('verifyAppointmentId').value = appointmentId;
+            // 先获取订单详情（品类列表和加急状态）
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            fetch('@Url.Action("GetOrderDetail", "Staff")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: '__RequestVerificationToken=' + encodeURIComponent(token) +
+                      '&appointmentId=' + appointmentId
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (!data.success || !data.data) {
+                    showAlert('获取订单信息失败', 'error');
+                    return;
+                }
 
-            // 初始化品类行（默认一行）
-            initVerificationRows();
+                var orderDetail = data.data;
+                currentIsUrgent = orderDetail.isUrgent || false;
 
-            // 打开模态框
-            $('#verifyOrderModal').modal('show');
+                // 设置订单ID
+                document.getElementById('verifyAppointmentId').value = appointmentId;
+
+                // 初始化品类行（基于预约时的品类）
+                initVerificationRows(orderDetail.categories || []);
+
+                // 打开模态框
+                $('#verifyOrderModal').modal('show');
+            })
+            .catch(function(error) {
+                console.error('获取订单信息失败:', error);
+                showAlert('获取订单信息失败', 'error');
+            });
         }
 
-        // 品类列表
-        var categoryOptions = [
-            { key: 'glass', name: '玻璃' },
-            { key: 'metal', name: '金属' },
-            { key: 'plastic', name: '塑料' },
-            { key: 'paper', name: '纸类' },
-            { key: 'fabric', name: '纺织品' },
-            { key: 'appliance', name: '家电' },
-            { key: 'foam', name: '泡沫' }
-        ];
+        // 品类基础单价（元/公斤），与后端 BasePrices.Prices 保持一致
+        var basePrices = {
+            'glass': 0.5,
+            'metal': 2.0,
+            'plastic': 1.2,
+            'paper': 0.8,
+            'fabric': 0.6,
+            'appliance': 1.5,
+            'foam': 0.3
+        };
 
-        var MAX_VERIFICATION_ROWS = 5;
+        var currentIsUrgent = false;
 
-        // 初始化/重置核实行
-        function initVerificationRows() {
+        // 初始化/重置核实行（按预约品类自动生成）
+        function initVerificationRows(categories) {
             var container = document.getElementById('verificationItems');
             container.innerHTML = '';
-            addVerificationRow();
-        }
 
-        // 构建品类下拉选项HTML
-        function buildCategoryOptions() {
-            var html = '<option value="">-- 选择品类 --</option>';
-            categoryOptions.forEach(function(c) {
-                html += '<option value="' + c.key + '" data-name="' + c.name + '">' + c.name + '</option>';
+            if (!categories || categories.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">暂无品类信息</p>';
+                return;
+            }
+
+            categories.forEach(function(cat) {
+                var catKey = (cat.categoryKey || '').toLowerCase();
+                var displayNames = {
+                    'glass': '玻璃', 'metal': '金属', 'plastic': '塑料', 'paper': '纸类',
+                    'fabric': '纺织品', 'appliance': '家电', 'foam': '泡沫'
+                };
+                var catName = cat.categoryName || displayNames[catKey] || catKey;
+                var initWeight = (cat.weight && cat.weight > 0) ? cat.weight : '';
+                var rowId = 'ver-row-' + catKey + '-' + Date.now();
+
+                var rowHtml = '<div class="verification-row" id="' + rowId + '" data-category-key="' + catKey + '">' +
+                    '<div class="ver-field ver-field-category">' +
+                        '<span class="ver-label">品类</span>' +
+                        '<div class="ver-category-text">' + catName + '</div>' +
+                    '</div>' +
+                    '<div class="ver-field">' +
+                        '<span class="ver-label">重量 (kg)</span>' +
+                        '<input type="number" class="ver-input ver-weight" placeholder="重量" min="0.01" step="0.01"' +
+                            (initWeight !== '' ? ' value="' + initWeight + '"' : '') + ' ' +
+                            'oninput="calcRowPrice(this)" />' +
+                    '</div>' +
+                    '<div class="ver-field">' +
+                        '<span class="ver-label">金额 (元)</span>' +
+                        '<input type="number" class="ver-input ver-price" placeholder="自动计算" readonly style="background:#f8f9fa;" />' +
+                    '</div>' +
+                '</div>';
+
+                container.insertAdjacentHTML('beforeend', rowHtml);
+
+                // 如果有初始重量，立即计算价格
+                if (initWeight !== '') {
+                    var newRow = document.getElementById(rowId);
+                    var weightInput = newRow.querySelector('.ver-weight');
+                    calcRowPrice(weightInput);
+                }
             });
-            return html;
         }
 
-        // 添加一行核实记录
-        function addVerificationRow() {
-            var container = document.getElementById('verificationItems');
-            var rowCount = container.querySelectorAll('.verification-row').length;
-            if (rowCount >= MAX_VERIFICATION_ROWS) return;
+        // 根据重量自动计算该行的价格
+        function calcRowPrice(weightInput) {
+            var row = weightInput.closest('.verification-row');
+            var catKey = row.getAttribute('data-category-key') || '';
+            var weight = parseFloat(weightInput.value);
+            var priceInput = row.querySelector('.ver-price');
 
-            var rowId = 'ver-row-' + Date.now();
+            if (isNaN(weight) || weight <= 0) {
+                priceInput.value = '';
+                return;
+            }
 
-            var rowHtml = '<div class="verification-row" id="' + rowId + '">' +
-                '<div class="ver-field ver-field-category">' +
-                    '<span class="ver-label">品类</span>' +
-                    '<select class="ver-select ver-category">' +
-                        buildCategoryOptions() +
-                    '</select>' +
-                '</div>' +
-                '<div class="ver-field">' +
-                    '<span class="ver-label">重量 (kg)</span>' +
-                    '<input type="number" class="ver-input ver-weight" placeholder="重量" min="0.01" step="0.01" />' +
-                '</div>' +
-                '<div class="ver-field">' +
-                    '<span class="ver-label">金额 (元)</span>' +
-                    '<input type="number" class="ver-input ver-price" placeholder="金额" min="0" step="0.01" />' +
-                '</div>' +
-                '<button type="button" class="ver-btn-remove" onclick="removeVerificationRow(this)" style="display:none;" title="删除此行">−</button>' +
-                '<button type="button" class="ver-btn-add" onclick="addVerificationRow()" title="添加一行">+</button>' +
-            '</div>';
-
-            container.insertAdjacentHTML('beforeend', rowHtml);
-            updateVerificationRowButtons();
-        }
-
-        // 删除一行
-        function removeVerificationRow(btn) {
-            var row = btn.closest('.verification-row');
-            row.parentNode.removeChild(row);
-            updateVerificationRowButtons();
-        }
-
-        // 更新所有行的 +/- 按钮可见性
-        function updateVerificationRowButtons() {
-            var container = document.getElementById('verificationItems');
-            var rows = container.querySelectorAll('.verification-row');
-            var total = rows.length;
-
-            rows.forEach(function(row, idx) {
-                var addBtn = row.querySelector('.ver-btn-add');
-                var removeBtn = row.querySelector('.ver-btn-remove');
-
-                // 只有最后一行显示 + 按钮，且总数未达上限时
-                addBtn.style.display = (idx === total - 1 && total < MAX_VERIFICATION_ROWS) ? 'flex' : 'none';
-
-                // 超过1行时显示 - 按钮
-                removeBtn.style.display = (total > 1) ? 'flex' : 'none';
-            });
+            var unitPrice = basePrices[catKey];
+            if (unitPrice === undefined) {
+                console.warn('未知品类，无法计算价格：', catKey);
+                priceInput.value = '';
+                return;
+            }
+            var price = unitPrice * weight;
+            if (currentIsUrgent) {
+                price *= 1.2;
+            }
+            priceInput.value = Math.round(price * 100) / 100;
         }
 
         // 提交核实数据
@@ -1741,21 +1752,24 @@ select.form-control::-ms-expand {
             var items = [];
             var valid = true;
 
+            var categoryNames = {
+                'glass': '玻璃', 'metal': '金属', 'plastic': '塑料', 'paper': '纸类',
+                'fabric': '纺织品', 'appliance': '家电', 'foam': '泡沫'
+            };
+
             var rowList = Array.from(rows);
             for (var idx = 0; idx < rowList.length; idx++) {
                 var row = rowList[idx];
-                var sel = row.querySelector('.ver-category');
+                var categoryKey = row.getAttribute('data-category-key') || '';
+                var categoryName = categoryNames[categoryKey] || categoryKey;
                 var weightInput = row.querySelector('.ver-weight');
                 var priceInput = row.querySelector('.ver-price');
 
-                var categoryKey = sel.value;
-                var categoryName = (sel.selectedIndex > 0 && sel.options[sel.selectedIndex])
-                    ? sel.options[sel.selectedIndex].text : '';
                 var weight = parseFloat(weightInput.value);
                 var price = parseFloat(priceInput.value);
 
                 if (!categoryKey) {
-                    showAlert('第' + (idx + 1) + '行请选择品类', 'error');
+                    showAlert('第' + (idx + 1) + '行品类信息缺失', 'error');
                     valid = false;
                     break;
                 }

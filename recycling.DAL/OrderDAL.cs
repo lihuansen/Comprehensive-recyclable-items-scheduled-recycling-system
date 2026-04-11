@@ -271,6 +271,49 @@ WHERE AppointmentID = @AppointmentID
             }
         }
 
+        /// <summary>
+        /// 更新预约单的预估重量和预估价格（回收员完成订单后同步实际值）
+        /// </summary>
+        public bool UpdateAppointmentWeightAndPrice(int appointmentId, decimal totalWeight, decimal totalPrice)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Appointments 
+SET EstimatedWeight = @EstimatedWeight, EstimatedPrice = @EstimatedPrice, UpdatedDate = @UpdatedDate 
+WHERE AppointmentID = @AppointmentID";
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@EstimatedWeight", totalWeight);
+                    cmd.Parameters.AddWithValue("@EstimatedPrice", totalPrice);
+                    cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新预约品类的实际重量（回收员完成订单后同步）
+        /// </summary>
+        public bool UpdateAppointmentCategoryWeight(int appointmentId, string categoryKey, decimal weight)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE AppointmentCategories 
+SET Weight = @Weight 
+WHERE AppointmentID = @AppointmentID AND CategoryKey = @CategoryKey";
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Weight", weight);
+                    cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+                    cmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+
         private static readonly Dictionary<string, string> _categoryNameMap =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {

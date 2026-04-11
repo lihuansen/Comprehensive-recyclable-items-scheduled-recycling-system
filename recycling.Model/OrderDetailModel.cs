@@ -52,5 +52,6 @@ namespace recycling.Model
         public string CategoryName { get; set; }
         public string CategoryKey { get; set; }
         public string QuestionsAnswers { get; set; }
+        public decimal Weight { get; set; }
     }
 }
