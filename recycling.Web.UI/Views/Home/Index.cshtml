@@ -531,9 +531,9 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> 查询
                     </button>
-                    <a href="@Url.Action("Index", "Home")" class="btn btn-default">
+                    <button type="button" id="resetBtn" class="btn btn-default">
                         <i class="fas fa-sync-alt"></i> 重置
-                    </a>
+                    </button>
                 </div>
             </div>
         }
@@ -663,6 +663,24 @@
 
             // 初始化绑定分页事件
             bindPaginationEvents();
+
+            // 拦截搜索表单提交 - 改为AJAX局部刷新
+            const searchForm = document.querySelector('.search-form');
+            if (searchForm) {
+                searchForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    loadRecyclableItems(1);
+                });
+            }
+
+            // 重置按钮 - 清空表单字段并重新加载
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    if (searchForm) searchForm.reset();
+                    loadRecyclableItems(1);
+                });
+            }
 
             // 预约按钮登录验证
             const appointmentBtn = document.querySelector('.appointment-btn');
