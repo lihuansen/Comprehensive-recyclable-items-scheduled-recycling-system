@@ -19,7 +19,8 @@ namespace recycling.BLL
             { "plastic", "塑料" },
             { "paper", "纸类" },
             { "fabric", "纺织品" },
-            { "appliance", "家电" }
+            { "appliance", "家电" },
+            { "foam", "泡沫" }
         };
 
         /// <summary>
@@ -83,6 +84,7 @@ namespace recycling.BLL
                     throw new Exception("可回收物数据未初始化，请先执行数据库脚本");
                 }
                 _recyclableItemDAL.EnsureApplianceCategoryExists();
+                _recyclableItemDAL.EnsureFoamCategoryExists();
             }
             catch (Exception ex)
             {

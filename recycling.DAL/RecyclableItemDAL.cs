@@ -256,6 +256,40 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 确保泡沫品类数据存在，若不存在则自动插入初始数据
+        /// </summary>
+        public void EnsureFoamCategoryExists()
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                string checkSql = "SELECT COUNT(1) FROM RecyclableItems WHERE Category = 'foam' AND IsActive = 1";
+                SqlCommand checkCmd = new SqlCommand(checkSql, conn);
+                int count = (int)checkCmd.ExecuteScalar();
+
+                if (count == 0)
+                {
+                    string maxSortSql = "SELECT ISNULL(MAX(SortOrder), 0) FROM RecyclableItems";
+                    SqlCommand maxSortCmd = new SqlCommand(maxSortSql, conn);
+                    int maxSort = (int)maxSortCmd.ExecuteScalar();
+
+                    string insertSql = @"
+                        INSERT INTO RecyclableItems (Name, Category, CategoryName, PricePerKg, Description, SortOrder, IsActive)
+                        VALUES
+                            (N'EPS泡沫',   'foam', N'泡沫', 0.30, N'白色发泡泡沫，需压缩处理，整洁无污染', @Sort1, 1),
+                            (N'XPS挤塑板', 'foam', N'泡沫', 0.25, N'挤塑聚苯乙烯泡沫板，常见于建筑保温材料', @Sort2, 1),
+                            (N'聚氨酯泡沫', 'foam', N'泡沫', 0.20, N'聚氨酯发泡材料，需清洁无杂质',            @Sort3, 1)";
+                    SqlCommand insertCmd = new SqlCommand(insertSql, conn);
+                    insertCmd.Parameters.AddWithValue("@Sort1", maxSort + 1);
+                    insertCmd.Parameters.AddWithValue("@Sort2", maxSort + 2);
+                    insertCmd.Parameters.AddWithValue("@Sort3", maxSort + 3);
+                    insertCmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        /// <summary>
         /// 确保家电品类数据存在，若不存在则自动插入初始数据
         /// </summary>
         public void EnsureApplianceCategoryExists()

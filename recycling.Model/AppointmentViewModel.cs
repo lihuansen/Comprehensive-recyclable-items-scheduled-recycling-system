@@ -130,6 +130,7 @@ namespace recycling.Model
         public const string Paper = "paper";
         public const string Fabric = "fabric";
         public const string Appliance = "appliance";
+        public const string Foam = "foam";
 
         public static readonly Dictionary<string, string> AllCategories = new Dictionary<string, string>
         {
@@ -138,7 +139,8 @@ namespace recycling.Model
             { Plastic, "塑料" },
             { Paper, "纸类" },
             { Fabric, "纺织品" },
-            { Appliance, "家电" }
+            { Appliance, "家电" },
+            { Foam, "泡沫" }
         };
 
         // 每个品类的问题定义 - 针对大类的通用问题，不涉及具体小类
@@ -387,6 +389,54 @@ namespace recycling.Model
                     }
                 },
                 {
+                    Foam, new CategoryQuestions
+                    {
+                        CategoryName = "泡沫",
+                        Questions = new List<Question>
+                        {
+                            new Question
+                            {
+                                Id = "foam_condition",
+                                Text = "泡沫物品整体状况如何？",
+                                Type = "radio",
+                                Weight = 0.4m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "clean", Text = "干净无污染", PriceEffect = 1.0m },
+                                    new Option { Value = "partial", Text = "轻微污染", PriceEffect = 0.8m },
+                                    new Option { Value = "dirty", Text = "严重污染", PriceEffect = 0.5m }
+                                }
+                            },
+                            new Question
+                            {
+                                Id = "foam_type",
+                                Text = "泡沫属于哪种类型？",
+                                Type = "radio",
+                                Weight = 0.3m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "eps", Text = "EPS泡沫（白色发泡）", PriceEffect = 1.0m },
+                                    new Option { Value = "xps", Text = "XPS挤塑板", PriceEffect = 0.9m },
+                                    new Option { Value = "pu", Text = "聚氨酯泡沫", PriceEffect = 0.8m }
+                                }
+                            },
+                            new Question
+                            {
+                                Id = "foam_quantity",
+                                Text = "泡沫物品的数量规模？",
+                                Type = "radio",
+                                Weight = 0.3m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "small", Text = "少量（10件以下）", PriceEffect = 0.9m },
+                                    new Option { Value = "medium", Text = "中等（10-50件）", PriceEffect = 1.0m },
+                                    new Option { Value = "large", Text = "大量（50件以上）", PriceEffect = 1.1m }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     Appliance, new CategoryQuestions
                     {
                         CategoryName = "家电",
@@ -477,7 +527,8 @@ namespace recycling.Model
             { RecyclingCategories.Plastic, 1.2m },
             { RecyclingCategories.Paper, 0.8m },
             { RecyclingCategories.Fabric, 0.6m },
-            { RecyclingCategories.Appliance, 1.5m }
+            { RecyclingCategories.Appliance, 1.5m },
+            { RecyclingCategories.Foam, 0.3m }
         };
     }
 }

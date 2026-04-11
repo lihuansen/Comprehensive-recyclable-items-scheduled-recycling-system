@@ -280,7 +280,9 @@
             'metal': 'fa-screwdriver-wrench',
             'plastic': 'fa-bottle-water',
             'paper': 'fa-file-lines',
-            'fabric': 'fa-shirt'
+            'fabric': 'fa-shirt',
+            'appliance': 'fa-tv',
+            'foam': 'fa-cube'
         };
 
         // 类别颜色映射
@@ -289,7 +291,9 @@
             'metal': '#95a5a6',
             'plastic': '#e74c3c',
             'paper': '#f39c12',
-            'fabric': '#9b59b6'
+            'fabric': '#9b59b6',
+            'appliance': '#667eea',
+            'foam': '#1abc9c'
         };
 
         var currentPage = 1;
@@ -492,7 +496,8 @@
                 'plastic': '塑料',
                 'paper': '纸类',
                 'fabric': '布料',
-                'appliance': '家电'
+                'appliance': '家电',
+                'foam': '泡沫'
             };
             document.getElementById('detailTitle').textContent = ' - ' + (categoryNames[categoryKey] || categoryKey);
 
