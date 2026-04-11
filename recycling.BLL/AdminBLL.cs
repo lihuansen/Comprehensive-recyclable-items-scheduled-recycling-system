@@ -28,12 +28,13 @@ namespace recycling.BLL
         /// <summary>
         /// Get all users with pagination
         /// </summary>
-        public PagedResult<Users> GetAllUsers(int page = 1, int pageSize = 20, string searchTerm = null)
+        public PagedResult<Users> GetAllUsers(int page = 1, int pageSize = 20, string searchTerm = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
+            if (sortOrder != "ASC" && sortOrder != "DESC") sortOrder = "ASC";
 
-            return _adminDAL.GetAllUsers(page, pageSize, searchTerm);
+            return _adminDAL.GetAllUsers(page, pageSize, searchTerm, sortOrder);
         }
 
         /// <summary>

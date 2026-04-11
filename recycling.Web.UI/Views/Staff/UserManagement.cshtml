@@ -334,13 +334,18 @@
     <!-- Search Box -->
     <div class="search-box">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <div class="input-group">
                     <span class="input-group-addon"><i class="fas fa-search"></i></span>
                     <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、邮箱或手机号...">
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <button class="btn btn-default btn-block" onclick="toggleSortOrder()" title="切换ID排序" aria-label="ID顺序排列，点击切换为逆序" id="sortOrderBtn">
+                    <i class="fas fa-sort-amount-down" id="sortOrderIcon"></i> <span id="sortOrderText">顺序</span>
+                </button>
+            </div>
+            <div class="col-md-2">
                 <button class="btn btn-primary btn-block" onclick="searchUsers()">
                     <i class="fas fa-search"></i> 搜索
                 </button>
@@ -396,6 +401,7 @@
     var currentPage = 1;
     var pageSize = 20;
     var searchTerm = '';
+    var sortOrder = 'ASC';
     var dashboardVisible = true;
     var registrationTrendChart = null;
     var activeInactivePieChart = null;
@@ -687,6 +693,16 @@
         });
     }
 
+    // Toggle sort order
+    function toggleSortOrder() {
+        sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
+        $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
+        $('#sortOrderText').text(sortOrder === 'ASC' ? '顺序' : '逆序');
+        $('#sortOrderBtn').attr('aria-label', sortOrder === 'ASC' ? 'ID顺序排列，点击切换为逆序' : 'ID逆序排列，点击切换为顺序');
+        currentPage = 1;
+        loadUsers();
+    }
+
     function loadUsers() {
         $.ajax({
             url: '@Url.Action("GetUsers", "Staff")',
@@ -694,7 +710,8 @@
             data: {
                 page: currentPage,
                 pageSize: pageSize,
-                searchTerm: searchTerm
+                searchTerm: searchTerm,
+                sortOrder: sortOrder
             },
             success: function (response) {
                 if (response.success) {
