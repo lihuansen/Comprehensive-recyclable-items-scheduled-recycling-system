@@ -53,7 +53,7 @@ namespace recycling.DAL
                 {
                     sql += " AND (Username LIKE @SearchTerm OR Email LIKE @SearchTerm OR PhoneNumber LIKE @SearchTerm)";
                 }
-                sql += " ORDER BY UserID " + orderDirection + " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                sql += orderDirection == "DESC" ? " ORDER BY UserID DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY" : " ORDER BY UserID ASC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
