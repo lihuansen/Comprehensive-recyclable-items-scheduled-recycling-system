@@ -1658,7 +1658,12 @@ namespace recycling.Web.UI.Controllers
                     }
                 }
 
-                var items = rawItems.Select(i => (i.CategoryKey.Trim(), i.CategoryName.Trim(), i.Weight, i.Price)).ToList();
+                var items = rawItems.Select(i => (
+                    (i.CategoryKey ?? string.Empty).Trim(),
+                    (i.CategoryName ?? string.Empty).Trim(),
+                    i.Weight,
+                    i.Price
+                )).ToList();
 
                 var inventoryBll = new InventoryBLL();
                 bool inventoryAdded = inventoryBll.AddInventoryWithItems(appointmentId, recyclerId, items);

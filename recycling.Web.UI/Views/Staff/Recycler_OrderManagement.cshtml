@@ -1740,34 +1740,37 @@ select.form-control::-ms-expand {
             var items = [];
             var valid = true;
 
-            rows.forEach(function(row, idx) {
+            var rowList = Array.from(rows);
+            for (var idx = 0; idx < rowList.length; idx++) {
+                var row = rowList[idx];
                 var sel = row.querySelector('.ver-category');
                 var weightInput = row.querySelector('.ver-weight');
                 var priceInput = row.querySelector('.ver-price');
 
                 var categoryKey = sel.value;
-                var categoryName = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+                var categoryName = (sel.selectedIndex > 0 && sel.options[sel.selectedIndex])
+                    ? sel.options[sel.selectedIndex].text : '';
                 var weight = parseFloat(weightInput.value);
                 var price = parseFloat(priceInput.value);
 
                 if (!categoryKey) {
                     showAlert('第' + (idx + 1) + '行请选择品类', 'error');
                     valid = false;
-                    return;
+                    break;
                 }
                 if (isNaN(weight) || weight <= 0) {
                     showAlert('第' + (idx + 1) + '行重量必须大于0', 'error');
                     valid = false;
-                    return;
+                    break;
                 }
                 if (isNaN(price) || price < 0) {
                     showAlert('第' + (idx + 1) + '行金额不能为负数', 'error');
                     valid = false;
-                    return;
+                    break;
                 }
 
                 items.push({ CategoryKey: categoryKey, CategoryName: categoryName, Weight: weight, Price: price });
-            });
+            }
 
             if (!valid || items.length === 0) return;
 
