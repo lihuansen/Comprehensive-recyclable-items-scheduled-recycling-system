@@ -948,10 +948,12 @@ namespace recycling.DAL
                             t.ItemCategories, t.Status, t.CreatedDate,
                             t.AssignedWorkerID, t.BaseContactPerson,
                             r.FullName AS RecyclerName,
-                            tr.FullName AS TransporterName
+                            tr.FullName AS TransporterName,
+                            CASE WHEN wr.ReceiptID IS NOT NULL THEN 1 ELSE 0 END AS HasReceipt
                         FROM TransportationOrders t
                         LEFT JOIN Recyclers r ON t.RecyclerID = r.RecyclerID
                         LEFT JOIN Transporters tr ON t.TransporterID = tr.TransporterID
+                        LEFT JOIN WarehouseReceipts wr ON t.TransportOrderID = wr.TransportOrderID
                         WHERE t.Status = N'已完成'
                         ORDER BY t.CreatedDate DESC";
 
@@ -986,7 +988,8 @@ namespace recycling.DAL
                                     RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString(),
                                     TransporterName = reader["TransporterName"] == DBNull.Value ? null : reader["TransporterName"].ToString(),
                                     AssignedWorkerID = reader["AssignedWorkerID"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["AssignedWorkerID"]),
-                                    BaseContactPerson = reader["BaseContactPerson"] == DBNull.Value ? null : reader["BaseContactPerson"].ToString()
+                                    BaseContactPerson = reader["BaseContactPerson"] == DBNull.Value ? null : reader["BaseContactPerson"].ToString(),
+                                    HasReceipt = reader["HasReceipt"] != DBNull.Value && Convert.ToInt32(reader["HasReceipt"]) == 1
                                 });
                             }
                         }
