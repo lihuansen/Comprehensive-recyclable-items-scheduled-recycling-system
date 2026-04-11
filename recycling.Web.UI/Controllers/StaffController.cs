@@ -5113,7 +5113,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
-        /// 获取运输中的订单列表（AJAX）
+        /// 获取运输中的订单列表（AJAX）- 仅返回指定给当前工作人员的订单
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -5126,7 +5126,8 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请先登录" });
                 }
 
-                var orders = _warehouseReceiptBLL.GetInTransitOrders();
+                var worker = (SortingCenterWorkers)Session["LoginStaff"];
+                var orders = _warehouseReceiptBLL.GetInTransitOrders(worker.WorkerID);
                 return JsonContent(new { success = true, data = orders });
             }
             catch (Exception ex)
