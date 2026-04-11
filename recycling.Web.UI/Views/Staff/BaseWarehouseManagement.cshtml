@@ -1621,15 +1621,12 @@
         // Apply colors and icons to server-side rendered inventory cards (show correct colors immediately)
         applyInventoryCardStyles();
         
-        // 自动加载运输单和入库记录（这些需要实时刷新）
-        // Auto-load transport orders and receipts (these need real-time refresh)
+        // 进入仓库管理页面时自动全部刷新一次
+        // Auto-refresh all sections when entering the warehouse management page
         loadCompletedTransportOrders();  // 加载待入库运输单
         loadWarehouseReceipts();         // 加载入库记录
-        
-        // 库存汇总和库存明细已通过服务器端渲染，不需要再次加载
-        // Inventory summary and details are already server-side rendered, no need to re-load
-        // 只有当用户点击刷新按钮时才会重新加载
-        // Only reload when user clicks the refresh button
+        loadInventorySummary();          // 加载库存汇总
+        loadInventoryDetail();           // 加载库存明细
     });
     
     // 为服务器端渲染的库存卡片应用颜色和图标
