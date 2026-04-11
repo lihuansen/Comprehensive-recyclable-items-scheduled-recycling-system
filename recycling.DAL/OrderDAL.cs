@@ -272,7 +272,7 @@ WHERE AppointmentID = @AppointmentID
         }
 
         /// <summary>
-        /// 更新预约单的预估重量和预估价格（回收员完成订单后同步）
+        /// 更新预约单的预估重量和预估价格（回收员完成订单后同步实际值）
         /// </summary>
         public bool UpdateAppointmentWeightAndPrice(int appointmentId, decimal totalWeight, decimal totalPrice)
         {
@@ -309,8 +309,7 @@ WHERE AppointmentID = @AppointmentID AND CategoryKey = @CategoryKey";
                     cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
                     cmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
                     conn.Open();
-                    cmd.ExecuteNonQuery();
-                    return true;
+                    return cmd.ExecuteNonQuery() > 0;
                 }
             }
         }

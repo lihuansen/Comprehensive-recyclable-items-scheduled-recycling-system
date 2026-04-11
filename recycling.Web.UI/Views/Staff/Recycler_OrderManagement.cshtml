@@ -1678,7 +1678,11 @@ select.form-control::-ms-expand {
 
             categories.forEach(function(cat) {
                 var catKey = (cat.categoryKey || '').toLowerCase();
-                var catName = cat.categoryName || cat.categoryKey || '';
+                var displayNames = {
+                    'glass': '玻璃', 'metal': '金属', 'plastic': '塑料', 'paper': '纸类',
+                    'fabric': '纺织品', 'appliance': '家电', 'foam': '泡沫'
+                };
+                var catName = cat.categoryName || displayNames[catKey] || catKey;
                 var initWeight = (cat.weight && cat.weight > 0) ? cat.weight : '';
                 var rowId = 'ver-row-' + catKey + '-' + Date.now();
 
@@ -1722,7 +1726,12 @@ select.form-control::-ms-expand {
                 return;
             }
 
-            var unitPrice = basePrices[catKey] || 0;
+            var unitPrice = basePrices[catKey];
+            if (unitPrice === undefined) {
+                console.warn('未知品类，无法计算价格：', catKey);
+                priceInput.value = '';
+                return;
+            }
             var price = unitPrice * weight;
             if (currentIsUrgent) {
                 price *= 1.2;
