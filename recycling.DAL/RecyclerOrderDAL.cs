@@ -168,7 +168,7 @@ namespace recycling.DAL
                                 ContactPhone = reader["ContactPhone"].ToString(),
                                 Status = reader["Status"].ToString(),
                                 CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                                CategoryNames = reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString(),
+                                CategoryNames = NormalizeCategoryNames(reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString()),
                                 RecyclerID = reader["RecyclerID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RecyclerID"]),
                                 RecyclerName = reader["RecyclerName"] == DBNull.Value ? null : reader["RecyclerName"].ToString()
                             };
@@ -227,6 +227,35 @@ namespace recycling.DAL
                 default:
                     return timeSlot;
             }
+        }
+
+        /// <summary>
+        /// 将品类键名映射为中文显示名称（兼容历史英文存储值）
+        /// </summary>
+        private static string GetCategoryDisplayName(string categoryName)
+        {
+            if (string.IsNullOrEmpty(categoryName)) return categoryName;
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "glass", "玻璃" },
+                { "metal", "金属" },
+                { "plastic", "塑料" },
+                { "paper", "纸类" },
+                { "fabric", "纺织品" },
+                { "appliance", "家电" },
+                { "foam", "泡沫" }
+            };
+            return map.TryGetValue(categoryName, out var name) ? name : categoryName;
+        }
+
+        /// <summary>
+        /// 对逗号分隔的品类名称列表逐项映射为中文（兼容历史英文存储值）
+        /// </summary>
+        private static string NormalizeCategoryNames(string categoryNames)
+        {
+            if (string.IsNullOrEmpty(categoryNames)) return categoryNames;
+            var parts = categoryNames.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+            return string.Join(", ", System.Array.ConvertAll(parts, p => GetCategoryDisplayName(p.Trim())));
         }
 
         /// <summary>
@@ -570,7 +599,7 @@ namespace recycling.DAL
                             orderDetail.CreatedDate = Convert.ToDateTime(reader["CreatedDate"]).ToString("yyyy-MM-dd HH:mm");
                             orderDetail.UpdatedDate = reader["UpdatedDate"] == DBNull.Value ? "" : Convert.ToDateTime(reader["UpdatedDate"]).ToString("yyyy-MM-dd HH:mm");
                             orderDetail.SpecialInstructions = reader["SpecialInstructions"] == DBNull.Value ? "" : reader["SpecialInstructions"].ToString();
-                            orderDetail.CategoryNames = reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString();
+                            orderDetail.CategoryNames = NormalizeCategoryNames(reader["CategoryNames"] == DBNull.Value ? "" : reader["CategoryNames"].ToString());
                             orderDetail.PictureUrl = reader["PictureUrl"] == DBNull.Value ? "" : reader["PictureUrl"].ToString();
                         }
                     }
@@ -593,7 +622,7 @@ namespace recycling.DAL
                             {
                                 orderDetail.Categories.Add(new CategoryDetailInfo
                                 {
-                                    CategoryName = reader["CategoryName"] == DBNull.Value ? "" : reader["CategoryName"].ToString(),
+                                    CategoryName = GetCategoryDisplayName(reader["CategoryName"] == DBNull.Value ? "" : reader["CategoryName"].ToString()),
                                     CategoryKey = reader["CategoryKey"] == DBNull.Value ? "" : reader["CategoryKey"].ToString(),
                                     QuestionsAnswers = reader["QuestionsAnswers"] == DBNull.Value ? "" : reader["QuestionsAnswers"].ToString()
                                 });
