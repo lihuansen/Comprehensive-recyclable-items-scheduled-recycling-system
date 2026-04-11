@@ -256,6 +256,46 @@ namespace recycling.DAL
         }
 
         /// <summary>
+        /// 确保家电品类数据存在，若不存在则自动插入初始数据
+        /// </summary>
+        public void EnsureApplianceCategoryExists()
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                string checkSql = "SELECT COUNT(1) FROM RecyclableItems WHERE Category = 'appliance' AND IsActive = 1";
+                SqlCommand checkCmd = new SqlCommand(checkSql, conn);
+                int count = (int)checkCmd.ExecuteScalar();
+
+                if (count == 0)
+                {
+                    string maxSortSql = "SELECT ISNULL(MAX(SortOrder), 0) FROM RecyclableItems";
+                    SqlCommand maxSortCmd = new SqlCommand(maxSortSql, conn);
+                    int maxSort = (int)maxSortCmd.ExecuteScalar();
+
+                    string insertSql = @"
+                        INSERT INTO RecyclableItems (Name, Category, CategoryName, PricePerKg, Description, SortOrder, IsActive)
+                        VALUES
+                            (N'冰箱',   'appliance', N'家电', 1.50, N'各类型废旧冰箱，需提前断电并清空内部物品', @Sort1, 1),
+                            (N'洗衣机', 'appliance', N'家电', 1.20, N'滚筒式或波轮式废旧洗衣机，需断电处理',     @Sort2, 1),
+                            (N'空调',   'appliance', N'家电', 2.00, N'废旧空调主机及室内机，需提前抽空冷媒',     @Sort3, 1),
+                            (N'电视机', 'appliance', N'家电', 0.80, N'液晶电视或传统CRT电视，整机回收',           @Sort4, 1),
+                            (N'电脑',   'appliance', N'家电', 3.00, N'台式电脑整机或笔记本电脑，需清除个人数据',  @Sort5, 1),
+                            (N'微波炉', 'appliance', N'家电', 1.00, N'废旧微波炉，整机回收',                       @Sort6, 1)";
+                    SqlCommand insertCmd = new SqlCommand(insertSql, conn);
+                    insertCmd.Parameters.AddWithValue("@Sort1", maxSort + 1);
+                    insertCmd.Parameters.AddWithValue("@Sort2", maxSort + 2);
+                    insertCmd.Parameters.AddWithValue("@Sort3", maxSort + 3);
+                    insertCmd.Parameters.AddWithValue("@Sort4", maxSort + 4);
+                    insertCmd.Parameters.AddWithValue("@Sort5", maxSort + 5);
+                    insertCmd.Parameters.AddWithValue("@Sort6", maxSort + 6);
+                    insertCmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        /// <summary>
         /// 检查数据库中是否有可回收物数据
         /// </summary>
         public bool HasData()
