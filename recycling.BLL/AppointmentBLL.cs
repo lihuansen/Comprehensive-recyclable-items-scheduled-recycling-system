@@ -105,7 +105,8 @@ namespace recycling.BLL
         { "plastic", "塑料" },
         { "paper", "纸类" },
         { "fabric", "纺织品" },
-        { "appliance", "家电" }
+        { "appliance", "家电" },
+        { "foam", "泡沫" }
     };
 
             return categoryMap.ContainsKey(categoryKey) ? categoryMap[categoryKey] : categoryKey;
