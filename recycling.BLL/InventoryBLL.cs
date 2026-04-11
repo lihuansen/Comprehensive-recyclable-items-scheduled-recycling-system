@@ -22,6 +22,15 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 直接从核实后的品类/重量/金额列表写入库存记录
+        /// </summary>
+        public bool AddInventoryWithItems(int orderId, int recyclerId, List<(string CategoryKey, string CategoryName, decimal Weight, decimal Price)> items)
+        {
+            if (orderId <= 0 || recyclerId <= 0 || items == null || items.Count == 0) return false;
+            return _inventoryDAL.AddInventoryWithItems(orderId, recyclerId, items);
+        }
+
+        /// <summary>
         /// 获取库存列表
         /// </summary>
         /// <param name="recyclerId">回收员ID（可选）</param>
