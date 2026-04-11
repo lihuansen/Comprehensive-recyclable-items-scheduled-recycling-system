@@ -129,6 +129,7 @@ namespace recycling.Model
         public const string Plastic = "plastic";
         public const string Paper = "paper";
         public const string Fabric = "fabric";
+        public const string Appliance = "appliance";
 
         public static readonly Dictionary<string, string> AllCategories = new Dictionary<string, string>
         {
@@ -136,7 +137,8 @@ namespace recycling.Model
             { Metal, "金属" },
             { Plastic, "塑料" },
             { Paper, "纸类" },
-            { Fabric, "纺织品" }
+            { Fabric, "纺织品" },
+            { Appliance, "家电" }
         };
 
         // 每个品类的问题定义 - 针对大类的通用问题，不涉及具体小类
@@ -383,6 +385,55 @@ namespace recycling.Model
                             }
                         }
                     }
+                },
+                {
+                    Appliance, new CategoryQuestions
+                    {
+                        CategoryName = "家电",
+                        Questions = new List<Question>
+                        {
+                            new Question
+                            {
+                                Id = "appliance_condition",
+                                Text = "家电整体工作状态如何？",
+                                Type = "radio",
+                                Weight = 0.4m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "working", Text = "正常工作", PriceEffect = 1.0m },
+                                    new Option { Value = "partial", Text = "部分功能正常", PriceEffect = 0.7m },
+                                    new Option { Value = "broken", Text = "无法使用/损坏", PriceEffect = 0.4m }
+                                }
+                            },
+                            new Question
+                            {
+                                Id = "appliance_clean",
+                                Text = "家电是否已清洁处理？",
+                                Type = "radio",
+                                Weight = 0.3m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "clean", Text = "已清洁", PriceEffect = 1.0m },
+                                    new Option { Value = "partial", Text = "部分清洁", PriceEffect = 0.85m },
+                                    new Option { Value = "dirty", Text = "未清洁", PriceEffect = 0.7m }
+                                }
+                            },
+                            new Question
+                            {
+                                Id = "appliance_type",
+                                Text = "家电属于哪种类型？",
+                                Type = "radio",
+                                Weight = 0.3m,
+                                Options = new List<Option>
+                                {
+                                    new Option { Value = "large_appliance", Text = "大型家电（冰箱/洗衣机）", PriceEffect = 1.1m },
+                                    new Option { Value = "air_conditioner", Text = "空调", PriceEffect = 1.2m },
+                                    new Option { Value = "tv", Text = "电视", PriceEffect = 0.9m },
+                                    new Option { Value = "small_appliance", Text = "小型家电", PriceEffect = 0.8m }
+                                }
+                            }
+                        }
+                    }
                 }
             };
         }
@@ -425,7 +476,8 @@ namespace recycling.Model
             { RecyclingCategories.Metal, 2.0m },
             { RecyclingCategories.Plastic, 1.2m },
             { RecyclingCategories.Paper, 0.8m },
-            { RecyclingCategories.Fabric, 0.6m }
+            { RecyclingCategories.Fabric, 0.6m },
+            { RecyclingCategories.Appliance, 1.5m }
         };
     }
 }
