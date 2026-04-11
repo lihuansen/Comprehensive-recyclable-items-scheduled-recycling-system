@@ -1677,13 +1677,12 @@ select.form-control::-ms-expand {
             var rowCount = container.querySelectorAll('.verification-row').length;
             if (rowCount >= MAX_VERIFICATION_ROWS) return;
 
-            var rowIndex = rowCount; // 0-based index for new row
             var rowId = 'ver-row-' + Date.now();
 
             var rowHtml = '<div class="verification-row" id="' + rowId + '">' +
                 '<div class="ver-field ver-field-category">' +
                     '<span class="ver-label">品类</span>' +
-                    '<select class="ver-select ver-category" onchange="onCategoryChange(this)">' +
+                    '<select class="ver-select ver-category">' +
                         buildCategoryOptions() +
                     '</select>' +
                 '</div>' +
@@ -1701,11 +1700,6 @@ select.form-control::-ms-expand {
 
             container.insertAdjacentHTML('beforeend', rowHtml);
             updateVerificationRowButtons();
-        }
-
-        // 品类选择时同步 data-name
-        function onCategoryChange(sel) {
-            // no extra logic needed; we read value + option text on submit
         }
 
         // 删除一行
@@ -1781,13 +1775,17 @@ select.form-control::-ms-expand {
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
 
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
             fetch('@Url.Action("CompleteOrderWithVerification", "Staff")', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: 'appointmentId=' + appointmentId + '&itemsJson=' + encodeURIComponent(JSON.stringify(items))
+                body: '__RequestVerificationToken=' + encodeURIComponent(token) +
+                      '&appointmentId=' + appointmentId +
+                      '&itemsJson=' + encodeURIComponent(JSON.stringify(items))
             })
             .then(function(response) { return response.json(); })
             .then(function(data) {

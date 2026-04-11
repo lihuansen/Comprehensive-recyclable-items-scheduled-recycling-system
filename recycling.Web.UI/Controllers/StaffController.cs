@@ -1600,6 +1600,7 @@ namespace recycling.Web.UI.Controllers
 
         // 核实后完成订单（回收员填写实际品类/重量/金额后提交）
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ContentResult CompleteOrderWithVerification(int appointmentId, string itemsJson)
         {
             try
