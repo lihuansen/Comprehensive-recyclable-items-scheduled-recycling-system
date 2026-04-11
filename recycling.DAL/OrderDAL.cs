@@ -271,14 +271,8 @@ WHERE AppointmentID = @AppointmentID
             }
         }
 
-        /// <summary>
-        /// <summary>
-        /// 将品类键名映射为中文显示名称（兼容历史英文存储值）
-        /// </summary>
-        private static string GetCategoryDisplayName(string categoryName)
-        {
-            if (string.IsNullOrEmpty(categoryName)) return categoryName;
-            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly Dictionary<string, string> _categoryNameMap =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "glass", "玻璃" },
                 { "metal", "金属" },
@@ -288,7 +282,14 @@ WHERE AppointmentID = @AppointmentID
                 { "appliance", "家电" },
                 { "foam", "泡沫" }
             };
-            return map.TryGetValue(categoryName, out var name) ? name : categoryName;
+
+        /// <summary>
+        /// 将品类键名映射为中文显示名称（兼容历史英文存储值）
+        /// </summary>
+        private static string GetCategoryDisplayName(string categoryName)
+        {
+            if (string.IsNullOrEmpty(categoryName)) return categoryName;
+            return _categoryNameMap.TryGetValue(categoryName, out var name) ? name : categoryName;
         }
 
         /// <summary>
