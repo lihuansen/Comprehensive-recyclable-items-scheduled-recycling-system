@@ -505,86 +505,6 @@
         color: #856404;
     }
 
-    /* 联系我们 */
-    .contact-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        padding: 50px 40px;
-        text-align: center;
-        color: white;
-        margin-bottom: 30px;
-    }
-
-    .contact-title {
-        font-size: 28px;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
-
-    .contact-desc {
-        font-size: 16px;
-        opacity: 0.9;
-        margin-bottom: 30px;
-    }
-
-    .contact-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .contact-card {
-        background: rgba(255,255,255,0.15);
-        backdrop-filter: blur(10px);
-        border-radius: 15px;
-        padding: 25px;
-        transition: all 0.3s;
-    }
-
-    .contact-card:hover {
-        background: rgba(255,255,255,0.25);
-        transform: translateY(-5px);
-    }
-
-    .contact-card-icon {
-        font-size: 36px;
-        margin-bottom: 15px;
-    }
-
-    .contact-card-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-
-    .contact-card-info {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-
-    .btn-feedback {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: white;
-        color: #667eea;
-        padding: 15px 30px;
-        border-radius: 50px;
-        text-decoration: none;
-        font-weight: bold;
-        margin-top: 30px;
-        transition: all 0.3s;
-    }
-
-    .btn-feedback:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        color: #667eea;
-        text-decoration: none;
-    }
-
     /* 响应式设计 */
     @@media (max-width: 768px) {
         .help-header {
@@ -608,10 +528,6 @@
 
         .section-title {
             font-size: 22px;
-        }
-
-        .contact-section {
-            padding: 30px 20px;
         }
     }
 </style>
@@ -988,32 +904,27 @@
                 <tr>
                     <td><i class="fas fa-newspaper" style="color: #667eea;"></i> 纸类</td>
                     <td>0.5 - 1.5 元/公斤</td>
-                    <td>包括报纸、书籍、纸箱等，价格因品质而异</td>
+                    <td>包括报纸、书籍、纸箱、杂志等，价格因品质而异</td>
                 </tr>
                 <tr>
                     <td><i class="fas fa-wine-bottle" style="color: #667eea;"></i> 塑料</td>
                     <td>0.5 - 2.0 元/公斤</td>
-                    <td>塑料瓶、塑料制品，干净完整价格更高</td>
+                    <td>塑料瓶、塑料制品、泡沫等，干净完整价格更高</td>
                 </tr>
                 <tr>
                     <td><i class="fas fa-cogs" style="color: #667eea;"></i> 金属</td>
                     <td>2.0 - 8.0 元/公斤</td>
-                    <td>铁、铜、铝等，不同金属价格差异较大</td>
+                    <td>铁、铜、铝等各类金属制品，不同金属价格差异较大</td>
                 </tr>
                 <tr>
                     <td><i class="fas fa-glass-martini" style="color: #667eea;"></i> 玻璃</td>
                     <td>0.1 - 0.3 元/公斤</td>
-                    <td>玻璃瓶、玻璃制品</td>
+                    <td>玻璃瓶、玻璃器皿等玻璃制品</td>
                 </tr>
                 <tr>
                     <td><i class="fas fa-tshirt" style="color: #667eea;"></i> 纺织品</td>
                     <td>0.3 - 1.0 元/公斤</td>
-                    <td>旧衣物、布料，干净整洁价格更高</td>
-                </tr>
-                <tr>
-                    <td><i class="fas fa-mobile-alt" style="color: #667eea;"></i> 电子产品</td>
-                    <td>按件计价</td>
-                    <td>旧手机、电脑配件等，需单独评估</td>
+                    <td>旧衣物、布料、床品等，干净整洁价格更高</td>
                 </tr>
             </tbody>
         </table>
@@ -1023,40 +934,6 @@
             <strong>温馨提示：</strong>
             实际回收价格会根据物品的具体状态、市场行情等因素有所浮动。如有疑问，欢迎咨询客服。
         </div>
-    </div>
-
-    <!-- 联系我们 -->
-    <div class="contact-section">
-        <h2 class="contact-title">还有其他问题？</h2>
-        <p class="contact-desc">我们的客服团队随时为您提供帮助</p>
-        
-        <div class="contact-cards">
-            <div class="contact-card">
-                <div class="contact-card-icon">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <div class="contact-card-title">客服热线</div>
-                <div class="contact-card-info">400-888-8888</div>
-            </div>
-            <div class="contact-card">
-                <div class="contact-card-icon">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <div class="contact-card-title">电子邮箱</div>
-                <div class="contact-card-info">service@@jishidayue.com</div>
-            </div>
-            <div class="contact-card">
-                <div class="contact-card-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="contact-card-title">服务时间</div>
-                <div class="contact-card-info">周一至周日 8:00-20:00</div>
-            </div>
-        </div>
-
-        <a href="@Url.Action("Feedback", "Home")" class="btn-feedback">
-            <i class="fas fa-comment-dots"></i> 提交问题反馈
-        </a>
     </div>
 </div>
 
