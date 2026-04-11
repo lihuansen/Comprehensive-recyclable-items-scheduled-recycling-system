@@ -62,6 +62,12 @@ namespace recycling.BLL
                     new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "air_conditioner", SubCategoryName = "空调", PricePerKg = 2.00m },
                     new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "tv", SubCategoryName = "电视", PricePerKg = 1.00m },
                     new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "small_appliance", SubCategoryName = "小型家电", PricePerKg = 1.20m }
+                },
+                ["foam"] = new List<WarehouseSubdivisionTemplateOptionViewModel>
+                {
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "eps", SubCategoryName = "EPS泡沫（白色发泡）", PricePerKg = 0.30m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "xps", SubCategoryName = "XPS挤塑板", PricePerKg = 0.25m },
+                    new WarehouseSubdivisionTemplateOptionViewModel { SubCategoryKey = "pu", SubCategoryName = "聚氨酯泡沫", PricePerKg = 0.20m }
                 }
             };
         private static readonly Dictionary<string, string> CategoryTemplateAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -76,7 +82,8 @@ namespace recycling.BLL
             ["织物"] = "fabric",
             ["纺织品"] = "fabric",
             ["家电"] = "appliance",
-            ["电器"] = "appliance"
+            ["电器"] = "appliance",
+            ["泡沫"] = "foam"
         };
         private static readonly Dictionary<string, string> CategoryTemplateKeywordAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -94,7 +101,9 @@ namespace recycling.BLL
             ["纺织"] = "fabric",
             ["appliance"] = "appliance",
             ["家电"] = "appliance",
-            ["电器"] = "appliance"
+            ["电器"] = "appliance",
+            ["foam"] = "foam",
+            ["泡沫"] = "foam"
         };
 
         /// <summary>
