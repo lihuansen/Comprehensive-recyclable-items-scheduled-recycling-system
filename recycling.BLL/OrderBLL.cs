@@ -13,6 +13,15 @@ namespace recycling.BLL
         private OrderDAL _orderDAL = new OrderDAL();
 
         /// <summary>
+        /// 获取用户订单总数
+        /// </summary>
+        public int GetUserOrderCount(int userId)
+        {
+            if (userId <= 0) throw new ArgumentException("用户ID无效");
+            return _orderDAL.GetUserOrderCount(userId);
+        }
+
+        /// <summary>
         /// 获取用户订单列表
         /// </summary>
         public List<AppointmentOrder> GetUserOrders(int userId, string status = "all")

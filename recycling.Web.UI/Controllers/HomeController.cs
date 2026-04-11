@@ -1309,7 +1309,7 @@ namespace recycling.Web.UI.Controllers
                 }
 
                 var user = (Users)Session["LoginUser"];
-                var count = _orderBLL.GetUserOrders(user.UserID, "all").Count;
+                var count = _orderBLL.GetUserOrderCount(user.UserID);
 
                 return Json(new { success = true, count = count }, JsonRequestBehavior.AllowGet);
             }
