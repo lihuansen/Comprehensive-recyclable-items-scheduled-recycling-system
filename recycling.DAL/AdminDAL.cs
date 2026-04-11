@@ -1149,7 +1149,7 @@ namespace recycling.DAL
         /// <summary>
         /// Get all admins with pagination
         /// </summary>
-        public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Admins>
             {
@@ -1173,6 +1173,9 @@ namespace recycling.DAL
                     whereClause += " AND IsActive = @IsActive";
                 }
 
+                // Validate sort order to prevent SQL injection
+                string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
+
                 // Get total count
                 string countSql = "SELECT COUNT(*) FROM Admins " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
@@ -1188,7 +1191,7 @@ namespace recycling.DAL
 
                 // Get paged data
                 string sql = "SELECT * FROM Admins " + whereClause + 
-                    " ORDER BY AdminID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                    " ORDER BY AdminID " + orderDirection + " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -1915,7 +1918,7 @@ namespace recycling.DAL
         /// <summary>
         /// Get all transporters with pagination
         /// </summary>
-        public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Transporters>
             {
@@ -1939,6 +1942,9 @@ namespace recycling.DAL
                     whereClause += " AND IsActive = @IsActive";
                 }
 
+                // Validate sort order to prevent SQL injection
+                string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
+
                 // Get total count
                 string countSql = "SELECT COUNT(*) FROM Transporters " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
@@ -1954,7 +1960,7 @@ namespace recycling.DAL
 
                 // Get paged data
                 string sql = "SELECT * FROM Transporters " + whereClause + 
-                    " ORDER BY TransporterID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                    " ORDER BY TransporterID " + orderDirection + " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -2433,7 +2439,7 @@ namespace recycling.DAL
         /// <summary>
         /// Get all sorting center workers with pagination
         /// </summary>
-        public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<SortingCenterWorkers>
             {
@@ -2456,6 +2462,9 @@ namespace recycling.DAL
                     whereClause += " AND IsActive = @IsActive";
                 }
 
+                // Validate sort order to prevent SQL injection
+                string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
+
                 string countSql = "SELECT COUNT(*) FROM SortingCenterWorkers " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -2469,7 +2478,7 @@ namespace recycling.DAL
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
                 string sql = "SELECT * FROM SortingCenterWorkers " + whereClause + 
-                    " ORDER BY WorkerID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                    " ORDER BY WorkerID " + orderDirection + " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))

@@ -308,12 +308,12 @@ namespace recycling.BLL
         /// <summary>
         /// Get all admins with pagination
         /// </summary>
-        public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-            return _adminDAL.GetAllAdmins(page, pageSize, searchTerm, isActive);
+            return _adminDAL.GetAllAdmins(page, pageSize, searchTerm, isActive, sortOrder);
         }
 
         /// <summary>
@@ -473,12 +473,12 @@ namespace recycling.BLL
         /// <summary>
         /// Get all transporters with pagination
         /// </summary>
-        public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-            return _adminDAL.GetAllTransporters(page, pageSize, searchTerm, isActive);
+            return _adminDAL.GetAllTransporters(page, pageSize, searchTerm, isActive, sortOrder);
         }
 
         /// <summary>
@@ -685,12 +685,12 @@ namespace recycling.BLL
         /// <summary>
         /// Get all sorting center workers with pagination
         /// </summary>
-        public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
+        public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-            return _adminDAL.GetAllSortingCenterWorkers(page, pageSize, searchTerm, isActive);
+            return _adminDAL.GetAllSortingCenterWorkers(page, pageSize, searchTerm, isActive, sortOrder);
         }
 
         /// <summary>

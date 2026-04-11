@@ -165,15 +165,20 @@
 
     <div class="search-box">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、姓名、手机号或区域...">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-control" id="statusFilter">
                     <option value="">全部状态</option>
                     <option value="true">激活</option>
                     <option value="false">禁用</option>
                 </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-default btn-block" onclick="toggleSortOrder()" title="切换ID排序" aria-label="ID顺序排列，点击切换为逆序" id="sortOrderBtn">
+                    <i class="fas fa-sort-amount-down" id="sortOrderIcon"></i> <span id="sortOrderText">顺序</span>
+                </button>
             </div>
             <div class="col-md-2">
                 <button class="btn btn-primary btn-block" onclick="searchTransporters()">
@@ -196,6 +201,7 @@
                     <th>用户名</th>
                     <th>姓名</th>
                     <th>手机号</th>
+                    <th>身份证号</th>
                     <th>区域</th>
                     <th>评分</th>
                     <th>状态</th>
@@ -204,7 +210,7 @@
             </thead>
             <tbody id="tableBody">
                 <tr>
-                    <td colspan="8" class="text-center">
+                    <td colspan="9" class="text-center">
                         <i class="fas fa-spinner fa-spin"></i> 加载中...
                     </td>
                 </tr>
@@ -324,7 +330,7 @@
 
 @section Scripts {
 <script>
-var currentPage = 1, pageSize = 20, searchTerm = '', statusFilter = null;
+var currentPage = 1, pageSize = 8, searchTerm = '', statusFilter = null, sortOrder = 'ASC';
 var transporterCache = {}; // Cache for transporter data
 var dashboardVisible = true;
 // Configurable region prefix for display
@@ -374,6 +380,16 @@ function toggleDashboard() {
         $('#dashboardSection').slideUp();
         $('#toggleBtnText').text('显示数据看板');
     }
+}
+
+// Toggle sort order
+function toggleSortOrder() {
+    sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
+    $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
+    $('#sortOrderText').text(sortOrder === 'ASC' ? '顺序' : '逆序');
+    $('#sortOrderBtn').attr('aria-label', sortOrder === 'ASC' ? 'ID顺序排列，点击切换为逆序' : 'ID逆序排列，点击切换为顺序');
+    currentPage = 1;
+    loadTransporters();
 }
 
 // Load comprehensive dashboard statistics
@@ -524,7 +540,7 @@ function loadTransporters() {
     $.ajax({
         url: '@Url.Action("GetTransporters", "Staff")',
         type: 'GET',
-        data: { page: currentPage, pageSize: pageSize, searchTerm: searchTerm, isActive: statusFilter },
+        data: { page: currentPage, pageSize: pageSize, searchTerm: searchTerm, isActive: statusFilter, sortOrder: sortOrder },
         success: function (response) {
             if (response.success) renderTransporters(response.data);
             else alert('加载失败: ' + response.message);
@@ -545,6 +561,7 @@ function renderTransporters(data) {
             '<td>' + escapeHtml(t.Username) + '</td>' +
             '<td>' + escapeHtml(t.FullName || '-') + '</td>' +
             '<td>' + escapeHtml(t.PhoneNumber) + '</td>' +
+            '<td>' + escapeHtml(t.IDNumber || '-') + '</td>' +
             '<td>' + escapeHtml(t.Region) + '</td>' +
             '<td>' + (t.Rating ? t.Rating.toFixed(1) : '0.0') + ' ⭐</td>' +
             '<td>' +
