@@ -546,6 +546,10 @@
                     <p>暂无入库单</p>
                 </div>
             </div>
+            <div id="warehouseReceiptsPaginationContainer" style="margin-top: 15px; display: none; justify-content: space-between; align-items: center;">
+                <div id="warehouseReceiptsPaginationInfo" style="color: #666;"></div>
+                <div id="warehouseReceiptsPagination" class="pagination-controls"></div>
+            </div>
         </div>
     </div>
 
@@ -593,6 +597,19 @@
                 }
             }
         </div>
+        @{
+            var hasInventorySummary = Model != null && Model.InventorySummary != null && Model.InventorySummary.Any();
+            var summaryPaginationDisplay = hasInventorySummary && Model.InventorySummary.Count > 8 ? "" : "display: none;";
+        }
+        <div id="inventorySummaryPaginationContainer" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; @summaryPaginationDisplay">
+            <div id="inventorySummaryPaginationInfo" style="color: #666;">
+                @if (hasInventorySummary)
+                {
+                    <text>显示 1 - @Math.Min(8, Model.InventorySummary.Count) 项，共 @Model.InventorySummary.Count 项</text>
+                }
+            </div>
+            <div id="inventorySummaryPagination" class="pagination-controls"></div>
+        </div>
 
         <!-- 空状态提示 - 用于初始加载和AJAX刷新 -->
         <div id="inventoryEmptyState" class="empty-state" style="@(Model != null && Model.InventorySummary != null && Model.InventorySummary.Any() ? "display: none;" : "")">
@@ -609,7 +626,7 @@
                 <h2 class="section-title">
                     <i class="fas fa-list"></i> 库存明细 <span id="inventoryDetailTitle"></span>
                 </h2>
-                <button class="btn-secondary" onclick="loadInventoryDetail()">
+                <button class="btn-secondary" onclick="showAllInventoryDetails()">
                     <i class="fas fa-sync-alt"></i> 刷新
                 </button>
             </div>
@@ -896,6 +913,9 @@
     var allTransitOrders = [];          // 全部运输单数据
     var transitOrdersCurrentPage = 1;  // 当前页码
     var TRANSIT_PAGE_SIZE = 4;         // 每页条数
+    var allWarehouseReceipts = [];     // 全部入库单数据
+    var warehouseReceiptsCurrentPage = 1;
+    var WAREHOUSE_RECEIPTS_PAGE_SIZE = 4;
 
     function displayTransitOrders(orders) {
         allTransitOrders = orders || [];
@@ -1266,6 +1286,7 @@
         $('#receiptsTableContainer').hide();
         $('#receiptsTable').hide();
         $('#receiptsEmptyState').hide();
+        $('#warehouseReceiptsPaginationContainer').hide();
 
         $.ajax({
             url: '@Url.Action("GetWarehouseReceipts", "Staff")',
@@ -1281,11 +1302,13 @@
                 } else {
                     $('#receiptsEmptyState').html('<i class="fas fa-exclamation-circle"></i><p>' + response.message + '</p>').show();
                     $('#receiptsTableContainer').show();
+                    $('#warehouseReceiptsPaginationContainer').hide();
                 }
             },
             error: function () {
                 $('#receiptsEmptyState').html('<i class="fas fa-exclamation-circle"></i><p>加载失败</p>').show();
                 $('#receiptsTableContainer').show();
+                $('#warehouseReceiptsPaginationContainer').hide();
             },
             complete: function () {
                 $('#receiptsLoading').hide();
@@ -1295,53 +1318,119 @@
 
     // 显示入库单
     function displayReceipts(receipts) {
-        if (receipts && receipts.length > 0) {
-            var tbody = $('#receiptsTableBody');
-            tbody.empty();
-
-            receipts.forEach(function (receipt) {
-                var statusClass = receipt.Status === '待入库' ? 'status-pending' : 'status-completed';
-                var actionButton = '';
-                
-                if (receipt.Status === '待入库') {
-                    // 只有指定的基地工作人员才能操作入库按钮
-                    var isAssignedToMe = !receipt.AssignedWorkerID || receipt.AssignedWorkerID === currentWorkerID;
-                    if (isAssignedToMe) {
-                        if (!receipt.IsRefined) {
-                            actionButton = '<button class="btn-secondary" style="margin-right:6px;" onclick="goToSubdivision(' + receipt.ReceiptID + ')"><i class="fas fa-sliders-h"></i> 细分</button>';
-                        }
-                        if (receipt.IsRefined) {
-                            actionButton += '<button class="btn-warehouse" onclick="processWarehouse(' + receipt.ReceiptID + ')"><i class="fas fa-warehouse"></i> 入库</button>';
-                        } else {
-                            actionButton += '<button class="btn-warehouse" disabled title="请先完成细分后再入库" style="opacity:0.6;cursor:not-allowed;"><i class="fas fa-lock"></i> 先细分</button>';
-                        }
-                    } else {
-                        actionButton = '<span style="color: #e67e22; font-size: 12px;"><i class="fas fa-lock"></i> 非指定人员</span>';
-                    }
-                } else {
-                    actionButton = '<span style="color: #999;">-</span>';
-                }
-
-                var row = '<tr data-receipt-id="' + receipt.ReceiptID + '">' +
-                    '<td>' + receipt.ReceiptNumber + '</td>' +
-                    '<td>' + (receipt.TransportOrderNumber || '-') + '</td>' +
-                    '<td>' + (receipt.RecyclerName || '-') + '</td>' +
-                    '<td>' + receipt.TotalWeight.toFixed(2) + '</td>' +
-                    '<td>' + formatDateTime(receipt.CreatedDate) + '</td>' +
-                    '<td><span class="status-badge ' + statusClass + '">' + receipt.Status + '</span></td>' +
-                    '<td>' + actionButton + '</td>' +
-                    '</tr>';
-                tbody.append(row);
-            });
-
-            $('#receiptsEmptyState').hide();
-            $('#receiptsTableContainer').show();
-            $('#receiptsTable').show();
-        } else {
+        allWarehouseReceipts = receipts || [];
+        warehouseReceiptsCurrentPage = 1;
+        if (!allWarehouseReceipts.length) {
             $('#receiptsTable').hide();
             $('#receiptsTableContainer').show();
             $('#receiptsEmptyState').show();
+            $('#warehouseReceiptsPaginationContainer').hide();
+            return;
         }
+
+        renderWarehouseReceiptsPage();
+    }
+
+    function renderWarehouseReceiptsPage() {
+        var total = allWarehouseReceipts.length;
+        var totalPages = Math.ceil(total / WAREHOUSE_RECEIPTS_PAGE_SIZE);
+        if (warehouseReceiptsCurrentPage > totalPages) warehouseReceiptsCurrentPage = totalPages;
+
+        var start = (warehouseReceiptsCurrentPage - 1) * WAREHOUSE_RECEIPTS_PAGE_SIZE;
+        var end = Math.min(start + WAREHOUSE_RECEIPTS_PAGE_SIZE, total);
+        var pageReceipts = allWarehouseReceipts.slice(start, end);
+
+        var tbody = $('#receiptsTableBody');
+        tbody.empty();
+
+        pageReceipts.forEach(function (receipt) {
+            var statusClass = receipt.Status === '待入库' ? 'status-pending' : 'status-completed';
+            var actionButton = '';
+
+            if (receipt.Status === '待入库') {
+                var isAssignedToMe = !receipt.AssignedWorkerID || receipt.AssignedWorkerID === currentWorkerID;
+                if (isAssignedToMe) {
+                    if (!receipt.IsRefined) {
+                        actionButton = '<button class="btn-secondary" style="margin-right:6px;" onclick="goToSubdivision(' + receipt.ReceiptID + ')"><i class="fas fa-sliders-h"></i> 细分</button>';
+                    }
+                    if (receipt.IsRefined) {
+                        actionButton += '<button class="btn-warehouse" onclick="processWarehouse(' + receipt.ReceiptID + ')"><i class="fas fa-warehouse"></i> 入库</button>';
+                    } else {
+                        actionButton += '<button class="btn-warehouse" disabled title="请先完成细分后再入库" style="opacity:0.6;cursor:not-allowed;"><i class="fas fa-lock"></i> 先细分</button>';
+                    }
+                } else {
+                    actionButton = '<span style="color: #e67e22; font-size: 12px;"><i class="fas fa-lock"></i> 非指定人员</span>';
+                }
+            } else {
+                actionButton = '<span style="color: #999;">-</span>';
+            }
+
+            var totalWeight = Number(receipt.TotalWeight || 0);
+            var row = '<tr data-receipt-id="' + receipt.ReceiptID + '">' +
+                '<td>' + escapeHtml(receipt.ReceiptNumber || '-') + '</td>' +
+                '<td>' + escapeHtml(receipt.TransportOrderNumber || '-') + '</td>' +
+                '<td>' + escapeHtml(receipt.RecyclerName || '-') + '</td>' +
+                '<td>' + totalWeight.toFixed(2) + '</td>' +
+                '<td>' + formatDateTime(receipt.CreatedDate) + '</td>' +
+                '<td><span class="status-badge ' + statusClass + '">' + escapeHtml(receipt.Status || '-') + '</span></td>' +
+                '<td>' + actionButton + '</td>' +
+                '</tr>';
+            tbody.append(row);
+        });
+
+        $('#receiptsEmptyState').hide();
+        $('#receiptsTableContainer').show();
+        $('#receiptsTable').show();
+        renderWarehouseReceiptsPagination(total, totalPages, start, end);
+    }
+
+    function renderWarehouseReceiptsPagination(total, totalPages, start, end) {
+        if (totalPages <= 1) {
+            $('#warehouseReceiptsPaginationContainer').hide();
+            return;
+        }
+
+        $('#warehouseReceiptsPaginationInfo').text('显示 ' + (start + 1) + ' - ' + end + ' 条，共 ' + total + ' 条');
+        var pagination = $('#warehouseReceiptsPagination');
+        pagination.empty();
+
+        var prevBtn = $('<button>')
+            .text('上一页')
+            .prop('disabled', warehouseReceiptsCurrentPage === 1)
+            .on('click', function () {
+                if (warehouseReceiptsCurrentPage > 1) {
+                    warehouseReceiptsCurrentPage--;
+                    renderWarehouseReceiptsPage();
+                }
+            });
+        pagination.append(prevBtn);
+
+        var startPage = Math.max(1, warehouseReceiptsCurrentPage - 2);
+        var endPage = Math.min(totalPages, warehouseReceiptsCurrentPage + 2);
+        for (var i = startPage; i <= endPage; i++) {
+            (function (pageNum) {
+                var pageBtn = $('<button>')
+                    .text(pageNum)
+                    .toggleClass('active', pageNum === warehouseReceiptsCurrentPage)
+                    .on('click', function () {
+                        warehouseReceiptsCurrentPage = pageNum;
+                        renderWarehouseReceiptsPage();
+                    });
+                pagination.append(pageBtn);
+            })(i);
+        }
+
+        var nextBtn = $('<button>')
+            .text('下一页')
+            .prop('disabled', warehouseReceiptsCurrentPage >= totalPages)
+            .on('click', function () {
+                if (warehouseReceiptsCurrentPage < totalPages) {
+                    warehouseReceiptsCurrentPage++;
+                    renderWarehouseReceiptsPage();
+                }
+            });
+        pagination.append(nextBtn);
+        $('#warehouseReceiptsPaginationContainer').css('display', 'flex');
     }
 
     // 刷新运输单
@@ -1366,8 +1455,11 @@
     // 封装库存管理相关变量和函数 - Encapsulate inventory management variables and functions
     var InventoryManager = {
         currentPage: 1,
-        pageSize: 20,
+        pageSize: 8,
         currentCategoryKey: null,
+        summaryCurrentPage: 1,
+        summaryPageSize: 8,
+        allSummaryData: [],
         
         // 类别图标映射
         categoryIcons: {
@@ -1447,6 +1539,7 @@
     function loadInventorySummary() {
         $('#inventoryLoading').show();
         $('#inventorySummaryCards').hide();
+        $('#inventorySummaryPaginationContainer').hide();
         $('#inventoryEmptyState').hide();
 
         $.ajax({
@@ -1460,10 +1553,12 @@
                     displayInventorySummary(response.data);
                 } else {
                     $('#inventoryEmptyState').show();
+                    $('#inventorySummaryPaginationContainer').hide();
                 }
             },
             error: function () {
                 $('#inventoryEmptyState').html('<i class="fas fa-exclamation-circle"></i><p>加载库存失败</p>').show();
+                $('#inventorySummaryPaginationContainer').hide();
             },
             complete: function () {
                 $('#inventoryLoading').hide();
@@ -1473,16 +1568,40 @@
 
     // 显示库存汇总卡片
     function displayInventorySummary(summaryData) {
+        var validSummaryData = [];
+        summaryData.forEach(function (item) {
+            if (InventoryManager.isValidCategoryKey(item.categoryKey)) {
+                validSummaryData.push(item);
+            } else {
+                console.warn('Invalid category key:', item.categoryKey);
+            }
+        });
+
+        InventoryManager.allSummaryData = validSummaryData;
+        InventoryManager.summaryCurrentPage = 1;
+        renderInventorySummaryPage();
+    }
+
+    function renderInventorySummaryPage() {
         var container = $('#inventorySummaryCards');
         container.empty();
+        var allSummaryData = InventoryManager.allSummaryData || [];
+        if (!allSummaryData.length) {
+            $('#inventoryEmptyState').show();
+            $('#inventorySummaryPaginationContainer').hide();
+            return;
+        }
 
-        summaryData.forEach(function (item) {
-            // 验证并清理类别键
-            if (!InventoryManager.isValidCategoryKey(item.categoryKey)) {
-                console.warn('Invalid category key:', item.categoryKey);
-                return; // 跳过无效的类别
-            }
+        var total = allSummaryData.length;
+        var totalPages = Math.ceil(total / InventoryManager.summaryPageSize);
+        if (InventoryManager.summaryCurrentPage > totalPages) {
+            InventoryManager.summaryCurrentPage = totalPages;
+        }
+        var start = (InventoryManager.summaryCurrentPage - 1) * InventoryManager.summaryPageSize;
+        var end = Math.min(start + InventoryManager.summaryPageSize, total);
+        var pageSummaryData = allSummaryData.slice(start, end);
 
+        pageSummaryData.forEach(function (item) {
             var baseCategoryKey = (item.categoryKey || '').split('_')[0];
             var icon = InventoryManager.categoryIcons[baseCategoryKey] || 'fa-box';
             var color = InventoryManager.categoryColors[baseCategoryKey] || '#3498db';
@@ -1496,6 +1615,9 @@
                 .attr('data-category', safeCategoryKey)
                 .attr('data-category-name', safeCategoryName)
                 .css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + InventoryManager.adjustColor(color, -20) + ' 100%)');
+            if (item.categoryKey === InventoryManager.currentCategoryKey) {
+                card.addClass('active');
+            }
             
             // Safely create card content with validated icon class
             var iconDiv = $('<div>').addClass('inventory-card-icon').append($('<i>').addClass('fas ' + icon));
@@ -1511,6 +1633,56 @@
         });
 
         container.show();
+        displayInventorySummaryPagination(total, totalPages, start, end);
+    }
+
+    function displayInventorySummaryPagination(total, totalPages, start, end) {
+        if (totalPages <= 1) {
+            $('#inventorySummaryPaginationContainer').hide();
+            return;
+        }
+
+        $('#inventorySummaryPaginationInfo').text('显示 ' + (start + 1) + ' - ' + end + ' 项，共 ' + total + ' 项');
+        var pagination = $('#inventorySummaryPagination');
+        pagination.empty();
+
+        var prevBtn = $('<button>')
+            .text('上一页')
+            .prop('disabled', InventoryManager.summaryCurrentPage === 1)
+            .on('click', function () {
+                if (InventoryManager.summaryCurrentPage > 1) {
+                    InventoryManager.summaryCurrentPage--;
+                    renderInventorySummaryPage();
+                }
+            });
+        pagination.append(prevBtn);
+
+        var startPage = Math.max(1, InventoryManager.summaryCurrentPage - 2);
+        var endPage = Math.min(totalPages, InventoryManager.summaryCurrentPage + 2);
+        for (var i = startPage; i <= endPage; i++) {
+            (function (pageNum) {
+                var pageBtn = $('<button>')
+                    .text(pageNum)
+                    .toggleClass('active', pageNum === InventoryManager.summaryCurrentPage)
+                    .on('click', function () {
+                        InventoryManager.summaryCurrentPage = pageNum;
+                        renderInventorySummaryPage();
+                    });
+                pagination.append(pageBtn);
+            })(i);
+        }
+
+        var nextBtn = $('<button>')
+            .text('下一页')
+            .prop('disabled', InventoryManager.summaryCurrentPage >= totalPages)
+            .on('click', function () {
+                if (InventoryManager.summaryCurrentPage < totalPages) {
+                    InventoryManager.summaryCurrentPage++;
+                    renderInventorySummaryPage();
+                }
+            });
+        pagination.append(nextBtn);
+        $('#inventorySummaryPaginationContainer').css('display', 'flex');
     }
 
     // 按类别筛选库存

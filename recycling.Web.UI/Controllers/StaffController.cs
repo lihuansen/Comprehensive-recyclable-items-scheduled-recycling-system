@@ -5199,8 +5199,8 @@ namespace recycling.Web.UI.Controllers
                     }).ToList();
                 }
 
-                // 加载库存明细列表（首页，20条）
-                var inventoryDetails = inventoryBll.GetInventoryDetailWithRecycler(1, 20, null, "Warehouse");
+                // 加载库存明细列表（首页，8条）
+                var inventoryDetails = inventoryBll.GetInventoryDetailWithRecycler(1, 8, null, "Warehouse");
                 if (inventoryDetails != null)
                 {
                     viewModel.InventoryDetails = inventoryDetails.Items?.ToList() ?? new List<InventoryDetailViewModel>();
@@ -5579,7 +5579,7 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ContentResult GetBaseWarehouseInventoryDetail(int page = 1, int pageSize = 20, string categoryKey = null)
+        public ContentResult GetBaseWarehouseInventoryDetail(int page = 1, int pageSize = 8, string categoryKey = null)
         {
             try
             {
