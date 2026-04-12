@@ -16,6 +16,7 @@
         border-left: 4px solid #667eea;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
+        cursor: pointer;
     }
 
     .notification-card:hover {
@@ -207,7 +208,8 @@
                 
                 <div class="notification-card @(notification.IsRead == true ? "read" : "unread")" 
                      data-notification-id="@notification.NotificationID"
-                     data-is-read="@((notification.IsRead == true).ToString().ToLower())">
+                     data-is-read="@((notification.IsRead == true).ToString().ToLower())"
+                     onclick="markAsRead(@notification.NotificationID)">
                     <div class="notification-header">
                         <div class="notification-title">
                             <i class="fa @typeIcon notification-icon" style="color: @typeColor"></i>
@@ -230,11 +232,11 @@
                         <div class="notification-actions">
                             @if (notification.IsRead != true)
                             {
-                                <button class="btn-mark-read" onclick="markAsRead(@notification.NotificationID)">
+                                <button class="btn-mark-read" onclick="event.stopPropagation(); markAsRead(@notification.NotificationID)">
                                     <i class="glyphicon glyphicon-ok"></i> 标记已读
                                 </button>
                             }
-                            <button class="btn-delete" onclick="deleteNotification(@notification.NotificationID)">
+                            <button class="btn-delete" onclick="event.stopPropagation(); deleteNotification(@notification.NotificationID)">
                                 <i class="glyphicon glyphicon-trash"></i> 删除
                             </button>
                         </div>
@@ -355,18 +357,21 @@
         });
 
         function markAsRead(notificationId) {
+            var card = $('[data-notification-id="' + notificationId + '"]');
+            if (!card.length || card.attr('data-is-read') === 'true') return;
+
             postWithToken('@Url.Action("MarkBaseStaffNotificationAsRead", "Staff")', 
                 { notificationId: notificationId }, 
                 function (data) {
                     if (data.success) {
-                        var card = $('[data-notification-id="' + notificationId + '"]');
                         card.removeClass('unread').addClass('read');
                         card.attr('data-is-read', 'true');
                         card.find('.btn-mark-read').remove();
                         card.find('.notification-badge:contains("新")').remove();
                         
-                        // 更新计数
+                        // 更新计数并重新应用过滤（已读内容在未读视图中不再显示）
                         updateCounts();
+                        applyFilter();
                         updateUnreadCount();
                     } else {
                         alert('操作失败：' + (data.message || ''));
@@ -415,6 +420,19 @@
             $('#count-all').text('(' + total + ')');
             $('#count-unread').text('(' + unread + ')');
             $('#count-read').text('(' + read + ')');
+        }
+
+        function applyFilter() {
+            var activeFilter = $('.filter-tab.active').data('filter') || 'all';
+            if (activeFilter === 'all') {
+                $('.notification-card').show();
+            } else if (activeFilter === 'unread') {
+                $('.notification-card').hide();
+                $('.notification-card[data-is-read="false"]').show();
+            } else if (activeFilter === 'read') {
+                $('.notification-card').hide();
+                $('.notification-card[data-is-read="true"]').show();
+            }
         }
 
         function updateUnreadCount() {
