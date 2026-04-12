@@ -2,34 +2,34 @@ using System;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 库存汇总视图模型
-    /// Inventory Summary View Model
-    /// </summary>
+    /// 中文注释
+    // 中文注释
     public class InventorySummaryViewModel
     {
-        /// <summary>
+        // 中文注释
         /// 品类键（用于前端交互）
-        /// Category Key (for frontend interaction)
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public string CategoryKey { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 品类名称
-        /// Category Name
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public string CategoryName { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 总重量(kg)
-        /// Total Weight (kg)
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public decimal TotalWeight { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 总价值(元)
-        /// Total Price (CNY)
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public decimal TotalPrice { get; set; }
     }
 }

@@ -12,27 +12,27 @@ namespace recycling.BLL
     {
         private readonly InventoryDAL _inventoryDAL = new InventoryDAL();
 
-        /// <summary>
+        // 中文注释
         /// 从订单添加库存记录
-        /// </summary>
+        // 中文注释
         public bool AddInventoryFromOrder(int orderId, int recyclerId)
         {
             if (orderId <= 0 || recyclerId <= 0) return false;
             return _inventoryDAL.AddInventoryFromOrder(orderId, recyclerId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 直接从核实后的品类/重量/金额列表写入库存记录
-        /// </summary>
+        // 中文注释
         public bool AddInventoryWithItems(int orderId, int recyclerId, List<(string CategoryKey, string CategoryName, decimal Weight, decimal Price)> items)
         {
             if (orderId <= 0 || recyclerId <= 0 || items == null || items.Count == 0) return false;
             return _inventoryDAL.AddInventoryWithItems(orderId, recyclerId, items);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取库存列表
-        /// </summary>
+        // 中文注释
         /// <param name="recyclerId">回收员ID（可选）</param>
         /// <param name="pageIndex">页码</param>
         /// <param name="pageSize">页大小</param>
@@ -42,9 +42,9 @@ namespace recycling.BLL
             return _inventoryDAL.GetInventoryList(recyclerId, pageIndex, pageSize, inventoryType);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取库存汇总（按类别分组）
-        /// </summary>
+        // 中文注释
         /// <param name="recyclerId">回收员ID（可选）</param>
         /// <param name="inventoryType">库存类型：StoragePoint(暂存点) 或 Warehouse(仓库)，默认为Warehouse</param>
         public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetInventorySummary(int? recyclerId = null, string inventoryType = "Warehouse")
@@ -52,9 +52,9 @@ namespace recycling.BLL
             return _inventoryDAL.GetInventorySummary(recyclerId, inventoryType);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取库存明细（包含回收员信息）- 管理员端使用
-        /// </summary>
+        // 中文注释
         /// <param name="pageIndex">页码</param>
         /// <param name="pageSize">页大小</param>
         /// <param name="categoryKey">类别键（可选）</param>

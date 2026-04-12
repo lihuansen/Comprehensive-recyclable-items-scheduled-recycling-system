@@ -7,9 +7,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 登录视图模型
-    /// </summary>
+    // 中文注释
     public class LoginViewModel
     {
         [Required(ErrorMessage = "请输入用户名")]
@@ -26,9 +26,9 @@ namespace recycling.Model
         [Display(Name = "验证码")]
         public string Captcha { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 前端生成的验证码（用于后端验证）
-        /// </summary>
+        // 中文注释
         public string GeneratedCaptcha { get; set; }
     }
 }

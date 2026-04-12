@@ -336,7 +336,7 @@
         loadStatistics();
         loadLogs();
 
-        // Enter key search
+        // 中文注释
         $('#searchInput').keypress(function(e) {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 loadLogs();
@@ -523,10 +523,10 @@
 
         if (data.TotalPages <= 1) return;
 
-        // Previous
+        // 中文注释
         pagination.append('<li class="' + (data.PageIndex == 1 ? 'disabled' : '') + '"><a href="#" onclick="goToPage(' + (data.PageIndex - 1) + '); return false;">上一页</a></li>');
 
-        // Page numbers
+        // 中文注释
         var startPage = Math.max(1, data.PageIndex - 2);
         var endPage = Math.min(data.TotalPages, data.PageIndex + 2);
 
@@ -534,7 +534,7 @@
             pagination.append('<li class="' + (i == data.PageIndex ? 'active' : '') + '"><a href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a></li>');
         }
 
-        // Next
+        // 中文注释
         pagination.append('<li class="' + (data.PageIndex >= data.TotalPages ? 'disabled' : '') + '"><a href="#" onclick="goToPage(' + (data.PageIndex + 1) + '); return false;">下一页</a></li>');
     }
 

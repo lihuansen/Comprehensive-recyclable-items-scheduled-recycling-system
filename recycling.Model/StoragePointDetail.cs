@@ -2,44 +2,44 @@ using System;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 暂存点库存明细模型
-    /// </summary>
+    // 中文注释
     public class StoragePointDetail
     {
-        /// <summary>
+        // 中文注释
         /// 订单ID
-        /// </summary>
+        // 中文注释
         public int OrderID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 类别键
-        /// </summary>
+        // 中文注释
         public string CategoryKey { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 类别名称
-        /// </summary>
+        // 中文注释
         public string CategoryName { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 重量（公斤）
-        /// </summary>
+        // 中文注释
         public decimal Weight { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 价值（元）
-        /// </summary>
+        // 中文注释
         public decimal Price { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 完成日期
-        /// </summary>
+        // 中文注释
         public DateTime CreatedDate { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 是否为回收员手动录入
-        /// </summary>
+        // 中文注释
         public bool IsManualEntry { get; set; }
     }
 }

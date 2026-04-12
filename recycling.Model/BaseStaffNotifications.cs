@@ -24,9 +24,9 @@ namespace recycling.Model
 
         public int? RelatedWarehouseReceipt { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 兼容旧代码中的字段命名（RelatedWarehouseReceiptID）
-        /// </summary>
+        // 中文注释
         [NotMapped]
         public int? RelatedWarehouseReceiptID
         {
@@ -41,9 +41,9 @@ namespace recycling.Model
         public DateTime? ReadDate { get; set; }
     }
 
-    /// <summary>
+    // 中文注释
     /// 基地工作人员通知类型
-    /// </summary>
+    // 中文注释
     public static class BaseStaffNotificationTypes
     {
         public const string TransportOrderCreated = "TransportOrderCreated";

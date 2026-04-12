@@ -7,20 +7,20 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    /// <summary>
-    /// SuperAdmin Data Access Layer
+    // 中文注释
+    /// 中文注释
     /// 超级管理员数据访问层
-    /// </summary>
+    // 中文注释
     public class SuperAdminDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         #region SuperAdmin Management
 
-        /// <summary>
-        /// Get all super admins with pagination
+        // 中文注释
+        /// 中文注释
         /// 分页获取所有超级管理员
-        /// </summary>
+        // 中文注释
         public PagedResult<SuperAdmins> GetAllSuperAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
             var result = new PagedResult<SuperAdmins>
@@ -34,7 +34,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -45,7 +45,7 @@ namespace recycling.DAL
                     whereClause += " AND IsActive = @IsActive";
                 }
 
-                // Get total count
+                // 中文注释
                 string countSql = "SELECT COUNT(*) FROM SuperAdmins " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -58,7 +58,7 @@ namespace recycling.DAL
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // Get paged data
+                // 中文注释
                 string sql = "SELECT * FROM SuperAdmins " + whereClause + 
                     " ORDER BY SuperAdminID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -86,10 +86,10 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
-        /// Get super admin by ID
+        // 中文注释
+        /// 中文注释
         /// 根据ID获取超级管理员
-        /// </summary>
+        // 中文注释
         public SuperAdmins GetSuperAdminById(int superAdminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -110,10 +110,10 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
-        /// Add new super admin
+        // 中文注释
+        /// 中文注释
         /// 添加新超级管理员
-        /// </summary>
+        // 中文注释
         public bool AddSuperAdmin(SuperAdmins superAdmin)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -132,10 +132,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Update super admin information
+        // 中文注释
+        /// 中文注释
         /// 更新超级管理员信息
-        /// </summary>
+        // 中文注释
         public bool UpdateSuperAdmin(SuperAdmins superAdmin)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -157,12 +157,12 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Delete super admin (hard delete from database)
+        // 中文注释
+        /// 中文注释
         /// 删除超级管理员（硬删除）
-        /// WARNING: This performs a hard delete. If the super admin has associated records,
-        /// this operation may fail due to foreign key constraints.
-        /// </summary>
+        /// 中文注释
+        /// 中文注释
+        // 中文注释
         public bool DeleteSuperAdmin(int superAdminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -179,7 +179,7 @@ namespace recycling.DAL
                 }
                 catch (SqlException ex)
                 {
-                    // If foreign key constraint violation (error 547), provide helpful message
+                    // 中文注释
                     if (ex.Number == 547)
                     {
                         throw new InvalidOperationException(
@@ -190,10 +190,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Get super admin statistics
+        // 中文注释
+        /// 中文注释
         /// 获取超级管理员统计信息
-        /// </summary>
+        // 中文注释
         public Dictionary<string, object> GetSuperAdminStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -202,15 +202,15 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Total super admins
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM SuperAdmins", conn);
                 stats["TotalSuperAdmins"] = (int)cmd.ExecuteScalar();
 
-                // Active super admins
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM SuperAdmins WHERE IsActive = 1", conn);
                 stats["ActiveSuperAdmins"] = (int)cmd.ExecuteScalar();
 
-                // Super admins created this month
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM SuperAdmins 
                     WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
                     AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
@@ -220,10 +220,10 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get all super admins for export (without pagination)
+        // 中文注释
+        /// 中文注释
         /// 获取所有超级管理员用于导出（无分页）
-        /// </summary>
+        // 中文注释
         public List<SuperAdmins> GetAllSuperAdminsForExport(string searchTerm = null, bool? isActive = null)
         {
             var superAdmins = new List<SuperAdmins>();
@@ -232,7 +232,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -280,15 +280,15 @@ namespace recycling.DAL
             return superAdmins;
         }
 
-        /// <summary>
-        /// Get comprehensive admin dashboard statistics for super admin
+        // 中文注释
+        /// 中文注释
         /// 获取管理员数据看板统计信息
-        /// </summary>
+        // 中文注释
         public Dictionary<string, object> GetAdminDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
 
-            // Initialize default values
+            // 中文注释
             stats["TotalAdmins"] = 0;
             stats["ActiveAdmins"] = 0;
             stats["InactiveAdmins"] = 0;
@@ -303,7 +303,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // === Basic Statistics ===
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Admins", conn);
                 stats["TotalAdmins"] = (int)cmd.ExecuteScalar();
 
@@ -318,12 +318,12 @@ namespace recycling.DAL
                     AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
                 stats["NewAdminsThisMonth"] = (int)cmd.ExecuteScalar();
 
-                // Recent login count (last 7 days)
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Admins 
                     WHERE LastLoginDate >= DATEADD(day, -7, GETDATE())", conn);
                 stats["RecentLoginCount"] = (int)cmd.ExecuteScalar();
 
-                // === Permission Distribution (for doughnut chart) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT ISNULL(Character, 'unset') AS Permission, COUNT(*) AS AdminCount
                     FROM Admins
@@ -344,7 +344,7 @@ namespace recycling.DAL
                 }
                 stats["PermissionDistribution"] = permissionDistribution;
 
-                // === Registration Trend (last 6 months, for line chart) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT YEAR(CreatedDate) AS RegYear, MONTH(CreatedDate) AS RegMonth, COUNT(*) AS AdminCount
                     FROM Admins
@@ -368,7 +368,7 @@ namespace recycling.DAL
                 }
                 stats["RegistrationTrend"] = registrationTrend;
 
-                // === Login Activity Trend (last 7 days, for bar chart) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT CAST(LastLoginDate AS DATE) AS LoginDate, COUNT(*) AS LoginCount
                     FROM Admins
@@ -390,7 +390,7 @@ namespace recycling.DAL
                 }
                 stats["LoginActivityTrend"] = loginActivityTrend;
 
-                // === Admin Ranking (by last login, most active first) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT TOP 10 AdminID, FullName, Username, 
                            ISNULL(Character, 'unset') AS Character,
@@ -427,10 +427,10 @@ namespace recycling.DAL
 
         #region Helper Methods
 
-        /// <summary>
-        /// Map super admin from data reader
+        // 中文注释
+        /// 中文注释
         /// 从数据读取器映射超级管理员对象
-        /// </summary>
+        // 中文注释
         private SuperAdmins MapSuperAdminFromReader(SqlDataReader reader)
         {
             return new SuperAdmins
@@ -446,9 +446,9 @@ namespace recycling.DAL
             };
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新超级管理员头像
-        /// </summary>
+        // 中文注释
         public bool UpdateSuperAdminAvatar(int superAdminId, string avatarUrl)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))

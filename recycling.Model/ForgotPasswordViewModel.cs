@@ -7,9 +7,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 忘记密码视图模型
-    /// </summary>
+    // 中文注释
     public class ForgotPasswordViewModel
     {
         [Required(ErrorMessage = "手机号不能为空")]

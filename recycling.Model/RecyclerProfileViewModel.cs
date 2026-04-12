@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 回收员个人信息编辑视图模型
-    /// </summary>
+    // 中文注释
     public class RecyclerProfileViewModel
     {
         [Required(ErrorMessage = "姓名不能为空")]

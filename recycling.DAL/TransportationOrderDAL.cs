@@ -7,26 +7,26 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    /// <summary>
+    // 中文注释
     /// 运输单数据访问层
-    /// Transportation Orders Data Access Layer
-    /// </summary>
+    /// 中文注释
+    // 中文注释
     public class TransportationOrderDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
         
-        // Cache for column existence checks to avoid repeated database queries
-        // Using a static dictionary to share cache across all instances
+        // 中文注释
+        // 中文注释
         private static readonly Dictionary<string, bool> _columnExistsCache = new Dictionary<string, bool>();
         private static readonly object _cacheLock = new object();
 
-        /// <summary>
+        // 中文注释
         /// 安全地检查列是否存在于DataReader中
-        /// Safely check if a column exists in the DataReader
-        /// Note: For better performance in high-volume scenarios, consider caching column ordinals
-        /// in a HashSet at the beginning of each query method. Current implementation prioritizes
-        /// simplicity and backward compatibility.
-        /// </summary>
+        /// 中文注释
+        /// 中文注释
+        /// 中文注释
+        /// 中文注释
+        // 中文注释
         private bool ColumnExists(SqlDataReader reader, string columnName)
         {
             try
@@ -39,10 +39,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 安全地从DataReader读取可空字符串列
-        /// Safely read nullable string column from DataReader
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         private string SafeGetString(SqlDataReader reader, string columnName)
         {
             if (!ColumnExists(reader, columnName))
@@ -51,10 +51,10 @@ namespace recycling.DAL
             return reader[columnName] == DBNull.Value ? null : reader[columnName].ToString();
         }
 
-        /// <summary>
+        // 中文注释
         /// 安全地从DataReader读取可空日期时间列
-        /// Safely read nullable DateTime column from DataReader
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         private DateTime? SafeGetDateTime(SqlDataReader reader, string columnName)
         {
             if (!ColumnExists(reader, columnName))
@@ -64,10 +64,10 @@ namespace recycling.DAL
             return value == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(value);
         }
 
-        /// <summary>
+        // 中文注释
         /// 安全地从DataReader读取可空整数列
-        /// Safely read nullable int column from DataReader
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         private int? SafeGetInt(SqlDataReader reader, string columnName)
         {
             if (!ColumnExists(reader, columnName))
@@ -77,12 +77,12 @@ namespace recycling.DAL
             return value == DBNull.Value ? null : (int?)Convert.ToInt32(value);
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查数据库表中是否存在指定列
-        /// Check if a column exists in the database table
-        /// Results are cached to improve performance
-        /// Supports both transactional and non-transactional contexts
-        /// </summary>
+        /// 中文注释
+        /// 中文注释
+        /// 中文注释
+        // 中文注释
         private bool ColumnExistsInTable(SqlConnection conn, SqlTransaction transaction, string tableName, string columnName)
         {
             string cacheKey = $"{tableName}.{columnName}";
@@ -103,7 +103,7 @@ namespace recycling.DAL
                     WHERE TABLE_NAME = @TableName 
                     AND COLUMN_NAME = @ColumnName";
                 
-                // SqlCommand constructor accepts null for transaction parameter
+                // 中文注释
                 using (SqlCommand cmd = new SqlCommand(sql, conn, transaction))
                 {
                     cmd.Parameters.AddWithValue("@TableName", tableName);
@@ -123,17 +123,17 @@ namespace recycling.DAL
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"ColumnExistsInTable Error: {ex.Message}");
-                // If we can't check, assume column doesn't exist to avoid errors
+                // 中文注释
                 return false;
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 生成运输单号
         /// 格式：TO+YYYYMMDD+4位序号
-        /// Note: This implementation has a potential race condition in high-concurrency scenarios.
-        /// For production use, consider using database sequences or implementing proper locking.
-        /// </summary>
+        /// 中文注释
+        /// 中文注释
+        // 中文注释
         private string GenerateOrderNumber()
         {
             string datePrefix = "TO" + DateTime.Now.ToString("yyyyMMdd");
@@ -143,7 +143,7 @@ namespace recycling.DAL
             {
                 conn.Open();
                 
-                // Use a transaction with serializable isolation level to prevent race conditions
+                // 中文注释
                 using (SqlTransaction transaction = conn.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
                     try
@@ -168,12 +168,12 @@ namespace recycling.DAL
             return datePrefix + sequence.ToString("D4");
         }
 
-        /// <summary>
+        // 中文注释
         /// 创建运输单
-        /// </summary>
+        // 中文注释
         /// <param name="order">运输单信息</param>
         /// <param name="categories">品类明细列表（可选）</param>
-        /// <returns>Tuple containing order ID and order number</returns>
+        /// <returns>中文注释</returns>
         public (int orderId, string orderNumber) CreateTransportationOrder(TransportationOrders order, List<TransportationOrderCategories> categories = null)
         {
             try
@@ -186,7 +186,7 @@ namespace recycling.DAL
                     {
                         try
                         {
-                            // Generate order number
+                            // 中文注释
                             order.OrderNumber = GenerateOrderNumber();
                             order.CreatedDate = DateTime.Now;
                             order.Status = "待接单";
@@ -275,10 +275,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新基地工作人员的当前状态
-        /// Update sorting center worker's current status
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="workerId">基地工作人员ID</param>
         /// <param name="status">新状态（空闲/工作中）</param>
         /// <returns>是否更新成功</returns>
@@ -307,10 +307,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查基地工作人员是否有未完成入库的运输单
-        /// Check if sorting center worker has transport orders with pending warehouse receipts
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="workerId">基地工作人员ID</param>
         /// <returns>是否有未完成的任务</returns>
         public bool HasPendingTasksForWorker(int workerId)
@@ -345,10 +345,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输单的指定基地工作人员ID
-        /// Get the assigned worker ID for a transport order
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public int? GetAssignedWorkerIdByTransportOrderId(int transportOrderId)
         {
             try
@@ -375,10 +375,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新运输人员的当前状态
-        /// Update transporter's current status
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="transporterId">运输人员ID</param>
         /// <param name="status">新状态（空闲/运输中）</param>
         /// <returns>是否更新成功</returns>
@@ -407,10 +407,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 累加运输人员的总运输重量
-        /// Increment transporter's TotalWeight by the given weight amount
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="transporterId">运输人员ID</param>
         /// <param name="weight">本次运输重量（公斤）</param>
         /// <returns>是否更新成功</returns>
@@ -439,10 +439,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查运输人员是否有未完成的运输单
-        /// Check if transporter has active (non-completed, non-cancelled) transport orders
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="transporterId">运输人员ID</param>
         /// <returns>是否有未完成的运输单</returns>
         public bool HasActiveTransportOrdersForTransporter(int transporterId)
@@ -473,10 +473,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查回收员是否有未完成的运输单（即暂存点物品已创建了运输单但尚未完成）
-        /// Check if recycler has active (non-completed, non-cancelled) transport orders
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>是否有未完成的运输单</returns>
         public bool HasActiveTransportOrdersForRecycler(int recyclerId)
@@ -507,9 +507,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员的运输单列表
-        /// </summary>
+        // 中文注释
         public List<TransportationOrders> GetTransportationOrdersByRecycler(int recyclerId)
         {
             var orders = new List<TransportationOrders>();
@@ -587,9 +587,9 @@ namespace recycling.DAL
             return orders;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输单详情
-        /// </summary>
+        // 中文注释
         public TransportationOrders GetTransportationOrderById(int orderId)
         {
             try
@@ -659,9 +659,9 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新运输单状态
-        /// </summary>
+        // 中文注释
         public bool UpdateTransportationOrderStatus(int orderId, string status)
         {
             try
@@ -691,9 +691,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输人员的运输单列表
-        /// </summary>
+        // 中文注释
         /// <param name="transporterId">运输人员ID</param>
         /// <param name="status">可选的状态筛选</param>
         public List<TransportationOrders> GetTransportationOrdersByTransporter(int transporterId, string status = null)
@@ -786,9 +786,9 @@ namespace recycling.DAL
             return orders;
         }
 
-        /// <summary>
+        // 中文注释
         /// 接单（更新状态为已接单并记录接单时间）
-        /// </summary>
+        // 中文注释
         public bool AcceptTransportationOrder(int orderId)
         {
             try
@@ -797,9 +797,9 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Build UPDATE SQL
+                    // 中文注释
                     // Note: We don't set TransportStage here because '接单' is not in the database constraint
-                    // The stage will be set when ConfirmPickupLocation is called
+                    // 中文注释
                     string sql = @"
                         UPDATE TransportationOrders 
                         SET Status = N'已接单',
@@ -824,10 +824,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 开始运输（更新状态为运输中并记录取货时间）
-        /// DEPRECATED: Use ConfirmPickupLocation instead to follow new workflow
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public bool StartTransportation(int orderId)
         {
             try
@@ -840,12 +840,12 @@ namespace recycling.DAL
                     {
                         try
                         {
-                            // 1. Check which columns exist
+                            // 中文注释
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasPickupConfirmedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupConfirmedDate");
                             bool hasPickupDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupDate");
                             
-                            // 2. Build dynamic UPDATE SQL based on available columns
+                            // 中文注释
                             string updateOrderSql = "UPDATE TransportationOrders SET Status = '运输中'";
                             
                             if (hasPickupDate)
@@ -901,9 +901,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 确认收货地点
-        /// </summary>
+        // 中文注释
         public bool ConfirmPickupLocation(int orderId)
         {
             try
@@ -916,12 +916,12 @@ namespace recycling.DAL
                     {
                         try
                         {
-                            // 1. Check which columns exist
+                            // 中文注释
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasPickupConfirmedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "PickupConfirmedDate");
                             bool hasStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "Stage");
                             
-                            // 2. Build dynamic UPDATE SQL based on available columns
+                            // 中文注释
                             string updateOrderSql = "UPDATE TransportationOrders SET Status = N'运输中'";
                             
                             if (hasTransportStage)
@@ -929,7 +929,7 @@ namespace recycling.DAL
                                 updateOrderSql += ", TransportStage = N'确认收货地点'";
                             }
                             
-                            // Update Stage column to reflect current stage
+                            // 中文注释
                             if (hasStage)
                             {
                                 updateOrderSql += ", Stage = N'确认收货地点'";
@@ -980,9 +980,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 到达收货地点
-        /// </summary>
+        // 中文注释
         public bool ArriveAtPickupLocation(int orderId)
         {
             try
@@ -991,12 +991,12 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Check which columns exist
+                    // 中文注释
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     bool hasArrivedAtPickupDate = ColumnExistsInTable(conn, null, "TransportationOrders", "ArrivedAtPickupDate");
                     bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
                     
-                    // Build dynamic UPDATE SQL based on available columns
+                    // 中文注释
                     string sql = "UPDATE TransportationOrders SET ";
                     List<string> setClauses = new List<string>();
                     
@@ -1010,15 +1010,15 @@ namespace recycling.DAL
                         setClauses.Add("ArrivedAtPickupDate = @ArrivedDate");
                     }
                     
-                    // Update Stage column to reflect current stage
+                    // 中文注释
                     // Uses '到达收货地点' (arrive at receiving location) which is the standardized terminology
-                    // for the transporter arriving at the pickup location
+                    // 中文注释
                     if (hasStage)
                     {
                         setClauses.Add("Stage = N'到达收货地点'");
                     }
                     
-                    // If no columns to update, just return success (backward compatibility)
+                    // 中文注释
                     if (setClauses.Count == 0)
                     {
                         System.Diagnostics.Debug.WriteLine("ArriveAtPickupLocation: No transport stage columns available, skipping update");
@@ -1028,7 +1028,7 @@ namespace recycling.DAL
                     sql += string.Join(", ", setClauses);
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
-                    // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    // 中文注释
                     // Accept both '确认收货地点' (correct) and '确认取货地点' (legacy) for backward compatibility
                     if (hasStage)
                     {
@@ -1060,9 +1060,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 装货完毕
-        /// </summary>
+        // 中文注释
         public bool CompleteLoading(int orderId)
         {
             try
@@ -1075,12 +1075,12 @@ namespace recycling.DAL
                     {
                         try
                         {
-                            // 1. Check which columns exist
+                            // 中文注释
                             bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
                             bool hasLoadingCompletedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "LoadingCompletedDate");
                             bool hasStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "Stage");
                             
-                            // 2. Build dynamic UPDATE SQL based on available columns
+                            // 中文注释
                             string updateOrderSql = "UPDATE TransportationOrders SET ";
                             List<string> setClauses = new List<string>();
                             
@@ -1089,7 +1089,7 @@ namespace recycling.DAL
                                 setClauses.Add("TransportStage = N'装货完成'");
                             }
                             
-                            // Update Stage column to reflect current stage
+                            // 中文注释
                             if (hasStage)
                             {
                                 setClauses.Add("Stage = N'装货完成'");
@@ -1100,7 +1100,7 @@ namespace recycling.DAL
                                 setClauses.Add("LoadingCompletedDate = @CompletedDate");
                             }
                             
-                            // If no columns to update, just validate status
+                            // 中文注释
                             if (setClauses.Count == 0)
                             {
                                 updateOrderSql = "SELECT 1 FROM TransportationOrders";
@@ -1112,7 +1112,7 @@ namespace recycling.DAL
                             
                             updateOrderSql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                             
-                            // Validate stage progression using Stage column if available, otherwise use TransportStage
+                            // 中文注释
                             // Accept both '到达收货地点' (correct) and '到达取货地点' (legacy) for backward compatibility
                             if (hasStage)
                             {
@@ -1140,7 +1140,7 @@ namespace recycling.DAL
                             }
                             else
                             {
-                                // For backward compatibility, if no stage columns exist, just check order exists and is in transit
+                                // 中文注释
                                 using (SqlCommand cmd = new SqlCommand(updateOrderSql, conn, transaction))
                                 {
                                     cmd.Parameters.AddWithValue("@OrderID", orderId);
@@ -1174,9 +1174,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 确认送货地点
-        /// </summary>
+        // 中文注释
         public bool ConfirmDeliveryLocation(int orderId)
         {
             try
@@ -1185,12 +1185,12 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Check which columns exist
+                    // 中文注释
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     bool hasDeliveryConfirmedDate = ColumnExistsInTable(conn, null, "TransportationOrders", "DeliveryConfirmedDate");
                     bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
                     
-                    // Build dynamic UPDATE SQL based on available columns
+                    // 中文注释
                     string sql = "UPDATE TransportationOrders SET ";
                     List<string> setClauses = new List<string>();
                     
@@ -1199,7 +1199,7 @@ namespace recycling.DAL
                         setClauses.Add("TransportStage = N'确认送货地点'");
                     }
                     
-                    // Update Stage column to reflect current stage
+                    // 中文注释
                     if (hasStage)
                     {
                         setClauses.Add("Stage = N'确认送货地点'");
@@ -1210,7 +1210,7 @@ namespace recycling.DAL
                         setClauses.Add("DeliveryConfirmedDate = @ConfirmedDate");
                     }
                     
-                    // If no columns to update, just return success (backward compatibility)
+                    // 中文注释
                     if (setClauses.Count == 0)
                     {
                         System.Diagnostics.Debug.WriteLine("ConfirmDeliveryLocation: No transport stage columns available, skipping update");
@@ -1220,7 +1220,7 @@ namespace recycling.DAL
                     sql += string.Join(", ", setClauses);
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
-                    // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    // 中文注释
                     // Accept both "装货完成" (new) and "装货完毕" (old) for backward compatibility
                     if (hasStage)
                     {
@@ -1252,9 +1252,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 到达送货地点
-        /// </summary>
+        // 中文注释
         public bool ArriveAtDeliveryLocation(int orderId)
         {
             try
@@ -1263,12 +1263,12 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Check which columns exist
+                    // 中文注释
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     bool hasArrivedAtDeliveryDate = ColumnExistsInTable(conn, null, "TransportationOrders", "ArrivedAtDeliveryDate");
                     bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
                     
-                    // Build dynamic UPDATE SQL based on available columns
+                    // 中文注释
                     string sql = "UPDATE TransportationOrders SET ";
                     List<string> setClauses = new List<string>();
                     
@@ -1277,7 +1277,7 @@ namespace recycling.DAL
                         setClauses.Add("TransportStage = N'到达送货地点'");
                     }
                     
-                    // Update Stage column to reflect current stage
+                    // 中文注释
                     if (hasStage)
                     {
                         setClauses.Add("Stage = N'到达送货地点'");
@@ -1288,7 +1288,7 @@ namespace recycling.DAL
                         setClauses.Add("ArrivedAtDeliveryDate = @ArrivedDate");
                     }
                     
-                    // If no columns to update, just return success (backward compatibility)
+                    // 中文注释
                     if (setClauses.Count == 0)
                     {
                         System.Diagnostics.Debug.WriteLine("ArriveAtDeliveryLocation: No transport stage columns available, skipping update");
@@ -1298,7 +1298,7 @@ namespace recycling.DAL
                     sql += string.Join(", ", setClauses);
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
-                    // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    // 中文注释
                     if (hasStage)
                     {
                         sql += " AND Stage = N'确认送货地点'";
@@ -1329,9 +1329,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 完成运输（更新状态为已完成并记录完成时间）
-        /// </summary>
+        // 中文注释
         public bool CompleteTransportation(int orderId, decimal? actualWeight)
         {
             try
@@ -1340,13 +1340,13 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Check if columns exist
+                    // 中文注释
                     bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
                     bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
                     bool hasDeliveryDate = ColumnExistsInTable(conn, null, "TransportationOrders", "DeliveryDate");
                     bool hasCompletedDate = ColumnExistsInTable(conn, null, "TransportationOrders", "CompletedDate");
                     
-                    // Build dynamic UPDATE SQL based on available columns
+                    // 中文注释
                     List<string> setClauses = new List<string>();
                     setClauses.Add("Status = N'已完成'");
                     
@@ -1370,7 +1370,7 @@ namespace recycling.DAL
                         setClauses.Add("TransportStage = NULL");
                     }
                     
-                    // Clear Stage column when completing transportation
+                    // 中文注释
                     if (hasStage)
                     {
                         setClauses.Add("Stage = NULL");
@@ -1379,7 +1379,7 @@ namespace recycling.DAL
                     string sql = "UPDATE TransportationOrders SET " + string.Join(", ", setClauses);
                     sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
                     
-                    // Validate stage progression using Stage column if available, otherwise use TransportStage
+                    // 中文注释
                     if (hasStage)
                     {
                         sql += " AND (Stage = N'到达送货地点' OR Stage IS NULL)";

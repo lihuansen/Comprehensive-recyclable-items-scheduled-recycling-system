@@ -12,9 +12,9 @@ namespace recycling.BLL
     {
         private readonly HomepageCarouselDAL _carouselDAL = new HomepageCarouselDAL();
 
-        /// <summary>
-        /// Get all active carousel items for homepage display
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public List<HomepageCarousel> GetAllActive()
         {
             try
@@ -27,9 +27,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
-        /// Get paged carousel items for admin management
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public PagedResult<HomepageCarousel> GetPaged(int page = 1, int pageSize = 20)
         {
             if (page < 1) page = 1;
@@ -45,9 +45,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
-        /// Get carousel item by ID
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public HomepageCarousel GetById(int carouselId)
         {
             if (carouselId <= 0)
@@ -65,12 +65,12 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
-        /// Add new carousel item
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public (bool Success, string Message) Add(HomepageCarousel carousel, int adminId)
         {
-            // Validation
+            // 中文注释
             if (string.IsNullOrEmpty(carousel.MediaType))
             {
                 return (false, "媒体类型不能为空");
@@ -91,7 +91,7 @@ namespace recycling.BLL
                 carousel.DisplayOrder = 0;
             }
 
-            // Set metadata
+            // 中文注释
             carousel.CreatedDate = DateTime.Now;
             carousel.CreatedBy = adminId;
             carousel.UpdatedDate = DateTime.Now;
@@ -108,12 +108,12 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
-        /// Update carousel item
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public (bool Success, string Message) Update(HomepageCarousel carousel)
         {
-            // Validation
+            // 中文注释
             if (carousel.CarouselID <= 0)
             {
                 return (false, "无效的轮播ID");
@@ -139,7 +139,7 @@ namespace recycling.BLL
                 carousel.DisplayOrder = 0;
             }
 
-            // Update timestamp
+            // 中文注释
             carousel.UpdatedDate = DateTime.Now;
 
             try
@@ -153,9 +153,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
-        /// Delete carousel item (soft delete)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public (bool Success, string Message) Delete(int carouselId)
         {
             if (carouselId <= 0)
@@ -174,9 +174,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
-        /// Hard delete carousel item
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public (bool Success, string Message) HardDelete(int carouselId)
         {
             if (carouselId <= 0)
@@ -195,9 +195,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
-        /// Get the maximum DisplayOrder value
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public int GetMaxDisplayOrder()
         {
             try

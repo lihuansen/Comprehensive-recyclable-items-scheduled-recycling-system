@@ -1,8 +1,8 @@
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 管理员权限常量定义
-    /// </summary>
+    // 中文注释
     public static class AdminPermissions
     {
         // 权限常量

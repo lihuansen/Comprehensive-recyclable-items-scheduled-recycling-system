@@ -13,9 +13,9 @@ namespace recycling.BLL
         private readonly MessageDAL _messageDAL = new MessageDAL();
         private readonly UserNotificationBLL _userNotificationBLL = new UserNotificationBLL();
 
-        /// <summary>
+        // 中文注释
         /// 发送消息
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) SendMessage(SendMessageRequest request)
         {
             if (request.OrderID <= 0 || string.IsNullOrEmpty(request.Content))
@@ -75,9 +75,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取订单聊天记录
-        /// </summary>
+        // 中文注释
         public List<Messages> GetOrderMessages(int orderId)
         {
             if (orderId <= 0)
@@ -88,9 +88,9 @@ namespace recycling.BLL
             return _messageDAL.GetOrderMessages(orderId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 标记消息为已读
-        /// </summary>
+        // 中文注释
         public bool MarkMessagesAsRead(int orderId, string readerType, int readerId)
         {
             if (orderId <= 0 || string.IsNullOrEmpty(readerType))
@@ -101,9 +101,9 @@ namespace recycling.BLL
             return _messageDAL.MarkMessagesAsRead(orderId, readerType, readerId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取用户的消息列表
-        /// </summary>
+        // 中文注释
         public List<RecyclerMessageViewModel> GetUserMessages(int userId, int pageIndex = 1, int pageSize = 20)
         {
             if (userId <= 0)
@@ -116,9 +116,9 @@ namespace recycling.BLL
             return _messageDAL.GetUserMessages(userId, pageIndex, pageSize);
         }
 
-        /// <summary>
+        // 中文注释
         /// 用户发送消息给回收员
-        /// </summary>
+        // 中文注释
         // 在MessageBLL中补充用户发送消息方法（修正版）
         public (bool Success, string Message) UserSendMessage(SendMessageRequest request)
         {
@@ -169,9 +169,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员的未读消息数量
-        /// </summary>
+        // 中文注释
         public int GetRecyclerUnreadCount(int recyclerId)
         {
             if (recyclerId <= 0)

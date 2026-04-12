@@ -22,7 +22,7 @@
     .badge-unavailable { background-color: #ffc107; }
     .btn-action { margin: 0 2px; }
     .modal-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-    /* Dashboard styles */
+    /* 中文注释 */
     .dashboard-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .dashboard-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 8px; }
     .chart-container { height: 250px; }
@@ -332,12 +332,12 @@
 @section Scripts {
 <script>
 var currentPage = 1, pageSize = 8, searchTerm = '', statusFilter = null, sortOrder = 'ASC';
-var transporterCache = {}; // Cache for transporter data
+var transporterCache = {}; // 中文注释
 var dashboardVisible = true;
-// Configurable region prefix for display
+// 中文注释
 var REGION_PREFIX = '广东省深圳市罗湖区';
 
-// Helper function to escape HTML and prevent XSS
+// 中文注释
 function escapeHtml(text) {
     if (!text) return '';
     var div = document.createElement('div');
@@ -371,7 +371,7 @@ $(document).ready(function () {
     loadTransporters();
 });
 
-// Toggle dashboard visibility
+// 中文注释
 function toggleDashboard() {
     dashboardVisible = !dashboardVisible;
     if (dashboardVisible) {
@@ -383,7 +383,7 @@ function toggleDashboard() {
     }
 }
 
-// Toggle sort order
+// 中文注释
 function toggleSortOrder() {
     sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
     $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
@@ -393,7 +393,7 @@ function toggleSortOrder() {
     loadTransporters();
 }
 
-// Load comprehensive dashboard statistics
+// 中文注释
 function loadDashboardStatistics() {
     $.ajax({
         url: '@Url.Action("GetTransporterDashboardStatistics", "Staff")',
@@ -403,7 +403,7 @@ function loadDashboardStatistics() {
             if (response.success) {
                 var data = response.data;
 
-                // Basic stats
+                // 中文注释
                 $('#totalTransporters').text(data.TotalTransporters || 0);
                 $('#activeTransporters').text(data.ActiveTransporters || 0);
                 $('#availableTransporters').text(data.AvailableTransporters || 0);
@@ -412,14 +412,14 @@ function loadDashboardStatistics() {
                 $('#completedOrders').text(data.CompletedOrders || 0);
                 $('#totalOrders').text(data.TotalOrders || 0);
 
-                // Extended stats
+                // 中文注释
                 var monthWeight = parseFloat(data.MonthTotalWeight);
                 $('#monthTotalWeight').text(isNaN(monthWeight) ? '0.0' : monthWeight.toFixed(1));
                 $('#pendingOrders').text(data.PendingOrders || 0);
                 $('#inTransitOrders').text(data.InTransitOrders || 0);
                 $('#cancelledOrders').text(data.CancelledOrders || 0);
 
-                // Region distribution
+                // 中文注释
                 try {
                     renderRegionDistribution(data.RegionDistribution);
                 } catch(e) {
@@ -427,7 +427,7 @@ function loadDashboardStatistics() {
                     $('#regionDistributionList').html('<div class="text-center text-muted">区域数据加载失败</div>');
                 }
 
-                // Transporter ranking
+                // 中文注释
                 try {
                     renderTransporterRanking(data.TransporterRanking);
                 } catch(e) {
@@ -446,7 +446,7 @@ function loadDashboardStatistics() {
     });
 }
 
-// Show fallback values when dashboard data fails to load
+// 中文注释
 function showDashboardFallbackValues() {
     $('#totalTransporters').text('0');
     $('#activeTransporters').text('0');
@@ -459,12 +459,12 @@ function showDashboardFallbackValues() {
     $('#inTransitOrders').text('0');
     $('#cancelledOrders').text('0');
 
-    // Clear loading indicators for lists
+    // 中文注释
     $('#regionDistributionList').html('<div class="text-center text-muted">暂无区域数据</div>');
     $('#transporterRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
 }
 
-// Render region distribution list
+// 中文注释
 function renderRegionDistribution(regions) {
     var container = $('#regionDistributionList');
     container.empty();
@@ -498,7 +498,7 @@ function renderRegionDistribution(regions) {
     });
 }
 
-// Render transporter ranking list
+// 中文注释
 function renderTransporterRanking(rankings) {
     var container = $('#transporterRankingList');
     container.empty();
@@ -574,7 +574,7 @@ function renderTransporters(data) {
                 '<button class="btn btn-xs btn-danger btn-action" onclick="deleteTransporter(' + t.TransporterID + ')"><i class="fas fa-trash"></i> 删除</button>' +
             '</td>' +
         '</tr>';
-        // Store full transporter object for later retrieval
+        // 中文注释
         transporterCache[t.TransporterID] = t;
         tbody.append(row);
     });

@@ -4,7 +4,7 @@
 }
 
 <style>
-    /* ===== Light Theme Base ===== */
+    /* 中文注释 */
     .db-wrap {
         background: linear-gradient(135deg, #eef1f8 0%, #e4e9f2 50%, #f0ecf9 100%);
         min-height: 100vh;
@@ -14,7 +14,7 @@
         font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* ===== Header ===== */
+    /* 中文注释 */
     .db-header {
         display: flex;
         align-items: center;
@@ -65,7 +65,7 @@
         color: #fff;
     }
 
-    /* ===== Glass Card ===== */
+    /* 中文注释 */
     .g-card {
         background: rgba(255,255,255,0.75);
         border: 1px solid rgba(0,0,0,0.06);
@@ -80,7 +80,7 @@
         box-shadow: 0 8px 32px rgba(0,0,0,0.08);
     }
 
-    /* ===== Section Title ===== */
+    /* 中文注释 */
     .sec-title {
         font-size: 16px;
         font-weight: 600;
@@ -95,7 +95,7 @@
         color: #6366f1;
     }
 
-    /* ===== Today Highlight Strip ===== */
+    /* 中文注释 */
     .today-strip {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -142,7 +142,7 @@
         margin-top: 4px;
     }
 
-    /* ===== KPI Hero Cards ===== */
+    /* 中文注释 */
     .kpi-row {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -192,7 +192,7 @@
         margin-top: 4px;
     }
 
-    /* ===== Personnel Grid ===== */
+    /* 中文注释 */
     .personnel-grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
@@ -235,7 +235,7 @@
     .p-card:nth-child(5) .p-icon { color: #db2777; }
     .p-card:nth-child(6) .p-icon { color: #7c3aed; }
 
-    /* ===== Chart Grid ===== */
+    /* 中文注释 */
     .chart-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -264,7 +264,7 @@
         height: 280px;
     }
 
-    /* ===== Pipeline / Flow ===== */
+    /* 中文注释 */
     .pipeline {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -305,7 +305,7 @@
     .pipe-step:nth-child(3) .pipe-num { color: #6366f1; }
     .pipe-step:nth-child(4) .pipe-num { color: #059669; }
 
-    /* ===== Efficiency Metrics ===== */
+    /* 中文注释 */
     .eff-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -345,7 +345,7 @@
     }
     .eff-label.mt { margin-top: 12px; }
 
-    /* ===== Rating Card ===== */
+    /* 中文注释 */
     .rating-display {
         text-align: center;
     }
@@ -359,7 +359,7 @@
         font-size: 16px;
     }
 
-    /* ===== Personnel Title Suffix ===== */
+    /* 中文注释 */
     .sec-title .total-suffix {
         font-size: 12px;
         color: rgba(0,0,0,0.3);
@@ -369,19 +369,19 @@
         color: #6366f1;
     }
 
-    /* ===== Cancel Row ===== */
+    /* 中文注释 */
     .kpi-row.col3 {
         grid-template-columns: repeat(3, 1fr);
     }
     .kpi-icon.c7 { background: linear-gradient(135deg, #f97316, #ea580c); }
     .kpi-icon.c8 { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
-    /* ===== Sys Grid 2-col ===== */
+    /* 中文注释 */
     .sys-grid.col2 {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    /* ===== Table Section ===== */
+    /* 中文注释 */
     .table-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -438,7 +438,7 @@
     .rank-badge.normal { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.45); }
     .rating-stars { color: #fbbf24; font-size: 11px; }
 
-    /* ===== System Overview Grid ===== */
+    /* 中文注释 */
     .sys-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -479,7 +479,7 @@
         color: #1a202c;
     }
 
-    /* ===== Footer ===== */
+    /* 中文注释 */
     .db-footer {
         text-align: center;
         padding: 16px 0 0;
@@ -487,7 +487,7 @@
         font-size: 12px;
     }
 
-    /* ===== Loading ===== */
+    /* 中文注释 */
     .db-loading {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -514,7 +514,7 @@
     @@keyframes dbSpin { to { transform: rotate(360deg); } }
     @@keyframes dbPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    /* ===== Responsive ===== */
+    /* 中文注释 */
     @@media (max-width: 1200px) {
         .personnel-grid { grid-template-columns: repeat(3, 1fr); }
         .chart-grid.tri { grid-template-columns: 1fr; }
@@ -880,10 +880,10 @@
 @section scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script>
-        // Chart instances
+        // 中文注释
         var charts = {};
 
-        // Light theme defaults for Chart.js
+        // 中文注释
         Chart.defaults.color = 'rgba(0,0,0,0.5)';
         Chart.defaults.borderColor = 'rgba(0,0,0,0.08)';
 
@@ -924,34 +924,34 @@
             $('#dbLastUpdate').text('更新: ' + now);
             $('#dbFooterTime').text(now);
 
-            // Today
+            // 中文注释
             $('#ordersToday, #completedToday, #newUsersToday, #activeWeek, #pendingTotal, #pendingFbk, #pendingOrd').text('0');
             $('#revenueToday').text('¥0');
             $('#weightToday').text('0');
 
-            // KPI
+            // 中文注释
             $('#totalOrders, #ordersMonth, #ordersWeek').text('0');
             $('#totalRevenue').text('¥0');
             $('#revenueMonth, #revenueWeek').text('0');
             $('#totalWeight, #weightMonth, #weightWeek').text('0');
             $('#totalUsers, #newUsersMonth').text('0');
 
-            // Personnel
+            // 中文注释
             $('#pUsers, #pUsersActive, #pRecyclers, #pRecyclersAvail, #pTransporters, #pTransportersAvail').text('0');
             $('#pSortingWorkers, #pSortingActive, #pAdmins, #pAdminsActive, #pSuperAdmins, #totalPersonnel').text('0');
 
-            // Pipeline
+            // 中文注释
             $('#pipePending, #pipeProgress, #pipeCompleted, #pipeCancelled').text('0');
             $('#tpPending, #tpAccepted, #tpInTransit, #tpCompleted').text('0');
 
-            // Efficiency
+            // 中文注释
             $('#completionRate, #feedbackRate, #warehouseRate').text('0%');
             $('#avgRating').text('0.0');
 
-            // Cancellation
+            // 中文注释
             $('#cancelTotal, #cancelRecycler, #cancelSystem').text('0');
 
-            // System
+            // 中文注释
             $('#sysAdmins, #sysAdminsActive, #sysSuperAdmins, #sysReviews').text('0');
             $('#sysAvgReview, #sysRecyclerRating').text('0.00');
             $('#sysFeedbacks, #sysProcessedFb, #sysUnreadNotif').text('0');
@@ -961,7 +961,7 @@
             $('#sysWeightProcessed').text('0 kg');
             $('#sysSortingActive').text('0');
 
-            // Tables
+            // 中文注释
             $('#tblRecyclers tbody').html('<tr><td colspan="4" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
             $('#tblUsers tbody').html('<tr><td colspan="4" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
             $('#tblRegion tbody').html('<tr><td colspan="3" style="text-align:center;color:rgba(0,0,0,0.3);">暂无数据</td></tr>');
@@ -973,7 +973,7 @@
             $('#dbLastUpdate').text('更新: ' + now);
             $('#dbFooterTime').text(now);
 
-            // === Today ===
+            // 中文注释
             $('#ordersToday').text(v(d.OrdersToday));
             $('#completedToday').text(v(d.CompletedOrdersToday));
             $('#revenueToday').text('¥' + v(d.RevenueToday, 2));
@@ -985,7 +985,7 @@
             $('#pendingFbk').text(v(d.PendingFeedbacks));
             $('#pendingOrd').text(v(d.PendingOrders));
 
-            // === KPI ===
+            // 中文注释
             $('#totalOrders').text(v(d.TotalOrders));
             $('#ordersMonth').text(v(d.OrdersThisMonth));
             $('#ordersWeek').text(v(d.OrdersThisWeek));
@@ -998,7 +998,7 @@
             $('#totalUsers').text(v(d.TotalUsers));
             $('#newUsersMonth').text(v(d.NewUsersThisMonth));
 
-            // === Personnel ===
+            // 中文注释
             $('#pUsers').text(v(d.TotalUsers));
             $('#pUsersActive').text(v(d.ActiveUsersThisWeek));
             $('#pRecyclers').text(v(d.TotalRecyclers));
@@ -1012,20 +1012,20 @@
             $('#pSuperAdmins').text(v(d.TotalSuperAdmins));
             $('#totalPersonnel').text(v(d.TotalPersonnel));
 
-            // === Order Pipeline ===
+            // 中文注释
             $('#pipePending').text(v(d.PendingOrders));
             $('#pipeProgress').text(v(d.InProgressOrders));
             $('#pipeCompleted').text(v(d.CompletedOrders));
             var allCancelled = (parseInt(d.CancelledOrders) || 0) + (parseInt(d.RecyclerCancelledOrders) || 0) + (parseInt(d.SystemExpiredOrders) || 0);
             $('#pipeCancelled').text(v(allCancelled));
 
-            // === Transport Pipeline ===
+            // 中文注释
             $('#tpPending').text(v(d.PendingTransportOrders));
             $('#tpAccepted').text(v(d.AcceptedTransportOrders));
             $('#tpInTransit').text(v(d.InTransitOrders));
             $('#tpCompleted').text(v(d.CompletedTransportOrders));
 
-            // === Efficiency ===
+            // 中文注释
             var cr = parseFloat(d.OrderCompletionRate) || 0;
             $('#completionRate').text(cr.toFixed(1) + '%');
             drawRing('ringCompletion', cr, '#6366f1');
@@ -1046,12 +1046,12 @@
             $('#avgRating').text(ar.toFixed(2));
             $('#avgRatingStars').html(getStarHtml(ar));
 
-            // === Cancellation ===
+            // 中文注释
             $('#cancelTotal').text(v(allCancelled));
             $('#cancelRecycler').text(v(d.RecyclerCancelledOrders));
             $('#cancelSystem').text(v(d.SystemExpiredOrders));
 
-            // === Charts ===
+            // 中文注释
             renderOrderTrend(d.OrderTrend);
             renderOrderStatus(d.OrderStatusDistribution);
             renderMonthly(d.MonthlyOrderTrend, d.RevenueWeightTrend);
@@ -1059,13 +1059,13 @@
             renderTransportStatus(d.TransportStatusDistribution);
             renderUserReg(d.UserRegistrationTrend);
 
-            // === Tables ===
+            // 中文注释
             renderRecyclerTable(d.TopRecyclers);
             renderUserTable(d.TopUsers);
             renderRegionTable(d.RegionDistribution);
             renderInventoryTable(d.InventoryStats);
 
-            // === System Overview ===
+            // 中文注释
             $('#sysAdmins').text(v(d.TotalAdmins));
             $('#sysAdminsActive').text(v(d.ActiveAdmins));
             $('#sysSuperAdmins').text(v(d.TotalSuperAdmins));
@@ -1076,19 +1076,19 @@
             $('#sysProcessedFb').text(v(d.ProcessedFeedbacks));
             $('#sysUnreadNotif').text(v(d.UnreadNotifications));
 
-            // Warehouse
+            // 中文注释
             $('#sysWReceipts').text(v(d.TotalWarehouseReceipts));
             $('#sysWPending').text(v(d.PendingWarehouseReceipts));
             $('#sysWProcessed').text(v(d.ProcessedWarehouseReceipts));
             $('#sysWWeight').text(v(d.TotalWarehouseWeight, 2) + ' kg');
 
-            // Sorting center
+            // 中文注释
             $('#sysItemsProcessed').text(v(d.TotalItemsProcessed));
             $('#sysWeightProcessed').text(v(d.TotalWeightProcessed, 2) + ' kg');
             $('#sysSortingActive').text(v(d.ActiveSortingWorkers));
         }
 
-        // ======== Mini Ring Chart ========
+        // 中文注释
         function drawRing(canvasId, percent, color) {
             var canvas = document.getElementById(canvasId);
             if (!canvas) return;
@@ -1101,13 +1101,13 @@
             var cx = size, cy = size, r = size - 12, lw = 8;
 
             ctx.clearRect(0, 0, size * 2, size * 2);
-            // bg
+            // 中文注释
             ctx.beginPath();
             ctx.arc(cx, cy, r, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(0,0,0,0.08)';
             ctx.lineWidth = lw;
             ctx.stroke();
-            // value
+            // 中文注释
             if (percent > 0) {
                 ctx.beginPath();
                 ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * Math.min(percent, 100) / 100));
@@ -1118,7 +1118,7 @@
             }
         }
 
-        // ======== Star HTML ========
+        // 中文注释
         function getStarHtml(rating) {
             var full = Math.floor(rating);
             var half = (rating - full) >= 0.5;
@@ -1130,7 +1130,7 @@
             return h;
         }
 
-        // ======== Chart: Order Trend (7 days) ========
+        // 中文注释
         function renderOrderTrend(data) {
             var labels = data ? data.map(function (d) { return d.Date; }) : [];
             var values = data ? data.map(function (d) { return d.Count; }) : [];
@@ -1161,7 +1161,7 @@
             });
         }
 
-        // ======== Chart: Order Status ========
+        // 中文注释
         function renderOrderStatus(data) {
             var labels = data ? data.map(function (d) { return d.Status; }) : [];
             var values = data ? data.map(function (d) { return d.Count; }) : [];
@@ -1188,14 +1188,14 @@
             });
         }
 
-        // ======== Chart: Monthly (Orders + Revenue) ========
+        // 中文注释
         function renderMonthly(orderData, revenueData) {
             var labels = orderData ? orderData.map(function (d) { return d.Month; }) : [];
             var orderVals = orderData ? orderData.map(function (d) { return d.Count; }) : [];
             var revLabels = revenueData ? revenueData.map(function (d) { return d.Month; }) : [];
             var revVals = revenueData ? revenueData.map(function (d) { return d.Revenue; }) : [];
 
-            // Merge labels
+            // 中文注释
             var allLabels = labels.slice();
             revLabels.forEach(function (l) { if (allLabels.indexOf(l) === -1) allLabels.push(l); });
             allLabels.sort();
@@ -1246,7 +1246,7 @@
             });
         }
 
-        // ======== Chart: Category ========
+        // 中文注释
         function renderCategory(data) {
             var labels = data ? data.map(function (d) { return d.Category; }) : [];
             var values = data ? data.map(function (d) { return d.Count; }) : [];
@@ -1273,7 +1273,7 @@
             });
         }
 
-        // ======== Chart: Transport Status ========
+        // 中文注释
         function renderTransportStatus(data) {
             var labels = data ? data.map(function (d) { return d.Status; }) : [];
             var values = data ? data.map(function (d) { return d.Count; }) : [];
@@ -1300,7 +1300,7 @@
             });
         }
 
-        // ======== Chart: User Registration Trend ========
+        // 中文注释
         function renderUserReg(data) {
             var labels = data ? data.map(function (d) { return d.Date; }) : [];
             var values = data ? data.map(function (d) { return d.Count; }) : [];
@@ -1324,7 +1324,7 @@
             });
         }
 
-        // ======== Table: Recyclers ========
+        // 中文注释
         function renderRecyclerTable(data) {
             var tbody = $('#tblRecyclers tbody');
             tbody.empty();
@@ -1342,7 +1342,7 @@
             });
         }
 
-        // ======== Table: Users ========
+        // 中文注释
         function renderUserTable(data) {
             var tbody = $('#tblUsers tbody');
             tbody.empty();
@@ -1359,7 +1359,7 @@
             });
         }
 
-        // ======== Table: Region ========
+        // 中文注释
         function renderRegionTable(data) {
             var tbody = $('#tblRegion tbody');
             tbody.empty();
@@ -1374,7 +1374,7 @@
             });
         }
 
-        // ======== Table: Inventory ========
+        // 中文注释
         function renderInventoryTable(data) {
             var tbody = $('#tblInventory tbody');
             tbody.empty();
@@ -1387,7 +1387,7 @@
             });
         }
 
-        // ======== Helpers ========
+        // 中文注释
         function destroyChart(id) {
             if (charts[id]) { charts[id].destroy(); delete charts[id]; }
         }

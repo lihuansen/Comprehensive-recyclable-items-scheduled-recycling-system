@@ -670,7 +670,7 @@
     $(document).ready(function () {
         loadSummary();
         
-        // Bind contact transport button
+        // 中文注释
         $('#btnContactTransport').on('click', function() {
             showTransporterModal();
         });
@@ -679,19 +679,19 @@
             openAddItemModal();
         });
         
-        // Bind modal close events
+        // 中文注释
         $('#btnCloseModal').on('click', function() {
             closeTransporterModal();
         });
         
         $('#transporterModal').on('click', function(e) {
-            // Close only if clicking on the overlay itself, not the content
+            // 中文注释
             if (e.target.id === 'transporterModal') {
                 closeTransporterModal();
             }
         });
         
-        // Prevent clicks on modal content from closing modal
+        // 中文注释
         $('.modal-content').on('click', function(e) {
             e.stopPropagation();
         });
@@ -743,7 +743,7 @@
                 var errorMsg = '网络错误，请重试';
                 var detailedMsg = '';
                 
-                // Parse error response
+                // 中文注释
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMsg = xhr.responseJSON.message;
                     detailedMsg = xhr.responseJSON.message;
@@ -758,15 +758,15 @@
                             detailedMsg = jsonResponse.message || '未知错误';
                         }
                     } catch (e) {
-                        // Not JSON, possibly HTML error page
+                        // 中文注释
                         console.error('响应不是有效的JSON:', e);
                         detailedMsg = xhr.responseText.substring(0, 200);
                         
-                        // Check for common error patterns
+                        // 中文注释
                         if (xhr.status === 500) {
                             errorMsg = '服务器内部错误（状态: 500）';
                             
-                            // Try to extract error message from HTML
+                            // 中文注释
                             var match = xhr.responseText.match(/<title>(.*?)<\/title>/i);
                             if (match) {
                                 errorMsg += ' - ' + match[1];
@@ -790,7 +790,7 @@
                 console.error('详细信息:', detailedMsg);
                 showError(errorMsg);
                 
-                // Show detailed error in console for debugging
+                // 中文注释
                 if (detailedMsg && detailedMsg !== errorMsg) {
                     console.error('详细错误信息:', detailedMsg);
                 }
@@ -962,7 +962,7 @@
     }
 
     // 检查重量预警
-    var warningElement = null;  // Track warning element for efficient removal
+    var warningElement = null;  // 中文注释
     
     function checkWeightWarning(totalWeight) {
         // 移除现有的预警提示
@@ -1041,7 +1041,7 @@
                 for (var i = 0; i < fullStars; i++) {
                     ratingHtml += '<i class="glyphicon glyphicon-star"></i>';
                 }
-                // Show remaining empty stars (out of 5)
+                // 中文注释
                 var emptyStars = 5 - fullStars;
                 for (var i = 0; i < emptyStars; i++) {
                     ratingHtml += '<i class="glyphicon glyphicon-star-empty"></i>';
@@ -1069,14 +1069,14 @@
                 '</div>'
             );
             
-            // Add event listener with proper data binding for calling
+            // 中文注释
             card.find('.btn-call').on('click', function() {
                 var phone = $(this).data('phone');
                 var name = $(this).data('name');
                 callTransporter(phone, name);
             });
             
-            // Add event listener for selecting transporter
+            // 中文注释
             card.find('.btn-select-transporter').on('click', function() {
                 var id = $(this).data('id');
                 var name = $(this).data('name');

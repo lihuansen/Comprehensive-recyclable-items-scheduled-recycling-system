@@ -7,9 +7,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 邮箱登录视图模型
-    /// </summary>
+    // 中文注释
     public class EmailLoginViewModel
     {
         [Required(ErrorMessage = "邮箱不能为空")]

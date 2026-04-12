@@ -11,9 +11,9 @@ namespace recycling.DAL
         // 从配置文件获取数据库连接字符串
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        /// <summary>
+        // 中文注释
         /// 添加用户反馈
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) AddFeedback(UserFeedback feedback)
         {
             try
@@ -47,9 +47,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取所有反馈（管理员用）
-        /// </summary>
+        // 中文注释
         public List<UserFeedback> GetAllFeedbacks(string status = null, string feedbackType = null)
         {
             List<UserFeedback> feedbacks = new List<UserFeedback>();
@@ -119,9 +119,9 @@ namespace recycling.DAL
             return feedbacks;
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新反馈状态和管理员回复
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
         {
             try
@@ -130,7 +130,7 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // Build SQL dynamically based on what needs to be updated
+                    // 中文注释
                     string sql = "UPDATE UserFeedback SET UpdatedDate = @UpdatedDate";
                     
                     if (!string.IsNullOrEmpty(status))
@@ -138,7 +138,7 @@ namespace recycling.DAL
                         sql += ", Status = @Status";
                     }
                     
-                    if (adminReply != null) // Check for null, not empty, to allow clearing replies
+                    if (adminReply != null) // 中文注释
                     {
                         sql += ", AdminReply = @AdminReply";
                     }
@@ -171,9 +171,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取指定用户的所有反馈（用户端查看自己的反馈）
-        /// </summary>
+        // 中文注释
         public List<UserFeedback> GetUserFeedbacks(int userId)
         {
             List<UserFeedback> feedbacks = new List<UserFeedback>();
@@ -224,9 +224,9 @@ namespace recycling.DAL
             return feedbacks;
         }
 
-        /// <summary>
+        // 中文注释
         /// 根据反馈ID获取反馈详情
-        /// </summary>
+        // 中文注释
         public UserFeedback GetFeedbackById(int feedbackId)
         {
             try

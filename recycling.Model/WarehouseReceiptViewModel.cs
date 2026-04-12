@@ -3,157 +3,157 @@ using System.Collections.Generic;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 入库单视图模型
-    /// Warehouse Receipt View Model
-    /// </summary>
+    /// 中文注释
+    // 中文注释
     public class WarehouseReceiptViewModel
     {
-        /// <summary>
+        // 中文注释
         /// 入库单ID
-        /// </summary>
+        // 中文注释
         public int ReceiptID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 入库单号
-        /// </summary>
+        // 中文注释
         public string ReceiptNumber { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 运输单ID
-        /// </summary>
+        // 中文注释
         public int TransportOrderID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 运输单号
-        /// </summary>
+        // 中文注释
         public string TransportOrderNumber { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 回收员ID
-        /// </summary>
+        // 中文注释
         public int RecyclerID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 回收员姓名
-        /// </summary>
+        // 中文注释
         public string RecyclerName { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 基地人员ID
-        /// </summary>
+        // 中文注释
         public int WorkerID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 基地人员姓名
-        /// </summary>
+        // 中文注释
         public string WorkerName { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 入库总重量（kg）
-        /// </summary>
+        // 中文注释
         public decimal TotalWeight { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 物品类别（JSON格式）
-        /// </summary>
+        // 中文注释
         public string ItemCategories { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 状态
-        /// </summary>
+        // 中文注释
         public string Status { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 备注信息
-        /// </summary>
+        // 中文注释
         public string Notes { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 入库时间
-        /// </summary>
+        // 中文注释
         public DateTime CreatedDate { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 运输单指定的基地工作人员ID
-        /// Assigned worker ID from transport order
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public int? AssignedWorkerID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 是否已完成细分
-        /// </summary>
+        // 中文注释
         public bool IsRefined { get; set; }
     }
 
-    /// <summary>
+    // 中文注释
     /// 运输中通知视图模型
-    /// In-Transit Notification View Model
-    /// </summary>
+    /// 中文注释
+    // 中文注释
     public class TransportNotificationViewModel
     {
-        /// <summary>
+        // 中文注释
         /// 运输单ID
-        /// </summary>
+        // 中文注释
         public int TransportOrderID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 运输单号
-        /// </summary>
+        // 中文注释
         public string OrderNumber { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 回收员姓名
-        /// </summary>
+        // 中文注释
         public string RecyclerName { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 运输人员姓名
-        /// </summary>
+        // 中文注释
         public string TransporterName { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 预估重量
-        /// </summary>
+        // 中文注释
         public decimal EstimatedWeight { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 物品类别
-        /// </summary>
+        // 中文注释
         public string ItemCategories { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 创建时间
-        /// </summary>
+        // 中文注释
         public DateTime? CreatedDate { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 状态
-        /// </summary>
+        // 中文注释
         public string Status { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 指定的基地工作人员ID
-        /// Assigned sorting center worker ID
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public int? AssignedWorkerID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 基地联系人
-        /// Base contact person name
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public string BaseContactPerson { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 是否已创建入库单
-        /// Whether a warehouse receipt has already been created for this transport order
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public bool HasReceipt { get; set; }
     }
 
-    /// <summary>
+    // 中文注释
     /// 入库单细分页面视图模型
-    /// </summary>
+    // 中文注释
     public class WarehouseReceiptSubdivisionViewModel
     {
         public int ReceiptID { get; set; }
@@ -167,9 +167,9 @@ namespace recycling.Model
         public List<WarehouseReceiptCategoryItemViewModel> ExistingSubdivisions { get; set; } = new List<WarehouseReceiptCategoryItemViewModel>();
     }
 
-    /// <summary>
+    // 中文注释
     /// 入库单类别项
-    /// </summary>
+    // 中文注释
     public class WarehouseReceiptCategoryItemViewModel
     {
         public string CategoryKey { get; set; }
@@ -181,9 +181,9 @@ namespace recycling.Model
         public string ParentCategoryName { get; set; }
     }
 
-    /// <summary>
+    // 中文注释
     /// 细分模板分组（按大类）
-    /// </summary>
+    // 中文注释
     public class WarehouseSubdivisionTemplateGroupViewModel
     {
         public string ParentCategoryKey { get; set; }
@@ -191,9 +191,9 @@ namespace recycling.Model
         public List<WarehouseSubdivisionTemplateOptionViewModel> Options { get; set; } = new List<WarehouseSubdivisionTemplateOptionViewModel>();
     }
 
-    /// <summary>
+    // 中文注释
     /// 细分模板选项
-    /// </summary>
+    // 中文注释
     public class WarehouseSubdivisionTemplateOptionViewModel
     {
         public string SubCategoryKey { get; set; }

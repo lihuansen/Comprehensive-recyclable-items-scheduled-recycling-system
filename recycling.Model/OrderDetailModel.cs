@@ -28,25 +28,25 @@ namespace recycling.Model
         public bool CanContactRecycler { get; set; }
         public int UserID { get; set; }
         
-        /// <summary>
+        // 中文注释
         /// 回收员回退订单的原因（当状态为"已取消-回收员回退"时有值）
-        /// </summary>
+        // 中文注释
         public string RollbackReason { get; set; }
         
-        /// <summary>
+        // 中文注释
         /// 物品图片URL（多张图片以逗号分隔，最多6张）
-        /// </summary>
+        // 中文注释
         public string PictureUrl { get; set; }
         
-        /// <summary>
+        // 中文注释
         /// 品类详细信息列表（包含用户填写的问题答案）
-        /// </summary>
+        // 中文注释
         public List<CategoryDetailInfo> Categories { get; set; } = new List<CategoryDetailInfo>();
     }
 
-    /// <summary>
+    // 中文注释
     /// 品类详细信息
-    /// </summary>
+    // 中文注释
     public class CategoryDetailInfo
     {
         public string CategoryName { get; set; }

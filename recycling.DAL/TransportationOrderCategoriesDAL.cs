@@ -8,19 +8,19 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    /// <summary>
+    // 中文注释
     /// 运输单品类明细数据访问层
-    /// Transportation Order Categories Data Access Layer
-    /// </summary>
+    /// 中文注释
+    // 中文注释
     public class TransportationOrderCategoriesDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        /// <summary>
+        // 中文注释
         /// 批量插入运输单品类明细
-        /// Batch insert transportation order category details
-        /// Uses a single command with multiple value sets for better performance
-        /// </summary>
+        /// 中文注释
+        /// 中文注释
+        // 中文注释
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -33,9 +33,9 @@ namespace recycling.DAL
                 return;
             }
 
-            // Use bulk insert pattern for better performance
-            // Build the SQL with multiple value sets
-            const int batchSize = 100; // Process 100 records at a time
+            // 中文注释
+            // 中文注释
+            const int batchSize = 100; // 中文注释
             
             for (int i = 0; i < categories.Count; i += batchSize)
             {
@@ -78,10 +78,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输单的所有品类明细
-        /// Get all category details for a transportation order
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="transportOrderId">运输单ID</param>
         /// <returns>品类明细列表</returns>
         public List<TransportationOrderCategories> GetCategoriesByTransportOrderId(int transportOrderId)
@@ -133,10 +133,10 @@ namespace recycling.DAL
             return categories;
         }
 
-        /// <summary>
+        // 中文注释
         /// 删除运输单的所有品类明细
-        /// Delete all category details for a transportation order
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -153,10 +153,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查 TransportationOrderCategories 表是否存在
-        /// Check if TransportationOrderCategories table exists
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public bool TableExists()
         {
             try

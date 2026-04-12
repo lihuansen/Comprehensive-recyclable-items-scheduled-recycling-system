@@ -52,22 +52,22 @@ namespace recycling.Web.UI.Controllers
             public bool? IsActive { get; set; }
         }
 
-        // File upload constants
+        // 中文注释
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
         private static readonly string[] AllowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
 
-        /// <summary>
-        /// Helper method to return JSON with proper UTF-8 encoding
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         private ContentResult JsonContent(object data)
         {
             var json = JsonConvert.SerializeObject(data);
             return Content(json, "application/json", System.Text.Encoding.UTF8);
         }
 
-        /// <summary>
-        /// Extract model state validation errors as a single message.
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         private string GetModelStateErrorMessage()
         {
             var errors = string.Join("；", ModelState.Values
@@ -98,15 +98,15 @@ namespace recycling.Web.UI.Controllers
             };
         }
 
-        /// <summary>
-        /// Helper method to escape CSV fields (handles commas, quotes, newlines)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         private string EscapeCsvField(string field)
         {
             if (string.IsNullOrEmpty(field))
                 return string.Empty;
 
-            // If field contains comma, quote, or newline, wrap it in quotes and escape any quotes
+            // 中文注释
             if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
             {
                 return "\"" + field.Replace("\"", "\"\"") + "\"";
@@ -115,9 +115,9 @@ namespace recycling.Web.UI.Controllers
             return field;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取客户端IP地址
-        /// </summary>
+        // 中文注释
         private string GetClientIpAddress()
         {
             string ipAddress = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
@@ -128,9 +128,9 @@ namespace recycling.Web.UI.Controllers
             return ipAddress ?? "Unknown";
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取当前管理员信息
-        /// </summary>
+        // 中文注释
         private (int AdminID, string Username) GetCurrentAdmin()
         {
             if (Session["LoginStaff"] == null)
@@ -151,9 +151,9 @@ namespace recycling.Web.UI.Controllers
             return (0, null);
         }
 
-        /// <summary>
+        // 中文注释
         /// 记录管理员操作日志
-        /// </summary>
+        // 中文注释
         private void LogAdminOperation(string module, string operationType, string description, int? targetId = null, string targetName = null, string result = "Success", string details = null)
         {
             var (adminId, adminUsername) = GetCurrentAdmin();
@@ -163,9 +163,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 工作人员首页 - 重定向到专用首页
-        /// </summary>
+        // 中文注释
         public ActionResult Index()
         {
             if (Session["LoginStaff"] == null)
@@ -174,9 +174,9 @@ namespace recycling.Web.UI.Controllers
             return RedirectToAction("StaffIndex", "Home");
         }
 
-        /// <summary>
+        // 中文注释
         /// 显示工作人员登录页（与用户登录页逻辑一致）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult Login()
         {
@@ -192,9 +192,9 @@ namespace recycling.Web.UI.Controllers
             return View(model);
         }
 
-        /// <summary>
+        // 中文注释
         /// 处理工作人员登录提交（与用户登录处理逻辑一致）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Login(StaffLoginViewModel model)
@@ -245,9 +245,9 @@ namespace recycling.Web.UI.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        /// <summary>
+        // 中文注释
         /// 工作人员退出登录（与用户退出逻辑一致）
-        /// </summary>
+        // 中文注释
         public ActionResult Logout()
         {
             Session.Clear();
@@ -255,9 +255,9 @@ namespace recycling.Web.UI.Controllers
             return RedirectToAction("Login", "Staff");
         }
 
-        /// <summary>
+        // 中文注释
         /// 生成4位随机验证码（与User登录保持完全一致）
-        /// </summary>
+        // 中文注释
         private string GenerateCaptcha()
         {
             // 使用与用户登录完全相同的字符集和生成逻辑
@@ -267,9 +267,9 @@ namespace recycling.Web.UI.Controllers
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        /// <summary>
+        // 中文注释
         /// 回收员工作台
-        /// </summary>
+        // 中文注释
         public ActionResult RecyclerDashboard()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
@@ -283,9 +283,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员工作台
-        /// </summary>
+        // 中文注释
         public ActionResult AdminDashboard()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "admin")
@@ -299,9 +299,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员账号自我管理（无权限限制）
-        /// </summary>
+        // 中文注释
         public ActionResult AccountSelfManagement()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "admin")
@@ -315,9 +315,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员/超级管理员 - 获取自己的账号信息
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetSelfAccountInfo()
         {
@@ -377,9 +377,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员/超级管理员 - 更新自己的账号信息（仅限本人操作）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult UpdateSelfAccount(string fullName, string oldPassword, string newPassword)
@@ -494,9 +494,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Hash password using SHA256 (same as AdminBLL)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         private string HashPasswordSHA256(string password)
         {
             using (System.Security.Cryptography.SHA256 sha256Hash = System.Security.Cryptography.SHA256.Create())
@@ -511,9 +511,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员工作台
-        /// </summary>
+        // 中文注释
         public ActionResult SuperAdminDashboard()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "superadmin")
@@ -527,9 +527,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 运输人员工作台
-        /// </summary>
+        // 中文注释
         public ActionResult TransporterDashboard()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
@@ -543,9 +543,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 运输管理页面（运输人员端）
-        /// </summary>
+        // 中文注释
         public ActionResult TransportationManagement()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
@@ -558,9 +558,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输人员的运输单列表（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult GetTransporterOrders(string status)
@@ -612,8 +612,8 @@ namespace recycling.Web.UI.Controllers
                         o.ItemCategories,
                         o.SpecialInstructions,
                         o.Status,
-                        // Prefer Stage when present; fall back to TransportStage for backward compatibility
-                        // Use Stage if it has a value, otherwise use TransportStage
+                        // 中文注释
+                        // 中文注释
                         Stage = !string.IsNullOrEmpty(o.Stage) ? o.Stage : o.TransportStage,
                         CreatedDate = o.CreatedDate?.ToString("yyyy-MM-dd HH:mm") ?? "",
                         AcceptedDate = o.AcceptedDate?.ToString("yyyy-MM-dd HH:mm"),
@@ -629,9 +629,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 验证运输单权限的辅助方法
-        /// </summary>
+        // 中文注释
         private (bool success, string message, TransportationOrders order) ValidateTransportationOrderAccess(
             int orderId, 
             int transporterId, 
@@ -657,18 +657,18 @@ namespace recycling.Web.UI.Controllers
             return (true, null, order);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取有效的运输阶段（优先使用Stage列，回退到TransportStage列）
-        /// </summary>
+        // 中文注释
         private string GetEffectiveTransportStage(TransportationOrders order)
         {
-            // Prefer Stage column, fall back to TransportStage for backward compatibility
+            // 中文注释
             return !string.IsNullOrEmpty(order.Stage) ? order.Stage : order.TransportStage;
         }
 
-        /// <summary>
+        // 中文注释
         /// 接收运输单（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult AcceptTransportOrder(int orderId)
@@ -707,9 +707,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 开始运输（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult StartTransport(int orderId)
@@ -748,9 +748,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 完成运输（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult CompleteTransport(int orderId, decimal? actualWeight)
@@ -796,9 +796,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 确认收货地点（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult ConfirmPickupLocation(int orderId)
@@ -837,9 +837,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 到达收货地点（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult ArriveAtPickupLocation(int orderId)
@@ -887,9 +887,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 装货完毕（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult CompleteLoading(int orderId)
@@ -937,9 +937,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 确认送货地点（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult ConfirmDeliveryLocation(int orderId)
@@ -988,9 +988,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 到达送货地点（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult ArriveAtDeliveryLocation(int orderId)
@@ -1036,9 +1036,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 基地工作人员工作台
-        /// </summary>
+        // 中文注释
         public ActionResult SortingCenterWorkerDashboard()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
@@ -1052,9 +1052,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 回收员订单管理页面
-        /// </summary>
+        // 中文注释
         public ActionResult Recycler_OrderManagement()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
@@ -1070,9 +1070,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员订单列表（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult GetRecyclerOrders(OrderFilterModel filter)
         {
@@ -1099,9 +1099,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 接收订单
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult AcceptOrder(int appointmentId)
         {
@@ -1145,9 +1145,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员订单统计数据（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public JsonResult GetRecyclerOrderStatistics()
         {
@@ -1181,9 +1181,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 回收员回退订单
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult RollbackOrder(int appointmentId, string reason)
@@ -1229,9 +1229,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查超时订单（自动回退超过预约时间段的订单并通知用户）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult CheckExpiredOrders()
@@ -1261,10 +1261,10 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // <summary>
+        // 中文注释
         /// 消息中心页面（回收员端）
         /// 该方法返回视图，视图的 Model 为 List<RecyclerMessageViewModel>（每条为一条消息记录）
-        /// </summary>
+        // 中文注释
         public ActionResult Message_Center()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
@@ -1278,9 +1278,9 @@ namespace recycling.Web.UI.Controllers
             return View(messages);
         }
 
-        /// <summary>
+        // 中文注释
         /// 联系用户视图（回收员端）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult ContactUser(int orderId)
         {
@@ -1382,10 +1382,10 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 发送消息给用户（回收员端 AJAX）
         /// 前端只需要提供 OrderID 和 Content，后台会填充 SenderType/SenderID
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public ContentResult SendMessageToUser(SendMessageRequest request)
         {
@@ -1438,9 +1438,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 标记订单中对回收员可见的消息为已读（回收员已查看）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public ContentResult MarkMessagesAsRead(int orderId)
         {
@@ -1464,9 +1464,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员未读消息数量（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetRecyclerUnreadCount()
         {
@@ -1491,9 +1491,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员订单管理导航栏徽章数（待接单数量）
-        /// </summary>
+        // 中文注释
         public JsonResult GetRecyclerOrderNavBadgeCount()
         {
             try
@@ -1515,9 +1515,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员暂存点管理导航栏徽章数（暂存点明细数量）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public JsonResult GetRecyclerStoragePointNavBadgeCount()
         {
@@ -1542,9 +1542,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员用户评价导航栏徽章数（评价总数）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public JsonResult GetRecyclerReviewNavBadgeCount()
         {
@@ -1568,9 +1568,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输人员运输管理导航栏徽章数（待接单数量）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public JsonResult GetTransporterTransportationNavBadgeCount()
         {
@@ -1594,9 +1594,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取订单详情（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public ContentResult GetOrderDetail(int appointmentId)
         {
@@ -1871,9 +1871,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 暂存点管理页面 - 回收员端
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult StoragePointManagement()
         {
@@ -1898,10 +1898,10 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
-        /// Get storage point inventory summary for recycler (AJAX)
-        /// Simplified implementation: query directly from completed orders
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetStoragePointSummary()
@@ -1925,15 +1925,15 @@ namespace recycling.Web.UI.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"GetStoragePointSummary: 开始查询回收员 ID={staff.RecyclerID} 的库存数据");
 
-                // Use simplified implementation: query directly from order tables
+                // 中文注释
                 var storagePointBll = new StoragePointBLL();
 
-                // Get inventory summary for this recycler (grouped by category)
+                // 中文注释
                 var summary = storagePointBll.GetStoragePointSummary(staff.RecyclerID);
 
                 System.Diagnostics.Debug.WriteLine($"GetStoragePointSummary: 成功查询到 {summary.Count} 条汇总记录");
 
-                // Return success even if data is empty
+                // 中文注释
                 var result = summary.Select(s => new
                 {
                     categoryKey = s.CategoryKey,
@@ -1951,16 +1951,16 @@ namespace recycling.Web.UI.Controllers
                 System.Diagnostics.Debug.WriteLine($"详细信息: {sqlEx.Message}");
                 System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {sqlEx.StackTrace}");
                 
-                // Provide helpful error messages based on SQL error codes
+                // 中文注释
                 switch (sqlEx.Number)
                 {
-                    case 208: // Invalid object name
+                    case 208: // 中文注释
                         errorMsg = "数据库表不存在，请联系管理员检查数据库配置";
                         break;
-                    case 4060: // Cannot open database
+                    case 4060: // 中文注释
                         errorMsg = "无法连接到数据库，请检查数据库服务";
                         break;
-                    case 18456: // Login failed
+                    case 18456: // 中文注释
                         errorMsg = "数据库身份验证失败，请检查连接配置";
                         break;
                     default:
@@ -1980,10 +1980,10 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get storage point inventory details for recycler (AJAX)
-        /// Simplified implementation: query directly from completed orders
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetStoragePointDetail(string categoryKey = null)
@@ -2007,15 +2007,15 @@ namespace recycling.Web.UI.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"GetStoragePointDetail: 开始查询回收员 ID={staff.RecyclerID}, CategoryKey={categoryKey ?? "全部"} 的库存明细");
 
-                // Use simplified implementation: query directly from order tables
+                // 中文注释
                 var storagePointBll = new StoragePointBLL();
 
-                // Get inventory detail list for this recycler
+                // 中文注释
                 var detailList = storagePointBll.GetStoragePointDetail(staff.RecyclerID, categoryKey);
 
                 System.Diagnostics.Debug.WriteLine($"GetStoragePointDetail: 成功查询到 {detailList.Count} 条明细记录");
 
-                // Return success even if data is empty
+                // 中文注释
                 var result = detailList.Select(d => new
                 {
                     orderId = d.OrderID,
@@ -2036,16 +2036,16 @@ namespace recycling.Web.UI.Controllers
                 System.Diagnostics.Debug.WriteLine($"详细信息: {sqlEx.Message}");
                 System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {sqlEx.StackTrace}");
                 
-                // Provide helpful error messages based on SQL error codes
+                // 中文注释
                 switch (sqlEx.Number)
                 {
-                    case 208: // Invalid object name
+                    case 208: // 中文注释
                         errorMsg = "数据库表不存在，请联系管理员检查数据库配置";
                         break;
-                    case 4060: // Cannot open database
+                    case 4060: // 中文注释
                         errorMsg = "无法连接到数据库，请检查数据库服务";
                         break;
-                    case 18456: // Login failed
+                    case 18456: // 中文注释
                         errorMsg = "数据库身份验证失败，请检查连接配置";
                         break;
                     default:
@@ -2065,9 +2065,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 回收员手动添加暂存点物品（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult AddStoragePointItem(string categoryName, string categoryKey, decimal weight, decimal price)
@@ -2132,9 +2132,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get available transporters in the same region as the recycler (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetAvailableTransporters()
@@ -2154,13 +2154,13 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
                 }
 
-                // Check if recycler has a region assigned
+                // 中文注释
                 if (string.IsNullOrWhiteSpace(staff.Region))
                 {
                     return JsonContent(new { success = false, message = "您的账号未分配区域，请联系管理员" });
                 }
 
-                // Check if storage point has items
+                // 中文注释
                 var storagePointBLL = new StoragePointBLL();
                 var summary = storagePointBLL.GetStoragePointSummary(staff.RecyclerID);
                 bool hasStoragePointItems = summary != null && summary.Count > 0 && summary.Exists(s => s.TotalWeight > 0);
@@ -2169,7 +2169,7 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "暂存点没有物品，无需联系运输人员" });
                 }
 
-                // Get transporters in the same region who are active and available (excluding those already working)
+                // 中文注释
                 using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString))
                 {
                     conn.Open();
@@ -2190,8 +2190,8 @@ namespace recycling.Web.UI.Controllers
                     {
                         while (reader.Read())
                         {
-                            // SQL columns: TransporterID(0), Username(1), FullName(2), PhoneNumber(3), 
-                            //              Region(4), CurrentStatus(5), Available(6), Rating(7)
+                            // 中文注释
+                            // 中文注释
                             transporters.Add(new
                             {
                                 transporterId = reader.GetInt32(0),
@@ -2216,9 +2216,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取所有活跃的基地工作人员列表（用于运输单的基地联系人下拉选择）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetBaseStaffList()
@@ -2236,7 +2236,7 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "权限不足，仅回收员可访问" });
                 }
 
-                // Get all active base staff from SortingCenterWorkers table
+                // 中文注释
                 // 只返回状态为"空闲"的基地工作人员（工作中的人员不可被选择）
                 using (var conn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString))
                 {
@@ -2278,9 +2278,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 创建运输单
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult CreateTransportationOrder(int transporterId, string pickupAddress, 
@@ -2412,9 +2412,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 用户评价页面 - 回收员查看收到的评价
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult UserReviews()
         {
@@ -2435,9 +2435,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员的评价数据
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public ContentResult GetRecyclerReviews()
         {
@@ -2497,9 +2497,9 @@ namespace recycling.Web.UI.Controllers
 
         #region Admin - User Management
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 用户管理页面
-        /// </summary>
+        // 中文注释
         [AdminPermission(AdminPermissions.UserManagement)]
         public ActionResult UserManagement()
         {
@@ -2511,9 +2511,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取用户列表（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetUsers(int page = 1, int pageSize = 20, string searchTerm = null, string sortOrder = "ASC")
         {
@@ -2528,9 +2528,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取用户统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetUserStatistics()
         {
@@ -2545,9 +2545,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取用户数据看板统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetUserDashboardStatistics()
         {
@@ -2562,13 +2562,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 导出用户数据到CSV
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult ExportUsers(string searchTerm = null)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
             {
                 return RedirectToAction("Login", "Staff");
@@ -2576,22 +2576,22 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // Get all users without pagination for export
+                // 中文注释
                 var users = _adminBLL.GetAllUsersForExport(searchTerm);
 
-                // Create CSV content
+                // 中文注释
                 var csv = new System.Text.StringBuilder();
 
-                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                // 中文注释
                 csv.Append("\uFEFF");
 
-                // Add header
+                // 中文注释
                 csv.AppendLine("用户ID,用户名,邮箱,手机号,注册日期,最后登录日期,状态");
 
-                // Add data rows
+                // 中文注释
                 foreach (var user in users)
                 {
-                    // Determine user status
+                    // 中文注释
                     var isActive = user.LastLoginDate.HasValue &&
                                   (DateTime.Now - user.LastLoginDate.Value).TotalDays <= 30;
                     var status = isActive ? "活跃" : "不活跃";
@@ -2600,7 +2600,7 @@ namespace recycling.Web.UI.Controllers
                     csv.AppendLine($"{user.UserID},{EscapeCsvField(user.Username)},{EscapeCsvField(user.Email)},{EscapeCsvField(user.PhoneNumber)},{user.RegistrationDate:yyyy-MM-dd HH:mm:ss},{EscapeCsvField(lastLogin)},{EscapeCsvField(status)}");
                 }
 
-                // Generate file
+                // 中文注释
                 var fileName = $"用户数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
 
@@ -2620,9 +2620,9 @@ namespace recycling.Web.UI.Controllers
 
         #region Admin - Recycler Management
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 回收员管理页面
-        /// </summary>
+        // 中文注释
         [AdminPermission(AdminPermissions.RecyclerManagement)]
         public ActionResult RecyclerManagement()
         {
@@ -2634,9 +2634,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取回收员列表（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
@@ -2651,9 +2651,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取回收员列表（优化版，包含完成订单数和排序）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetRecyclersOptimized(int page = 1, int pageSize = 8, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
@@ -2668,9 +2668,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取回收员详情（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetRecyclerDetails(int recyclerId)
         {
@@ -2694,9 +2694,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 添加回收员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult AddRecycler(Recyclers recycler, string password)
         {
@@ -2722,9 +2722,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 更新回收员信息（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult UpdateRecycler(Recyclers recycler, string password)
         {
@@ -2745,9 +2745,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 删除回收员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult DeleteRecycler(int recyclerId)
         {
@@ -2770,9 +2770,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取回收员统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetRecyclerStatistics()
         {
@@ -2787,15 +2787,15 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取回收员数据看板统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetRecyclerDashboardStatistics()
         {
             try
             {
-                // Permission check
+                // 中文注释
                 if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
                 {
                     return JsonContent(new { success = false, message = "权限不足" });
@@ -2810,13 +2810,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 导出回收员数据到CSV
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult ExportRecyclers(string searchTerm = null, bool? isActive = null)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
             {
                 return RedirectToAction("Login", "Staff");
@@ -2824,22 +2824,22 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // Get all recyclers without pagination for export
+                // 中文注释
                 var recyclers = _adminBLL.GetAllRecyclersForExport(searchTerm, isActive);
 
-                // Create CSV content
+                // 中文注释
                 var csv = new System.Text.StringBuilder();
 
-                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                // 中文注释
                 csv.Append("\uFEFF");
 
-                // Add header
+                // 中文注释
                 csv.AppendLine("回收员ID,用户名,姓名,手机号,区域,评分,完成订单数,是否可接单,账号状态,注册日期");
 
-                // Add data rows
+                // 中文注释
                 foreach (var recycler in recyclers)
                 {
-                    // Get completed orders count
+                    // 中文注释
                     var completedOrders = _adminBLL.GetRecyclerCompletedOrdersCount(recycler.RecyclerID);
                     var availableStatus = (recycler.Available ?? false) ? "可接单" : "不可接单";
                     var activeStatus = (recycler.IsActive ?? false) ? "激活" : "禁用";
@@ -2848,7 +2848,7 @@ namespace recycling.Web.UI.Controllers
                     csv.AppendLine($"{recycler.RecyclerID},{EscapeCsvField(recycler.Username)},{EscapeCsvField(recycler.FullName ?? "-")},{EscapeCsvField(recycler.PhoneNumber)},{EscapeCsvField(recycler.Region)},{EscapeCsvField(recycler.Rating?.ToString("F1") ?? "0.0")},{completedOrders},{EscapeCsvField(availableStatus)},{EscapeCsvField(activeStatus)},{EscapeCsvField(createdDate)}");
                 }
 
-                // Generate file
+                // 中文注释
                 var fileName = $"回收员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
 
@@ -2868,9 +2868,9 @@ namespace recycling.Web.UI.Controllers
 
         #region Admin - Order Management
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 订单管理页面
-        /// </summary>
+        // 中文注释
         public ActionResult OrderManagement()
         {
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
@@ -2881,9 +2881,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取订单列表（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
         {
@@ -2898,9 +2898,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取订单统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetOrderStatistics()
         {
@@ -2919,9 +2919,9 @@ namespace recycling.Web.UI.Controllers
 
         #region SuperAdmin - Data Dashboard
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 数据看板页面
-        /// </summary>
+        // 中文注释
         public ActionResult DataDashboard()
         {
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
@@ -2935,13 +2935,13 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 获取数据看板统计数据（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetDashboardStatistics()
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return JsonContent(new { success = false, message = "权限不足" });
@@ -2962,9 +2962,9 @@ namespace recycling.Web.UI.Controllers
 
         #region SuperAdmin - Admin Management
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 管理员管理页面
-        /// </summary>
+        // 中文注释
         public ActionResult AdminManagement()
         {
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
@@ -2975,13 +2975,13 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 获取管理员列表（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return JsonContent(new { success = false, message = "权限不足" });
@@ -2998,13 +2998,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 获取管理员详情（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetAdminDetails(int adminId)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return JsonContent(new { success = false, message = "权限不足" });
@@ -3024,13 +3024,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 添加管理员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult AddAdmin(Admins admin, string password)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return Json(new { success = false, message = "权限不足" });
@@ -3058,13 +3058,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 更新管理员信息（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult UpdateAdmin(Admins admin)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return Json(new { success = false, message = "权限不足" });
@@ -3087,13 +3087,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 删除管理员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult DeleteAdmin(int adminId)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return Json(new { success = false, message = "权限不足" });
@@ -3118,13 +3118,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 获取管理员统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetAdminStatistics()
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return JsonContent(new { success = false, message = "权限不足" });
@@ -3141,13 +3141,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 获取管理员数据看板统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetAdminDashboardStatistics()
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return JsonContent(new { success = false, message = "权限不足" });
@@ -3164,13 +3164,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 导出管理员数据到CSV
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult ExportAdmins(string searchTerm = null, bool? isActive = null)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return RedirectToAction("Login", "Staff");
@@ -3178,19 +3178,19 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // Get all admins without pagination for export
+                // 中文注释
                 var admins = _adminBLL.GetAllAdminsForExport(searchTerm, isActive);
 
-                // Create CSV content
+                // 中文注释
                 var csv = new System.Text.StringBuilder();
 
-                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                // 中文注释
                 csv.Append("\uFEFF");
 
-                // Add header
+                // 中文注释
                 csv.AppendLine("管理员ID,用户名,姓名,创建日期,最后登录日期,账号状态");
 
-                // Add data rows
+                // 中文注释
                 foreach (var admin in admins)
                 {
                     var createdDate = admin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
@@ -3200,7 +3200,7 @@ namespace recycling.Web.UI.Controllers
                     csv.AppendLine($"{admin.AdminID},{EscapeCsvField(admin.Username)},{EscapeCsvField(admin.FullName)},{EscapeCsvField(createdDate)},{EscapeCsvField(lastLoginDate)},{EscapeCsvField(activeStatus)}");
                 }
 
-                // Generate file
+                // 中文注释
                 var fileName = $"管理员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
 
@@ -3220,9 +3220,9 @@ namespace recycling.Web.UI.Controllers
 
         #region SuperAdmin - SuperAdmin Account Management
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 超级管理员账号管理页面
-        /// </summary>
+        // 中文注释
         public ActionResult SuperAdminAccountManagement()
         {
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
@@ -3233,13 +3233,13 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 获取超级管理员列表（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetSuperAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return JsonContent(new { success = false, message = "权限不足" });
@@ -3256,13 +3256,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 获取超级管理员详情（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetSuperAdminDetails(int superAdminId)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return JsonContent(new { success = false, message = "权限不足" });
@@ -3282,13 +3282,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 添加超级管理员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult AddSuperAdmin(SuperAdmins superAdmin, string password)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return Json(new { success = false, message = "权限不足" });
@@ -3316,13 +3316,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 更新超级管理员信息（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult UpdateSuperAdmin(SuperAdmins superAdmin)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return Json(new { success = false, message = "权限不足" });
@@ -3345,13 +3345,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 删除超级管理员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         public JsonResult DeleteSuperAdmin(int superAdminId)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return Json(new { success = false, message = "权限不足" });
@@ -3376,13 +3376,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 获取超级管理员统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetSuperAdminStatistics()
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return JsonContent(new { success = false, message = "权限不足" });
@@ -3399,13 +3399,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 超级管理员 - 导出超级管理员数据到CSV
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult ExportSuperAdmins(string searchTerm = null, bool? isActive = null)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "superadmin")
             {
                 return RedirectToAction("Login", "Staff");
@@ -3413,19 +3413,19 @@ namespace recycling.Web.UI.Controllers
 
             try
             {
-                // Get all super admins without pagination for export
+                // 中文注释
                 var superAdmins = _superAdminBLL.GetAllSuperAdminsForExport(searchTerm, isActive);
 
-                // Create CSV content
+                // 中文注释
                 var csv = new System.Text.StringBuilder();
 
-                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                // 中文注释
                 csv.Append("\uFEFF");
 
-                // Add header
+                // 中文注释
                 csv.AppendLine("超级管理员ID,用户名,姓名,创建日期,最后登录日期,账号状态");
 
-                // Add data rows
+                // 中文注释
                 foreach (var superAdmin in superAdmins)
                 {
                     var createdDate = superAdmin.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-";
@@ -3435,7 +3435,7 @@ namespace recycling.Web.UI.Controllers
                     csv.AppendLine($"{superAdmin.SuperAdminID},{EscapeCsvField(superAdmin.Username)},{EscapeCsvField(superAdmin.FullName)},{EscapeCsvField(createdDate)},{EscapeCsvField(lastLoginDate)},{EscapeCsvField(activeStatus)}");
                 }
 
-                // Generate file
+                // 中文注释
                 var fileName = $"超级管理员数据_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
 
@@ -3455,9 +3455,9 @@ namespace recycling.Web.UI.Controllers
 
         #region Admin Homepage Management
 
-        /// <summary>
-        /// Admin homepage management index page
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult HomepageManagement()
         {
@@ -3477,9 +3477,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
-        /// Admin homepage carousel management page
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult HomepageCarouselManagement()
         {
@@ -3499,9 +3499,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
-        /// Get carousel list (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetCarouselList(int page = 1, int pageSize = 20)
@@ -3520,9 +3520,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get carousel by ID (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetCarousel(int id)
@@ -3544,9 +3544,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Add carousel item (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult AddCarousel(HomepageCarousel carousel, HttpPostedFileBase MediaFile)
@@ -3560,10 +3560,10 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
-                // Validate and handle file upload
+                // 中文注释
                 if (MediaFile != null && MediaFile.ContentLength > 0)
                 {
-                    // Validate file type
+                    // 中文注释
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
 
                     if (carousel.MediaType == "Image")
@@ -3585,11 +3585,11 @@ namespace recycling.Web.UI.Controllers
                         return JsonContent(new { success = false, message = "无效的媒体类型" });
                     }
 
-                    // Generate unique filename
+                    // 中文注释
                     string fileName = Guid.NewGuid().ToString() + fileExtension;
                     string uploadPath = Server.MapPath("~/Uploads/Carousel/");
 
-                    // Create directory if it doesn't exist
+                    // 中文注释
                     if (!System.IO.Directory.Exists(uploadPath))
                     {
                         System.IO.Directory.CreateDirectory(uploadPath);
@@ -3598,7 +3598,7 @@ namespace recycling.Web.UI.Controllers
                     string filePath = System.IO.Path.Combine(uploadPath, fileName);
                     MediaFile.SaveAs(filePath);
 
-                    // Set MediaUrl to relative path
+                    // 中文注释
                     carousel.MediaUrl = "/Uploads/Carousel/" + fileName;
                 }
                 else
@@ -3606,7 +3606,7 @@ namespace recycling.Web.UI.Controllers
                     return JsonContent(new { success = false, message = "请选择要上传的文件" });
                 }
 
-                // Get admin ID
+                // 中文注释
                 int adminId = 0;
                 if (staffRole == "admin")
                     adminId = ((Admins)Session["LoginStaff"]).AdminID;
@@ -3631,9 +3631,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Update carousel item (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult UpdateCarousel(HomepageCarousel carousel, HttpPostedFileBase MediaFile)
@@ -3647,10 +3647,10 @@ namespace recycling.Web.UI.Controllers
                 if (staffRole != "admin" && staffRole != "superadmin")
                     return JsonContent(new { success = false, message = "权限不足" });
 
-                // Handle file upload if provided
+                // 中文注释
                 if (MediaFile != null && MediaFile.ContentLength > 0)
                 {
-                    // Validate file type
+                    // 中文注释
                     string fileExtension = System.IO.Path.GetExtension(MediaFile.FileName).ToLower();
 
                     if (carousel.MediaType == "Image")
@@ -3672,27 +3672,27 @@ namespace recycling.Web.UI.Controllers
                         return JsonContent(new { success = false, message = "无效的媒体类型" });
                     }
 
-                    // Get old file path to delete later
+                    // 中文注释
                     var oldCarousel = _carouselBLL.GetById(carousel.CarouselID);
                     string oldFilePath = null;
                     if (oldCarousel != null && !string.IsNullOrEmpty(oldCarousel.MediaUrl) && oldCarousel.MediaUrl.StartsWith("/Uploads/Carousel/"))
                     {
-                        // Map the relative path and validate it's within our upload directory
+                        // 中文注释
                         string mappedPath = Server.MapPath("~" + oldCarousel.MediaUrl);
                         string uploadDir = Server.MapPath("~/Uploads/Carousel/");
 
-                        // Ensure the resolved path is actually within the upload directory
+                        // 中文注释
                         if (mappedPath.StartsWith(uploadDir, StringComparison.OrdinalIgnoreCase))
                         {
                             oldFilePath = mappedPath;
                         }
                     }
 
-                    // Generate unique filename
+                    // 中文注释
                     string fileName = Guid.NewGuid().ToString() + fileExtension;
                     string uploadPath = Server.MapPath("~/Uploads/Carousel/");
 
-                    // Create directory if it doesn't exist
+                    // 中文注释
                     if (!System.IO.Directory.Exists(uploadPath))
                     {
                         System.IO.Directory.CreateDirectory(uploadPath);
@@ -3701,10 +3701,10 @@ namespace recycling.Web.UI.Controllers
                     string filePath = System.IO.Path.Combine(uploadPath, fileName);
                     MediaFile.SaveAs(filePath);
 
-                    // Set MediaUrl to relative path
+                    // 中文注释
                     carousel.MediaUrl = "/Uploads/Carousel/" + fileName;
 
-                    // Delete old file if it exists
+                    // 中文注释
                     if (!string.IsNullOrEmpty(oldFilePath) && System.IO.File.Exists(oldFilePath))
                     {
                         try
@@ -3713,19 +3713,19 @@ namespace recycling.Web.UI.Controllers
                         }
                         catch (System.IO.IOException ex)
                         {
-                            // Log file deletion error but continue - file may be in use
+                            // 中文注释
                             System.Diagnostics.Debug.WriteLine($"Failed to delete old carousel file: {ex.Message}");
                         }
                         catch (UnauthorizedAccessException ex)
                         {
-                            // Log permission error but continue
+                            // 中文注释
                             System.Diagnostics.Debug.WriteLine($"No permission to delete old carousel file: {ex.Message}");
                         }
                     }
                 }
                 else
                 {
-                    // Keep existing MediaUrl if no new file is uploaded
+                    // 中文注释
                     var existingCarousel = _carouselBLL.GetById(carousel.CarouselID);
                     if (existingCarousel != null)
                     {
@@ -3751,9 +3751,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Delete carousel item (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult DeleteCarousel(int id)
@@ -3771,7 +3771,7 @@ namespace recycling.Web.UI.Controllers
                 var carousel = _carouselBLL.GetById(id);
                 string carouselTitle = carousel?.Title ?? $"ID:{id}";
 
-                // Use HardDelete to permanently remove from database
+                // 中文注释
                 var (success, message) = _carouselBLL.HardDelete(id);
                 
                 // 记录操作日志
@@ -3791,9 +3791,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get maximum DisplayOrder for carousel (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetMaxCarouselOrder()
@@ -3812,9 +3812,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Admin recyclable items management page
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult RecyclableItemsManagement()
         {
@@ -3834,9 +3834,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
-        /// Get recyclable items list (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetRecyclableItemsList(int page = 1, int pageSize = 20)
@@ -3860,9 +3860,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get recyclable item by ID (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetRecyclableItem(int id)
@@ -3884,9 +3884,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Add recyclable item (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult AddRecyclableItem(RecyclableItemInputModel input)
@@ -3930,9 +3930,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Update recyclable item (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult UpdateRecyclableItem(RecyclableItemInputModel input)
@@ -3976,9 +3976,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Delete recyclable item (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult DeleteRecyclableItem(int id)
@@ -3996,7 +3996,7 @@ namespace recycling.Web.UI.Controllers
                 var item = _recyclableItemBLL.GetById(id);
                 string itemName = item?.Name ?? $"ID:{id}";
 
-                // Use HardDelete instead of soft delete
+                // 中文注释
                 var (success, message) = _recyclableItemBLL.HardDelete(id);
                 
                 // 记录操作日志
@@ -4010,9 +4010,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get maximum SortOrder for recyclable items (AJAX)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetMaxRecyclableItemOrder()
@@ -4035,9 +4035,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 反馈管理功能
 
-        /// <summary>
+        // 中文注释
         /// 反馈管理页面
-        /// </summary>
+        // 中文注释
         [HttpGet]
         [AdminPermission(AdminPermissions.FeedbackManagement)]
         public ActionResult FeedbackManagement()
@@ -4058,9 +4058,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取所有反馈列表（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetAllFeedbacks(string status, string feedbackType)
@@ -4090,9 +4090,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新反馈状态（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
@@ -4144,9 +4144,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 日志管理功能
 
-        /// <summary>
+        // 中文注释
         /// 日志管理页面
-        /// </summary>
+        // 中文注释
         [HttpGet]
         [AdminPermission(AdminPermissions.LogManagement)]
         public ActionResult LogManagement()
@@ -4167,9 +4167,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取操作日志列表（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetOperationLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, string startDate = null, string endDate = null, string searchTerm = null)
@@ -4197,7 +4197,7 @@ namespace recycling.Web.UI.Controllers
                 }
                 if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out DateTime endParsed))
                 {
-                    end = endParsed.AddDays(1).AddSeconds(-1); // Include the entire end day
+                    end = endParsed.AddDays(1).AddSeconds(-1); // 中文注释
                 }
 
                 var logs = _operationLogBLL.GetLogs(page, pageSize, module, operationType, start, end, searchTerm);
@@ -4210,9 +4210,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取日志统计信息（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetLogStatistics()
         {
@@ -4239,13 +4239,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 导出操作日志
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult ExportOperationLogs(string module = null, string operationType = null, string startDate = null, string endDate = null, string searchTerm = null)
         {
-            // Permission check
+            // 中文注释
             if (Session["StaffRole"] == null || (Session["StaffRole"].ToString() != "admin" && Session["StaffRole"].ToString() != "superadmin"))
             {
                 return RedirectToAction("Login", "Staff");
@@ -4267,16 +4267,16 @@ namespace recycling.Web.UI.Controllers
 
                 var logs = _operationLogBLL.GetLogsForExport(module, operationType, start, end, searchTerm);
 
-                // Create CSV content
+                // 中文注释
                 var csv = new System.Text.StringBuilder();
 
-                // Add UTF-8 BOM for proper Excel display of Chinese characters
+                // 中文注释
                 csv.Append("\uFEFF");
 
-                // Add header
+                // 中文注释
                 csv.AppendLine("日志ID,操作时间,管理员ID,管理员用户名,模块,操作类型,操作描述,目标ID,目标名称,IP地址,结果");
 
-                // Add data rows
+                // 中文注释
                 foreach (var log in logs)
                 {
                     var moduleDisplay = OperationLogBLL.GetModuleDisplayName(log.Module);
@@ -4286,7 +4286,7 @@ namespace recycling.Web.UI.Controllers
                     csv.AppendLine($"{log.LogID},{EscapeCsvField(log.OperationTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "")},{log.AdminID},{EscapeCsvField(log.AdminUsername)},{EscapeCsvField(moduleDisplay)},{EscapeCsvField(operationDisplay)},{EscapeCsvField(log.Description)},{log.TargetID},{EscapeCsvField(log.TargetName)},{EscapeCsvField(log.IPAddress)},{EscapeCsvField(resultDisplay)}");
                 }
 
-                // Generate file
+                // 中文注释
                 var fileName = $"操作日志_{DateTime.Now:yyyyMMddHHmmss}.csv";
                 var fileBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
 
@@ -4306,9 +4306,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 运输人员管理功能
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 运输人员管理页面
-        /// </summary>
+        // 中文注释
         [AdminPermission(AdminPermissions.TransporterManagement)]
         public ActionResult TransporterManagement()
         {
@@ -4320,9 +4320,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取运输人员列表（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
@@ -4337,9 +4337,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取运输人员详情（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetTransporterDetails(int transporterId)
         {
@@ -4357,9 +4357,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 添加运输人员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult AddTransporter(Transporters transporter, string password)
@@ -4385,9 +4385,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 更新运输人员信息（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult UpdateTransporter(Transporters transporter, string password)
@@ -4408,9 +4408,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 删除运输人员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult DeleteTransporter(int transporterId)
@@ -4432,9 +4432,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取运输人员统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetTransporterStatistics()
         {
@@ -4449,15 +4449,15 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取运输人员数据看板统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetTransporterDashboardStatistics()
         {
             try
             {
-                // Permission check
+                // 中文注释
                 if (Session["StaffRole"] == null || Session["StaffRole"].ToString() != "admin")
                 {
                     return JsonContent(new { success = false, message = "权限不足" });
@@ -4472,9 +4472,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 导出运输人员数据到CSV
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult ExportTransporters(string searchTerm = null, bool? isActive = null)
         {
@@ -4518,9 +4518,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 基地人员管理功能
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 基地人员管理页面
-        /// </summary>
+        // 中文注释
         [AdminPermission(AdminPermissions.SortingCenterWorkerManagement)]
         public ActionResult SortingCenterWorkerManagement()
         {
@@ -4532,9 +4532,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取基地人员列表（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
@@ -4549,9 +4549,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取基地人员详情（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetSortingCenterWorkerDetails(int workerId)
         {
@@ -4569,9 +4569,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 添加基地人员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult AddSortingCenterWorker(SortingCenterWorkers worker, string password)
@@ -4597,9 +4597,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 更新基地人员信息（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult UpdateSortingCenterWorker(SortingCenterWorkers worker, string password)
@@ -4620,9 +4620,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 删除基地人员（API）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult DeleteSortingCenterWorker(int workerId)
@@ -4644,9 +4644,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取基地人员统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetSortingCenterWorkerStatistics()
         {
@@ -4661,9 +4661,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 获取基地人员数据看板统计信息（API）
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ContentResult GetSortingCenterWorkerDashboardStatistics()
         {
@@ -4683,9 +4683,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 管理员 - 导出基地人员数据到CSV
-        /// </summary>
+        // 中文注释
         [HttpGet]
         public ActionResult ExportSortingCenterWorkers(string searchTerm = null, bool? isActive = null)
         {
@@ -4729,9 +4729,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 回收员账号管理功能
 
-        /// <summary>
+        // 中文注释
         /// 回收员 - 个人中心页面
-        /// </summary>
+        // 中文注释
         public ActionResult RecyclerProfile()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
@@ -4754,9 +4754,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 运输人员账号管理功能
 
-        /// <summary>
+        // 中文注释
         /// 运输人员 - 个人中心页面
-        /// </summary>
+        // 中文注释
         public ActionResult TransporterProfile()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
@@ -4779,9 +4779,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 基地工作人员账号管理
 
-        /// <summary>
+        // 中文注释
         /// 基地工作人员 - 个人中心
-        /// </summary>
+        // 中文注释
         public ActionResult SortingCenterWorkerProfile()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
@@ -4804,9 +4804,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 工作人员头像管理
 
-        /// <summary>
+        // 中文注释
         /// 工作人员上传自定义头像（所有角色通用）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult UploadStaffAvatar(HttpPostedFileBase avatarFile)
@@ -4912,9 +4912,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 工作人员设置默认头像（所有角色通用）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult SetStaffDefaultAvatar(string avatarName)
@@ -4991,9 +4991,9 @@ namespace recycling.Web.UI.Controllers
 
         #region 基地管理功能
 
-        /// <summary>
+        // 中文注释
         /// 基地管理主页
-        /// </summary>
+        // 中文注释
         public ActionResult BaseManagement()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
@@ -5007,9 +5007,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 基地运输管理页面（查看运输中的订单）
-        /// </summary>
+        // 中文注释
         public ActionResult BaseTransportationManagement()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
@@ -5023,9 +5023,9 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// <summary>
+        // 中文注释
         /// 基地工作人员 - 消息中心页面
-        /// </summary>
+        // 中文注释
         public ActionResult SortingCenterWorkerMessageCenter(int page = 1)
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
@@ -5062,9 +5062,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取基地工作人员未读通知数量（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetBaseStaffUnreadNotificationCount()
@@ -5089,9 +5089,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 标记基地工作人员通知为已读（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult MarkBaseStaffNotificationAsRead(int notificationId)
@@ -5123,9 +5123,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 标记所有基地工作人员通知为已读（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult MarkAllBaseStaffNotificationsAsRead()
@@ -5157,9 +5157,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 删除基地工作人员通知（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult DeleteBaseStaffNotification(int notificationId)
@@ -5191,9 +5191,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输中的订单列表（AJAX）- 仅返回指定给当前工作人员的订单
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetInTransitOrders()
@@ -5215,9 +5215,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取已完成的运输单列表（AJAX）- 用于仓库管理
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetCompletedTransportOrders()
@@ -5238,9 +5238,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 基地仓库管理页面（入库单管理）
-        /// </summary>
+        // 中文注释
         public ActionResult BaseWarehouseManagement()
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
@@ -5295,9 +5295,9 @@ namespace recycling.Web.UI.Controllers
             return View(viewModel);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取入库单列表（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetWarehouseReceipts(int page = 1, int pageSize = 20, string status = null)
@@ -5320,9 +5320,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 创建入库单（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult CreateWarehouseReceipt(int transportOrderId, decimal totalWeight, string itemCategories, string notes)
@@ -5373,9 +5373,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查运输单是否已创建入库单（AJAX）
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult CheckWarehouseReceipt(int transportOrderId)
@@ -5396,9 +5396,9 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 入库单细分页面
-        /// </summary>
+        // 中文注释
         public ActionResult WarehouseReceiptSubdivision(int receiptId)
         {
             if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "sortingcenterworker")
@@ -5460,9 +5460,9 @@ namespace recycling.Web.UI.Controllers
             return View(viewModel);
         }
 
-        /// <summary>
+        // 中文注释
         /// 保存入库单细分结果
-        /// </summary>
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult SaveWarehouseReceiptSubdivision(int receiptId, string subdivisionsJson)
@@ -5484,10 +5484,10 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 处理入库单入库（AJAX）
-        /// Process warehouse receipt warehousing
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult ProcessWarehouseReceipt(int receiptId)
@@ -5617,10 +5617,10 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取基地仓库库存汇总信息（AJAX）
-        /// Get warehouse inventory summary for base staff
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetBaseWarehouseInventorySummary()
@@ -5652,10 +5652,10 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取仓库库存明细 - 基地工作人员端（AJAX）
-        /// Get warehouse inventory detail for base staff
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetBaseWarehouseInventoryDetail(int page = 1, int pageSize = 8, string categoryKey = null)
@@ -5682,9 +5682,9 @@ namespace recycling.Web.UI.Controllers
         #endregion
     }
 
-    /// <summary>
+    // 中文注释
     /// 回收员核实订单时填写的单条品类信息
-    /// </summary>
+    // 中文注释
     public class VerificationItem
     {
         public string CategoryKey { get; set; }

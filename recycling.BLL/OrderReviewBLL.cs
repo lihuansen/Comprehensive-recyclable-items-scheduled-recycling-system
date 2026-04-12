@@ -12,9 +12,9 @@ namespace recycling.BLL
     {
         private readonly OrderReviewDAL _reviewDAL = new OrderReviewDAL();
 
-        /// <summary>
+        // 中文注释
         /// 添加订单评价
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) AddReview(int orderId, int userId, int recyclerId, int starRating, string reviewText, string pictureUrl = null)
         {
             if (orderId <= 0 || userId <= 0 || recyclerId <= 0)
@@ -66,41 +66,41 @@ namespace recycling.BLL
             return success ? (true, "评价成功") : (false, "评价失败");
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查订单是否已评价
-        /// </summary>
+        // 中文注释
         public bool HasReviewed(int orderId, int userId)
         {
             return _reviewDAL.HasReviewed(orderId, userId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取订单评价
-        /// </summary>
+        // 中文注释
         public OrderReviews GetReview(int orderId)
         {
             return _reviewDAL.GetReview(orderId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员收到的所有评价
-        /// </summary>
+        // 中文注释
         public List<OrderReviews> GetReviewsByRecyclerId(int recyclerId)
         {
             return _reviewDAL.GetReviewsByRecyclerId(recyclerId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员的平均评分和评价总数
-        /// </summary>
+        // 中文注释
         public (decimal AverageRating, int TotalReviews) GetRecyclerRatingSummary(int recyclerId)
         {
             return _reviewDAL.GetRecyclerRatingSummary(recyclerId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员评价的星级分布
-        /// </summary>
+        // 中文注释
         public Dictionary<int, int> GetRecyclerRatingDistribution(int recyclerId)
         {
             return _reviewDAL.GetRecyclerRatingDistribution(recyclerId);

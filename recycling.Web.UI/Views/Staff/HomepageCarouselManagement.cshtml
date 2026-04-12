@@ -240,7 +240,7 @@
         var pageSize = 10;
         var isEditMode = false;
 
-        // Helper function to get anti-forgery token
+        // 中文注释
         function getAntiForgeryToken() {
             return $('input[name="__RequestVerificationToken"]').val();
         }
@@ -317,21 +317,21 @@
             pagination.empty();
 
             var totalPages = Math.ceil(data.TotalCount / pageSize);
-            pagination.data('total', data.TotalCount); // Store for validation
+            pagination.data('total', data.TotalCount); // 中文注释
 
             if (totalPages <= 1) return;
 
-            // Previous button
+            // 中文注释
             pagination.append('<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
                 '<a class="page-link" href="#" onclick="changePage(' + (currentPage - 1) + ')">上一页</a></li>');
 
-            // Page numbers
+            // 中文注释
             for (var i = 1; i <= totalPages; i++) {
                 pagination.append('<li class="page-item ' + (i === currentPage ? 'active' : '') + '">' +
                     '<a class="page-link" href="#" onclick="changePage(' + i + ')">' + i + '</a></li>');
             }
 
-            // Next button
+            // 中文注释
             pagination.append('<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
                 '<a class="page-link" href="#" onclick="changePage(' + (currentPage + 1) + ')">下一页</a></li>');
         }
@@ -350,7 +350,7 @@
             $('#carouselId').val('0');
             $('#currentMediaUrl').hide();
             
-            // Get max display order and set to max + 1
+            // 中文注释
             $.ajax({
                 url: '@Url.Action("GetMaxCarouselOrder", "Staff")',
                 type: 'POST',
@@ -404,7 +404,7 @@
                         $('#displayOrder').val(item.DisplayOrder);
                         $('#isActive').val(item.IsActive.toString());
                         
-                        // Show current media URL
+                        // 中文注释
                         $('#currentMediaPath').text(item.MediaUrl);
                         $('#currentMediaUrl').show();
                         
@@ -420,13 +420,13 @@
         }
 
         function saveCarousel() {
-            // Validate media type
+            // 中文注释
             if (!$('#mediaType').val()) {
                 alert('请选择媒体类型');
                 return;
             }
 
-            // For new items, file is required
+            // 中文注释
             if (!isEditMode && !$('#mediaFile')[0].files.length) {
                 alert('请选择要上传的文件');
                 return;
@@ -441,7 +441,7 @@
             formData.append('IsActive', $('#isActive').val());
             formData.append('__RequestVerificationToken', getAntiForgeryToken());
             
-            // Add file if selected
+            // 中文注释
             if ($('#mediaFile')[0].files.length > 0) {
                 formData.append('MediaFile', $('#mediaFile')[0].files[0]);
             }

@@ -819,32 +819,32 @@
     var selectedOrderId = null;
     
     // 当前登录的基地工作人员ID（用于权限判断）
-    // Current logged-in sorting center worker ID (for permission checks)
+    // 中文注释
     var currentWorkerID = @(((recycling.Model.SortingCenterWorkers)Session["LoginStaff"]).WorkerID);
     
     /**
      * 运输单数据缓存
-     * Cache for transport order data to avoid storing JSON in HTML attributes
+      * 中文注释
      * 
-     * @@type {Object.<number, Object>}
-     * @@description Stores complete transport order data indexed by TransportOrderID.
-     *              This cache is populated on page load and refreshed via AJAX.
-     *              Avoids HTML attribute encoding issues with JSON data.
+      * 中文注释
+      * 中文注释
+      * 中文注释
+      * 中文注释
      * 
-     * @@example
-     * transportOrdersCache[123] = {
-     *     TransportOrderID: 123,
-     *     OrderNumber: "TO20260119001",
-     *     EstimatedWeight: 35.8,
-     *     ItemCategories: '[{"categoryKey":"paper",...}]',
+      * 中文注释
+      * 中文注释
+      * 中文注释
+      * 中文注释
+      * 中文注释
+      * 中文注释
      *     RecyclerName: "张三",
      *     TransporterName: "李四"
      * }
      * 
-     * @@lifecycle 
-     * - Initialized on page load from Model data
-     * - Updated when AJAX loads new transport orders
-     * - Cleared and repopulated when refresh button is clicked
+      * 中文注释
+      * 中文注释
+      * 中文注释
+      * 中文注释
      */
     var transportOrdersCache = {};
     
@@ -858,7 +858,7 @@
     var CATEGORY_KEY_PATTERN = /^[a-zA-Z0-9_-]{1,50}$/;
 
     // 辅助函数：从AJAX错误响应中提取错误信息
-    // Helper function: Extract error message from AJAX error response
+    // 中文注释
     function extractErrorMessage(xhr) {
         var errorMsg = '网络错误，请稍后重试';
         if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -877,13 +877,13 @@
     }
 
     // 注意：页面加载时通过 AJAX 自动获取最新实时数据
-    // Note: Data is automatically loaded via AJAX on page load for real-time display
+    // 中文注释
     // 
     // 下面的 AJAX 函数在页面加载时自动调用，也可在用户点击"刷新"按钮时手动调用
-    // The AJAX functions below are called automatically on page load and when user clicks "Refresh" buttons
+    // 中文注释
 
     // 加载已完成的运输单（自动加载+手动刷新）
-    // Load completed transport orders (auto-load + manual refresh)
+    // 中文注释
     function loadCompletedTransportOrders() {
         $('#transitOrdersPagination').hide();
         $('#transitOrdersList').html(
@@ -1137,7 +1137,7 @@
                 totalWeight += weight;
                 totalPrice += price;
                 
-                // Escape HTML to prevent XSS
+                // 中文注释
                 var categoryName = $('<div>').text(cat.categoryName || FALLBACK_TEXT.UNKNOWN_CATEGORY).html();
                 
                 var row = '<tr style="border-bottom: 1px solid #e0e0e0;">' +
@@ -1280,7 +1280,7 @@
     }
 
     // 加载入库记录（自动加载+手动刷新）
-    // Load warehouse receipts (auto-load + manual refresh)
+    // 中文注释
     function loadWarehouseReceipts() {
         $('#receiptsLoading').show();
         $('#receiptsTableContainer').hide();
@@ -1450,7 +1450,7 @@
     }
 
     // ==================== 库存管理功能 ====================
-    // Inventory Management Functions
+    // 中文注释
 
     // 封装库存管理相关变量和函数 - Encapsulate inventory management variables and functions
     var InventoryManager = {
@@ -1619,7 +1619,7 @@
                 card.addClass('active');
             }
             
-            // Safely create card content with validated icon class
+            // 中文注释
             var iconDiv = $('<div>').addClass('inventory-card-icon').append($('<i>').addClass('fas ' + icon));
             var categoryDiv = $('<div>').addClass('inventory-card-category').text(item.categoryName);
             var weightDiv = $('<div>').addClass('inventory-card-weight').text(item.totalWeight.toFixed(1) + ' kg');
@@ -1627,7 +1627,7 @@
             
             card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv);
             // 注意：不再使用内联 onclick，而是使用事件委托（见 document.ready）
-            // Note: No longer using inline onclick, using event delegation instead (see document.ready)
+            // 中文注释
 
             container.append(card);
         });
@@ -1859,12 +1859,12 @@
     }
 
     // 页面加载时自动加载所有实时数据
-    // Automatically load all real-time data on page load
+    // 中文注释
     $(document).ready(function () {
         // 初始化缓存：将服务器端渲染的订单数据加载到缓存中
-        // Initialize cache: Load server-side rendered order data into cache
-        // Note: Data is validated and sanitized at the server level (BLL/DAL) before being passed to the view
-        // Json.Encode() provides additional XSS protection by properly escaping special characters
+        // 中文注释
+        // 中文注释
+        // 中文注释
         @if (Model != null && Model.CompletedTransportOrders != null && Model.CompletedTransportOrders.Any())
         {
             <text>
@@ -1887,7 +1887,7 @@
                 }
             ];
             // 填充缓存（批量操作优化）
-            // Populate cache in bulk (performance optimized)
+            // 中文注释
             if (initialOrders.length > 0) {
                 for (var i = 0; i < initialOrders.length; i++) {
                     var order = initialOrders[i];
@@ -1898,7 +1898,7 @@
         }
         
         // 使用事件委托为库存卡片添加点击处理
-        // Use event delegation for inventory card click handling
+        // 中文注释
         $(document).on('click', '.inventory-card', function() {
             var card = $(this);
             var categoryKey = card.data('category');
@@ -1910,11 +1910,11 @@
         });
         
         // 为服务器端渲染的库存卡片应用颜色和图标（立即显示正确颜色）
-        // Apply colors and icons to server-side rendered inventory cards (show correct colors immediately)
+        // 中文注释
         applyInventoryCardStyles();
         
         // 进入仓库管理页面时自动全部刷新一次
-        // Auto-refresh all sections when entering the warehouse management page
+        // 中文注释
         loadCompletedTransportOrders();  // 加载待入库运输单
         loadWarehouseReceipts();         // 加载入库记录
         loadInventorySummary();          // 加载库存汇总
@@ -1922,7 +1922,7 @@
     });
     
     // 为服务器端渲染的库存卡片应用颜色和图标
-    // Apply colors and icons to server-side rendered inventory cards on page load
+    // 中文注释
     function applyInventoryCardStyles() {
         $('.inventory-card').each(function() {
             var card = $(this);

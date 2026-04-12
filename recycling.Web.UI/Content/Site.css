@@ -3,7 +3,7 @@
     padding-bottom: 20px;
 }
 
-/* Set padding to keep content from hitting the edges */
+/* 中文注释 */
 .body-content {
     padding-left: 15px;
     padding-right: 15px;
@@ -16,7 +16,7 @@
     white-space: normal;
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
+/* 中文注释 */
 input,
 select,
 textarea {

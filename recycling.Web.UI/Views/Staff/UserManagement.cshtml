@@ -94,7 +94,7 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    /* Dashboard styles */
+    /* 中文注释 */
     .dashboard-section {
         background: white;
         padding: 20px;
@@ -405,16 +405,16 @@
     var dashboardVisible = true;
     var registrationTrendChart = null;
     var activeInactivePieChart = null;
-    // Configurable region prefix for display
+    // 中文注释
     var REGION_PREFIX = '广东省深圳市罗湖区';
-    // Minimum bar width percentage for visibility
+    // 中文注释
     var MIN_BAR_WIDTH_PERCENT = 5;
 
     $(document).ready(function () {
         loadDashboardStatistics();
         loadUsers();
 
-        // Enter key search
+        // 中文注释
         $('#searchInput').keypress(function (e) {
             if (e.which == 13) {
                 searchUsers();
@@ -422,7 +422,7 @@
         });
     });
 
-    // Toggle dashboard visibility
+    // 中文注释
     function toggleDashboard() {
         dashboardVisible = !dashboardVisible;
         if (dashboardVisible) {
@@ -434,7 +434,7 @@
         }
     }
 
-    // Load comprehensive dashboard statistics
+    // 中文注释
     function loadDashboardStatistics() {
         $.ajax({
             url: '@Url.Action("GetUserDashboardStatistics", "Staff")',
@@ -443,14 +443,14 @@
                 if (response.success) {
                     var data = response.data;
 
-                    // User stats
+                    // 中文注释
                     $('#totalUsers').text(data.TotalUsers || 0);
                     $('#activeUsers').text(data.ActiveUsers || 0);
                     $('#inactiveUsers').text(data.InactiveUsers || 0);
                     $('#newUsersThisMonth').text(data.NewUsersThisMonth || 0);
                     $('#newUsersToday').text(data.NewUsersToday || 0);
 
-                    // Monthly growth rate
+                    // 中文注释
                     var growthRate = parseFloat(data.MonthlyGrowthRate);
                     if (isNaN(growthRate)) growthRate = 0;
                     var growthClass = growthRate >= 0 ? 'growth-positive' : 'growth-negative';
@@ -462,45 +462,45 @@
                         '</span>'
                     );
 
-                    // Registration trend chart
+                    // 中文注释
                     try { renderRegistrationTrendChart(data.RegistrationTrend); }
                     catch (e) { console.error('Registration trend chart error:', e); }
 
-                    // Active/Inactive pie chart
+                    // 中文注释
                     try { renderActiveInactivePieChart(data.ActiveInactiveDistribution); }
                     catch (e) { console.error('Active/Inactive pie chart error:', e); }
 
-                    // Region distribution
+                    // 中文注释
                     try { renderRegionDistribution(data.RegionDistribution); }
                     catch (e) { console.error('Region distribution error:', e); }
 
-                    // User ranking
+                    // 中文注释
                     try { renderUserRanking(data.UserRanking); }
                     catch (e) { console.error('User ranking error:', e); }
                 } else {
-                    // Handle API error - show zero values instead of loading indicators
+                    // 中文注释
                     showDashboardFallbackValues();
                     console.error('API returned error: ' + (response.message || 'Unknown error'));
                 }
             },
             error: function () {
-                // Handle network error - show zero values instead of loading indicators
+                // 中文注释
                 showDashboardFallbackValues();
                 console.error('Failed to load dashboard statistics');
             }
         });
     }
 
-    // Show fallback values when dashboard data fails to load
+    // 中文注释
     function showDashboardFallbackValues() {
-        // User stats
+        // 中文注释
         $('#totalUsers').text('0');
         $('#activeUsers').text('0');
         $('#inactiveUsers').text('0');
         $('#newUsersThisMonth').text('0');
         $('#newUsersToday').text('0');
         
-        // Monthly growth rate with consistent HTML structure
+        // 中文注释
         $('#monthlyGrowth').html(
             '0.0%' +
             '<span class="growth-indicator growth-positive">' +
@@ -508,12 +508,12 @@
             '</span>'
         );
 
-        // Clear loading indicators for lists
+        // 中文注释
         $('#regionDistributionList').html('<div class="text-center text-muted">暂无区域数据</div>');
         $('#userRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
     }
 
-    // Render registration trend line chart
+    // 中文注释
     function renderRegistrationTrendChart(trendData) {
         if (!trendData || trendData.length === 0) {
             return;
@@ -521,7 +521,7 @@
 
         var ctx = document.getElementById('registrationTrendChart').getContext('2d');
 
-        // Destroy existing chart if exists
+        // 中文注释
         if (registrationTrendChart) {
             registrationTrendChart.destroy();
         }
@@ -562,7 +562,7 @@
         });
     }
 
-    // Render active/inactive pie chart
+    // 中文注释
     function renderActiveInactivePieChart(distribution) {
         if (!distribution || distribution.length === 0) {
             return;
@@ -570,7 +570,7 @@
 
         var ctx = document.getElementById('activeInactivePieChart').getContext('2d');
 
-        // Destroy existing chart if exists
+        // 中文注释
         if (activeInactivePieChart) {
             activeInactivePieChart.destroy();
         }
@@ -615,7 +615,7 @@
         });
     }
 
-    // Render region distribution bars
+    // 中文注释
     function renderRegionDistribution(regions) {
         var container = $('#regionDistributionList');
         container.empty();
@@ -625,14 +625,14 @@
             return;
         }
 
-        // Calculate total user count for percentage calculation
+        // 中文注释
         var totalCount = regions.reduce(function (sum, r) { return sum + r.UserCount; }, 0);
         if (totalCount === 0) totalCount = 1;
 
         regions.forEach(function (item) {
             var count = item.UserCount;
             var percentage = (count / totalCount * 100).toFixed(1);
-            // Extract street name from full region name using configurable prefix
+            // 中文注释
             var displayRegion = item.Region;
             if (item.Region.indexOf(REGION_PREFIX) === 0) {
                 displayRegion = item.Region.replace(REGION_PREFIX, '');
@@ -654,7 +654,7 @@
         });
     }
 
-    // Render user ranking list
+    // 中文注释
     function renderUserRanking(rankings) {
         var container = $('#userRankingList');
         container.empty();
@@ -693,7 +693,7 @@
         });
     }
 
-    // Toggle sort order
+    // 中文注释
     function toggleSortOrder() {
         sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
         $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
@@ -756,7 +756,7 @@
             tbody.append(row);
         });
 
-        // Update pagination
+        // 中文注释
         renderPagination(data);
     }
 
@@ -768,14 +768,14 @@
 
         if (data.TotalPages <= 1) return;
 
-        // Previous
+        // 中文注释
         pagination.append(`
             <li class="${data.PageIndex == 1 ? 'disabled' : ''}">
                 <a href="#" onclick="goToPage(${data.PageIndex - 1}); return false;">上一页</a>
             </li>
         `);
 
-        // Page numbers
+        // 中文注释
         var startPage = Math.max(1, data.PageIndex - 2);
         var endPage = Math.min(data.TotalPages, data.PageIndex + 2);
 
@@ -787,7 +787,7 @@
             `);
         }
 
-        // Next
+        // 中文注释
         pagination.append(`
             <li class="${data.PageIndex >= data.TotalPages ? 'disabled' : ''}">
                 <a href="#" onclick="goToPage(${data.PageIndex + 1}); return false;">下一页</a>
@@ -818,7 +818,7 @@
     function formatDate(dateString) {
         if (!dateString) return '从未登录';
         var date = new Date(dateString);
-        // Check if date is valid
+        // 中文注释
         if (isNaN(date.getTime())) return '无效日期';
         return date.getFullYear() + '-' +
             String(date.getMonth() + 1).padStart(2, '0') + '-' +
@@ -830,12 +830,12 @@
     function isWithinDays(dateString, days) {
         if (!dateString) return false;
         var date = new Date(dateString);
-        // Check if date is valid
+        // 中文注释
         if (isNaN(date.getTime())) return false;
         var now = new Date();
-        var diff = now - date; // difference in milliseconds (positive if date is in the past)
+        var diff = now - date; // 中文注释
         var daysDiff = diff / (1000 * 60 * 60 * 24);
-        // Check if date is in the past (>= 0) and within specified days (<= days)
+        // 中文注释
         return daysDiff >= 0 && daysDiff <= days;
     }
 </script>

@@ -11,7 +11,7 @@ namespace recycling.Model
         [Key]
         public int ItemID { get; set; }
 
-        // Alias property for DAL compatibility
+        // 中文注释
         [NotMapped]
         public int ItemId
         {

@@ -11,9 +11,9 @@ namespace recycling.DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        /// <summary>
+        // 中文注释
         /// 添加操作日志
-        /// </summary>
+        // 中文注释
         public bool AddLog(AdminOperationLogs log)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -41,9 +41,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取操作日志列表（分页）
-        /// </summary>
+        // 中文注释
         public PagedResult<AdminOperationLogs> GetLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
         {
             var result = new PagedResult<AdminOperationLogs>
@@ -57,7 +57,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(module))
                 {
@@ -80,13 +80,13 @@ namespace recycling.DAL
                     whereClause += " AND (AdminUsername LIKE @SearchTerm OR Description LIKE @SearchTerm OR TargetName LIKE @SearchTerm)";
                 }
 
-                // Get total count
+                // 中文注释
                 string countSql = "SELECT COUNT(*) FROM AdminOperationLogs " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
                 AddWhereParameters(countCmd, module, operationType, startDate, endDate, searchTerm);
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // Get paged data
+                // 中文注释
                 string sql = @"SELECT * FROM AdminOperationLogs " + whereClause +
                     " ORDER BY OperationTime DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -107,9 +107,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取日志统计信息
-        /// </summary>
+        // 中文注释
         public Dictionary<string, object> GetLogStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -118,21 +118,21 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Total logs
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM AdminOperationLogs", conn);
                 stats["TotalLogs"] = (int)cmd.ExecuteScalar();
 
-                // Today's logs
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM AdminOperationLogs 
                     WHERE CAST(OperationTime AS DATE) = CAST(GETDATE() AS DATE)", conn);
                 stats["TodayLogs"] = (int)cmd.ExecuteScalar();
 
-                // This week's logs
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM AdminOperationLogs 
                     WHERE OperationTime >= DATEADD(day, -7, GETDATE())", conn);
                 stats["WeekLogs"] = (int)cmd.ExecuteScalar();
 
-                // Logs by module
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT Module, COUNT(*) AS Count 
                     FROM AdminOperationLogs 
                     GROUP BY Module 
@@ -152,7 +152,7 @@ namespace recycling.DAL
                 }
                 stats["ModuleDistribution"] = moduleDistribution;
 
-                // Logs by operation type
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT OperationType, COUNT(*) AS Count 
                     FROM AdminOperationLogs 
                     GROUP BY OperationType 
@@ -176,9 +176,9 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
+        // 中文注释
         /// 导出日志（不分页）
-        /// </summary>
+        // 中文注释
         public List<AdminOperationLogs> GetLogsForExport(string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
         {
             var logs = new List<AdminOperationLogs>();
@@ -187,7 +187,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(module))
                 {

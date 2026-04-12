@@ -6,18 +6,18 @@ using recycling.Model;
 
 namespace recycling.BLL
 {
-    /// <summary>
+    // 中文注释
     /// 运输单品类明细业务逻辑层
-    /// Transportation Order Categories Business Logic Layer
-    /// </summary>
+    /// 中文注释
+    // 中文注释
     public class TransportationOrderCategoriesBLL
     {
         private readonly TransportationOrderCategoriesDAL _dal = new TransportationOrderCategoriesDAL();
 
-        /// <summary>
+        // 中文注释
         /// 批量插入运输单品类明细
-        /// Batch insert transportation order category details
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -40,14 +40,14 @@ namespace recycling.BLL
                 throw new ArgumentException("运输单ID无效", nameof(transportOrderId));
             }
 
-            // categories can be null or empty - DAL handles this gracefully
+            // 中文注释
             _dal.BatchInsertCategories(conn, transaction, transportOrderId, categories);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输单的所有品类明细
-        /// Get all category details for a transportation order
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="transportOrderId">运输单ID</param>
         /// <returns>品类明细列表</returns>
         public List<TransportationOrderCategories> GetCategoriesByTransportOrderId(int transportOrderId)
@@ -60,10 +60,10 @@ namespace recycling.BLL
             return _dal.GetCategoriesByTransportOrderId(transportOrderId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 删除运输单的所有品类明细
-        /// Delete all category details for a transportation order
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -87,10 +87,10 @@ namespace recycling.BLL
             _dal.DeleteCategoriesByTransportOrderId(conn, transaction, transportOrderId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查 TransportationOrderCategories 表是否存在
-        /// Check if TransportationOrderCategories table exists
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         /// <returns>表是否存在</returns>
         public bool TableExists()
         {

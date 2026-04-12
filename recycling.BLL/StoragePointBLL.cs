@@ -8,17 +8,17 @@ using recycling.Model;
 
 namespace recycling.BLL
 {
-    /// <summary>
+    // 中文注释
     /// 暂存点管理业务逻辑层 - 简化实现
     /// 直接从已完成的订单中获取数据，无需单独的Inventory表
-    /// </summary>
+    // 中文注释
     public class StoragePointBLL
     {
         private readonly StoragePointDAL _storagePointDAL = new StoragePointDAL();
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员的暂存点库存汇总（按类别分组）
-        /// </summary>
+        // 中文注释
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>按类别汇总的库存数据</returns>
         public List<StoragePointSummary> GetStoragePointSummary(int recyclerId)
@@ -31,9 +31,9 @@ namespace recycling.BLL
             return _storagePointDAL.GetStoragePointSummary(recyclerId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取回收员的暂存点库存明细
-        /// </summary>
+        // 中文注释
         /// <param name="recyclerId">回收员ID</param>
         /// <param name="categoryKey">类别键（可选，用于筛选特定类别）</param>
         /// <returns>库存明细列表</returns>
@@ -47,9 +47,9 @@ namespace recycling.BLL
             return _storagePointDAL.GetStoragePointDetail(recyclerId, categoryKey);
         }
 
-        /// <summary>
+        // 中文注释
         /// 清空回收员的暂存点物品
-        /// </summary>
+        // 中文注释
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>是否成功</returns>
         public bool ClearStoragePointForRecycler(int recyclerId)
@@ -62,9 +62,9 @@ namespace recycling.BLL
             return _storagePointDAL.ClearStoragePointForRecycler(recyclerId);
         }
 
-        /// <summary>
+        // 中文注释
         /// 回收员手动添加暂存点物品
-        /// </summary>
+        // 中文注释
         public bool AddManualStoragePointItem(int recyclerId, string categoryKey, string categoryName, decimal weight, decimal price)
         {
             if (recyclerId <= 0)
