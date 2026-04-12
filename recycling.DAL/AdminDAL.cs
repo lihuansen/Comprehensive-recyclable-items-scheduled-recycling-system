@@ -618,7 +618,7 @@ namespace recycling.DAL
                     Region = @Region,
                     Available = @Available,
                     IsActive = @IsActive,
-                    PasswordHash = @PasswordHash
+                    PasswordHash = COALESCE(@PasswordHash, PasswordHash)
                     WHERE RecyclerID = @RecyclerID";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
@@ -2132,7 +2132,7 @@ namespace recycling.DAL
                     Available = @Available,
                     CurrentStatus = @CurrentStatus,
                     IsActive = @IsActive,
-                    PasswordHash = @PasswordHash
+                    PasswordHash = COALESCE(@PasswordHash, PasswordHash)
                     WHERE TransporterID = @TransporterID";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
@@ -2651,7 +2651,7 @@ namespace recycling.DAL
                     Available = @Available,
                     CurrentStatus = @CurrentStatus,
                     IsActive = @IsActive,
-                    PasswordHash = @PasswordHash
+                    PasswordHash = COALESCE(@PasswordHash, PasswordHash)
                     WHERE WorkerID = @WorkerID";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
