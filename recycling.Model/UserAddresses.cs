@@ -39,9 +39,7 @@ namespace recycling.Model
 
         public DateTime? UpdatedDate { get; set; }
 
-        // 中文注释
-        /// ַ (ʡݡС򡢽ֵϸַ)
-        // 中文注释
+        // 完整地址（包含省、市、区、街道、详细地址）
         [NotMapped]
         public string FullAddress
         {

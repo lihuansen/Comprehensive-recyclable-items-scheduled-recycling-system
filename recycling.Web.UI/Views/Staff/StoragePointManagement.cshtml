@@ -670,7 +670,7 @@
     $(document).ready(function () {
         loadSummary();
         
-        // 中文注释
+        // 绑定“联系运输人员”按钮点击事件
         $('#btnContactTransport').on('click', function() {
             showTransporterModal();
         });
@@ -679,13 +679,13 @@
             openAddItemModal();
         });
         
-        // 中文注释
+        // 绑定模态框关闭按钮点击事件
         $('#btnCloseModal').on('click', function() {
             closeTransporterModal();
         });
         
         $('#transporterModal').on('click', function(e) {
-            // 中文注释
+            // 点击遮罩层区域时关闭弹窗
             if (e.target.id === 'transporterModal') {
                 closeTransporterModal();
             }

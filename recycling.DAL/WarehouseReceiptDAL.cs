@@ -9,22 +9,20 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    // 中文注释
+    // 入库单数据访问实现
     /// 入库单数据访问层
-    /// 中文注释
-    // 中文注释
+    /// 提供入库单查询、创建与细分相关的数据读写操作
     public class WarehouseReceiptDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        // 中文注释
+        // 从品类JSON字典中安全提取重量字段
         /// 从JSON字典中安全地提取weight值
-        /// 中文注释
-        // 中文注释
-        /// <param name="category">中文注释</param>
-        /// <param name="categoryKey">中文注释</param>
-        /// <param name="context">中文注释</param>
-        /// <returns>中文注释</returns>
+        /// 用于兼容不同类型（字符串/数值）的重量数据
+        /// <param name="category">当前品类的字典数据</param>
+        /// <param name="categoryKey">品类键值（用于日志定位）</param>
+        /// <param name="context">调用上下文（用于错误信息）</param>
+        /// <returns>解析后的重量，失败时返回0</returns>
         private decimal ExtractWeightFromJson(Dictionary<string, object> category, string categoryKey, string context)
         {
             decimal weight = 0;

@@ -52,22 +52,22 @@ namespace recycling.Web.UI.Controllers
             public bool? IsActive { get; set; }
         }
 
-        // 中文注释
+        // 上传文件扩展名白名单
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
         private static readonly string[] AllowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        // 统一JSON输出编码，避免中文乱码
+        /// 返回UTF-8编码的JSON内容
+        // 通过ContentResult明确指定编码与MIME类型
         private ContentResult JsonContent(object data)
         {
             var json = JsonConvert.SerializeObject(data);
             return Content(json, "application/json", System.Text.Encoding.UTF8);
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        // 汇总模型校验错误信息
+        /// 提取并拼接ModelState中的校验错误
+        // 用于统一返回前端可读的错误提示
         private string GetModelStateErrorMessage()
         {
             var errors = string.Join("；", ModelState.Values
