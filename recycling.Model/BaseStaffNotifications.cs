@@ -54,7 +54,12 @@ namespace recycling.Model
         public const string TransportOrderCompleted = "TransportOrderCompleted";
 
         /// <summary>
-        /// 入库单已创建
+        /// 入库单已创建（收货登记）
+        /// </summary>
+        public const string WarehouseReceiptReceived = "WarehouseReceiptReceived";
+
+        /// <summary>
+        /// 入库单细分完成
         /// </summary>
         public const string WarehouseReceiptCreated = "WarehouseReceiptCreated";
 
@@ -74,6 +79,8 @@ namespace recycling.Model
                     return "运输开始";
                 case TransportOrderCompleted:
                     return "运输到达";
+                case WarehouseReceiptReceived:
+                    return "收货登记";
                 case WarehouseReceiptCreated:
                     return "细分完成";
                 case WarehouseInventoryWritten:
@@ -94,6 +101,8 @@ namespace recycling.Model
                     return "fa-truck";
                 case TransportOrderCompleted:
                     return "fa-check-circle";
+                case WarehouseReceiptReceived:
+                    return "fa-inbox";
                 case WarehouseReceiptCreated:
                     return "fa-file-alt";
                 case WarehouseInventoryWritten:
@@ -114,6 +123,8 @@ namespace recycling.Model
                     return "#17a2b8"; // info blue
                 case TransportOrderCompleted:
                     return "#28a745"; // green
+                case WarehouseReceiptReceived:
+                    return "#fd7e14"; // orange
                 case WarehouseReceiptCreated:
                     return "#007bff"; // primary blue
                 case WarehouseInventoryWritten:

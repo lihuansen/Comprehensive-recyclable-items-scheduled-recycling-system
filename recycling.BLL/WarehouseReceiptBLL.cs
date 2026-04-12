@@ -195,6 +195,35 @@ namespace recycling.BLL
 
                 var (receiptId, receiptNumber) = _dal.CreateWarehouseReceipt(receipt);
 
+                // 发送入库单创建通知给所有基地工作人员
+                if (receiptId > 0)
+                {
+                    try
+                    {
+                        TransportationOrders transportOrderInfo = null;
+                        try
+                        {
+                            transportOrderInfo = _transportDAL.GetTransportationOrderById(transportOrderId);
+                        }
+                        catch (Exception transportEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"读取运输单失败（TransportOrderID={transportOrderId}）: {transportEx.Message}");
+                        }
+
+                        _baseStaffNotificationBLL.SendWarehouseReceiptReceivedNotification(
+                            receiptId,
+                            receiptNumber,
+                            transportOrderId,
+                            transportOrderInfo?.OrderNumber ?? string.Empty,
+                            totalWeight);
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        // 通知失败不影响入库单创建
+                        System.Diagnostics.Debug.WriteLine($"发送入库单创建通知失败: {notifyEx.Message}");
+                    }
+                }
+
                 return (true, "入库单创建成功", receiptId, receiptNumber);
             }
             catch (Exception ex)

@@ -134,6 +134,32 @@ namespace recycling.BLL
         }
 
         /// <summary>
+        /// 发送收货登记通知（入库单已创建）
+        /// </summary>
+        public bool SendWarehouseReceiptReceivedNotification(int warehouseReceiptId, string receiptNumber,
+            int? transportOrderId, string orderNumber, decimal totalWeight)
+        {
+            try
+            {
+                string title = "收货登记";
+                string content = $"运输单 {orderNumber} 货物已到达基地，已创建入库单 {receiptNumber}，" +
+                    $"总重量：{totalWeight}kg，请尽快完成细分操作。";
+
+                return SendNotificationToAllWorkers(
+                    title,
+                    content,
+                    BaseStaffNotificationTypes.WarehouseReceiptReceived,
+                    transportOrderId,
+                    warehouseReceiptId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SendWarehouseReceiptReceivedNotification Error: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// 发送细分完成通知
         /// </summary>
         public bool SendWarehouseReceiptCreatedNotification(int warehouseReceiptId, string receiptNumber, 
