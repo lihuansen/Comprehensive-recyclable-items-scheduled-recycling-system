@@ -11,9 +11,7 @@ namespace recycling.DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public List<HomepageCarousel> GetAllActive()
         {
             var items = new List<HomepageCarousel>();
@@ -38,9 +36,7 @@ namespace recycling.DAL
             return items;
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public PagedResult<HomepageCarousel> GetPaged(int page = 1, int pageSize = 20)
         {
             var result = new PagedResult<HomepageCarousel>
@@ -54,12 +50,10 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // 中文注释
                 string countSql = "SELECT COUNT(*) FROM HomepageCarousel";
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // 中文注释
                 string sql = @"SELECT CarouselID, MediaType, MediaUrl, Title, Description, 
                               DisplayOrder, IsActive, CreatedDate, CreatedBy, UpdatedDate 
                               FROM HomepageCarousel 
@@ -82,9 +76,7 @@ namespace recycling.DAL
             return result;
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public HomepageCarousel GetById(int carouselId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -107,9 +99,7 @@ namespace recycling.DAL
             return null;
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public bool Add(HomepageCarousel carousel)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -134,9 +124,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public bool Update(HomepageCarousel carousel)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -146,7 +134,6 @@ namespace recycling.DAL
                 {
                     try
                     {
-                        // 中文注释
                         int currentDisplayOrder = 0;
                         string currentOrderSql = "SELECT DisplayOrder FROM HomepageCarousel WHERE CarouselID = @CarouselID";
                         SqlCommand currentOrderCmd = new SqlCommand(currentOrderSql, conn, transaction);
@@ -163,7 +150,6 @@ namespace recycling.DAL
                             ? carousel.DisplayOrder.Value
                             : currentDisplayOrder;
 
-                        // 中文注释
                         if (targetDisplayOrder != currentDisplayOrder)
                         {
                             string conflictSql = @"SELECT TOP 1 CarouselID 
@@ -221,9 +207,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public bool Delete(int carouselId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -238,9 +222,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public bool HardDelete(int carouselId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -254,9 +236,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public int GetMaxDisplayOrder()
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -270,9 +250,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         private HomepageCarousel MapCarouselFromReader(SqlDataReader reader)
         {
             return new HomepageCarousel

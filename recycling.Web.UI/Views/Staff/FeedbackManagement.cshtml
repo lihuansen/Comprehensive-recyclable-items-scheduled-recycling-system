@@ -520,7 +520,6 @@
                         $('#detailEmail').text(feedback.ContactEmail || '未提供');
                         $('#detailCreatedDate').text(new Date(feedback.CreatedDate).toLocaleString('zh-CN'));
                         
-                        // 中文注释
                         if (feedback.AdminReply) {
                             $('#detailAdminReply').text(feedback.AdminReply);
                             $('#adminReplyDisplay').show();
@@ -528,11 +527,9 @@
                             $('#adminReplyDisplay').hide();
                         }
                         
-                        // 中文注释
                         var isResolved = feedback.Status === '已完成';
                         $('#resolvedCheckbox').prop('checked', isResolved);
                         
-                        // 中文注释
                         if (isResolved) {
                             $('#resolvedCheckbox').prop('disabled', true);
                             $('#resolvedLabel').addClass('disabled').text('已解决（不可更改）');
@@ -554,8 +551,6 @@
     }
 
     function handleResolvedChange() {
-        // 中文注释
-        // 中文注释
     }
 
     function updateFeedbackStatus() {
@@ -574,7 +569,7 @@
                 __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                 feedbackId: currentFeedbackId,
                 status: status,
-                adminReply: '' // 中文注释
+                adminReply: '' // 中文说明
             },
             success: function(response) {
                 if (response.success) {
@@ -643,7 +638,7 @@
             data: {
                 __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                 feedbackId: replyFeedbackId,
-                status: '', // 中文注释
+                status: '', // 中文说明
                 adminReply: replyContent
             },
             success: function(response) {

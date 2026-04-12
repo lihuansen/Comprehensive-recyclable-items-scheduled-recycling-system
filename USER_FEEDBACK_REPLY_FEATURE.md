@@ -260,7 +260,7 @@ public ActionResult MyFeedback()
 ## 代码规范
 
 遵循项目现有的代码规范：
-- 使用中文注释
+- 使用中文说明
 - 方法添加XML文档注释
 - 异常处理使用 try-catch
 - 数据库连接使用 using 语句确保资源释放

@@ -5,16 +5,12 @@ using recycling.Model;
 
 namespace recycling.Web.UI.Filters
 {
-    // 中文注释
     /// 管理员权限验证过滤器
     /// 用于验证管理员是否有权限访问特定功能
-    // 中文注释
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class AdminPermissionAttribute : ActionFilterAttribute
     {
-        // 中文注释
         /// 所需的权限
-        // 中文注释
         public string RequiredPermission { get; set; }
 
         public AdminPermissionAttribute(string requiredPermission)

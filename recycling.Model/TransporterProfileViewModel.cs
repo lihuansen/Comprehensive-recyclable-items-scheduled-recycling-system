@@ -3,10 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    // 中文注释
     /// 运输人员个人信息编辑视图模型
     /// 根据需求移除了车辆类型、车辆载重和车牌号字段
-    // 中文注释
     public class TransporterProfileViewModel
     {
         [Required(ErrorMessage = "姓名不能为空")]

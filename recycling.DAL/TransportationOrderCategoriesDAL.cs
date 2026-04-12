@@ -8,19 +8,15 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    // 中文注释
     /// 运输单品类明细数据访问层
-    /// 中文注释
-    // 中文注释
+    /// 中文说明
     public class TransportationOrderCategoriesDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        // 中文注释
         /// 批量插入运输单品类明细
-        /// 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
+        /// 中文说明
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -33,9 +29,7 @@ namespace recycling.DAL
                 return;
             }
 
-            // 中文注释
-            // 中文注释
-            const int batchSize = 100; // 中文注释
+            const int batchSize = 100; // 中文说明
             
             for (int i = 0; i < categories.Count; i += batchSize)
             {
@@ -78,10 +72,8 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取运输单的所有品类明细
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         /// <param name="transportOrderId">运输单ID</param>
         /// <returns>品类明细列表</returns>
         public List<TransportationOrderCategories> GetCategoriesByTransportOrderId(int transportOrderId)
@@ -133,10 +125,8 @@ namespace recycling.DAL
             return categories;
         }
 
-        // 中文注释
         /// 删除运输单的所有品类明细
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -153,10 +143,8 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 检查 TransportationOrderCategories 表是否存在
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public bool TableExists()
         {
             try

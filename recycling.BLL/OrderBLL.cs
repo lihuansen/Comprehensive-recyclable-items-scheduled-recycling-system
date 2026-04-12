@@ -12,18 +12,14 @@ namespace recycling.BLL
     {
         private OrderDAL _orderDAL = new OrderDAL();
 
-        // 中文注释
         /// 获取用户订单总数
-        // 中文注释
         public int GetUserOrderCount(int userId)
         {
             if (userId <= 0) throw new ArgumentException("用户ID无效");
             return _orderDAL.GetUserOrderCount(userId);
         }
 
-        // 中文注释
         /// 获取用户订单列表
-        // 中文注释
         public List<AppointmentOrder> GetUserOrders(int userId, string status = "all")
         {
             if (userId <= 0)
@@ -34,9 +30,7 @@ namespace recycling.BLL
             return _orderDAL.GetOrdersByUserAndStatus(userId, status);
         }
 
-        // 中文注释
         /// 获取订单详情
-        // 中文注释
         public OrderDetail GetOrderDetail(int appointmentId, int userId)
         {
             if (appointmentId <= 0 || userId <= 0)
@@ -54,9 +48,7 @@ namespace recycling.BLL
             return orderDetail;
         }
 
-        // 中文注释
         /// 获取各状态订单数量统计
-        // 中文注释
         public OrderStatistics GetOrderStatistics(int userId)
         {
             var statistics = new OrderStatistics
@@ -71,9 +63,7 @@ namespace recycling.BLL
             return statistics;
         }
 
-        // 中文注释
         /// 取消订单
-        // 中文注释
         public (bool Success, string Message) CancelOrder(int appointmentId, int userId)
         {
             if (appointmentId <= 0 || userId <= 0)

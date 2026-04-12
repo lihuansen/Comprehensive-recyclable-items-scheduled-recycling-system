@@ -9,9 +9,7 @@ using System.Configuration;
 
 namespace recycling.Common
 {
-    // 中文注释
     /// 邮件发送服务（用于发送验证码）
-    // 中文注释
     public class EmailService
     {
         // 从配置文件读取参数（避免硬编码）
@@ -20,9 +18,7 @@ namespace recycling.Common
         private readonly string _fromEmail = ConfigurationManager.AppSettings["FromEmail"];
         private readonly string _fromPassword = ConfigurationManager.AppSettings["FromPassword"];
 
-        // 中文注释
         /// 发送验证码到指定邮箱
-        // 中文注释
         /// <param name="toEmail">收件人邮箱</param>
         /// <param name="verificationCode">验证码</param>
         /// <returns>是否发送成功</returns>

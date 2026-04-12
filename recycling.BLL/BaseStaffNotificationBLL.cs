@@ -5,17 +5,13 @@ using recycling.Model;
 
 namespace recycling.BLL
 {
-    // 中文注释
     /// 基地工作人员通知业务逻辑层
-    /// 中文注释
-    // 中文注释
+    /// 中文说明
     public class BaseStaffNotificationBLL
     {
         private readonly BaseStaffNotificationDAL _notificationDAL = new BaseStaffNotificationDAL();
 
-        // 中文注释
         /// 发送通用通知
-        // 中文注释
         /// <param name="workerId">工作人员ID</param>
         /// <param name="title">通知标题</param>
         /// <param name="content">通知内容</param>
@@ -59,9 +55,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 向所有基地工作人员发送通知
-        // 中文注释
         public bool SendNotificationToAllWorkers(string title, string content, 
             string notificationType = null, int? relatedTransportOrderId = null, int? relatedWarehouseReceiptId = null)
         {
@@ -81,9 +75,7 @@ namespace recycling.BLL
                 notificationType, title, content, relatedTransportOrderId, relatedWarehouseReceiptId);
         }
 
-        // 中文注释
         /// 发送运输开始通知
-        // 中文注释
         public bool SendTransportOrderCreatedNotification(int transportOrderId, string orderNumber, 
             string recyclerName, string pickupAddress, decimal estimatedWeight, int? assignedWorkerId = null)
         {
@@ -103,9 +95,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 发送运输中通知
-        // 中文注释
         public bool SendTransportOrderInTransitNotification(int transportOrderId, string orderNumber,
             int? assignedWorkerId = null)
         {
@@ -124,9 +114,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 发送运输到达通知
-        // 中文注释
         public bool SendTransportOrderCompletedNotification(int transportOrderId, string orderNumber, 
             string transporterName, decimal actualWeight, int? assignedWorkerId = null)
         {
@@ -146,9 +134,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 发送提示创建入库单通知
-        // 中文注释
         public bool SendCreateWarehouseReceiptPromptNotification(int transportOrderId, string orderNumber,
             int? assignedWorkerId = null)
         {
@@ -167,9 +153,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 发送提示细分通知（入库单已创建）
-        // 中文注释
         public bool SendWarehouseReceiptReceivedNotification(int warehouseReceiptId, string receiptNumber,
             int? transportOrderId, string orderNumber, decimal totalWeight, int? assignedWorkerId = null)
         {
@@ -189,9 +173,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 发送提示入库通知（细分完成）
-        // 中文注释
         public bool SendWarehouseReceiptCreatedNotification(int warehouseReceiptId, string receiptNumber, 
             int? transportOrderId, string orderNumber, decimal totalWeight, int createdByWorkerId,
             int? assignedWorkerId = null)
@@ -212,9 +194,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 发送入库成功通知
-        // 中文注释
         public bool SendWarehouseInventoryWrittenNotification(int warehouseReceiptId, string receiptNumber, 
             string itemCategories, decimal totalWeight, int? assignedWorkerId = null)
         {
@@ -234,9 +214,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 辅助方法：发送通知给指定工作人员（有 assignedWorkerId 时）或所有活跃工作人员
-        // 中文注释
         private bool SendToWorkerOrAll(int? assignedWorkerId, string title, string content,
             string notificationType, int? relatedTransportOrderId, int? relatedWarehouseReceiptId,
             bool fallbackToAllWhenUnassigned = true)
@@ -257,9 +235,7 @@ namespace recycling.BLL
                 notificationType, relatedTransportOrderId, relatedWarehouseReceiptId);
         }
 
-        // 中文注释
         /// 获取工作人员通知列表
-        // 中文注释
         public List<BaseStaffNotifications> GetWorkerNotifications(int workerId, int pageIndex = 1, int pageSize = 20)
         {
             if (workerId <= 0) return new List<BaseStaffNotifications>();
@@ -269,45 +245,35 @@ namespace recycling.BLL
             return _notificationDAL.GetWorkerNotifications(workerId, pageIndex, pageSize);
         }
 
-        // 中文注释
         /// 获取工作人员未读通知数量
-        // 中文注释
         public int GetUnreadCount(int workerId)
         {
             if (workerId <= 0) return 0;
             return _notificationDAL.GetUnreadCount(workerId);
         }
 
-        // 中文注释
         /// 标记通知为已读
-        // 中文注释
         public bool MarkAsRead(int notificationId, int workerId)
         {
             if (notificationId <= 0 || workerId <= 0) return false;
             return _notificationDAL.MarkAsRead(notificationId, workerId);
         }
 
-        // 中文注释
         /// 标记所有通知为已读
-        // 中文注释
         public bool MarkAllAsRead(int workerId)
         {
             if (workerId <= 0) return false;
             return _notificationDAL.MarkAllAsRead(workerId);
         }
 
-        // 中文注释
         /// 删除通知
-        // 中文注释
         public bool DeleteNotification(int notificationId, int workerId)
         {
             if (notificationId <= 0 || workerId <= 0) return false;
             return _notificationDAL.DeleteNotification(notificationId, workerId);
         }
 
-        // 中文注释
         /// 获取工作人员通知总数
-        // 中文注释
         public int GetTotalCount(int workerId)
         {
             if (workerId <= 0) return 0;

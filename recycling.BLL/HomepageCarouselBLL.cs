@@ -12,9 +12,7 @@ namespace recycling.BLL
     {
         private readonly HomepageCarouselDAL _carouselDAL = new HomepageCarouselDAL();
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public List<HomepageCarousel> GetAllActive()
         {
             try
@@ -27,9 +25,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public PagedResult<HomepageCarousel> GetPaged(int page = 1, int pageSize = 20)
         {
             if (page < 1) page = 1;
@@ -45,9 +41,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public HomepageCarousel GetById(int carouselId)
         {
             if (carouselId <= 0)
@@ -65,12 +59,9 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool Success, string Message) Add(HomepageCarousel carousel, int adminId)
         {
-            // 中文注释
             if (string.IsNullOrEmpty(carousel.MediaType))
             {
                 return (false, "媒体类型不能为空");
@@ -91,7 +82,6 @@ namespace recycling.BLL
                 carousel.DisplayOrder = 0;
             }
 
-            // 中文注释
             carousel.CreatedDate = DateTime.Now;
             carousel.CreatedBy = adminId;
             carousel.UpdatedDate = DateTime.Now;
@@ -108,12 +98,9 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool Success, string Message) Update(HomepageCarousel carousel)
         {
-            // 中文注释
             if (carousel.CarouselID <= 0)
             {
                 return (false, "无效的轮播ID");
@@ -139,7 +126,6 @@ namespace recycling.BLL
                 carousel.DisplayOrder = 0;
             }
 
-            // 中文注释
             carousel.UpdatedDate = DateTime.Now;
 
             try
@@ -153,9 +139,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool Success, string Message) Delete(int carouselId)
         {
             if (carouselId <= 0)
@@ -174,9 +158,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool Success, string Message) HardDelete(int carouselId)
         {
             if (carouselId <= 0)
@@ -195,9 +177,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public int GetMaxDisplayOrder()
         {
             try

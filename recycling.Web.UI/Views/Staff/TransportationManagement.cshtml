@@ -481,7 +481,6 @@
     let currentOrderId = null;
 
     $(document).ready(function () {
-        // 中文注释
         $.ajaxSetup({
             beforeSend: function (xhr, settings) {
                 if (settings.type === 'POST') {
@@ -512,7 +511,6 @@
         return map[stage] || stage;
     }
 
-    // 中文注释
     function getEffectiveStage(order) {
         return normalizeStage(order.Stage);
     }
@@ -626,8 +624,6 @@
             } else {
                 // Fallback: 当TransportStage为null或未识别时，默认显示第一阶段按钮（到达收货地点）
                 // 这确保了即使数据库没有TransportStage列，工作流程也能正常进行
-                // 中文注释
-                // 中文注释
                 actions = `<button class="btn-action btn-start" onclick="arriveAtPickupLocation(${order.TransportOrderID})">
                     <i class="fas fa-location-arrow"></i> 到达收货地点
                 </button>`;

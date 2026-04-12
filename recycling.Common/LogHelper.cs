@@ -4,9 +4,7 @@ using System.Text;
 
 namespace recycling.Common
 {
-    // 中文注释
     /// 日志级别枚举
-    // 中文注释
     public enum LogLevel
     {
         Debug,
@@ -16,19 +14,15 @@ namespace recycling.Common
         Fatal
     }
 
-    // 中文注释
     /// 日志辅助类 - 提供简单的文件日志记录功能
     /// 注意：生产环境建议使用专业日志框架如Log4Net、NLog等
-    // 中文注释
     public static class LogHelper
     {
         private static readonly object _lockObj = new object();
         private static string _logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
         private static LogLevel _minLogLevel = LogLevel.Info;
 
-        // 中文注释
         /// 设置日志目录
-        // 中文注释
         /// <param name="directory">日志目录路径</param>
         public static void SetLogDirectory(string directory)
         {
@@ -38,18 +32,14 @@ namespace recycling.Common
             }
         }
 
-        // 中文注释
         /// 设置最低日志级别
-        // 中文注释
         /// <param name="level">最低日志级别</param>
         public static void SetMinLogLevel(LogLevel level)
         {
             _minLogLevel = level;
         }
 
-        // 中文注释
         /// 记录调试日志
-        // 中文注释
         /// <param name="message">日志消息</param>
         /// <param name="exception">异常对象（可选）</param>
         public static void Debug(string message, Exception exception = null)
@@ -57,9 +47,7 @@ namespace recycling.Common
             Log(LogLevel.Debug, message, exception);
         }
 
-        // 中文注释
         /// 记录信息日志
-        // 中文注释
         /// <param name="message">日志消息</param>
         /// <param name="exception">异常对象（可选）</param>
         public static void Info(string message, Exception exception = null)
@@ -67,9 +55,7 @@ namespace recycling.Common
             Log(LogLevel.Info, message, exception);
         }
 
-        // 中文注释
         /// 记录警告日志
-        // 中文注释
         /// <param name="message">日志消息</param>
         /// <param name="exception">异常对象（可选）</param>
         public static void Warning(string message, Exception exception = null)
@@ -77,9 +63,7 @@ namespace recycling.Common
             Log(LogLevel.Warning, message, exception);
         }
 
-        // 中文注释
         /// 记录错误日志
-        // 中文注释
         /// <param name="message">日志消息</param>
         /// <param name="exception">异常对象（可选）</param>
         public static void Error(string message, Exception exception = null)
@@ -87,9 +71,7 @@ namespace recycling.Common
             Log(LogLevel.Error, message, exception);
         }
 
-        // 中文注释
         /// 记录致命错误日志
-        // 中文注释
         /// <param name="message">日志消息</param>
         /// <param name="exception">异常对象（可选）</param>
         public static void Fatal(string message, Exception exception = null)
@@ -97,9 +79,7 @@ namespace recycling.Common
             Log(LogLevel.Fatal, message, exception);
         }
 
-        // 中文注释
         /// 核心日志记录方法
-        // 中文注释
         /// <param name="level">日志级别</param>
         /// <param name="message">日志消息</param>
         /// <param name="exception">异常对象</param>
@@ -155,9 +135,7 @@ namespace recycling.Common
             }
         }
 
-        // 中文注释
         /// 清理旧日志文件
-        // 中文注释
         /// <param name="daysToKeep">保留天数（默认30天）</param>
         public static void CleanOldLogs(int daysToKeep = 30)
         {
@@ -187,9 +165,7 @@ namespace recycling.Common
             }
         }
 
-        // 中文注释
         /// 获取当前日志文件路径
-        // 中文注释
         /// <returns>日志文件路径</returns>
         public static string GetCurrentLogFilePath()
         {

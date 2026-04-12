@@ -2,9 +2,7 @@ using System;
 
 namespace recycling.Model
 {
-    // 中文注释
     /// 回收员列表视图模型（包含完成订单数）
-    // 中文注释
     public class RecyclerListViewModel
     {
         public int RecyclerID { get; set; }

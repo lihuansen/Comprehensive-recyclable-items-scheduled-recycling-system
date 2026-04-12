@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace recycling.Model
 {
-    // 中文注释
     /// 通用分页结果模型
-    // 中文注释
     /// <typeparam name="T">数据类型</typeparam>
     public class PagedResult<T>
     {

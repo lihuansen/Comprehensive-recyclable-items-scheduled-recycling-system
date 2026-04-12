@@ -7,9 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    // 中文注释
     /// 手机号登录视图模型
-    // 中文注释
     public class PhoneLoginViewModel
     {
         [Required(ErrorMessage = "手机号不能为空")]

@@ -30,65 +30,41 @@ namespace recycling.Model
 
         public DateTime? ReadDate { get; set; }
     }
-    // 中文注释
     /// 通知类型枚举
-    // 中文注释
     public static class NotificationTypes
     {
-        // 中文注释
         /// 订单已创建
-        // 中文注释
         public const string OrderCreated = "OrderCreated";
 
-        // 中文注释
         /// 回收员已接单
-        // 中文注释
         public const string OrderAccepted = "OrderAccepted";
 
-        // 中文注释
         /// 订单已完成
-        // 中文注释
         public const string OrderCompleted = "OrderCompleted";
 
-        // 中文注释
         /// 评价提醒
-        // 中文注释
         public const string ReviewReminder = "ReviewReminder";
 
-        // 中文注释
         /// 订单已取消
-        // 中文注释
         public const string OrderCancelled = "OrderCancelled";
 
-        // 中文注释
         /// 轮播图更新
-        // 中文注释
         public const string CarouselUpdated = "CarouselUpdated";
 
-        // 中文注释
         /// 反馈已回复
-        // 中文注释
         public const string FeedbackReplied = "FeedbackReplied";
 
 
-        // 中文注释
         /// 回收员发来消息
-        // 中文注释
         public const string RecyclerMessageReceived = "RecyclerMessageReceived";
 
-        // 中文注释
         /// 回收员退回订单
-        // 中文注释
         public const string OrderRolledBack = "OrderRolledBack";
 
-        // 中文注释
         /// 订单超时自动回退
-        // 中文注释
         public const string OrderExpiredAutoRollback = "OrderExpiredAutoRollback";
 
-        // 中文注释
         /// 获取通知类型的显示名称
-        // 中文注释
         public static string GetDisplayName(string type)
         {
             switch (type)
@@ -118,9 +94,7 @@ namespace recycling.Model
             }
         }
 
-        // 中文注释
         /// 获取通知类型的图标
-        // 中文注释
         public static string GetIcon(string type)
         {
             switch (type)
@@ -150,35 +124,33 @@ namespace recycling.Model
             }
         }
 
-        // 中文注释
         /// 获取通知类型的颜色
-        // 中文注释
         public static string GetColor(string type)
         {
             switch (type)
             {
                 case OrderCreated:
-                    return "#28a745"; // 中文注释
+                    return "#28a745"; // 中文说明
                 case OrderAccepted:
-                    return "#17a2b8"; // 中文注释
+                    return "#17a2b8"; // 中文说明
                 case OrderCompleted:
-                    return "#28a745"; // 中文注释
+                    return "#28a745"; // 中文说明
                 case ReviewReminder:
-                    return "#ffc107"; // 中文注释
+                    return "#ffc107"; // 中文说明
                 case OrderCancelled:
-                    return "#dc3545"; // 中文注释
+                    return "#dc3545"; // 中文说明
                 case CarouselUpdated:
-                    return "#6f42c1"; // 中文注释
+                    return "#6f42c1"; // 中文说明
                 case FeedbackReplied:
-                    return "#007bff"; // 中文注释
+                    return "#007bff"; // 中文说明
                 case RecyclerMessageReceived:
-                    return "#20c997"; // 中文注释
+                    return "#20c997"; // 中文说明
                 case OrderRolledBack:
-                    return "#fd7e14"; // 中文注释
+                    return "#fd7e14"; // 中文说明
                 case OrderExpiredAutoRollback:
-                    return "#e83e8c"; // 中文注释
+                    return "#e83e8c"; // 中文说明
                 default:
-                    return "#6c757d"; // 中文注释
+                    return "#6c757d"; // 中文说明
             }
         }
     }

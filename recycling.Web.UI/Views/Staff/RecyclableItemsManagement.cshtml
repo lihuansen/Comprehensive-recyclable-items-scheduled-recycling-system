@@ -261,7 +261,6 @@
             'foam': '泡沫'
         };
 
-        // 中文注释
         function getAntiForgeryToken() {
             var token = $('#itemForm input[name="__RequestVerificationToken"]').val();
             if (!token) {
@@ -338,21 +337,18 @@
             pagination.empty();
 
             var totalPages = Math.ceil(data.TotalCount / pageSize);
-            pagination.data('total', data.TotalCount); // 中文注释
+            pagination.data('total', data.TotalCount); // 中文说明
 
             if (totalPages <= 1) return;
 
-            // 中文注释
             pagination.append('<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
                 '<a class="page-link" href="#" onclick="changePage(' + (currentPage - 1) + ')">上一页</a></li>');
 
-            // 中文注释
             for (var i = 1; i <= totalPages; i++) {
                 pagination.append('<li class="page-item ' + (i === currentPage ? 'active' : '') + '">' +
                     '<a class="page-link" href="#" onclick="changePage(' + i + ')">' + i + '</a></li>');
             }
 
-            // 中文注释
             pagination.append('<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
                 '<a class="page-link" href="#" onclick="changePage(' + (currentPage + 1) + ')">下一页</a></li>');
         }
@@ -370,7 +366,6 @@
             $('#itemForm')[0].reset();
             $('#itemId').val('0');
             
-            // 中文注释
             $.ajax({
                 url: '@Url.Action("GetMaxRecyclableItemOrder", "Staff")',
                 type: 'POST',
@@ -437,7 +432,6 @@
                 return;
             }
 
-            // 中文注释
             updateCategoryName();
 
             var itemIdValue = $.trim($('#itemId').val());

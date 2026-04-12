@@ -7,9 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    // 中文注释
     /// 注册视图模型，用于前端表单提交和验证
-    // 中文注释
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "请输入用户名")]

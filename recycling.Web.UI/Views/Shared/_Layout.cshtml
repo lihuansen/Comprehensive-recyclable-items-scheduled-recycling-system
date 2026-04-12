@@ -424,9 +424,6 @@
                     var count = toCount(badge.getAttribute('data-tip-count'));
                     var dismissedCount = toCount(dismissedMap[key]);
 
-                    // 中文注释
-                    // 中文注释
-                    // 中文注释
                     if (!key || count <= dismissedCount) {
                         badge.textContent = '';
                         return;
@@ -461,9 +458,6 @@
 
             window.refreshNavTipBadges = applyNavTipBadges;
 
-            // 中文注释
-            // 中文注释
-            // 中文注释
             window.dismissNavBadge = function(key) {
                 var badge = document.querySelector('.js-nav-tip-badge[data-tip-key="' + key + '"]');
                 var count = badge ? toCount(badge.getAttribute('data-tip-count')) : 0;

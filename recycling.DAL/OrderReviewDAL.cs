@@ -11,9 +11,7 @@ namespace recycling.DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        // 中文注释
         /// 添加订单评价
-        // 中文注释
         public bool AddReview(OrderReviews review)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -35,7 +33,6 @@ namespace recycling.DAL
                     conn.Open();
                     int rows = cmd.ExecuteNonQuery();
                     
-                    // 中文注释
                     if (rows > 0 && review.RecyclerID.HasValue)
                     {
                         UpdateRecyclerRating(review.RecyclerID.Value, conn);
@@ -46,9 +43,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 更新回收员的平均评分到Recyclers表
-        // 中文注释
         public void UpdateRecyclerRating(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -58,9 +53,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 更新回收员的平均评分到Recyclers表（内部方法，使用已打开的连接）
-        // 中文注释
         private void UpdateRecyclerRating(int recyclerId, SqlConnection conn)
         {
             string sql = @"
@@ -79,9 +72,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 检查订单是否已评价
-        // 中文注释
         public bool HasReviewed(int orderId, int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -100,9 +91,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取订单评价
-        // 中文注释
         public OrderReviews GetReview(int orderId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -140,9 +129,7 @@ namespace recycling.DAL
             return null;
         }
 
-        // 中文注释
         /// 获取回收员收到的所有评价
-        // 中文注释
         public List<OrderReviews> GetReviewsByRecyclerId(int recyclerId)
         {
             List<OrderReviews> reviews = new List<OrderReviews>();
@@ -183,9 +170,7 @@ namespace recycling.DAL
             return reviews;
         }
 
-        // 中文注释
         /// 获取回收员的平均评分和评价总数
-        // 中文注释
         public (decimal AverageRating, int TotalReviews) GetRecyclerRatingSummary(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -217,9 +202,7 @@ namespace recycling.DAL
             return (0, 0);
         }
 
-        // 中文注释
         /// 获取回收员评价的星级分布
-        // 中文注释
         public Dictionary<int, int> GetRecyclerRatingDistribution(int recyclerId)
         {
             Dictionary<int, int> distribution = new Dictionary<int, int>

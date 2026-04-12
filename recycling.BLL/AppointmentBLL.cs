@@ -13,9 +13,7 @@ namespace recycling.BLL
     {
         private AppointmentDAL _appointmentDAL = new AppointmentDAL();
 
-        // 中文注释
         /// 提交完整预约信息
-        // 中文注释
         public (bool Success, int AppointmentId, string ErrorMessage) SubmitAppointment(
             AppointmentSubmissionModel submission, int userId)
         {
@@ -93,9 +91,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 根据品类键名获取显示名称
-        // 中文注释
         private string GetCategoryDisplayName(string categoryKey)
         {
             var categoryMap = new Dictionary<string, string>

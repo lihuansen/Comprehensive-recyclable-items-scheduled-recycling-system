@@ -12,33 +12,25 @@ namespace recycling.BLL
         private const int MAX_ADDRESSES = 10; // 每个用户最多10个地址
         private static readonly Regex PhoneRegex = new Regex(@"^1[3-9]\d{9}$", RegexOptions.Compiled);
 
-        // 中文注释
         /// 获取用户的所有地址
-        // 中文注释
         public List<UserAddresses> GetUserAddresses(int userId)
         {
             return _addressDAL.GetUserAddresses(userId);
         }
 
-        // 中文注释
         /// 根据ID获取地址
-        // 中文注释
         public UserAddresses GetAddressById(int addressId, int userId)
         {
             return _addressDAL.GetAddressById(addressId, userId);
         }
 
-        // 中文注释
         /// 获取用户的默认地址
-        // 中文注释
         public UserAddresses GetDefaultAddress(int userId)
         {
             return _addressDAL.GetDefaultAddress(userId);
         }
 
-        // 中文注释
         /// 添加新地址
-        // 中文注释
         /// <returns>返回错误信息，null表示成功</returns>
         public (bool Success, string Message, int AddressId) AddAddress(UserAddresses address)
         {
@@ -105,9 +97,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 更新地址
-        // 中文注释
         public (bool Success, string Message) UpdateAddress(UserAddresses address)
         {
             try
@@ -152,9 +142,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 删除地址
-        // 中文注释
         public (bool Success, string Message) DeleteAddress(int addressId, int userId)
         {
             try
@@ -190,9 +178,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 设置默认地址
-        // 中文注释
         public (bool Success, string Message) SetDefaultAddress(int addressId, int userId)
         {
             try
@@ -219,9 +205,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取用户地址数量
-        // 中文注释
         public int GetAddressCount(int userId)
         {
             return _addressDAL.GetAddressCount(userId);

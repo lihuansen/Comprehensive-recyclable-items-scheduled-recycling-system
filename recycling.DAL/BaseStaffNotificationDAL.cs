@@ -7,10 +7,8 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    // 中文注释
     /// 基地工作人员通知数据访问层
-    /// 中文注释
-    // 中文注释
+    /// 中文说明
     public class BaseStaffNotificationDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
@@ -70,9 +68,7 @@ namespace recycling.DAL
             throw new InvalidOperationException($"检测到未知入库关联列名：{columnName}");
         }
 
-        // 中文注释
         /// 添加通知
-        // 中文注释
         public bool AddNotification(BaseStaffNotifications notification)
         {
             try
@@ -104,9 +100,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 向所有基地工作人员发送通知
-        // 中文注释
         public bool AddNotificationsToAllWorkers(string notificationType, string title, string content, 
             int? relatedTransportOrderID = null, int? relatedWarehouseReceiptID = null)
         {
@@ -115,9 +109,6 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    // 中文注释
-                    // 中文注释
-                    // 中文注释
                     string sql = BuildAddNotificationsToAllWorkersSql();
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -140,9 +131,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取工作人员的通知列表（分页）
-        // 中文注释
         public List<BaseStaffNotifications> GetWorkerNotifications(int workerId, int pageIndex = 1, int pageSize = 20)
         {
             var notifications = new List<BaseStaffNotifications>();
@@ -199,9 +188,7 @@ namespace recycling.DAL
             return notifications;
         }
 
-        // 中文注释
         /// 获取工作人员未读通知数量
-        // 中文注释
         public int GetUnreadCount(int workerId)
         {
             try
@@ -226,9 +213,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 标记通知为已读
-        // 中文注释
         public bool MarkAsRead(int notificationId, int workerId)
         {
             try
@@ -257,9 +242,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 标记所有通知为已读
-        // 中文注释
         public bool MarkAllAsRead(int workerId)
         {
             try
@@ -288,9 +271,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 删除通知
-        // 中文注释
         public bool DeleteNotification(int notificationId, int workerId)
         {
             try
@@ -317,9 +298,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取工作人员通知总数
-        // 中文注释
         public int GetTotalCount(int workerId)
         {
             try
