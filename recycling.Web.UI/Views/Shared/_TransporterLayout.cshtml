@@ -330,38 +330,22 @@
 
             function applyNavTipBadges() {
                 var dismissedMap = readMap();
-                var changed = false;
 
                 document.querySelectorAll('.js-nav-tip-badge').forEach(function (badge) {
                     var key = badge.getAttribute('data-tip-key') || '';
                     var count = toCount(badge.getAttribute('data-tip-count'));
                     var dismissedCount = toCount(dismissedMap[key]);
 
-                    if (!key || count <= 0) {
-                        badge.textContent = '';
-                        if (key && dismissedMap[key]) {
-                            delete dismissedMap[key];
-                            changed = true;
-                        }
-                        return;
-                    }
-
-                    if (dismissedCount === count) {
+                    // Badge is hidden when count is zero (not loaded yet) or already dismissed (high-watermark).
+                    // We never delete the dismissed entry here, so a transient count=0 on page
+                    // load cannot erase a previously dismissed state.
+                    if (!key || count <= dismissedCount) {
                         badge.textContent = '';
                         return;
-                    }
-
-                    if (dismissedMap[key] && dismissedCount !== count) {
-                        delete dismissedMap[key];
-                        changed = true;
                     }
 
                     badge.textContent = count > 99 ? '99+' : String(count);
                 });
-
-                if (changed) {
-                    writeMap(dismissedMap);
-                }
             }
 
             document.addEventListener('click', function (event) {
