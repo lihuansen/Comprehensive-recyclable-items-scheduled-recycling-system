@@ -623,17 +623,24 @@ function editTransporter(transporter) {
     $('#currentStatus').val(transporter.CurrentStatus);
     $('#available').prop('checked', transporter.Available);
     $('#isActive').prop('checked', transporter.IsActive);
-    $('#passwordGroup').hide();
+    $('#password').val('');
+    $('#passwordGroup').show();
     $('#transporterModal').modal('show');
 }
 
 function saveTransporter() {
     var id = $('#transporterId').val();
     var phoneNumber = ($('#phoneNumber').val() || '').trim();
+    var password = ($('#password').val() || '').trim();
     var idNumber = normalizeIdNumber($('#idNumber').val());
     var mobileRegex = /^1[3-9]\d{9}$/;
     var idNumber18Regex = /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/;
     var idNumber15Regex = /^[1-9]\d{5}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}$/;
+
+    if (!password) {
+        alert('密码不能为空');
+        return;
+    }
 
     if (!mobileRegex.test(phoneNumber)) {
         alert('请输入有效的11位手机号');
@@ -657,10 +664,7 @@ function saveTransporter() {
         IsActive: $('#isActive').is(':checked')
     };
     
-    // Only include password when adding (not editing)
-    if (!id) {
-        data.password = $('#password').val();
-    }
+    data.password = password;
     
     data.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
     

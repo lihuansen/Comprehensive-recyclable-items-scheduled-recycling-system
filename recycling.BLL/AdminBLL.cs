@@ -164,7 +164,7 @@ namespace recycling.BLL
         /// <summary>
         /// Update recycler
         /// </summary>
-        public (bool Success, string Message) UpdateRecycler(Recyclers recycler)
+        public (bool Success, string Message) UpdateRecycler(Recyclers recycler, string password)
         {
             if (recycler == null)
             {
@@ -180,6 +180,11 @@ namespace recycling.BLL
             if (recycler.RecyclerID <= 0)
             {
                 return (false, "Invalid recycler ID");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return (false, "密码不能为空");
             }
 
             if (string.IsNullOrEmpty(recycler.Username))
@@ -211,6 +216,8 @@ namespace recycling.BLL
             {
                 return (false, "手机号已存在，请更换其他手机号");
             }
+
+            recycler.PasswordHash = HashPassword(password);
 
             bool result = _adminDAL.UpdateRecycler(recycler);
             return result ? (true, "更新回收员信息成功") : (false, "更新回收员信息失败");
@@ -568,7 +575,7 @@ namespace recycling.BLL
         /// <summary>
         /// Update transporter
         /// </summary>
-        public (bool Success, string Message) UpdateTransporter(Transporters transporter)
+        public (bool Success, string Message) UpdateTransporter(Transporters transporter, string password)
         {
             if (transporter == null)
             {
@@ -584,6 +591,11 @@ namespace recycling.BLL
             if (transporter.TransporterID <= 0)
             {
                 return (false, "Invalid transporter ID");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return (false, "密码不能为空");
             }
 
             if (string.IsNullOrEmpty(transporter.Username))
@@ -625,6 +637,8 @@ namespace recycling.BLL
             {
                 return (false, "身份证号已存在，请核对后重试");
             }
+
+            transporter.PasswordHash = HashPassword(password);
 
             bool result = _adminDAL.UpdateTransporter(transporter);
             return result ? (true, "更新运输人员信息成功") : (false, "更新运输人员信息失败");
@@ -742,7 +756,7 @@ namespace recycling.BLL
         /// <summary>
         /// Update sorting center worker
         /// </summary>
-        public (bool Success, string Message) UpdateSortingCenterWorker(SortingCenterWorkers worker)
+        public (bool Success, string Message) UpdateSortingCenterWorker(SortingCenterWorkers worker, string password)
         {
             if (worker == null)
             {
@@ -756,11 +770,18 @@ namespace recycling.BLL
                 return (false, "Invalid worker ID");
             }
 
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return (false, "密码不能为空");
+            }
+
             var validationResult = ValidateSortingCenterWorkerForSave(worker, worker.WorkerID);
             if (!validationResult.Success)
             {
                 return validationResult;
             }
+
+            worker.PasswordHash = HashPassword(password);
 
             bool result = _adminDAL.UpdateSortingCenterWorker(worker);
             return result ? (true, "更新基地人员信息成功") : (false, "更新基地人员信息失败");
