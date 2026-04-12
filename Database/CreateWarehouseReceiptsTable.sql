@@ -27,7 +27,7 @@ BEGIN
         [WorkerID] INT NOT NULL,                              -- 处理入库的基地人员ID（外键）
         [TotalWeight] DECIMAL(10, 2) NOT NULL,                -- 入库总重量（kg）
         [ItemCategories] NVARCHAR(MAX) NULL,                  -- 物品类别（JSON格式存储）
-        [Status] NVARCHAR(20) NOT NULL DEFAULT N'已入库',     -- 状态（已入库、已取消）
+        [Status] NVARCHAR(20) NOT NULL DEFAULT N'待入库',     -- 状态（待入库、已入库、已取消）
         [Notes] NVARCHAR(500) NULL,                           -- 备注信息
         [CreatedDate] DATETIME2 NOT NULL DEFAULT GETDATE(),   -- 创建时间（入库时间）
         [Price] DECIMAL(10, 2) NULL,                          -- 入库总价（系统自动计算，可为空）
@@ -40,7 +40,7 @@ BEGIN
         CONSTRAINT FK_WarehouseReceipts_Workers FOREIGN KEY ([WorkerID]) 
             REFERENCES [dbo].[SortingCenterWorkers]([WorkerID]),
         CONSTRAINT CK_WarehouseReceipts_Status 
-            CHECK ([Status] IN (N'已入库', N'已取消')),
+            CHECK ([Status] IN (N'待入库', N'已入库', N'已取消')),
         CONSTRAINT CK_WarehouseReceipts_TotalWeight 
             CHECK ([TotalWeight] > 0),
         CONSTRAINT CK_WarehouseReceipts_Price 
@@ -73,7 +73,7 @@ GO
 -- WorkerID             : 处理入库的基地人员ID
 -- TotalWeight          : 入库总重量（公斤）
 -- ItemCategories       : 物品类别JSON，例如：[{"categoryKey":"paper","categoryName":"纸类","weight":10.5}]
--- Status               : 入库单状态（已入库、已取消）
+-- Status               : 入库单状态（待入库、已入库、已取消）
 -- Notes                : 备注信息
 -- CreatedDate          : 入库时间
 -- Price                : 入库总价（系统自动计算，无法计算时为空，单位：元）
@@ -87,7 +87,7 @@ GO
 -- 3. 入库成功后，对应暂存点的重量要清零
 -- 4. TotalWeight 必须大于0
 -- 5. ItemCategories 以JSON格式存储物品类别和重量信息
--- 6. 入库单创建后状态为"已入库"
+-- 6. 入库单创建后状态为"待入库"，经过细分操作后执行入库处理变为"已入库"
 -- ==============================================================================
 
 -- ==============================================================================
