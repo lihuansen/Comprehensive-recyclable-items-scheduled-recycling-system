@@ -44,27 +44,37 @@ namespace recycling.Model
     public static class BaseStaffNotificationTypes
     {
         /// <summary>
-        /// 运输单已创建，运输人员联系基地人员
+        /// 运输单已创建，运输已开始
         /// </summary>
         public const string TransportOrderCreated = "TransportOrderCreated";
 
         /// <summary>
-        /// 运输单已完成
+        /// 运输单处于运输中状态
+        /// </summary>
+        public const string TransportOrderInTransit = "TransportOrderInTransit";
+
+        /// <summary>
+        /// 运输单已到达目的地
         /// </summary>
         public const string TransportOrderCompleted = "TransportOrderCompleted";
 
         /// <summary>
-        /// 入库单已创建（收货登记）
+        /// 提示创建入库单
+        /// </summary>
+        public const string CreateWarehouseReceiptPrompt = "CreateWarehouseReceiptPrompt";
+
+        /// <summary>
+        /// 入库单已创建，提示细分
         /// </summary>
         public const string WarehouseReceiptReceived = "WarehouseReceiptReceived";
 
         /// <summary>
-        /// 入库单细分完成
+        /// 细分完成，提示入库
         /// </summary>
         public const string WarehouseReceiptCreated = "WarehouseReceiptCreated";
 
         /// <summary>
-        /// 仓库库存已写入
+        /// 入库成功
         /// </summary>
         public const string WarehouseInventoryWritten = "WarehouseInventoryWritten";
 
@@ -76,15 +86,19 @@ namespace recycling.Model
             switch (type)
             {
                 case TransportOrderCreated:
-                    return "运输开始";
+                    return "运输单开始";
+                case TransportOrderInTransit:
+                    return "运输中";
                 case TransportOrderCompleted:
-                    return "运输到达";
+                    return "已到达";
+                case CreateWarehouseReceiptPrompt:
+                    return "提示创建入库单";
                 case WarehouseReceiptReceived:
-                    return "收货登记";
+                    return "提示细分";
                 case WarehouseReceiptCreated:
-                    return "细分完成";
+                    return "提示入库";
                 case WarehouseInventoryWritten:
-                    return "入库完成";
+                    return "入库成功";
                 default:
                     return "系统通知";
             }
@@ -99,12 +113,16 @@ namespace recycling.Model
             {
                 case TransportOrderCreated:
                     return "fa-truck";
+                case TransportOrderInTransit:
+                    return "fa-route";
                 case TransportOrderCompleted:
-                    return "fa-check-circle";
+                    return "fa-map-marker-alt";
+                case CreateWarehouseReceiptPrompt:
+                    return "fa-clipboard-list";
                 case WarehouseReceiptReceived:
                     return "fa-inbox";
                 case WarehouseReceiptCreated:
-                    return "fa-file-alt";
+                    return "fa-tasks";
                 case WarehouseInventoryWritten:
                     return "fa-warehouse";
                 default:
@@ -121,12 +139,16 @@ namespace recycling.Model
             {
                 case TransportOrderCreated:
                     return "#17a2b8"; // info blue
+                case TransportOrderInTransit:
+                    return "#007bff"; // primary blue
                 case TransportOrderCompleted:
                     return "#28a745"; // green
+                case CreateWarehouseReceiptPrompt:
+                    return "#20c997"; // teal
                 case WarehouseReceiptReceived:
                     return "#fd7e14"; // orange
                 case WarehouseReceiptCreated:
-                    return "#007bff"; // primary blue
+                    return "#e83e8c"; // pink
                 case WarehouseInventoryWritten:
                     return "#6f42c1"; // purple
                 default:

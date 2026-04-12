@@ -215,7 +215,8 @@ namespace recycling.BLL
                             receiptNumber,
                             transportOrderId,
                             transportOrderInfo?.OrderNumber ?? string.Empty,
-                            totalWeight);
+                            totalWeight,
+                            transportOrderInfo?.AssignedWorkerID);
                     }
                     catch (Exception notifyEx)
                     {
@@ -311,14 +312,15 @@ namespace recycling.BLL
                         System.Diagnostics.Debug.WriteLine($"发送入库通知失败: {notifyEx.Message}");
                     }
 
-                    // 5. 发送仓库库存写入通知给基地工作人员
+                    // 5. 发送"入库成功"通知给被指派的基地工作人员
                     try
                     {
                         _baseStaffNotificationBLL.SendWarehouseInventoryWrittenNotification(
                             receiptId,
                             receipt.ReceiptNumber,
                             receipt.ItemCategories ?? "未分类",
-                            receipt.TotalWeight ?? 0);
+                            receipt.TotalWeight ?? 0,
+                            transportOrder?.AssignedWorkerID);
                     }
                     catch (Exception notifyEx)
                     {
@@ -766,7 +768,8 @@ namespace recycling.BLL
                         receipt.TransportOrderID,
                         transportOrder?.OrderNumber ?? string.Empty,
                         receipt.TotalWeight ?? 0,
-                        workerId);
+                        workerId,
+                        transportOrder?.AssignedWorkerID);
                 }
                 catch (Exception notifyEx)
                 {
