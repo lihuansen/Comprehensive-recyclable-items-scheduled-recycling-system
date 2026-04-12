@@ -87,7 +87,8 @@ namespace recycling.BLL
                             orderNumber,
                             recyclerName,
                             order.PickupAddress,
-                            order.EstimatedWeight ?? 0);
+                            order.EstimatedWeight ?? 0,
+                            order.AssignedWorkerID);
                     }
                     catch (Exception notifyEx)
                     {
@@ -305,10 +306,11 @@ namespace recycling.BLL
 
                     try
                     {
-                        // 3.2 发送通知给基地人员
-                        // 注意：这里需要一个方法来通知所有基地人员
-                        // 可以通过UserNotificationBLL来实现
-                        SendTransportNotificationToBase(order);
+                        // 3.2 发送"运输中"通知给被指派的基地人员
+                        _notificationBLL.SendTransportOrderInTransitNotification(
+                            order.TransportOrderID,
+                            order.OrderNumber,
+                            order.AssignedWorkerID);
                     }
                     catch (Exception notifyEx)
                     {
@@ -336,7 +338,29 @@ namespace recycling.BLL
                 if (orderId <= 0)
                     throw new ArgumentException("运输单ID无效");
 
-                return _dal.ConfirmPickupLocation(orderId);
+                var order = _dal.GetTransportationOrderById(orderId);
+                if (order == null)
+                    throw new ArgumentException("运输单不存在");
+
+                bool result = _dal.ConfirmPickupLocation(orderId);
+
+                // 确认取货地点后状态变为"运输中"，发送"运输中"通知
+                if (result)
+                {
+                    try
+                    {
+                        _notificationBLL.SendTransportOrderInTransitNotification(
+                            orderId,
+                            order.OrderNumber,
+                            order.AssignedWorkerID);
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"发送运输中通知失败: {notifyEx.Message}");
+                    }
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -402,8 +426,11 @@ namespace recycling.BLL
 
                     try
                     {
-                        // 发送通知给基地人员
-                        SendTransportNotificationToBase(order);
+                        // 发送"运输中"通知给被指派的基地人员（装货完毕后继续运输中）
+                        _notificationBLL.SendTransportOrderInTransitNotification(
+                            order.TransportOrderID,
+                            order.OrderNumber,
+                            order.AssignedWorkerID);
                     }
                     catch (Exception notifyEx)
                     {
@@ -456,35 +483,6 @@ namespace recycling.BLL
             {
                 System.Diagnostics.Debug.WriteLine($"ArriveAtDeliveryLocation BLL Error: {ex.Message}");
                 throw;
-            }
-        }
-
-        /// <summary>
-        /// 发送运输通知给基地人员
-        /// </summary>
-        private void SendTransportNotificationToBase(TransportationOrders order)
-        {
-            try
-            {
-                string recyclerName = "未知回收员";
-                if (order.RecyclerID.HasValue && order.RecyclerID.Value > 0)
-                {
-                    var recycler = _staffDAL.GetRecyclerById(order.RecyclerID.Value);
-                    recyclerName = GetRecyclerName(recycler);
-                }
-
-                _notificationBLL.SendTransportOrderCreatedNotification(
-                    order.TransportOrderID,
-                    order.OrderNumber,
-                    recyclerName,
-                    order.PickupAddress,
-                    order.EstimatedWeight ?? 0);
-
-                System.Diagnostics.Debug.WriteLine($"运输单 {order.OrderNumber} 开始运输，已通知基地人员");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"SendTransportNotificationToBase Error: {ex.Message}");
             }
         }
 
@@ -567,11 +565,19 @@ namespace recycling.BLL
                                 // 如果获取失败，使用默认名称
                             }
 
+                            // 发送"已到达"通知
                             _notificationBLL.SendTransportOrderCompletedNotification(
                                 orderId,
                                 order.OrderNumber,
                                 transporterName,
-                                actualWeight ?? order.EstimatedWeight ?? 0);
+                                actualWeight ?? order.EstimatedWeight ?? 0,
+                                order.AssignedWorkerID);
+
+                            // 发送"提示创建入库单"通知
+                            _notificationBLL.SendCreateWarehouseReceiptPromptNotification(
+                                orderId,
+                                order.OrderNumber,
+                                order.AssignedWorkerID);
                         }
                     }
                     catch (Exception notifyEx)

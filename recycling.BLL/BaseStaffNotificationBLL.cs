@@ -85,20 +85,16 @@ namespace recycling.BLL
         /// 发送运输开始通知
         /// </summary>
         public bool SendTransportOrderCreatedNotification(int transportOrderId, string orderNumber, 
-            string recyclerName, string pickupAddress, decimal estimatedWeight)
+            string recyclerName, string pickupAddress, decimal estimatedWeight, int? assignedWorkerId = null)
         {
             try
             {
-                string title = "运输单开始往基地运了";
+                string title = "运输单开始";
                 string content = $"运输单 {orderNumber} 已开始往基地运输，" +
                     $"发起人：{recyclerName}，取货地址：{pickupAddress}，预估重量：{estimatedWeight}kg。";
 
-                return SendNotificationToAllWorkers(
-                    title, 
-                    content, 
-                    BaseStaffNotificationTypes.TransportOrderCreated,
-                    transportOrderId,
-                    null);
+                return SendToWorkerOrAll(assignedWorkerId, title, content,
+                    BaseStaffNotificationTypes.TransportOrderCreated, transportOrderId, null);
             }
             catch (Exception ex)
             {
@@ -108,23 +104,40 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 发送运输到达通知
+        /// 发送运输中通知
         /// </summary>
-        public bool SendTransportOrderCompletedNotification(int transportOrderId, string orderNumber, 
-            string transporterName, decimal actualWeight)
+        public bool SendTransportOrderInTransitNotification(int transportOrderId, string orderNumber,
+            int? assignedWorkerId = null)
         {
             try
             {
-                string title = "运输到达";
+                string title = "运输中";
+                string content = $"运输单 {orderNumber} 正在运输中，请做好接收准备。";
+
+                return SendToWorkerOrAll(assignedWorkerId, title, content,
+                    BaseStaffNotificationTypes.TransportOrderInTransit, transportOrderId, null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SendTransportOrderInTransitNotification Error: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 发送运输到达通知
+        /// </summary>
+        public bool SendTransportOrderCompletedNotification(int transportOrderId, string orderNumber, 
+            string transporterName, decimal actualWeight, int? assignedWorkerId = null)
+        {
+            try
+            {
+                string title = "已到达";
                 string content = $"运输单 {orderNumber} 已到达基地，" +
                     $"运输人员：{transporterName}，到达重量：{actualWeight}kg。";
 
-                return SendNotificationToAllWorkers(
-                    title, 
-                    content, 
-                    BaseStaffNotificationTypes.TransportOrderCompleted,
-                    transportOrderId,
-                    null);
+                return SendToWorkerOrAll(assignedWorkerId, title, content,
+                    BaseStaffNotificationTypes.TransportOrderCompleted, transportOrderId, null);
             }
             catch (Exception ex)
             {
@@ -134,23 +147,40 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 发送收货登记通知（入库单已创建）
+        /// 发送提示创建入库单通知
         /// </summary>
-        public bool SendWarehouseReceiptReceivedNotification(int warehouseReceiptId, string receiptNumber,
-            int? transportOrderId, string orderNumber, decimal totalWeight)
+        public bool SendCreateWarehouseReceiptPromptNotification(int transportOrderId, string orderNumber,
+            int? assignedWorkerId = null)
         {
             try
             {
-                string title = "收货登记";
+                string title = "提示创建入库单";
+                string content = $"运输单 {orderNumber} 货物已到达，请及时创建入库单进行收货登记。";
+
+                return SendToWorkerOrAll(assignedWorkerId, title, content,
+                    BaseStaffNotificationTypes.CreateWarehouseReceiptPrompt, transportOrderId, null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SendCreateWarehouseReceiptPromptNotification Error: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 发送提示细分通知（入库单已创建）
+        /// </summary>
+        public bool SendWarehouseReceiptReceivedNotification(int warehouseReceiptId, string receiptNumber,
+            int? transportOrderId, string orderNumber, decimal totalWeight, int? assignedWorkerId = null)
+        {
+            try
+            {
+                string title = "提示细分";
                 string content = $"运输单 {orderNumber} 货物已到达基地，已创建入库单 {receiptNumber}，" +
                     $"总重量：{totalWeight}kg，请尽快完成细分操作。";
 
-                return SendNotificationToAllWorkers(
-                    title,
-                    content,
-                    BaseStaffNotificationTypes.WarehouseReceiptReceived,
-                    transportOrderId,
-                    warehouseReceiptId);
+                return SendToWorkerOrAll(assignedWorkerId, title, content,
+                    BaseStaffNotificationTypes.WarehouseReceiptReceived, transportOrderId, warehouseReceiptId);
             }
             catch (Exception ex)
             {
@@ -160,23 +190,20 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 发送细分完成通知
+        /// 发送提示入库通知（细分完成）
         /// </summary>
         public bool SendWarehouseReceiptCreatedNotification(int warehouseReceiptId, string receiptNumber, 
-            int? transportOrderId, string orderNumber, decimal totalWeight, int createdByWorkerId)
+            int? transportOrderId, string orderNumber, decimal totalWeight, int createdByWorkerId,
+            int? assignedWorkerId = null)
         {
             try
             {
-                string title = "细分完成";
+                string title = "提示入库";
                 string content = $"入库单 {receiptNumber} 细分已完成，" +
-                    $"关联运输单：{orderNumber}，细分总重量：{totalWeight}kg。";
+                    $"关联运输单：{orderNumber}，细分总重量：{totalWeight}kg，请尽快完成入库操作。";
 
-                return SendNotificationToAllWorkers(
-                    title, 
-                    content, 
-                    BaseStaffNotificationTypes.WarehouseReceiptCreated,
-                    transportOrderId,
-                    warehouseReceiptId);
+                return SendToWorkerOrAll(assignedWorkerId, title, content,
+                    BaseStaffNotificationTypes.WarehouseReceiptCreated, transportOrderId, warehouseReceiptId);
             }
             catch (Exception ex)
             {
@@ -186,29 +213,40 @@ namespace recycling.BLL
         }
 
         /// <summary>
-        /// 发送入库完成通知
+        /// 发送入库成功通知
         /// </summary>
         public bool SendWarehouseInventoryWrittenNotification(int warehouseReceiptId, string receiptNumber, 
-            string itemCategories, decimal totalWeight)
+            string itemCategories, decimal totalWeight, int? assignedWorkerId = null)
         {
             try
             {
-                string title = "入库完成";
-                string content = $"入库单 {receiptNumber} 已完成入库，" +
+                string title = "入库成功";
+                string content = $"入库单 {receiptNumber} 已成功完成入库，" +
                     $"入库重量：{totalWeight}kg。";
 
-                return SendNotificationToAllWorkers(
-                    title, 
-                    content, 
-                    BaseStaffNotificationTypes.WarehouseInventoryWritten,
-                    null,
-                    warehouseReceiptId);
+                return SendToWorkerOrAll(assignedWorkerId, title, content,
+                    BaseStaffNotificationTypes.WarehouseInventoryWritten, null, warehouseReceiptId);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"SendWarehouseInventoryWrittenNotification Error: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 辅助方法：发送通知给指定工作人员（有 assignedWorkerId 时）或所有活跃工作人员
+        /// </summary>
+        private bool SendToWorkerOrAll(int? assignedWorkerId, string title, string content,
+            string notificationType, int? relatedTransportOrderId, int? relatedWarehouseReceiptId)
+        {
+            if (assignedWorkerId.HasValue && assignedWorkerId.Value > 0)
+            {
+                return SendNotification(assignedWorkerId.Value, title, content,
+                    notificationType, relatedTransportOrderId, relatedWarehouseReceiptId);
+            }
+            return SendNotificationToAllWorkers(title, content,
+                notificationType, relatedTransportOrderId, relatedWarehouseReceiptId);
         }
 
         /// <summary>
