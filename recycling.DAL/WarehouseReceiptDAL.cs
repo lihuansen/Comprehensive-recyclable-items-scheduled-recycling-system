@@ -456,6 +456,10 @@ namespace recycling.DAL
                             {
                                 throw new Exception($"入库单状态不正确，当前状态：{receipt.Status}");
                             }
+                            
+                            // 记录实际入库操作时间（点击“入库”时）
+                            DateTime warehousedAt = DateTime.Now;
+                            receipt.CreatedDate = warehousedAt;
 
                             // 2. 验证并解析ItemCategories JSON
                             if (string.IsNullOrEmpty(receipt.ItemCategories))
@@ -618,7 +622,7 @@ namespace recycling.DAL
                                         insertCmd.Parameters.AddWithValue("@CategoryName", categoryName);
                                         insertCmd.Parameters.AddWithValue("@Weight", weight);
                                         insertCmd.Parameters.AddWithValue("@RecyclerID", receipt.RecyclerID);
-                                        insertCmd.Parameters.AddWithValue("@CreatedDate", receipt.CreatedDate);
+                                        insertCmd.Parameters.AddWithValue("@CreatedDate", warehousedAt);
                                         insertCmd.Parameters.AddWithValue("@Price", (object)price ?? DBNull.Value);
                                         insertCmd.Parameters.AddWithValue("@InventoryType", "Warehouse");
                                         insertCmd.Parameters.AddWithValue("@ReceiptID", receiptId);
@@ -636,12 +640,14 @@ namespace recycling.DAL
                             // 3. 更新入库单状态为"已入库"
                             string updateStatusSql = @"
                                 UPDATE WarehouseReceipts
-                                SET Status = N'已入库'
+                                SET Status = N'已入库',
+                                    CreatedDate = @CreatedDate
                                 WHERE ReceiptID = @ReceiptID";
 
                             using (SqlCommand cmd = new SqlCommand(updateStatusSql, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@ReceiptID", receiptId);
+                                cmd.Parameters.AddWithValue("@CreatedDate", warehousedAt);
                                 cmd.ExecuteNonQuery();
                             }
 
