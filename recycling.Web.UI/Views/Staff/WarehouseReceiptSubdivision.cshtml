@@ -58,7 +58,7 @@
     </div>
 
     <div class="card">
-        <div class="card-header">按大类细分（每个大类细分重量之和不可超过原重量，可因杂质减少）</div>
+        <div class="card-header">按大类细分（每个大类细分重量之和必须小于原重量，可因杂质减少）</div>
         <div class="card-body" id="subdivisionArea"></div>
     </div>
 
@@ -66,7 +66,7 @@
         <div class="card-header">汇总</div>
         <div class="card-body">
             <div>细分总重量：<span id="totalWeightText">0.00</span> kg</div>
-            <div id="overallStatus" class="status-error">请完成细分并确保各大类及总重量不超重</div>
+            <div id="overallStatus" class="status-error">请完成细分并确保各大类及总重量均小于原重量</div>
             <div class="actions">
                 <button class="btn btn-back" onclick="goBack()">返回仓库管理</button>
                 <button id="saveBtn" class="btn btn-save" onclick="saveSubdivision()" disabled>保存细分</button>
@@ -252,7 +252,7 @@
                 '</div>' +
                 '<div><table><thead><tr><th>细分类组合(下拉/手动 + 下方重量)</th><th class="text-right">操作</th></tr></thead>' +
                 '<tbody>' + rowsHtml + '</tbody></table></div>' +
-                '<div class="category-footer">细类总重：<span class="category-total-weight">0.00</span> kg（需 ≤ 原始重量）</div>' +
+                '<div class="category-footer">细类总重：<span class="category-total-weight">0.00</span> kg（需 < 原始重量）</div>' +
                 '</div>';
 
             var jqBlock = $(block);
@@ -340,12 +340,12 @@
             block.find('.diff-weight').text(diff.toFixed(2));
             block.find('.category-total-weight').text(current.toFixed(2));
 
-            var overWeight = current - target > Number(weightTolerance || 0);
+            var overWeight = current >= target;
             var categoryValid = !overWeight && !hasInvalidSubName && validSubCount > 0;
             block.find('.diff-weight').removeClass('status-ok status-error').addClass(overWeight ? 'status-error' : 'status-ok');
             block.find('.category-status').removeClass('status-ok status-error')
                 .addClass(categoryValid ? 'status-ok' : 'status-error')
-                .text(categoryValid ? '校验通过' : (overWeight ? '超出原始重量' : '请完善细类名称和重量'));
+                .text(categoryValid ? '校验通过' : (overWeight ? '细分总重必须小于原始重量' : '请完善细类名称和重量'));
 
             if (!categoryValid) allCategoryValid = false;
         });
@@ -353,9 +353,9 @@
         $('#totalWeightText').text(totalWeight.toFixed(2));
 
         var receiptWeight = Number(receiptTotalWeight || 0);
-        var overallValid = allCategoryValid && (totalWeight - receiptWeight) <= Number(weightTolerance || 0) && totalWeight > 0;
+        var overallValid = allCategoryValid && totalWeight < receiptWeight && totalWeight > 0;
         $('#overallStatus').removeClass('status-ok status-error').addClass(overallValid ? 'status-ok' : 'status-error')
-            .text(overallValid ? '校验通过，可保存细分' : '请完成细分并确保各大类及总重量不超重');
+            .text(overallValid ? '校验通过，可保存细分' : '请完成细分并确保各大类及总重量均小于原重量');
         $('#saveBtn').prop('disabled', !overallValid);
     }
 

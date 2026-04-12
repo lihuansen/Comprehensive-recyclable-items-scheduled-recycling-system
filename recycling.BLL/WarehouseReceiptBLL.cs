@@ -732,16 +732,16 @@ namespace recycling.BLL
                         return (false, $"大类 {original.Key} 细分重量必须大于0");
                     }
 
-                    if (groupedWeight[original.Key] - original.Value > WeightTolerance)
+                    if (groupedWeight[original.Key] >= original.Value)
                     {
-                        return (false, $"大类 {original.Key} 细分重量不能超过原重量");
+                        return (false, $"大类 {original.Key} 细分重量必须小于原重量");
                     }
                 }
 
                 var receiptTotalWeight = receipt.TotalWeight ?? 0;
-                if (totalWeight - receiptTotalWeight > WeightTolerance)
+                if (totalWeight >= receiptTotalWeight)
                 {
-                    return (false, "细分总重量不能超过入库单总重量");
+                    return (false, "细分总重量必须小于入库单总重量");
                 }
 
                 var normalizedJson = JsonConvert.SerializeObject(normalized);
