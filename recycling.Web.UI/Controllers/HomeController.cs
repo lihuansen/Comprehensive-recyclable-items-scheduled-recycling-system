@@ -77,9 +77,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 获取可回收物列表（AJAX局部刷新）
-        // 中文注释
         [HttpGet]
         public ActionResult GetRecyclableItems(RecyclableQueryModel query)
         {
@@ -99,15 +97,12 @@ namespace recycling.Web.UI.Controllers
             }
             catch (Exception ex)
             {
-                // 中文注释
                 System.Diagnostics.Debug.WriteLine("GetRecyclableItems error: " + ex.Message);
                 return Content("<div class='error-alert'><i class='fas fa-exclamation-circle'></i> 加载数据时发生错误，请稍后重试</div>");
             }
         }
 
-        // 中文注释
         /// 订单管理页面
-        // 中文注释
         [HttpGet]
         public ActionResult Order()
         {
@@ -140,9 +135,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 根据状态筛选订单（AJAX）
-        // 中文注释
         [HttpPost]
         public JsonResult GetOrdersByStatus(string status)
         {
@@ -186,9 +179,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 获取订单详情
-        // 中文注释
         [HttpPost]
         public JsonResult GetOrderDetail(int appointmentId)
         {
@@ -283,9 +274,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 取消订单
-        // 中文注释
         [HttpPost]
         public JsonResult CancelOrder(int appointmentId)
         {
@@ -343,9 +332,7 @@ namespace recycling.Web.UI.Controllers
         }
 
 
-        // 中文注释
         /// 个人中心主页
-        // 中文注释
         [HttpGet]
         public new ActionResult Profile()
         {
@@ -368,9 +355,7 @@ namespace recycling.Web.UI.Controllers
             return View(currentUser ?? user);
         }
 
-        // 中文注释
         /// 显示编辑个人信息页面
-        // 中文注释
         [HttpGet]
         public ActionResult EditProfile()
         {
@@ -391,9 +376,7 @@ namespace recycling.Web.UI.Controllers
             return View(model);
         }
 
-        // 中文注释
         /// 处理个人信息更新
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditProfile(UpdateProfileViewModel model)
@@ -433,9 +416,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 显示修改密码页面
-        // 中文注释
         [HttpGet]
         public ActionResult ChangePassword()
         {
@@ -448,9 +429,7 @@ namespace recycling.Web.UI.Controllers
             return View(new ChangePasswordViewModel());
         }
 
-        // 中文注释
         /// 处理密码修改（修改成功后强制重新登录）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ChangePassword(ChangePasswordViewModel model)
@@ -491,17 +470,13 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 我的钱包页面
-        // 中文注释
 
         public ActionResult LoginSelect()
         {
             return View();
         }
-        // 中文注释
         /// 检查用户登录状态（AJAX调用）
-        // 中文注释
         [HttpPost]
         public JsonResult CheckLoginStatus()
         {
@@ -515,9 +490,7 @@ namespace recycling.Web.UI.Controllers
             });
         }
 
-        // 中文注释
         /// 用户消息中心页面（显示所有进行中订单的聊天入口）
-        // 中文注释
         public ActionResult UserMessageCenter()
         {
             if (Session["LoginUser"] == null)
@@ -532,9 +505,7 @@ namespace recycling.Web.UI.Controllers
             return View(messages);
         }
 
-        // 中文注释
         /// 获取订单聊天记录（用户端，AJAX）
-        // 中文注释
         [HttpPost]
         public JsonResult GetUserOrderConversation(int orderId)
         {
@@ -581,9 +552,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 用户发送消息给回收员
-        // 中文注释
         [HttpPost]
         public JsonResult UserSendMessageToRecycler(SendMessageRequest request)
         {
@@ -605,9 +574,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 标记用户接收的消息为已读
-        // 中文注释
         [HttpPost]
         public JsonResult MarkUserMessagesAsRead(int orderId)
         {
@@ -724,9 +691,7 @@ namespace recycling.Web.UI.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        // 中文注释
         /// 联系回收员视图（用户端）
-        // 中文注释
         [HttpGet]
         public ActionResult ContactRecycler(int orderId)
         {
@@ -783,9 +748,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 发送消息给回收员
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SendMessageToRecycler(ContactRecyclerViewModel model)
@@ -964,9 +927,7 @@ namespace recycling.Web.UI.Controllers
 
         // ==================== 用户反馈功能 ====================
 
-        // 中文注释
         /// 用户反馈页面（GET）
-        // 中文注释
         [HttpGet]
         public ActionResult Feedback()
         {
@@ -980,9 +941,7 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        // 中文注释
         /// 提交用户反馈（POST）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SubmitFeedback(string FeedbackType, string Subject, 
@@ -1032,9 +991,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 上传用户头像
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult UploadAvatar(HttpPostedFileBase avatarFile)
@@ -1113,9 +1070,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 设置默认头像
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult SetDefaultAvatar(string avatarName)
@@ -1159,9 +1114,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 用户查看自己的反馈记录（我的反馈）
-        // 中文注释
         [HttpGet]
         public ActionResult MyFeedback()
         {
@@ -1189,9 +1142,7 @@ namespace recycling.Web.UI.Controllers
 
         // ==================== 用户通知功能 ====================
 
-        // 中文注释
         /// 获取用户通知列表（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult GetUserNotifications(int pageIndex = 1, int pageSize = 10)
@@ -1246,9 +1197,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 获取未读通知数量（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult GetUnreadNotificationCount()
@@ -1271,9 +1220,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 获取未读通知数量（用于导航栏，GET请求）
-        // 中文注释
         [HttpGet]
         public JsonResult GetUnreadCountForNav()
         {
@@ -1296,9 +1243,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 获取用户订单总数（用于导航栏徽章）
-        // 中文注释
         public JsonResult GetOrderNavBadgeCount()
         {
             try
@@ -1320,9 +1265,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 标记通知为已读（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult MarkNotificationAsRead(int notificationId)
@@ -1345,9 +1288,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 标记所有通知为已读（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult MarkAllNotificationsAsRead()
@@ -1370,9 +1311,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 删除通知（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult DeleteNotification(int notificationId)
@@ -1397,9 +1336,7 @@ namespace recycling.Web.UI.Controllers
 
         // ==================== 地址管理功能 ====================
 
-        // 中文注释
         /// 地址管理页面
-        // 中文注释
         [HttpGet]
         public ActionResult AddressManagement()
         {
@@ -1419,9 +1356,7 @@ namespace recycling.Web.UI.Controllers
             return View(addresses);
         }
 
-        // 中文注释
         /// 获取用户地址列表（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult GetAddresses()
@@ -1458,9 +1393,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 添加新地址（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult AddAddress(string street, string detailAddress, string contactName, string contactPhone, bool isDefault = false)
@@ -1501,9 +1434,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 更新地址（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult UpdateAddress(int addressId, string street, string detailAddress, string contactName, string contactPhone)
@@ -1544,9 +1475,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 删除地址（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult DeleteAddress(int addressId)
@@ -1569,9 +1498,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 设置默认地址（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult SetDefaultAddress(int addressId)
@@ -1594,9 +1521,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 获取单个地址详情（AJAX）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult GetAddressDetail(int addressId)

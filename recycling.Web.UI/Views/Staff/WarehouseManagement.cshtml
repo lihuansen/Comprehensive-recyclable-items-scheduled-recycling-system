@@ -128,7 +128,6 @@
         margin-bottom: 5px;
     }
 
-    /* 中文注释 */
     .detail-section {
         background: white;
         border-radius: 10px;
@@ -446,7 +445,6 @@
 
             if (data.TotalPages <= 1) return;
 
-            // 中文注释
             var prevDisabled = data.PageIndex == 1 ? 'disabled' : '';
             pagination.innerHTML += `
                 <li class="${prevDisabled}">
@@ -454,7 +452,6 @@
                 </li>
             `;
 
-            // 中文注释
             var startPage = Math.max(1, data.PageIndex - 2);
             var endPage = Math.min(data.TotalPages, data.PageIndex + 2);
 
@@ -467,7 +464,6 @@
                 `;
             }
 
-            // 中文注释
             var nextDisabled = data.PageIndex >= data.TotalPages ? 'disabled' : '';
             pagination.innerHTML += `
                 <li class="${nextDisabled}">

@@ -20,9 +20,7 @@ namespace recycling.DAL
             new System.Text.RegularExpressions.Regex("^[a-zA-Z_][a-zA-Z0-9_]*$", 
                 System.Text.RegularExpressions.RegexOptions.Compiled);
 
-        // 中文注释
         /// 获取回收员订单列表（带分页和筛选）
-        // 中文注释
         public PagedResult<RecyclerOrderViewModel> GetRecyclerOrders(OrderFilterModel filter, int recyclerId = 0)
         {
             var result = new PagedResult<RecyclerOrderViewModel>
@@ -182,9 +180,7 @@ namespace recycling.DAL
         }
 
         // 在 RecyclerOrderDAL 类中添加这两个辅助方法
-        // 中文注释
         /// 获取预约类型的中文显示
-        // 中文注释
         private string GetAppointmentTypeChinese(string appointmentType)
         {
             if (string.IsNullOrEmpty(appointmentType))
@@ -203,9 +199,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取时间段的中文显示
-        // 中文注释
         private string GetTimeSlotChinese(string timeSlot)
         {
             if (string.IsNullOrEmpty(timeSlot))
@@ -241,18 +235,14 @@ namespace recycling.DAL
                 { "foam", "泡沫" }
             };
 
-        // 中文注释
         /// 将品类键名映射为中文显示名称（兼容历史英文存储值）
-        // 中文注释
         private static string GetCategoryDisplayName(string categoryName)
         {
             if (string.IsNullOrEmpty(categoryName)) return categoryName;
             return _categoryNameMap.TryGetValue(categoryName, out var name) ? name : categoryName;
         }
 
-        // 中文注释
         /// 对逗号分隔的品类名称列表逐项映射为中文（兼容历史英文存储值）
-        // 中文注释
         private static string NormalizeCategoryNames(string categoryNames)
         {
             if (string.IsNullOrEmpty(categoryNames)) return categoryNames;
@@ -260,9 +250,7 @@ namespace recycling.DAL
             return string.Join(", ", System.Array.ConvertAll(parts, p => GetCategoryDisplayName(p.Trim())));
         }
 
-        // 中文注释
         /// 获取订单总数统计
-        // 中文注释
         public OrderStatistics GetOrderStatistics()
         {
             var statistics = new OrderStatistics();
@@ -296,9 +284,7 @@ namespace recycling.DAL
             return statistics;
         }
 
-        // 中文注释
         /// 回收员接收订单
-        // 中文注释
         public bool AcceptOrder(int appointmentId, int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -323,9 +309,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取回收员订单统计信息
-        // 中文注释
         public RecyclerOrderStatistics GetRecyclerOrderStatistics(int recyclerId)
         {
             var statistics = new RecyclerOrderStatistics();
@@ -377,9 +361,7 @@ namespace recycling.DAL
             return statistics;
         }
 
-        // 中文注释
         /// 获取回收员的消息列表
-        // 中文注释
         public List<RecyclerMessageViewModel> GetRecyclerMessages(int recyclerId, int pageIndex = 1, int pageSize = 20)
         {
             var messages = new List<RecyclerMessageViewModel>();
@@ -439,9 +421,7 @@ namespace recycling.DAL
             return messages;
         }
 
-        // 中文注释
         /// 获取订单的对话消息
-        // 中文注释
         public List<RecyclerMessageViewModel> GetOrderConversation(int orderId)
         {
             var messages = new List<RecyclerMessageViewModel>();
@@ -498,9 +478,7 @@ namespace recycling.DAL
             return messages;
         }
 
-        // 中文注释
         /// 标记消息为已读
-        // 中文注释
         public bool MarkRecyclerMessagesAsRead(int messageId, int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -526,9 +504,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取订单详情
-        // 中文注释
         public OrderDetailModel GetOrderDetail(int appointmentId, int recyclerId)
         {
             var orderDetail = new OrderDetailModel();
@@ -637,9 +613,7 @@ namespace recycling.DAL
 
             return orderDetail;
         }
-        // 中文注释
         /// 获取用户的消息列表（按订单分组）
-        // 中文注释
         public List<RecyclerMessageViewModel> GetUserMessages(int userId, int pageIndex = 1, int pageSize = 20)
         {
             var messages = new List<RecyclerMessageViewModel>();
@@ -699,13 +673,11 @@ namespace recycling.DAL
             return messages;
         }
 
-        // 中文注释
         /// 构建回收员订单过滤条件（用于WHERE子句）
         /// 注意：此方法返回的SQL片段是安全的，因为：
         /// 1. tableAlias参数经过严格验证，只允许字母、数字和下划线
         /// 2. 所有用户输入的值（recyclerId, recyclerRegion）都使用SQL参数化（@RecyclerID, @RecyclerRegion）
         /// 3. 此方法仅供内部调用，不直接暴露给用户输入
-        // 中文注释
         /// <param name="recyclerId">回收员ID</param>
         /// <param name="recyclerRegion">回收员负责的区域（将使用参数化查询）</param>
         /// <param name="tableAlias">表别名（如"a"），传入空字符串表示不使用表别名，仅用于内部调用，受严格验证</param>
@@ -741,9 +713,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 转义SQL LIKE模式中的特殊字符，防止通配符注入
-        // 中文注释
         /// <param name="value">要转义的字符串</param>
         /// <returns>转义后的字符串</returns>
         private string EscapeLikePattern(string value)
@@ -757,9 +727,7 @@ namespace recycling.DAL
                         .Replace("_", "[_]");
         }
 
-        // 中文注释
         /// 获取回收员的区域信息
-        // 中文注释
         private string GetRecyclerRegion(int recyclerId)
         {
             try
@@ -790,10 +758,8 @@ namespace recycling.DAL
                 return string.Empty;
             }
         }
-        // 中文注释
         /// 获取已超过预约时间段的订单列表（用于超时自动回退）
         /// 根据预约日期和时间段计算截止时间，与北京时间比较
-        // 中文注释
         public List<ExpiredOrderInfo> GetExpiredOrders(int recyclerId = 0)
         {
             var expiredOrders = new List<ExpiredOrderInfo>();
@@ -801,7 +767,6 @@ namespace recycling.DAL
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 // 使用北京时间（UTC+8）判断是否超过预约时间段的最晚时间
-                // 中文注释
                 string sql = @"
                     SELECT 
                         a.AppointmentID,

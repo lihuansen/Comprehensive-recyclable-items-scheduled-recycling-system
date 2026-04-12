@@ -15,9 +15,7 @@ namespace recycling.DAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        // 中文注释
         /// 插入预约基础信息
-        // 中文注释
         public int InsertAppointment(Appointments appointment)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -57,9 +55,7 @@ SELECT SCOPE_IDENTITY();";
             }
         }
 
-        // 中文注释
         /// 插入预约品类详情
-        // 中文注释
         public bool InsertAppointmentCategory(AppointmentCategories category)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -86,9 +82,7 @@ VALUES (
             }
         }
 
-        // 中文注释
         /// 在事务中插入完整的预约信息
-        // 中文注释
         public (bool Success, int AppointmentId, string ErrorMessage) InsertCompleteAppointment(
             Appointments appointment, List<AppointmentCategories> categories)
         {

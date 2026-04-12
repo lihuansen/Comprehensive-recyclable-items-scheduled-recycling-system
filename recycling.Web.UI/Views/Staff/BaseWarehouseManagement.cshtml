@@ -819,32 +819,31 @@
     var selectedOrderId = null;
     
     // 当前登录的基地工作人员ID（用于权限判断）
-    // 中文注释
     var currentWorkerID = @(((recycling.Model.SortingCenterWorkers)Session["LoginStaff"]).WorkerID);
     
     /**
      * 运输单数据缓存
-      * 中文注释
+      * 中文说明
      * 
-      * 中文注释
-      * 中文注释
-      * 中文注释
-      * 中文注释
+      * 中文说明
+      * 中文说明
+      * 中文说明
+      * 中文说明
      * 
-      * 中文注释
-      * 中文注释
-      * 中文注释
-      * 中文注释
-      * 中文注释
-      * 中文注释
+      * 中文说明
+      * 中文说明
+      * 中文说明
+      * 中文说明
+      * 中文说明
+      * 中文说明
      *     RecyclerName: "张三",
      *     TransporterName: "李四"
      * }
      * 
-      * 中文注释
-      * 中文注释
-      * 中文注释
-      * 中文注释
+      * 中文说明
+      * 中文说明
+      * 中文说明
+      * 中文说明
      */
     var transportOrdersCache = {};
     
@@ -858,7 +857,6 @@
     var CATEGORY_KEY_PATTERN = /^[a-zA-Z0-9_-]{1,50}$/;
 
     // 辅助函数：从AJAX错误响应中提取错误信息
-    // 中文注释
     function extractErrorMessage(xhr) {
         var errorMsg = '网络错误，请稍后重试';
         if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -877,13 +875,10 @@
     }
 
     // 注意：页面加载时通过 AJAX 自动获取最新实时数据
-    // 中文注释
     // 
     // 下面的 AJAX 函数在页面加载时自动调用，也可在用户点击"刷新"按钮时手动调用
-    // 中文注释
 
     // 加载已完成的运输单（自动加载+手动刷新）
-    // 中文注释
     function loadCompletedTransportOrders() {
         $('#transitOrdersPagination').hide();
         $('#transitOrdersList').html(
@@ -1137,7 +1132,6 @@
                 totalWeight += weight;
                 totalPrice += price;
                 
-                // 中文注释
                 var categoryName = $('<div>').text(cat.categoryName || FALLBACK_TEXT.UNKNOWN_CATEGORY).html();
                 
                 var row = '<tr style="border-bottom: 1px solid #e0e0e0;">' +
@@ -1280,7 +1274,6 @@
     }
 
     // 加载入库记录（自动加载+手动刷新）
-    // 中文注释
     function loadWarehouseReceipts() {
         $('#receiptsLoading').show();
         $('#receiptsTableContainer').hide();
@@ -1450,7 +1443,6 @@
     }
 
     // ==================== 库存管理功能 ====================
-    // 中文注释
 
     // 封装库存管理相关变量和函数 - Encapsulate inventory management variables and functions
     var InventoryManager = {
@@ -1619,7 +1611,6 @@
                 card.addClass('active');
             }
             
-            // 中文注释
             var iconDiv = $('<div>').addClass('inventory-card-icon').append($('<i>').addClass('fas ' + icon));
             var categoryDiv = $('<div>').addClass('inventory-card-category').text(item.categoryName);
             var weightDiv = $('<div>').addClass('inventory-card-weight').text(item.totalWeight.toFixed(1) + ' kg');
@@ -1627,7 +1618,6 @@
             
             card.append(iconDiv).append(categoryDiv).append(weightDiv).append(priceDiv);
             // 注意：不再使用内联 onclick，而是使用事件委托（见 document.ready）
-            // 中文注释
 
             container.append(card);
         });
@@ -1859,12 +1849,8 @@
     }
 
     // 页面加载时自动加载所有实时数据
-    // 中文注释
     $(document).ready(function () {
         // 初始化缓存：将服务器端渲染的订单数据加载到缓存中
-        // 中文注释
-        // 中文注释
-        // 中文注释
         @if (Model != null && Model.CompletedTransportOrders != null && Model.CompletedTransportOrders.Any())
         {
             <text>
@@ -1887,7 +1873,6 @@
                 }
             ];
             // 填充缓存（批量操作优化）
-            // 中文注释
             if (initialOrders.length > 0) {
                 for (var i = 0; i < initialOrders.length; i++) {
                     var order = initialOrders[i];
@@ -1898,7 +1883,6 @@
         }
         
         // 使用事件委托为库存卡片添加点击处理
-        // 中文注释
         $(document).on('click', '.inventory-card', function() {
             var card = $(this);
             var categoryKey = card.data('category');
@@ -1910,11 +1894,9 @@
         });
         
         // 为服务器端渲染的库存卡片应用颜色和图标（立即显示正确颜色）
-        // 中文注释
         applyInventoryCardStyles();
         
         // 进入仓库管理页面时自动全部刷新一次
-        // 中文注释
         loadCompletedTransportOrders();  // 加载待入库运输单
         loadWarehouseReceipts();         // 加载入库记录
         loadInventorySummary();          // 加载库存汇总
@@ -1922,7 +1904,6 @@
     });
     
     // 为服务器端渲染的库存卡片应用颜色和图标
-    // 中文注释
     function applyInventoryCardStyles() {
         $('.inventory-card').each(function() {
             var card = $(this);

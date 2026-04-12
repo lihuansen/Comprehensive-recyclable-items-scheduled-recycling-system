@@ -4,9 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace recycling.Common
 {
-    // 中文注释
     /// 字符串扩展方法类
-    // 中文注释
     public static class StringExtensions
     {
         // 预编译的正则表达式，提高性能
@@ -15,9 +13,7 @@ namespace recycling.Common
         private static readonly Regex NumericRegex = new Regex(@"^-?\d+\.?\d*$", RegexOptions.Compiled);
         private static readonly Regex DigitsOnlyRegex = new Regex(@"^\d+$", RegexOptions.Compiled);
 
-        // 中文注释
         /// 判断字符串是否为空或null
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <returns>是否为空</returns>
         public static bool IsNullOrEmpty(this string str)
@@ -25,9 +21,7 @@ namespace recycling.Common
             return string.IsNullOrEmpty(str);
         }
 
-        // 中文注释
         /// 判断字符串是否为空、null或只包含空白字符
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <returns>是否为空白</returns>
         public static bool IsNullOrWhiteSpace(this string str)
@@ -35,9 +29,7 @@ namespace recycling.Common
             return string.IsNullOrWhiteSpace(str);
         }
 
-        // 中文注释
         /// 截取字符串（超长部分用省略号代替）
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <param name="maxLength">最大长度</param>
         /// <param name="suffix">后缀（默认为"..."）</param>
@@ -50,9 +42,7 @@ namespace recycling.Common
             return str.Substring(0, maxLength) + suffix;
         }
 
-        // 中文注释
         /// 移除HTML标签
-        // 中文注释
         /// <param name="html">HTML字符串</param>
         /// <returns>纯文本</returns>
         public static string StripHtml(this string html)
@@ -63,9 +53,7 @@ namespace recycling.Common
             return HtmlTagRegex.Replace(html, string.Empty);
         }
 
-        // 中文注释
         /// 转换为安全的HTML字符串（防止XSS）
-        // 中文注释
         /// <param name="str">原始字符串</param>
         /// <returns>编码后的HTML字符串</returns>
         public static string ToHtmlSafe(this string str)
@@ -76,9 +64,7 @@ namespace recycling.Common
             return System.Web.HttpUtility.HtmlEncode(str);
         }
 
-        // 中文注释
         /// 转换为首字母大写
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <returns>首字母大写的字符串</returns>
         public static string ToTitleCase(this string str)
@@ -92,9 +78,7 @@ namespace recycling.Common
             return char.ToUpper(str[0]) + str.Substring(1).ToLower();
         }
 
-        // 中文注释
         /// 移除所有空白字符
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <returns>移除空白后的字符串</returns>
         public static string RemoveWhitespace(this string str)
@@ -105,9 +89,7 @@ namespace recycling.Common
             return WhitespaceRegex.Replace(str, string.Empty);
         }
 
-        // 中文注释
         /// 转换为拼音首字母（简单实现，仅支持常用汉字）
-        // 中文注释
         /// <param name="str">中文字符串</param>
         /// <returns>拼音首字母</returns>
         public static string ToPinyin(this string str)
@@ -132,9 +114,7 @@ namespace recycling.Common
             return result.ToString();
         }
 
-        // 中文注释
         /// 获取汉字的拼音首字母（简化版，不完全准确）
-        // 中文注释
         private static char GetChineseInitial(char c)
         {
             int charCode = (int)c;
@@ -167,9 +147,7 @@ namespace recycling.Common
             return c;
         }
 
-        // 中文注释
         /// 判断字符串是否为数字
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <returns>是否为数字</returns>
         public static bool IsNumeric(this string str)
@@ -180,9 +158,7 @@ namespace recycling.Common
             return NumericRegex.IsMatch(str);
         }
 
-        // 中文注释
         /// 转换为Int32（失败返回默认值）
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <param name="defaultValue">默认值</param>
         /// <returns>整数值</returns>
@@ -194,9 +170,7 @@ namespace recycling.Common
             return defaultValue;
         }
 
-        // 中文注释
         /// 转换为Decimal（失败返回默认值）
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <param name="defaultValue">默认值</param>
         /// <returns>小数值</returns>
@@ -208,9 +182,7 @@ namespace recycling.Common
             return defaultValue;
         }
 
-        // 中文注释
         /// 转换为DateTime（失败返回默认值）
-        // 中文注释
         /// <param name="str">字符串</param>
         /// <param name="defaultValue">默认值</param>
         /// <returns>日期时间</returns>
@@ -222,9 +194,7 @@ namespace recycling.Common
             return defaultValue ?? DateTime.MinValue;
         }
 
-        // 中文注释
         /// 手机号脱敏（显示前3位和后4位）
-        // 中文注释
         /// <param name="phoneNumber">手机号</param>
         /// <returns>脱敏后的手机号</returns>
         public static string MaskPhoneNumber(this string phoneNumber)
@@ -235,9 +205,7 @@ namespace recycling.Common
             return phoneNumber.Substring(0, 3) + "****" + phoneNumber.Substring(7);
         }
 
-        // 中文注释
         /// 邮箱脱敏（显示前2位和@后内容）
-        // 中文注释
         /// <param name="email">邮箱</param>
         /// <returns>脱敏后的邮箱</returns>
         public static string MaskEmail(this string email)

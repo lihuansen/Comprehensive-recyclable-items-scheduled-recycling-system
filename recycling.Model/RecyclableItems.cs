@@ -11,7 +11,6 @@ namespace recycling.Model
         [Key]
         public int ItemID { get; set; }
 
-        // 中文注释
         [NotMapped]
         public int ItemId
         {

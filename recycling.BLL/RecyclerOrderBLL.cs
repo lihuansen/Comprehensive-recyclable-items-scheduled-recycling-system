@@ -14,11 +14,9 @@ namespace recycling.BLL
         private readonly RecyclerOrderDAL _recyclerOrderDAL = new RecyclerOrderDAL();
         private readonly StaffDAL _staffDAL = new StaffDAL();
 
-        // 中文注释
         /// 获取回收员订单列表
         /// 说明：在获取 DAL 返回的分页结果后，遍历每个订单计算 CanComplete（是否显示“完成订单”按钮）。
         /// 计算规则（当前实现）：订单状态为“进行中”则允许完成。
-        // 中文注释
         public PagedResult<RecyclerOrderViewModel> GetRecyclerOrders(OrderFilterModel filter, int recyclerId = 0)
         {
             if (filter == null) throw new ArgumentNullException(nameof(filter));
@@ -41,17 +39,13 @@ namespace recycling.BLL
             return pagedResult;
         }
 
-        // 中文注释
         /// 获取订单统计信息
-        // 中文注释
         public OrderStatistics GetOrderStatistics()
         {
             return _recyclerOrderDAL.GetOrderStatistics();
         }
 
-        // 中文注释
         /// 回收员接收订单
-        // 中文注释
         public (bool Success, string Message) AcceptOrder(int appointmentId, int recyclerId)
         {
             if (appointmentId <= 0 || recyclerId <= 0)
@@ -82,9 +76,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取回收员订单统计
-        // 中文注释
         public RecyclerOrderStatistics GetRecyclerOrderStatistics(int recyclerId)
         {
             if (recyclerId <= 0)
@@ -95,9 +87,7 @@ namespace recycling.BLL
             return _recyclerOrderDAL.GetRecyclerOrderStatistics(recyclerId);
         }
 
-        // 中文注释
         /// 获取回收员消息列表
-        // 中文注释
         public List<RecyclerMessageViewModel> GetRecyclerMessages(int recyclerId, int pageIndex = 1, int pageSize = 20)
         {
             if (recyclerId <= 0) return new List<RecyclerMessageViewModel>();
@@ -107,18 +97,14 @@ namespace recycling.BLL
             return _recyclerOrderDAL.GetRecyclerMessages(recyclerId, pageIndex, pageSize);
         }
 
-        // 中文注释
         /// 获取订单对话
-        // 中文注释
         public List<RecyclerMessageViewModel> GetOrderConversation(int orderId)
         {
             if (orderId <= 0) return new List<RecyclerMessageViewModel>();
             return _recyclerOrderDAL.GetOrderConversation(orderId);
         }
 
-        // 中文注释
         /// 标记消息为已读
-        // 中文注释
         public (bool Success, string Message) MarkMessageAsRead(int messageId, int recyclerId)
         {
             if (messageId <= 0 || recyclerId <= 0) return (false, "参数无效");
@@ -134,9 +120,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取订单详情
-        // 中文注释
         public (OrderDetailModel Detail, string Message) GetOrderDetail(int appointmentId, int recyclerId)
         {
             if (appointmentId <= 0 || recyclerId <= 0) return (null, "参数无效");
@@ -156,9 +140,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 回收员回退订单（当线下发现物品不符合要求时使用）
-        // 中文注释
         public (bool Success, string Message) RollbackOrder(int appointmentId, int recyclerId, string reason = null)
         {
             if (appointmentId <= 0 || recyclerId <= 0)
@@ -208,10 +190,8 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 检查并处理超时订单（自动回退超过预约时间段的订单）
         /// 根据北京时间判断，如果订单的预约日期+时间段最晚时间已过，则自动回退订单并通知用户
-        // 中文注释
         /// <param name="recyclerId">回收员ID（0表示检查所有订单）</param>
         /// <returns>处理结果，包含超时订单数量和消息</returns>
         public (int ExpiredCount, List<string> Messages) CheckAndHandleExpiredOrders(int recyclerId = 0)

@@ -3,9 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace recycling.Common
 {
-    // 中文注释
     /// 验证辅助类 - 提供常用的数据验证方法
-    // 中文注释
     public static class ValidationHelper
     {
         // 预编译的正则表达式，提高性能
@@ -19,9 +17,7 @@ namespace recycling.Common
         private static readonly Regex DigitRegex = new Regex(@"\d", RegexOptions.Compiled);
         private static readonly Regex SpecialCharRegex = new Regex(@"[!@#$%^&*(),.?""':{}|<>]", RegexOptions.Compiled);
 
-        // 中文注释
         /// 验证手机号格式
-        // 中文注释
         /// <param name="phoneNumber">手机号</param>
         /// <returns>是否有效</returns>
         public static bool IsValidPhoneNumber(string phoneNumber)
@@ -33,9 +29,7 @@ namespace recycling.Common
             return PhoneNumberRegex.IsMatch(phoneNumber);
         }
 
-        // 中文注释
         /// 验证邮箱格式
-        // 中文注释
         /// <param name="email">邮箱地址</param>
         /// <returns>是否有效</returns>
         public static bool IsValidEmail(string email)
@@ -47,9 +41,7 @@ namespace recycling.Common
             return EmailRegex.IsMatch(email);
         }
 
-        // 中文注释
         /// 验证用户名格式
-        // 中文注释
         /// <param name="username">用户名</param>
         /// <param name="minLength">最小长度（默认3）</param>
         /// <param name="maxLength">最大长度（默认50）</param>
@@ -66,9 +58,7 @@ namespace recycling.Common
             return UsernameRegex.IsMatch(username);
         }
 
-        // 中文注释
         /// 验证密码强度
-        // 中文注释
         /// <param name="password">密码</param>
         /// <param name="minLength">最小长度（默认6）</param>
         /// <returns>是否有效</returns>
@@ -80,9 +70,7 @@ namespace recycling.Common
             return password.Length >= minLength;
         }
 
-        // 中文注释
         /// 验证密码强度（强密码要求）
-        // 中文注释
         /// <param name="password">密码</param>
         /// <returns>是否有效</returns>
         public static bool IsStrongPassword(string password)
@@ -102,9 +90,7 @@ namespace recycling.Common
             return hasUpper && hasLower && hasDigit && hasSpecial;
         }
 
-        // 中文注释
         /// 验证ID是否有效
-        // 中文注释
         /// <param name="id">ID值</param>
         /// <returns>是否有效（大于0）</returns>
         public static bool IsValidId(int id)
@@ -112,9 +98,7 @@ namespace recycling.Common
             return id > 0;
         }
 
-        // 中文注释
         /// 验证日期是否在有效范围内
-        // 中文注释
         /// <param name="date">日期</param>
         /// <param name="minDate">最小日期（可选）</param>
         /// <param name="maxDate">最大日期（可选）</param>
@@ -130,9 +114,7 @@ namespace recycling.Common
             return true;
         }
 
-        // 中文注释
         /// 验证预约日期（必须是未来日期）
-        // 中文注释
         /// <param name="appointmentDate">预约日期</param>
         /// <returns>是否有效</returns>
         public static bool IsValidAppointmentDate(DateTime appointmentDate)
@@ -141,9 +123,7 @@ namespace recycling.Common
             return appointmentDate.Date > DateTime.Today;
         }
 
-        // 中文注释
         /// 验证重量值
-        // 中文注释
         /// <param name="weight">重量（公斤）</param>
         /// <param name="minWeight">最小重量（默认0.1kg）</param>
         /// <param name="maxWeight">最大重量（默认1000kg）</param>
@@ -153,9 +133,7 @@ namespace recycling.Common
             return weight >= minWeight && weight <= maxWeight;
         }
 
-        // 中文注释
         /// 验证价格值
-        // 中文注释
         /// <param name="price">价格</param>
         /// <param name="minPrice">最小价格（默认0）</param>
         /// <param name="maxPrice">最大价格（默认100000）</param>
@@ -165,9 +143,7 @@ namespace recycling.Common
             return price >= minPrice && price <= maxPrice;
         }
 
-        // 中文注释
         /// 验证评分值
-        // 中文注释
         /// <param name="rating">评分</param>
         /// <param name="minRating">最小评分（默认1）</param>
         /// <param name="maxRating">最大评分（默认5）</param>
@@ -177,9 +153,7 @@ namespace recycling.Common
             return rating >= minRating && rating <= maxRating;
         }
 
-        // 中文注释
         /// 验证字符串长度
-        // 中文注释
         /// <param name="text">文本</param>
         /// <param name="minLength">最小长度</param>
         /// <param name="maxLength">最大长度</param>
@@ -193,9 +167,7 @@ namespace recycling.Common
             return text.Length >= minLength && text.Length <= maxLength;
         }
 
-        // 中文注释
         /// 验证验证码格式
-        // 中文注释
         /// <param name="code">验证码</param>
         /// <param name="length">验证码长度（默认6位）</param>
         /// <returns>是否有效</returns>
@@ -211,9 +183,7 @@ namespace recycling.Common
             return Regex.IsMatch(code, @"^\d+$");
         }
 
-        // 中文注释
         /// 验证图片文件扩展名
-        // 中文注释
         /// <param name="fileName">文件名</param>
         /// <returns>是否为有效图片格式</returns>
         public static bool IsValidImageFile(string fileName)
@@ -228,9 +198,7 @@ namespace recycling.Common
                    extension == ".bmp";
         }
 
-        // 中文注释
         /// 验证文件大小
-        // 中文注释
         /// <param name="fileSizeInBytes">文件大小（字节）</param>
         /// <param name="maxSizeInBytes">最大允许大小（字节，默认5MB）</param>
         /// <returns>是否有效</returns>

@@ -23,9 +23,7 @@ namespace recycling.BLL
             { "foam", "泡沫" }
         };
 
-        // 中文注释
         /// 分页查询可回收物（处理参数有效性，调用DAL层）
-        // 中文注释
         public PagedResult<RecyclableItems> GetPagedItems(RecyclableQueryModel query)
         {
             // 业务参数校验（模仿UserBLL中的参数检查逻辑）
@@ -40,9 +38,7 @@ namespace recycling.BLL
             return _recyclableItemDAL.GetPagedItems(query);
         }
 
-        // 中文注释
         /// 分页查询所有可回收物（管理端使用，不过滤IsActive状态）
-        // 中文注释
         public PagedResult<RecyclableItems> GetPagedItemsForAdmin(RecyclableQueryModel query)
         {
             if (query == null)
@@ -54,9 +50,7 @@ namespace recycling.BLL
             return _recyclableItemDAL.GetPagedItemsForAdmin(query);
         }
 
-        // 中文注释
         /// 获取所有可回收物品类（供筛选下拉框使用）
-        // 中文注释
         public Dictionary<string, string> GetAllCategories()
         {
             try
@@ -71,9 +65,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 确保数据库中存在可回收物数据（首次访问时检查）
-        // 中文注释
         public void EnsureDataExists()
         {
             try
@@ -91,9 +83,7 @@ namespace recycling.BLL
                 throw new Exception("检查可回收物数据失败：" + ex.Message);
             }
         }
-        // 中文注释
         /// 获取所有有效数据（用于调试）
-        // 中文注释
         public List<RecyclableItems> GetAllActiveItems()
         {
             try
@@ -106,9 +96,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public RecyclableItems GetById(int itemId)
         {
             if (itemId <= 0)
@@ -126,9 +114,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool Success, string Message) Add(RecyclableItems item)
         {
             if (item == null)
@@ -138,7 +124,6 @@ namespace recycling.BLL
 
             NormalizeItemFields(item);
 
-            // 中文注释
             if (string.IsNullOrEmpty(item.Name))
             {
                 return (false, "物品名称不能为空");
@@ -190,9 +175,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool Success, string Message) Update(RecyclableItems item)
         {
             if (item == null)
@@ -202,7 +185,6 @@ namespace recycling.BLL
 
             NormalizeItemFields(item);
 
-            // 中文注释
             if (item.ItemId <= 0)
             {
                 return (false, "无效的物品ID");
@@ -259,9 +241,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool Success, string Message) Delete(int itemId)
         {
             if (itemId <= 0)
@@ -280,9 +260,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool Success, string Message) HardDelete(int itemId)
         {
             if (itemId <= 0)
@@ -301,9 +279,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public int GetMaxSortOrder()
         {
             try
@@ -316,9 +292,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         private static void NormalizeItemFields(RecyclableItems item)
         {
             if (item == null)

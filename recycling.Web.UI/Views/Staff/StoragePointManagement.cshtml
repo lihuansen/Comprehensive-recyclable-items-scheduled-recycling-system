@@ -691,7 +691,6 @@
             }
         });
         
-        // 中文注释
         $('.modal-content').on('click', function(e) {
             e.stopPropagation();
         });
@@ -743,7 +742,6 @@
                 var errorMsg = '网络错误，请重试';
                 var detailedMsg = '';
                 
-                // 中文注释
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMsg = xhr.responseJSON.message;
                     detailedMsg = xhr.responseJSON.message;
@@ -758,15 +756,12 @@
                             detailedMsg = jsonResponse.message || '未知错误';
                         }
                     } catch (e) {
-                        // 中文注释
                         console.error('响应不是有效的JSON:', e);
                         detailedMsg = xhr.responseText.substring(0, 200);
                         
-                        // 中文注释
                         if (xhr.status === 500) {
                             errorMsg = '服务器内部错误（状态: 500）';
                             
-                            // 中文注释
                             var match = xhr.responseText.match(/<title>(.*?)<\/title>/i);
                             if (match) {
                                 errorMsg += ' - ' + match[1];
@@ -790,7 +785,6 @@
                 console.error('详细信息:', detailedMsg);
                 showError(errorMsg);
                 
-                // 中文注释
                 if (detailedMsg && detailedMsg !== errorMsg) {
                     console.error('详细错误信息:', detailedMsg);
                 }
@@ -962,7 +956,7 @@
     }
 
     // 检查重量预警
-    var warningElement = null;  // 中文注释
+    var warningElement = null;  // 中文说明
     
     function checkWeightWarning(totalWeight) {
         // 移除现有的预警提示
@@ -1041,7 +1035,6 @@
                 for (var i = 0; i < fullStars; i++) {
                     ratingHtml += '<i class="glyphicon glyphicon-star"></i>';
                 }
-                // 中文注释
                 var emptyStars = 5 - fullStars;
                 for (var i = 0; i < emptyStars; i++) {
                     ratingHtml += '<i class="glyphicon glyphicon-star-empty"></i>';
@@ -1069,14 +1062,12 @@
                 '</div>'
             );
             
-            // 中文注释
             card.find('.btn-call').on('click', function() {
                 var phone = $(this).data('phone');
                 var name = $(this).data('name');
                 callTransporter(phone, name);
             });
             
-            // 中文注释
             card.find('.btn-select-transporter').on('click', function() {
                 var id = $(this).data('id');
                 var name = $(this).data('name');

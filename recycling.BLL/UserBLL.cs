@@ -22,10 +22,8 @@ namespace recycling.BLL
             new ConcurrentDictionary<string, (string, DateTime)>();
         private EmailService _emailService = new EmailService();  // 实例化邮件服务
 
-        // 中文注释
         /// 注册新用户，返回错误信息（按优先级排序）
         /// 优先级：用户名 > 密码 > 手机号 > 邮箱
-        // 中文注释
         public string Register(RegisterViewModel model)
         {
             // 1. 检查用户名是否已存在
@@ -89,9 +87,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 用户登录验证
-        // 中文注释
         /// <param name="model">登录视图模型</param>
         /// <returns>错误信息（null表示验证通过）</returns>
         public string Login(LoginViewModel model)
@@ -133,9 +129,7 @@ namespace recycling.BLL
             return _userDAL.GetUserByUsername(username);
         }
 
-        // 中文注释
         /// 密码哈希处理（使用SHA256）
-        // 中文注释
         private string HashPassword(string password)
         {
             using (SHA256 sha256 = SHA256.Create())
@@ -150,9 +144,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 更新用户最后登录时间（登录成功后调用）
-        // 中文注释
         /// <param name="userId">用户ID</param>
         public void UpdateLastLoginDate(int userId)
         {
@@ -169,9 +161,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 检查手机号是否已注册（封装DAL方法）
-        // 中文注释
         /// <param name="phoneNumber">手机号</param>
         /// <returns>是否存在</returns>
         public bool IsPhoneExists(string phoneNumber)
@@ -187,9 +177,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 检查邮箱是否已注册（封装DAL方法）
-        // 中文注释
         /// <param name="email">邮箱</param>
         /// <returns>是否存在</returns>
         public bool IsEmailExists(string email)
@@ -205,9 +193,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 手机号登录验证
-        // 中文注释
         /// <param name="phoneNumber">手机号</param>
         /// <param name="verificationCode">验证码</param>
         /// <returns>验证结果：null表示成功，否则为错误信息</returns>
@@ -236,9 +222,7 @@ namespace recycling.BLL
             return (null, user);
         }
 
-        // 中文注释
         /// 生成验证码（有效期5分钟）
-        // 中文注释
         public string GenerateVerificationCode(string phoneNumber)
         {
             var random = new Random();
@@ -247,9 +231,7 @@ namespace recycling.BLL
             return code;
         }
 
-        // 中文注释
         /// 验证验证码有效性（一次有效）
-        // 中文注释
         public bool VerifyVerificationCode(string phoneNumber, string inputCode)
         {
             if (_verificationCodes.TryGetValue(phoneNumber, out var storedData))
@@ -265,9 +247,7 @@ namespace recycling.BLL
             return false;
         }
 
-        // 中文注释
         /// 重置密码（包含新密码与原密码不同的验证）
-        // 中文注释
         public string ResetUserPassword(string phoneNumber, string newPassword)
         {
             // 1. 检查手机号是否存在
@@ -290,9 +270,7 @@ namespace recycling.BLL
             return updateSuccess ? null : "密码重置失败，请稍后重试";
         }
 
-        // 中文注释
         /// 新增：邮箱登录逻辑
-        // 中文注释
         /// <param name="email">邮箱地址</param>
         /// <param name="verificationCode">验证码</param>
         /// <returns>错误信息（null表示成功）+ 用户对象</returns>
@@ -322,9 +300,7 @@ namespace recycling.BLL
             return (null, user);
         }
 
-        // 中文注释
         /// 生成并发送邮箱验证码
-        // 中文注释
         public bool GenerateAndSendEmailCode(string email)
         {
             // 1. 验证邮箱是否已注册
@@ -344,9 +320,7 @@ namespace recycling.BLL
             return _emailService.SendVerificationCode(email, code);
         }
 
-        // 中文注释
         /// 测试专用：获取指定邮箱的验证码（仅用于调试，生产环境需移除）
-        // 中文注释
         public string GetVerificationCodeForTest(string email)
         {
             if (_verificationCodes.TryGetValue(email, out var codeInfo))
@@ -360,9 +334,7 @@ namespace recycling.BLL
             return ""; // 验证码不存在或已过期
         }
 
-        // 中文注释
         /// 更新用户基本信息（增加与原有信息的对比检查）
-        // 中文注释
         public string UpdateUserProfile(int userId, UpdateProfileViewModel model)
         {
             // 首先获取用户当前信息
@@ -435,9 +407,7 @@ namespace recycling.BLL
             return success ? null : "更新失败，请稍后重试";
         }
 
-        // 中文注释
         /// 修改密码
-        // 中文注释
         public string ChangePassword(int userId, ChangePasswordViewModel model)
         {
             // 验证当前密码
@@ -461,17 +431,13 @@ namespace recycling.BLL
             return success ? null : "密码修改失败，请稍后重试";
         }
 
-        // 中文注释
         /// 通过用户ID获取用户信息
-        // 中文注释
         public Users GetUserById(int userId)
         {
             return _userDAL.GetUserById(userId);
         }
 
-        // 中文注释
         /// 更新用户头像
-        // 中文注释
         /// <param name="userId">用户ID</param>
         /// <param name="avatarUrl">头像URL路径</param>
         /// <returns>更新是否成功</returns>
@@ -480,9 +446,7 @@ namespace recycling.BLL
             return _userDAL.UpdateUserAvatar(userId, avatarUrl);
         }
 
-        // 中文注释
         /// 获取用户头像URL
-        // 中文注释
         /// <param name="userId">用户ID</param>
         /// <returns>头像URL，如果没有则返回默认头像</returns>
         public string GetUserAvatarUrl(int userId)

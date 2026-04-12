@@ -22,7 +22,6 @@
     .badge-unavailable { background-color: #ffc107; }
     .btn-action { margin: 0 2px; }
     .modal-header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
-    /* 中文注释 */
     .dashboard-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .dashboard-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; border-bottom: 2px solid #4facfe; padding-bottom: 8px; }
     .chart-container { height: 250px; }
@@ -309,7 +308,6 @@
 var currentPage = 1, pageSize = 8, searchTerm = '', statusFilter = null, sortOrder = 'ASC';
 var categoryPieChart = null;
 var dashboardVisible = true;
-// 中文注释
 var REGION_PREFIX = '广东省深圳市罗湖区';
 
 // 密码显隐切换功能
@@ -338,7 +336,6 @@ $(document).ready(function () {
     loadRecyclers();
 });
 
-// 中文注释
 function toggleDashboard() {
     dashboardVisible = !dashboardVisible;
     if (dashboardVisible) {
@@ -350,7 +347,6 @@ function toggleDashboard() {
     }
 }
 
-// 中文注释
 function toggleSortOrder() {
     sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
     $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
@@ -360,7 +356,6 @@ function toggleSortOrder() {
     loadRecyclers();
 }
 
-// 中文注释
 function loadDashboardStatistics() {
     $.ajax({
         url: '@Url.Action("GetRecyclerDashboardStatistics", "Staff")',
@@ -369,7 +364,6 @@ function loadDashboardStatistics() {
             if (response.success) {
                 var data = response.data;
                 
-                // 中文注释
                 $('#totalRecyclers').text(data.TotalRecyclers);
                 $('#activeRecyclers').text(data.ActiveRecyclers);
                 $('#availableRecyclers').text(data.AvailableRecyclers);
@@ -377,16 +371,13 @@ function loadDashboardStatistics() {
                 $('#totalCompletedOrders').text(data.TotalCompletedOrders);
                 $('#avgRating').text(parseFloat(data.AverageRecyclerRating).toFixed(2));
                 
-                // 中文注释
                 $('#monthTotalWeight').text(parseFloat(data.MonthTotalWeight).toFixed(1));
                 $('#totalOrders').text(data.TotalOrders);
                 $('#pendingOrders').text(data.PendingOrders);
                 $('#inProgressOrders').text(data.InProgressOrders);
                 
-                // 中文注释
                 renderRegionWeightList(data.RegionWeight);
                 
-                // 中文注释
                 try {
                     renderCategoryPieChart(data.CategoryDistribution);
                 } catch(e) {
@@ -397,14 +388,12 @@ function loadDashboardStatistics() {
                     }
                 }
                 
-                // 中文注释
                 renderRecyclerRanking(data.RecyclerRanking);
             }
         }
     });
 }
 
-// 中文注释
 function renderRegionWeightList(regions) {
     var container = $('#regionWeightList');
     container.empty();
@@ -414,14 +403,12 @@ function renderRegionWeightList(regions) {
         return;
     }
     
-    // 中文注释
     var totalWeight = regions.reduce(function(sum, r) { return sum + parseFloat(r.TotalWeight); }, 0);
     if (totalWeight === 0) totalWeight = 1;
     
     regions.forEach(function(item) {
         var weight = parseFloat(item.TotalWeight);
         var percentage = (weight / totalWeight * 100).toFixed(0);
-        // 中文注释
         var streetName = item.Region.replace(REGION_PREFIX, '');
         
         container.append(`
@@ -440,7 +427,6 @@ function renderRegionWeightList(regions) {
     });
 }
 
-// 中文注释
 function renderCategoryPieChart(categories) {
     var canvas = document.getElementById('categoryPieChart');
     if (!canvas) return;
@@ -453,7 +439,6 @@ function renderCategoryPieChart(categories) {
     
     var ctx = canvas.getContext('2d');
     
-    // 中文注释
     if (categoryPieChart) {
         categoryPieChart.destroy();
     }
@@ -499,7 +484,6 @@ function renderCategoryPieChart(categories) {
     });
 }
 
-// 中文注释
 function renderRecyclerRanking(rankings) {
     var container = $('#recyclerRankingList');
     container.empty();
@@ -515,7 +499,6 @@ function renderRecyclerRanking(rankings) {
         else if (item.Rank === 2) rankClass = 'ranking-2';
         else if (item.Rank === 3) rankClass = 'ranking-3';
         
-        // 中文注释
         var streetName = item.Region ? item.Region.replace(REGION_PREFIX, '') : '-';
         
         container.append(`

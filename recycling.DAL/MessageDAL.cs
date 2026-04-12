@@ -14,9 +14,7 @@ namespace recycling.DAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        // 中文注释
         /// 发送消息
-        // 中文注释
         public bool SendMessage(Messages message)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -39,9 +37,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取订单的聊天记录
-        // 中文注释
         public List<Messages> GetOrderMessages(int orderId)
         {
             var messages = new List<Messages>();
@@ -78,9 +74,7 @@ namespace recycling.DAL
             return messages;
         }
 
-        // 中文注释
         /// 标记消息为已读
-        // 中文注释
         public bool MarkMessagesAsRead(int orderId, string readerType, int readerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -102,9 +96,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取用户的消息列表（按订单分组）
-        // 中文注释
         public List<RecyclerMessageViewModel> GetUserMessages(int userId, int pageIndex = 1, int pageSize = 20)
         {
             var messages = new List<RecyclerMessageViewModel>();
@@ -164,9 +156,7 @@ namespace recycling.DAL
             return messages;
         }
 
-        // 中文注释
         /// 获取回收员的未读消息数量
-        // 中文注释
         public int GetRecyclerUnreadCount(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))

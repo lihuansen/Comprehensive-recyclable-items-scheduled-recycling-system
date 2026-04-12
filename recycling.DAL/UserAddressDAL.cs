@@ -14,9 +14,7 @@ namespace recycling.DAL
         private const string SelectColumns = @"AddressID, UserID, Province, City, District, Street, DetailAddress, 
                               ContactName, ContactPhone, IsDefault, CreatedDate, UpdatedDate";
 
-        // 中文注释
         /// 获取用户的所有地址
-        // 中文注释
         public List<UserAddresses> GetUserAddresses(int userId)
         {
             var addresses = new List<UserAddresses>();
@@ -42,9 +40,7 @@ namespace recycling.DAL
             return addresses;
         }
 
-        // 中文注释
         /// 根据ID获取地址
-        // 中文注释
         public UserAddresses GetAddressById(int addressId, int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -69,9 +65,7 @@ namespace recycling.DAL
             return null;
         }
 
-        // 中文注释
         /// 获取用户的默认地址
-        // 中文注释
         public UserAddresses GetDefaultAddress(int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -95,9 +89,7 @@ namespace recycling.DAL
             return null;
         }
 
-        // 中文注释
         /// 添加新地址
-        // 中文注释
         public int AddAddress(UserAddresses address)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -124,9 +116,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 更新地址
-        // 中文注释
         public bool UpdateAddress(UserAddresses address)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -151,9 +141,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 删除地址
-        // 中文注释
         public bool DeleteAddress(int addressId, int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -169,9 +157,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 设置默认地址
-        // 中文注释
         public bool SetDefaultAddress(int addressId, int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -207,9 +193,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取用户地址数量
-        // 中文注释
         public int GetAddressCount(int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -223,9 +207,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 将DataReader映射到UserAddresses对象
-        // 中文注释
         private UserAddresses MapReaderToAddress(SqlDataReader reader)
         {
             return new UserAddresses

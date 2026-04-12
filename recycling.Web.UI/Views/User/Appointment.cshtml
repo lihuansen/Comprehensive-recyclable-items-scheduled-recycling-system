@@ -4,7 +4,6 @@
     ViewBag.Title = "预约上门回收 - 第一步";
     Layout = "~/Views/Shared/_Layout.cshtml";
     
-    // 中文注释
     var userAddresses = ViewBag.UserAddresses as List<recycling.Model.UserAddresses> ?? new List<recycling.Model.UserAddresses>();
     var streets = ViewBag.Streets as Dictionary<string, string> ?? new Dictionary<string, string>();
 }

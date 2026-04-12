@@ -5,24 +5,18 @@ using recycling.Model;
 
 namespace recycling.BLL
 {
-    // 中文注释
     /// 用户通知业务逻辑层
-    // 中文注释
     public class UserNotificationBLL
     {
         private readonly UserNotificationDAL _notificationDAL = new UserNotificationDAL();
 
-        // 中文注释
         /// 格式化订单号
-        // 中文注释
         private static string FormatOrderNumber(int orderId)
         {
             return $"#AP{orderId:D6}";
         }
 
-        // 中文注释
         /// 发送通用通知
-        // 中文注释
         /// <param name="userId">用户ID</param>
         /// <param name="title">通知标题</param>
         /// <param name="content">通知内容</param>
@@ -64,9 +58,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送订单创建通知
-        // 中文注释
         public bool SendOrderCreatedNotification(int userId, int orderId)
         {
             var notification = new UserNotifications
@@ -83,9 +75,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送回收员接单通知
-        // 中文注释
         public bool SendOrderAcceptedNotification(int orderId, string recyclerName)
         {
             int userId = _notificationDAL.GetUserIdByOrderId(orderId);
@@ -109,9 +99,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送订单完成通知
-        // 中文注释
         public bool SendOrderCompletedNotification(int orderId)
         {
             int userId = _notificationDAL.GetUserIdByOrderId(orderId);
@@ -135,9 +123,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送评价提醒通知
-        // 中文注释
         public bool SendReviewReminderNotification(int orderId)
         {
             int userId = _notificationDAL.GetUserIdByOrderId(orderId);
@@ -161,9 +147,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送订单取消通知
-        // 中文注释
         public bool SendOrderCancelledNotification(int userId, int orderId)
         {
             var notification = new UserNotifications
@@ -180,9 +164,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送轮播图更新通知（向所有用户发送）
-        // 中文注释
         public bool SendCarouselUpdatedNotification(string action, string carouselTitle)
         {
             string actionText;
@@ -208,9 +190,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotificationsToAllUsers(NotificationTypes.CarouselUpdated, title, content);
         }
 
-        // 中文注释
         /// 发送反馈回复通知
-        // 中文注释
         public bool SendFeedbackRepliedNotification(int feedbackId, string feedbackSubject)
         {
             int userId = _notificationDAL.GetUserIdByFeedbackId(feedbackId);
@@ -234,9 +214,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送回收员消息通知
-        // 中文注释
         public bool SendRecyclerMessageNotification(int orderId, string recyclerName, string messagePreview)
         {
             int userId = _notificationDAL.GetUserIdByOrderId(orderId);
@@ -271,9 +249,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送订单回退通知（回收员回退订单）
-        // 中文注释
         public bool SendOrderRolledBackNotification(int orderId, string recyclerName, string reason = null)
         {
             int userId = _notificationDAL.GetUserIdByOrderId(orderId);
@@ -299,9 +275,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 发送订单超时自动回退通知（系统自动回退超时订单）
-        // 中文注释
         public bool SendOrderExpiredNotification(int orderId, int userId)
         {
             if (userId <= 0)
@@ -328,9 +302,7 @@ namespace recycling.BLL
             return _notificationDAL.AddNotification(notification);
         }
 
-        // 中文注释
         /// 获取用户通知列表
-        // 中文注释
         public List<UserNotifications> GetUserNotifications(int userId, int pageIndex = 1, int pageSize = 20)
         {
             if (userId <= 0) return new List<UserNotifications>();
@@ -340,45 +312,35 @@ namespace recycling.BLL
             return _notificationDAL.GetUserNotifications(userId, pageIndex, pageSize);
         }
 
-        // 中文注释
         /// 获取用户未读通知数量
-        // 中文注释
         public int GetUnreadCount(int userId)
         {
             if (userId <= 0) return 0;
             return _notificationDAL.GetUnreadCount(userId);
         }
 
-        // 中文注释
         /// 标记通知为已读
-        // 中文注释
         public bool MarkAsRead(int notificationId, int userId)
         {
             if (notificationId <= 0 || userId <= 0) return false;
             return _notificationDAL.MarkAsRead(notificationId, userId);
         }
 
-        // 中文注释
         /// 标记所有通知为已读
-        // 中文注释
         public bool MarkAllAsRead(int userId)
         {
             if (userId <= 0) return false;
             return _notificationDAL.MarkAllAsRead(userId);
         }
 
-        // 中文注释
         /// 删除通知
-        // 中文注释
         public bool DeleteNotification(int notificationId, int userId)
         {
             if (notificationId <= 0 || userId <= 0) return false;
             return _notificationDAL.DeleteNotification(notificationId, userId);
         }
 
-        // 中文注释
         /// 获取用户通知总数
-        // 中文注释
         public int GetTotalCount(int userId)
         {
             if (userId <= 0) return 0;

@@ -13,15 +13,12 @@ namespace recycling.Web.UI.Controllers
         private readonly UserBLL _userBLL = new UserBLL();
         private readonly UserNotificationBLL _notificationBLL = new UserNotificationBLL();
         private readonly UserAddressBLL _addressBLL = new UserAddressBLL();
-        // 中文注释
         public ActionResult Index()
         {
             return View();
         }
 
-        // 中文注释
         /// 显示密码登录页面（主登录界面）
-        // 中文注释
         [HttpGet]
         public ActionResult Login()
         {
@@ -94,9 +91,7 @@ namespace recycling.Web.UI.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // 中文注释
         /// 显示手机号登录页面
-        // 中文注释
         [HttpGet]
         public ActionResult PhoneLogin()
         {
@@ -107,9 +102,7 @@ namespace recycling.Web.UI.Controllers
             return View(new PhoneLoginViewModel());
         }
 
-        // 中文注释
         /// 处理手机号登录提交
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult PhoneLogin(PhoneLoginViewModel model)
@@ -150,9 +143,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 手机号登录专用 - 发送验证码
-        // 中文注释
         [HttpPost]
         public JsonResult SendLoginCode(string phoneNumber)
         {
@@ -181,9 +172,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 显示邮箱登录页面
-        // 中文注释
         [HttpGet]
         public ActionResult EmailLogin()
         {
@@ -194,9 +183,7 @@ namespace recycling.Web.UI.Controllers
             return View(new EmailLoginViewModel());
         }
 
-        // 中文注释
         /// 处理邮箱登录提交
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EmailLogin(EmailLoginViewModel model)
@@ -236,9 +223,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 邮箱登录专用 - 发送验证码（真实发送到邮箱）
-        // 中文注释
         [HttpPost]
         public JsonResult SendEmailLoginCode(string email)
         {
@@ -281,7 +266,6 @@ namespace recycling.Web.UI.Controllers
             return View(new RegisterViewModel());
         }
 
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Register(RegisterViewModel model)
@@ -349,17 +333,13 @@ namespace recycling.Web.UI.Controllers
             return RedirectToAction("Login");
         }
 
-        // 中文注释
         /// 显示忘记密码页面
-        // 中文注释
         public ActionResult Forgot()
         {
             return View(new ForgotPasswordViewModel());
         }
 
-        // 中文注释
         /// 发送验证码
-        // 中文注释
         [HttpPost]
         public JsonResult SendVerificationCode(string phoneNumber)
         {
@@ -390,9 +370,7 @@ namespace recycling.Web.UI.Controllers
         }
 
 
-        // 中文注释
         /// 处理密码重置提交
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ResetPassword(ForgotPasswordViewModel model)
@@ -431,9 +409,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 显示预约上门页面 - 第一步
-        // 中文注释
         [HttpGet]
         public ActionResult Appointment()
         {
@@ -471,9 +447,7 @@ namespace recycling.Web.UI.Controllers
             return View(model);
         }
 
-        // 中文注释
         /// 处理第一步提交，跳转到品类详情页面
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Appointment(AppointmentViewModel model)
@@ -631,9 +605,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 显示品类详情页面 - 第二步
-        // 中文注释
         [HttpGet]
         public ActionResult CategoryDetails()
         {
@@ -653,9 +625,7 @@ namespace recycling.Web.UI.Controllers
             return View(detailModel);
         }
 
-        // 中文注释
         /// 处理品类详情提交，计算预估价格
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CategoryDetails(FormCollection form)
@@ -731,9 +701,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 最终提交预约（修正版本）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SubmitAppointment(FormCollection form)
@@ -836,9 +804,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 计算预估价格
-        // 中文注释
         private decimal CalculateEstimatedPrice(CategoryDetailViewModel model)
         {
             decimal totalPrice = 0m;
@@ -887,18 +853,14 @@ namespace recycling.Web.UI.Controllers
             return Math.Round(totalPrice, 2);
         }
 
-        // 中文注释
         /// 返回上一步
-        // 中文注释
         [HttpPost]
         public ActionResult BackToAppointment()
         {
             return RedirectToAction("Appointment");
         }
 
-        // 中文注释
         /// 预约成功页面
-        // 中文注释
         public ActionResult AppointmentSuccess()
         {
             if (Session["LoginUser"] == null)
@@ -910,9 +872,7 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        // 中文注释
         /// 获取用户地址列表（JSON API）
-        // 中文注释
         [HttpGet]
         public JsonResult GetUserAddresses()
         {
@@ -955,9 +915,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 获取单个地址详情（JSON API）
-        // 中文注释
         [HttpGet]
         public JsonResult GetAddressById(int addressId)
         {
@@ -1007,9 +965,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        // 中文注释
         /// 在预约过程中新增地址（JSON API）
-        // 中文注释
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult AddAddressForAppointment(string street, string detailAddress, string contactName, string contactPhone, bool isDefault = false)

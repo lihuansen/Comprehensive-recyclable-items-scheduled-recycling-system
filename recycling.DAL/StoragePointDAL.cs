@@ -7,21 +7,16 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    // 中文注释
     /// 暂存点管理数据访问层 - 简化实现
     /// 直接从Appointments和AppointmentCategories表查询数据
-    // 中文注释
     public class StoragePointDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
         
-        // 中文注释
-        private const int SQL_ERROR_INVALID_OBJECT = 208; // 中文注释
+        private const int SQL_ERROR_INVALID_OBJECT = 208; // 中文说明
 
-        // 中文注释
         /// 获取回收员的暂存点库存汇总（按类别分组）
         /// 从Inventory表查询InventoryType = 'StoragePoint'的数据
-        // 中文注释
         public List<StoragePointSummary> GetStoragePointSummary(int recyclerId)
         {
             var summary = new List<StoragePointSummary>();
@@ -30,8 +25,6 @@ namespace recycling.DAL
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
-                // 中文注释
-                // 中文注释
                 string sql = @"
                     SELECT 
                         CategoryKey, 
@@ -66,7 +59,6 @@ namespace recycling.DAL
                             }
                             catch (Exception ex)
                             {
-                                // 中文注释
                                 System.Diagnostics.Debug.WriteLine($"Error processing summary row: {ex.Message}");
                             }
                         }
@@ -89,10 +81,8 @@ namespace recycling.DAL
             return summary;
         }
 
-        // 中文注释
-        /// 中文注释
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
+        /// 中文说明
         public List<StoragePointDetail> GetStoragePointDetail(int recyclerId, string categoryKey = null)
         {
             var details = new List<StoragePointDetail>();
@@ -101,8 +91,6 @@ namespace recycling.DAL
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
-                // 中文注释
-                // 中文注释
                 string sql = @"
                     SELECT 
                         OrderID,
@@ -143,7 +131,6 @@ namespace recycling.DAL
                             }
                             catch (Exception ex)
                             {
-                                // 中文注释
                                 System.Diagnostics.Debug.WriteLine($"Error processing detail row: {ex.Message}");
                             }
                         }
@@ -166,9 +153,7 @@ namespace recycling.DAL
             return details;
         }
 
-        // 中文注释
         /// 回收员手动添加暂存点物品
-        // 中文注释
         public bool AddManualStoragePointItem(int recyclerId, string categoryKey, string categoryName, decimal weight, decimal price)
         {
             try
@@ -247,12 +232,10 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 清空回收员的暂存点库存记录（删除库存数据，不改变预约订单状态）
-        /// 中文注释
+        /// 中文说明
         /// Note: This method does NOT change appointment status. Appointments remain "已完成".
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>是否成功</returns>
         public bool ClearStoragePointForRecycler(int recyclerId)
@@ -278,13 +261,12 @@ namespace recycling.DAL
                         
                         int rowsAffected = cmd.ExecuteNonQuery();
                         System.Diagnostics.Debug.WriteLine($"Cleared {rowsAffected} inventory items for recycler {recyclerId}. Appointment status remains unchanged.");
-                        return true; // 中文注释
+                        return true; // 中文说明
                     }
                 }
             }
             catch (SqlException sqlEx)
             {
-                // 中文注释
                 if (sqlEx.Number == SQL_ERROR_INVALID_OBJECT)
                 {
                     System.Diagnostics.Debug.WriteLine($"Inventory table not found for recycler {recyclerId}, this is expected if inventory is tracked via appointments only.");

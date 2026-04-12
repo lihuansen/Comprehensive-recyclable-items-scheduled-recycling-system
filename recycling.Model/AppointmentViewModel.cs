@@ -8,9 +8,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace recycling.Model
 {
-    // 中文注释
     /// 预约上门视图模型 - 第一步
-    // 中文注释
     public class AppointmentViewModel
     {
         [Display(Name = "预约类型")]
@@ -67,9 +65,7 @@ namespace recycling.Model
         public Dictionary<string, decimal> CategoryWeights { get; set; } = new Dictionary<string, decimal>();
     }
 
-    // 中文注释
     /// 品类详情视图模型 - 第二步
-    // 中文注释
     public class CategoryDetailViewModel
     {
         public AppointmentViewModel BasicInfo { get; set; }
@@ -77,31 +73,25 @@ namespace recycling.Model
         public decimal EstimatedPrice { get; set; }
     }
 
-    // 中文注释
     /// 品类问题
-    // 中文注释
     public class CategoryQuestions
     {
         public string CategoryName { get; set; }
         public List<Question> Questions { get; set; } = new List<Question>();
     }
 
-    // 中文注释
     /// 问题定义
-    // 中文注释
     public class Question
     {
         public string Id { get; set; }
         public string Text { get; set; }
-        public string Type { get; set; } // 中文注释
+        public string Type { get; set; } // 中文说明
         public List<Option> Options { get; set; } = new List<Option>();
         public string SelectedValue { get; set; }
         public decimal Weight { get; set; } // 价格权重
     }
 
-    // 中文注释
     /// 选项
-    // 中文注释
     public class Option
     {
         public string Value { get; set; }

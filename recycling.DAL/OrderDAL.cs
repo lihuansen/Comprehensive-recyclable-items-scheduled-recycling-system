@@ -14,9 +14,7 @@ namespace recycling.DAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        // 中文注释
         /// 获取用户订单总数（高效COUNT查询）
-        // 中文注释
         public int GetUserOrderCount(int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -29,9 +27,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 根据用户ID和状态获取订单列表
-        // 中文注释
         public List<AppointmentOrder> GetOrdersByUserAndStatus(int userId, string status = "all")
         {
             var orders = new List<AppointmentOrder>();
@@ -122,9 +118,7 @@ WHERE a.UserID = @UserID";
             return orders;
         }
 
-        // 中文注释
         /// 根据订单ID获取订单详情（包含品类详情）
-        // 中文注释
         public OrderDetail GetOrderDetail(int appointmentId, int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -208,9 +202,7 @@ ORDER BY ac.CategoryID";
             }
         }
 
-        // 中文注释
         /// 取消订单
-        // 中文注释
         public bool CancelOrder(int appointmentId, int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -251,9 +243,7 @@ WHERE AppointmentID = @AppointmentID
             }
         }
 
-        // 中文注释
         /// 更新订单状态并保存回退原因（用于回收员回退订单）
-        // 中文注释
         public bool UpdateOrderStatusWithReason(int appointmentId, string newStatus, string rollbackReason)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -271,9 +261,7 @@ WHERE AppointmentID = @AppointmentID
             }
         }
 
-        // 中文注释
         /// 更新预约单的预估重量和预估价格（回收员完成订单后同步实际值）
-        // 中文注释
         public bool UpdateAppointmentWeightAndPrice(int appointmentId, decimal totalWeight, decimal totalPrice)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -293,9 +281,7 @@ WHERE AppointmentID = @AppointmentID";
             }
         }
 
-        // 中文注释
         /// 更新预约品类的实际重量（回收员完成订单后同步）
-        // 中文注释
         public bool UpdateAppointmentCategoryWeight(int appointmentId, string categoryKey, decimal weight)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -326,18 +312,14 @@ WHERE AppointmentID = @AppointmentID AND CategoryKey = @CategoryKey";
                 { "foam", "泡沫" }
             };
 
-        // 中文注释
         /// 将品类键名映射为中文显示名称（兼容历史英文存储值）
-        // 中文注释
         private static string GetCategoryDisplayName(string categoryName)
         {
             if (string.IsNullOrEmpty(categoryName)) return categoryName;
             return _categoryNameMap.TryGetValue(categoryName, out var name) ? name : categoryName;
         }
 
-        // 中文注释
         /// 对逗号分隔的品类名称列表逐项映射为中文（兼容历史英文存储值）
-        // 中文注释
         private static string NormalizeCategoryNames(string categoryNames)
         {
             if (string.IsNullOrEmpty(categoryNames)) return categoryNames;
@@ -345,9 +327,7 @@ WHERE AppointmentID = @AppointmentID AND CategoryKey = @CategoryKey";
             return string.Join(", ", System.Array.ConvertAll(parts, p => GetCategoryDisplayName(p.Trim())));
         }
 
-        // 中文注释
         /// 安全获取列值的辅助方法
-        // 中文注释
         private T GetColumnValue<T>(SqlDataReader reader, string columnName)
         {
             try

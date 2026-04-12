@@ -5,22 +5,18 @@ using recycling.DAL;
 
 namespace recycling.BLL
 {
-    // 中文注释
     /// 运输单业务逻辑层
-    /// 中文注释
-    // 中文注释
+    /// 中文说明
     public class TransportationOrderBLL
     {
         private readonly TransportationOrderDAL _dal = new TransportationOrderDAL();
         private readonly BaseStaffNotificationBLL _notificationBLL = new BaseStaffNotificationBLL();
         private readonly StaffDAL _staffDAL = new StaffDAL();
 
-        // 中文注释
         /// 创建运输单
-        // 中文注释
         /// <param name="order">运输单信息</param>
         /// <param name="categories">品类明细列表（可选）</param>
-        /// <returns>中文注释</returns>
+        /// <returns>中文说明</returns>
         public (int orderId, string orderNumber) CreateTransportationOrder(TransportationOrders order, List<TransportationOrderCategories> categories = null)
         {
             try
@@ -106,9 +102,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 检查回收员是否有未完成的运输单（即暂存点物品已创建了运输单但尚未完成）
-        // 中文注释
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>是否有未完成的运输单</returns>
         public bool HasActiveTransportOrdersForRecycler(int recyclerId)
@@ -127,9 +121,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取回收员的运输单列表
-        // 中文注释
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>运输单列表</returns>
         public List<TransportationOrders> GetTransportationOrdersByRecycler(int recyclerId)
@@ -148,9 +140,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取运输单详情
-        // 中文注释
         /// <param name="orderId">运输单ID</param>
         /// <returns>运输单详情</returns>
         public TransportationOrders GetTransportationOrderById(int orderId)
@@ -169,9 +159,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 更新运输单状态
-        // 中文注释
         /// <param name="orderId">运输单ID</param>
         /// <param name="status">新状态</param>
         /// <returns>是否更新成功</returns>
@@ -199,9 +187,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取运输人员的运输单列表
-        // 中文注释
         /// <param name="transporterId">运输人员ID</param>
         /// <param name="status">可选的状态筛选</param>
         /// <returns>运输单列表</returns>
@@ -221,9 +207,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 运输人员接单
-        // 中文注释
         /// <param name="orderId">运输单ID</param>
         /// <returns>是否接单成功</returns>
         public bool AcceptTransportationOrder(int orderId)
@@ -264,10 +248,8 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 开始运输
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         /// <param name="orderId">运输单ID</param>
         /// <returns>是否更新成功</returns>
         public bool StartTransportation(int orderId)
@@ -328,9 +310,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 确认收货地点
-        // 中文注释
         public bool ConfirmPickupLocation(int orderId)
         {
             try
@@ -369,9 +349,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 到达收货地点
-        // 中文注释
         public bool ArriveAtPickupLocation(int orderId)
         {
             try
@@ -388,9 +366,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 装货完毕
-        // 中文注释
         public bool CompleteLoading(int orderId)
         {
             try
@@ -448,9 +424,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 确认送货地点
-        // 中文注释
         public bool ConfirmDeliveryLocation(int orderId)
         {
             try
@@ -467,9 +441,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 到达送货地点
-        // 中文注释
         public bool ArriveAtDeliveryLocation(int orderId)
         {
             try
@@ -486,9 +458,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 完成运输
-        // 中文注释
         /// <param name="orderId">运输单ID</param>
         /// <param name="actualWeight">实际重量</param>
         /// <returns>是否完成成功</returns>
@@ -596,9 +566,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取回收员名称（辅助方法）
-        // 中文注释
         private string GetRecyclerName(Recyclers recycler)
         {
             if (recycler == null)

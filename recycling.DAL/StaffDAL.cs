@@ -14,9 +14,7 @@ namespace recycling.DAL
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         #region 回收员登录验证（对应Recyclers表）
-        // 中文注释
         /// 根据用户名查询回收员信息
-        // 中文注释
         public Recyclers GetRecyclerByUsername(string username)
         {
             Recyclers recycler = null;
@@ -62,9 +60,7 @@ namespace recycling.DAL
             return recycler;
         }
 
-        // 中文注释
         /// 更新回收员最后登录时间
-        // 中文注释
         public void UpdateRecyclerLastLogin(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -91,9 +87,7 @@ namespace recycling.DAL
         #endregion
 
         #region 管理员登录验证（对应Admins表）
-        // 中文注释
         /// 根据用户名查询管理员信息
-        // 中文注释
         public Admins GetAdminByUsername(string username)
         {
             Admins admin = null;
@@ -144,9 +138,7 @@ namespace recycling.DAL
             return admin;
         }
 
-        // 中文注释
         /// 更新管理员最后登录时间
-        // 中文注释
         public void UpdateAdminLastLogin(int adminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -173,9 +165,7 @@ namespace recycling.DAL
         #endregion
 
         #region 超级管理员登录验证（对应SuperAdmins表）
-        // 中文注释
         /// 根据用户名查询超级管理员信息
-        // 中文注释
         public SuperAdmins GetSuperAdminByUsername(string username)
         {
             SuperAdmins superAdmin = null;
@@ -216,9 +206,7 @@ namespace recycling.DAL
             return superAdmin;
         }
 
-        // 中文注释
         /// 更新超级管理员最后登录时间
-        // 中文注释
         public void UpdateSuperAdminLastLogin(int superAdminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -245,9 +233,7 @@ namespace recycling.DAL
         #endregion
 
         #region 运输人员登录验证（对应Transporters表）
-        // 中文注释
         /// 根据用户名查询运输人员信息
-        // 中文注释
         public Transporters GetTransporterByUsername(string username)
         {
             Transporters transporter = null;
@@ -296,9 +282,7 @@ namespace recycling.DAL
             return transporter;
         }
 
-        // 中文注释
         /// 更新运输人员最后登录时间
-        // 中文注释
         public void UpdateTransporterLastLogin(int transporterId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -323,9 +307,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 通过ID获取运输人员信息
-        // 中文注释
         public Transporters GetTransporterById(int transporterId)
         {
             Transporters transporter = null;
@@ -382,9 +364,7 @@ namespace recycling.DAL
             return transporter;
         }
 
-        // 中文注释
         /// 更新运输人员信息
-        // 中文注释
         public bool UpdateTransporter(Transporters transporter)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -420,9 +400,7 @@ namespace recycling.DAL
         #endregion
 
         #region 基地工作人员登录验证（对应SortingCenterWorkers表）
-        // 中文注释
         /// 根据用户名查询基地工作人员信息
-        // 中文注释
         public SortingCenterWorkers GetSortingCenterWorkerByUsername(string username)
         {
             SortingCenterWorkers worker = null;
@@ -473,9 +451,7 @@ namespace recycling.DAL
             return worker;
         }
         
-        // 中文注释
         /// 更新基地工作人员最后登录时间
-        // 中文注释
         public void UpdateSortingCenterWorkerLastLogin(int workerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -503,9 +479,7 @@ namespace recycling.DAL
         #endregion
 
         // 在StaffDAL类中添加
-        // 中文注释
         /// 根据ID获取回收员信息（供BLL层调用）
-        // 中文注释
         public Recyclers GetRecyclerById(int recyclerId)
         {
             if (recyclerId <= 0)
@@ -547,9 +521,7 @@ namespace recycling.DAL
             return null;
         }
 
-        // 中文注释
         /// 更新回收员信息
-        // 中文注释
         public bool UpdateRecycler(Recyclers recycler)
         {
             using (var conn = new SqlConnection(_connectionString))
@@ -576,9 +548,7 @@ namespace recycling.DAL
 
         #region 基地工作人员账号管理
 
-        // 中文注释
         /// 根据ID获取基地工作人员信息
-        // 中文注释
         public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
         {
             using (var conn = new SqlConnection(_connectionString))
@@ -624,9 +594,7 @@ namespace recycling.DAL
             return null;
         }
 
-        // 中文注释
         /// 更新基地工作人员信息
-        // 中文注释
         public bool UpdateSortingCenterWorker(SortingCenterWorkers worker)
         {
             using (var conn = new SqlConnection(_connectionString))

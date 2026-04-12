@@ -41,7 +41,7 @@
 1. **文件本身**：`recycling.Model/UserNotifications.cs` 文件使用 UTF-8 编码
 2. **内容损坏**：文件内部的中文字符在历史某个时间点被错误转换
 3. **表现形式**：UTF-8 字节序列被破坏，转换为 Unicode 替换字符 (U+FFFD)
-4. **问题范围**：影响 `NotificationTypes` 类中的所有中文注释和返回值
+4. **问题范围**：影响 `NotificationTypes` 类中的所有中文说明和返回值
 
 ### 技术细节
 

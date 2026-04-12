@@ -20,7 +20,6 @@
     .badge-inactive { background-color: #6c757d; }
     .btn-action { margin: 0 2px; }
     .modal-header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
-    /* 中文注释 */
     .dashboard-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .dashboard-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; border-bottom: 2px solid #f5576c; padding-bottom: 8px; }
     .chart-container { height: 250px; }
@@ -278,7 +277,6 @@ var permissionPieChart = null;
 var loginBarChart = null;
 var registrationLineChart = null;
 
-// 中文注释
 function escapeHtml(text) {
     if (!text) return '';
     var div = document.createElement('div');
@@ -312,7 +310,6 @@ $(document).ready(function () {
     loadAdmins();
 });
 
-// 中文注释
 function toggleDashboard() {
     dashboardVisible = !dashboardVisible;
     if (dashboardVisible) {
@@ -324,7 +321,6 @@ function toggleDashboard() {
     }
 }
 
-// 中文注释
 function toggleSortOrder() {
     sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
     $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
@@ -334,7 +330,6 @@ function toggleSortOrder() {
     loadAdmins();
 }
 
-// 中文注释
 function loadDashboardStatistics() {
     $.ajax({
         url: '@Url.Action("GetAdminDashboardStatistics", "Staff")',
@@ -344,20 +339,17 @@ function loadDashboardStatistics() {
             if (response.success) {
                 var data = response.data;
 
-                // 中文注释
                 $('#totalAdmins').text(data.TotalAdmins || 0);
                 $('#activeAdmins').text(data.ActiveAdmins || 0);
                 $('#inactiveAdmins').text(data.InactiveAdmins || 0);
                 $('#newAdminsThisMonth').text(data.NewAdminsThisMonth || 0);
                 $('#recentLoginCount').text(data.RecentLoginCount || 0);
 
-                // 中文注释
                 var total = parseInt(data.TotalAdmins) || 0;
                 var active = parseInt(data.ActiveAdmins) || 0;
                 var activeRate = total > 0 ? ((active / total) * 100).toFixed(1) + '%' : '0%';
                 $('#activeRate').text(activeRate);
 
-                // 中文注释
                 try { renderPermissionDistribution(data.PermissionDistribution); }
                 catch (e) { console.error('Permission distribution chart error:', e); }
 
@@ -367,7 +359,6 @@ function loadDashboardStatistics() {
                 try { renderRegistrationTrend(data.RegistrationTrend); }
                 catch (e) { console.error('Registration trend chart error:', e); }
 
-                // 中文注释
                 try { renderAdminRanking(data.AdminRanking); }
                 catch (e) {
                     console.error('Admin ranking render error:', e);
@@ -385,7 +376,6 @@ function loadDashboardStatistics() {
     });
 }
 
-// 中文注释
 function showDashboardFallbackValues() {
     $('#totalAdmins').text('0');
     $('#activeAdmins').text('0');
@@ -396,7 +386,6 @@ function showDashboardFallbackValues() {
     $('#adminRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
 }
 
-// 中文注释
 function getPermissionText(character) {
     switch(character) {
         case 'user_management': return '用户管理';
@@ -413,7 +402,6 @@ function getPermissionText(character) {
     }
 }
 
-// 中文注释
 function renderPermissionDistribution(permData) {
     var canvas = document.getElementById('permissionDistributionChart');
     if (!canvas) return;
@@ -450,7 +438,6 @@ function renderPermissionDistribution(permData) {
     });
 }
 
-// 中文注释
 function renderLoginActivity(loginData) {
     var canvas = document.getElementById('loginActivityChart');
     if (!canvas) return;
@@ -499,7 +486,6 @@ function renderLoginActivity(loginData) {
     });
 }
 
-// 中文注释
 function renderRegistrationTrend(trendData) {
     var canvas = document.getElementById('registrationTrendChart');
     if (!canvas) return;
@@ -552,7 +538,6 @@ function renderRegistrationTrend(trendData) {
     });
 }
 
-// 中文注释
 function renderAdminRanking(rankings) {
     var container = $('#adminRankingList');
     container.empty();

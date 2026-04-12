@@ -277,7 +277,7 @@ UPDATE Users SET money = @CurrentBalance - 20.00 WHERE UserID = 1;
 如有问题，请参考：
 - 完整实现文档：`WALLET_SYSTEM_IMPLEMENTATION.md`
 - 数据库建表脚本：`Database/CreateWalletTables.sql`
-- 源代码注释：所有新增类都包含详细的中文注释
+- 源代码注释：所有新增类都包含详细的中文说明
 
 ## 版本信息 (Version Info)
 

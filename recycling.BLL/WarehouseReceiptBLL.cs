@@ -7,10 +7,8 @@ using recycling.DAL;
 
 namespace recycling.BLL
 {
-    // 中文注释
     /// 入库单业务逻辑层
-    /// 中文注释
-    // 中文注释
+    /// 中文说明
     public class WarehouseReceiptBLL
     {
         private readonly WarehouseReceiptDAL _dal = new WarehouseReceiptDAL();
@@ -106,10 +104,8 @@ namespace recycling.BLL
             ["泡沫"] = "foam"
         };
 
-        // 中文注释
         /// 创建入库单（状态为"待入库"，不写入库存）
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool success, string message, int receiptId, string receiptNumber) CreateWarehouseReceipt(
             int transportOrderId, 
             int workerId, 
@@ -234,10 +230,8 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 处理入库单入库（将状态更新为"已入库"并写入库存）
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public (bool success, string message) ProcessWarehouseReceipt(int receiptId)
         {
             try
@@ -342,9 +336,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取入库单列表
-        // 中文注释
         public List<WarehouseReceiptViewModel> GetWarehouseReceipts(int page = 1, int pageSize = 20, string status = null, int? workerId = null)
         {
             try
@@ -362,9 +354,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取运输中的订单列表
-        // 中文注释
         public List<TransportNotificationViewModel> GetInTransitOrders(int workerId)
         {
             try
@@ -378,9 +368,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取已完成的运输单列表（用于入库）
-        // 中文注释
         public List<TransportNotificationViewModel> GetCompletedTransportOrders()
         {
             try
@@ -394,9 +382,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 检查运输单是否已创建入库单
-        // 中文注释
         public bool HasWarehouseReceipt(int transportOrderId)
         {
             try
@@ -411,10 +397,8 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取仓库库存汇总（按类别分组）- 从入库单数据中统计
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetWarehouseSummary()
         {
             try
@@ -428,10 +412,8 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取仓库库存明细（包含回收员信息）- 从入库单数据中提取
-        /// 中文注释
-        // 中文注释
+        /// 中文说明
         public PagedResult<InventoryDetailViewModel> GetWarehouseDetailWithRecycler(int pageIndex = 1, int pageSize = 20, string categoryKey = null)
         {
             try
@@ -449,9 +431,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取细分模板（按大类）
-        // 中文注释
         public List<WarehouseSubdivisionTemplateGroupViewModel> GetSubdivisionTemplates(IEnumerable<WarehouseReceiptCategoryItemViewModel> categories)
         {
             var result = new List<WarehouseSubdivisionTemplateGroupViewModel>();
@@ -493,9 +473,7 @@ namespace recycling.BLL
             return result;
         }
 
-        // 中文注释
         /// 根据细分类解析单价（优先系统模板，手写细类使用该大类模板均价）
-        // 中文注释
         private decimal ResolvePricePerKg(string parentKey, string subKey, string subName, decimal? submittedPricePerKg)
         {
             var templateParentKey = ResolveTemplateParentKey(parentKey, null);
@@ -586,9 +564,7 @@ namespace recycling.BLL
             return new string(chars.ToArray());
         }
 
-        // 中文注释
         /// 保存入库单细分数据
-        // 中文注释
         public (bool success, string message) SaveWarehouseReceiptSubdivision(int receiptId, int workerId, string subdivisionsJson)
         {
             try
@@ -790,9 +766,7 @@ namespace recycling.BLL
             }
         }
 
-        // 中文注释
         /// 获取细分校验容差（kg）
-        // 中文注释
         public decimal GetSubdivisionWeightTolerance()
         {
             return WeightTolerance;

@@ -11,9 +11,7 @@ namespace recycling.DAL
         // 从配置文件获取数据库连接字符串
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        // 中文注释
         /// 添加用户反馈
-        // 中文注释
         public (bool Success, string Message) AddFeedback(UserFeedback feedback)
         {
             try
@@ -47,9 +45,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取所有反馈（管理员用）
-        // 中文注释
         public List<UserFeedback> GetAllFeedbacks(string status = null, string feedbackType = null)
         {
             List<UserFeedback> feedbacks = new List<UserFeedback>();
@@ -119,9 +115,7 @@ namespace recycling.DAL
             return feedbacks;
         }
 
-        // 中文注释
         /// 更新反馈状态和管理员回复
-        // 中文注释
         public (bool Success, string Message) UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
         {
             try
@@ -130,7 +124,6 @@ namespace recycling.DAL
                 {
                     conn.Open();
                     
-                    // 中文注释
                     string sql = "UPDATE UserFeedback SET UpdatedDate = @UpdatedDate";
                     
                     if (!string.IsNullOrEmpty(status))
@@ -138,7 +131,7 @@ namespace recycling.DAL
                         sql += ", Status = @Status";
                     }
                     
-                    if (adminReply != null) // 中文注释
+                    if (adminReply != null) // 中文说明
                     {
                         sql += ", AdminReply = @AdminReply";
                     }
@@ -171,9 +164,7 @@ namespace recycling.DAL
             }
         }
 
-        // 中文注释
         /// 获取指定用户的所有反馈（用户端查看自己的反馈）
-        // 中文注释
         public List<UserFeedback> GetUserFeedbacks(int userId)
         {
             List<UserFeedback> feedbacks = new List<UserFeedback>();
@@ -224,9 +215,7 @@ namespace recycling.DAL
             return feedbacks;
         }
 
-        // 中文注释
         /// 根据反馈ID获取反馈详情
-        // 中文注释
         public UserFeedback GetFeedbackById(int feedbackId)
         {
             try

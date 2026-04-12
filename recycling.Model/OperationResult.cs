@@ -2,30 +2,20 @@ using System;
 
 namespace recycling.Model
 {
-    // 中文注释
     /// 操作结果类 - 用于统一封装业务操作的返回结果
     /// 可替代 (bool Success, string Message) 元组，提供更好的类型安全性和可扩展性
-    // 中文注释
     public class OperationResult
     {
-        // 中文注释
         /// 操作是否成功
-        // 中文注释
         public bool Success { get; set; }
 
-        // 中文注释
         /// 操作消息（成功或失败的描述信息）
-        // 中文注释
         public string Message { get; set; }
 
-        // 中文注释
         /// 错误代码（可选，用于前端国际化或特定错误处理）
-        // 中文注释
         public string ErrorCode { get; set; }
 
-        // 中文注释
         /// 创建成功的操作结果
-        // 中文注释
         /// <param name="message">成功消息</param>
         /// <returns>成功的操作结果</returns>
         public static OperationResult CreateSuccess(string message = "操作成功")
@@ -37,9 +27,7 @@ namespace recycling.Model
             };
         }
 
-        // 中文注释
         /// 创建失败的操作结果
-        // 中文注释
         /// <param name="message">失败消息</param>
         /// <param name="errorCode">错误代码（可选）</param>
         /// <returns>失败的操作结果</returns>
@@ -54,20 +42,14 @@ namespace recycling.Model
         }
     }
 
-    // 中文注释
     /// 带数据的操作结果类 - 用于返回操作结果和数据
-    // 中文注释
     /// <typeparam name="T">返回数据的类型</typeparam>
     public class OperationResult<T> : OperationResult
     {
-        // 中文注释
         /// 操作返回的数据
-        // 中文注释
         public T Data { get; set; }
 
-        // 中文注释
         /// 创建带数据的成功结果
-        // 中文注释
         /// <param name="data">返回的数据</param>
         /// <param name="message">成功消息</param>
         /// <returns>成功的操作结果</returns>
@@ -81,9 +63,7 @@ namespace recycling.Model
             };
         }
 
-        // 中文注释
         /// 创建带数据的失败结果
-        // 中文注释
         /// <param name="message">失败消息</param>
         /// <param name="errorCode">错误代码（可选）</param>
         /// <returns>失败的操作结果</returns>

@@ -10,9 +10,7 @@ namespace recycling.BLL
     {
         private FeedbackDAL _feedbackDAL = new FeedbackDAL();
 
-        // 中文注释
         /// 添加用户反馈（带业务逻辑验证）
-        // 中文注释
         public (bool Success, string Message) AddFeedback(UserFeedback feedback)
         {
             // 1. 检查反馈对象不为空
@@ -77,17 +75,13 @@ namespace recycling.BLL
             return _feedbackDAL.AddFeedback(feedback);
         }
 
-        // 中文注释
         /// 获取所有反馈（管理员用）
-        // 中文注释
         public List<UserFeedback> GetAllFeedbacks(string status = null, string feedbackType = null)
         {
             return _feedbackDAL.GetAllFeedbacks(status, feedbackType);
         }
 
-        // 中文注释
         /// 更新反馈状态和管理员回复
-        // 中文注释
         public (bool Success, string Message) UpdateFeedbackStatus(int feedbackId, string status, string adminReply)
         {
             // 验证反馈ID
@@ -115,9 +109,7 @@ namespace recycling.BLL
             return _feedbackDAL.UpdateFeedbackStatus(feedbackId, status, adminReply);
         }
 
-        // 中文注释
         /// 获取指定用户的所有反馈（用户端）
-        // 中文注释
         public List<UserFeedback> GetUserFeedbacks(int userId)
         {
             // 验证用户ID
@@ -129,9 +121,7 @@ namespace recycling.BLL
             return _feedbackDAL.GetUserFeedbacks(userId);
         }
 
-        // 中文注释
         /// 根据反馈ID获取反馈详情
-        // 中文注释
         public UserFeedback GetFeedbackById(int feedbackId)
         {
             if (feedbackId <= 0)
