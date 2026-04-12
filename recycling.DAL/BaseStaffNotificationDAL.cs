@@ -20,7 +20,7 @@ namespace recycling.DAL
 
         public BaseStaffNotificationDAL()
         {
-            _relatedWarehouseReceiptColumn = DetectRelatedWarehouseReceiptColumn();
+            _relatedWarehouseReceiptColumn = NormalizeRelatedWarehouseReceiptColumn(DetectRelatedWarehouseReceiptColumn());
         }
 
         private string DetectRelatedWarehouseReceiptColumn()
@@ -36,8 +36,7 @@ namespace recycling.DAL
                                   AND COLUMN_NAME IN ('RelatedWarehouseReceipt', 'RelatedWarehouseReceiptID')
                                 ORDER BY CASE 
                                     WHEN COLUMN_NAME = 'RelatedWarehouseReceipt' THEN 1
-                                    WHEN COLUMN_NAME = 'RelatedWarehouseReceiptID' THEN 2
-                                    ELSE 3 END";
+                                    WHEN COLUMN_NAME = 'RelatedWarehouseReceiptID' THEN 2 END";
                     using (var cmd = new SqlCommand(sql, conn))
                     {
                         var value = cmd.ExecuteScalar() as string;
@@ -53,6 +52,22 @@ namespace recycling.DAL
                 System.Diagnostics.Debug.WriteLine($"DetectRelatedWarehouseReceiptColumn Error: {ex.Message}");
             }
 
+            return LegacyReceiptColumn;
+        }
+
+        private string NormalizeRelatedWarehouseReceiptColumn(string columnName)
+        {
+            if (string.Equals(columnName, CurrentReceiptColumn, StringComparison.OrdinalIgnoreCase))
+            {
+                return CurrentReceiptColumn;
+            }
+
+            if (string.Equals(columnName, LegacyReceiptColumn, StringComparison.OrdinalIgnoreCase))
+            {
+                return LegacyReceiptColumn;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"检测到未知入库关联列名：{columnName}，回退为 {LegacyReceiptColumn}");
             return LegacyReceiptColumn;
         }
 
@@ -365,7 +380,8 @@ namespace recycling.DAL
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ReadRelatedWarehouseReceipt Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"ReadRelatedWarehouseReceipt Error: Column={_relatedWarehouseReceiptColumn}, Message={ex.Message}");
             }
 
             return null;
