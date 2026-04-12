@@ -67,8 +67,7 @@ namespace recycling.DAL
                 return LegacyReceiptColumn;
             }
 
-            System.Diagnostics.Debug.WriteLine($"检测到未知入库关联列名：{columnName}，回退为 {LegacyReceiptColumn}");
-            return LegacyReceiptColumn;
+            throw new InvalidOperationException($"检测到未知入库关联列名：{columnName}");
         }
 
         /// <summary>
@@ -81,14 +80,7 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"INSERT INTO BaseStaffNotifications 
-                                  (WorkerID, NotificationType, Title, Content, 
-                                   RelatedTransportOrderID, " + _relatedWarehouseReceiptColumn + @", 
-                                   CreatedDate, IsRead) 
-                                  VALUES 
-                                  (@WorkerID, @NotificationType, @Title, @Content, 
-                                   @RelatedTransportOrderID, @RelatedWarehouseReceipt, 
-                                   @CreatedDate, @IsRead)";
+                    string sql = BuildAddNotificationSql();
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
@@ -126,15 +118,7 @@ namespace recycling.DAL
                     // Some legacy sorting center worker records have NULL IsActive.
                     // Treat NULL as active so they still receive notifications.
                     // Set IsActive = 0 explicitly to deactivate a worker.
-                    string sql = @"INSERT INTO BaseStaffNotifications 
-                                  (WorkerID, NotificationType, Title, Content, 
-                                    RelatedTransportOrderID, " + _relatedWarehouseReceiptColumn + @", 
-                                    CreatedDate, IsRead)
-                                   SELECT WorkerID, @NotificationType, @Title, @Content, 
-                                          @RelatedTransportOrderID, @RelatedWarehouseReceipt, 
-                                          @CreatedDate, 0
-                                   FROM SortingCenterWorkers 
-                                   WHERE ISNULL(IsActive, 1) = 1";
+                    string sql = BuildAddNotificationsToAllWorkersSql();
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
@@ -385,6 +369,56 @@ namespace recycling.DAL
             }
 
             return null;
+        }
+
+        private string BuildAddNotificationSql()
+        {
+            if (string.Equals(_relatedWarehouseReceiptColumn, CurrentReceiptColumn, StringComparison.Ordinal))
+            {
+                return @"INSERT INTO BaseStaffNotifications 
+                         (WorkerID, NotificationType, Title, Content, 
+                          RelatedTransportOrderID, RelatedWarehouseReceipt, 
+                          CreatedDate, IsRead) 
+                         VALUES 
+                         (@WorkerID, @NotificationType, @Title, @Content, 
+                          @RelatedTransportOrderID, @RelatedWarehouseReceipt, 
+                          @CreatedDate, @IsRead)";
+            }
+
+            return @"INSERT INTO BaseStaffNotifications 
+                     (WorkerID, NotificationType, Title, Content, 
+                      RelatedTransportOrderID, RelatedWarehouseReceiptID, 
+                      CreatedDate, IsRead) 
+                     VALUES 
+                     (@WorkerID, @NotificationType, @Title, @Content, 
+                      @RelatedTransportOrderID, @RelatedWarehouseReceipt, 
+                      @CreatedDate, @IsRead)";
+        }
+
+        private string BuildAddNotificationsToAllWorkersSql()
+        {
+            if (string.Equals(_relatedWarehouseReceiptColumn, CurrentReceiptColumn, StringComparison.Ordinal))
+            {
+                return @"INSERT INTO BaseStaffNotifications 
+                         (WorkerID, NotificationType, Title, Content, 
+                           RelatedTransportOrderID, RelatedWarehouseReceipt, 
+                           CreatedDate, IsRead)
+                          SELECT WorkerID, @NotificationType, @Title, @Content, 
+                                 @RelatedTransportOrderID, @RelatedWarehouseReceipt, 
+                                 @CreatedDate, 0
+                          FROM SortingCenterWorkers 
+                          WHERE ISNULL(IsActive, 1) = 1";
+            }
+
+            return @"INSERT INTO BaseStaffNotifications 
+                     (WorkerID, NotificationType, Title, Content, 
+                       RelatedTransportOrderID, RelatedWarehouseReceiptID, 
+                       CreatedDate, IsRead)
+                      SELECT WorkerID, @NotificationType, @Title, @Content, 
+                             @RelatedTransportOrderID, @RelatedWarehouseReceipt, 
+                             @CreatedDate, 0
+                      FROM SortingCenterWorkers 
+                      WHERE ISNULL(IsActive, 1) = 1";
         }
     }
 
