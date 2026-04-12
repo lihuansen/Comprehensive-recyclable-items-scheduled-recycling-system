@@ -5350,6 +5350,12 @@ namespace recycling.Web.UI.Controllers
                 return RedirectToAction("BaseWarehouseManagement");
             }
 
+            if (warehouseReceiptDAL.IsReceiptRefined(receipt.ItemCategories))
+            {
+                TempData["ErrorMessage"] = "该入库单已完成细分，请直接执行入库";
+                return RedirectToAction("BaseWarehouseManagement");
+            }
+
             var categoryItems = ParseReceiptCategoriesForSubdivision(receipt.ItemCategories);
             if (categoryItems == null || !categoryItems.Any())
             {
