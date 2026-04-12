@@ -336,9 +336,9 @@
                     var count = toCount(badge.getAttribute('data-tip-count'));
                     var dismissedCount = toCount(dismissedMap[key]);
 
-                    // Badge is hidden when count is zero (not loaded yet) or already dismissed (high-watermark).
-                    // We never delete the dismissed entry here, so a transient count=0 on page
-                    // load cannot erase a previously dismissed state.
+                    // 中文注释
+                    // 中文注释
+                    // 中文注释
                     if (!key || count <= dismissedCount) {
                         badge.textContent = '';
                         return;

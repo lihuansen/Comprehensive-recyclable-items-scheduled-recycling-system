@@ -7,10 +7,10 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    /// <summary>
+    // 中文注释
     /// 基地工作人员通知数据访问层
-    /// Base Staff Notifications Data Access Layer
-    /// </summary>
+    /// 中文注释
+    // 中文注释
     public class BaseStaffNotificationDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
@@ -70,9 +70,9 @@ namespace recycling.DAL
             throw new InvalidOperationException($"检测到未知入库关联列名：{columnName}");
         }
 
-        /// <summary>
+        // 中文注释
         /// 添加通知
-        /// </summary>
+        // 中文注释
         public bool AddNotification(BaseStaffNotifications notification)
         {
             try
@@ -104,9 +104,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 向所有基地工作人员发送通知
-        /// </summary>
+        // 中文注释
         public bool AddNotificationsToAllWorkers(string notificationType, string title, string content, 
             int? relatedTransportOrderID = null, int? relatedWarehouseReceiptID = null)
         {
@@ -115,9 +115,9 @@ namespace recycling.DAL
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    // Some legacy sorting center worker records have NULL IsActive.
-                    // Treat NULL as active so they still receive notifications.
-                    // Set IsActive = 0 explicitly to deactivate a worker.
+                    // 中文注释
+                    // 中文注释
+                    // 中文注释
                     string sql = BuildAddNotificationsToAllWorkersSql();
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -140,9 +140,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取工作人员的通知列表（分页）
-        /// </summary>
+        // 中文注释
         public List<BaseStaffNotifications> GetWorkerNotifications(int workerId, int pageIndex = 1, int pageSize = 20)
         {
             var notifications = new List<BaseStaffNotifications>();
@@ -199,9 +199,9 @@ namespace recycling.DAL
             return notifications;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取工作人员未读通知数量
-        /// </summary>
+        // 中文注释
         public int GetUnreadCount(int workerId)
         {
             try
@@ -226,9 +226,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 标记通知为已读
-        /// </summary>
+        // 中文注释
         public bool MarkAsRead(int notificationId, int workerId)
         {
             try
@@ -257,9 +257,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 标记所有通知为已读
-        /// </summary>
+        // 中文注释
         public bool MarkAllAsRead(int workerId)
         {
             try
@@ -288,9 +288,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 删除通知
-        /// </summary>
+        // 中文注释
         public bool DeleteNotification(int notificationId, int workerId)
         {
             try
@@ -317,9 +317,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取工作人员通知总数
-        /// </summary>
+        // 中文注释
         public int GetTotalCount(int workerId)
         {
             try

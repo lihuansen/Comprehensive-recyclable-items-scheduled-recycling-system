@@ -9,22 +9,20 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    /// <summary>
+    // 入库单数据访问实现
     /// 入库单数据访问层
-    /// Warehouse Receipt Data Access Layer
-    /// </summary>
+    /// 提供入库单查询、创建与细分相关的数据读写操作
     public class WarehouseReceiptDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        /// <summary>
+        // 从品类JSON字典中安全提取重量字段
         /// 从JSON字典中安全地提取weight值
-        /// Safely extract weight value from JSON dictionary
-        /// </summary>
-        /// <param name="category">Category dictionary from JSON</param>
-        /// <param name="categoryKey">Category key for logging purposes</param>
-        /// <param name="context">Context description for logging</param>
-        /// <returns>Extracted weight value, or 0 if extraction fails</returns>
+        /// 用于兼容不同类型（字符串/数值）的重量数据
+        /// <param name="category">当前品类的字典数据</param>
+        /// <param name="categoryKey">品类键值（用于日志定位）</param>
+        /// <param name="context">调用上下文（用于错误信息）</param>
+        /// <returns>解析后的重量，失败时返回0</returns>
         private decimal ExtractWeightFromJson(Dictionary<string, object> category, string categoryKey, string context)
         {
             decimal weight = 0;
@@ -38,7 +36,7 @@ namespace recycling.DAL
             {
                 var weightValue = category["weight"];
                 
-                // Handle string types (e.g., "1.5")
+                // 中文注释
                 if (weightValue is string weightStr)
                 {
                     if (!decimal.TryParse(weightStr, out weight))
@@ -47,7 +45,7 @@ namespace recycling.DAL
                         weight = 0;
                     }
                 }
-                // Handle numeric types (int, long, double, decimal, etc.)
+                // 中文注释
                 else
                 {
                     weight = Convert.ToDecimal(weightValue);
@@ -62,9 +60,9 @@ namespace recycling.DAL
             return weight;
         }
 
-        /// <summary>
+        // 中文注释
         /// 从JSON字典中安全提取decimal值
-        /// </summary>
+        // 中文注释
         private decimal? ExtractDecimalFromJson(Dictionary<string, object> category, string key)
         {
             if (!category.ContainsKey(key) || category[key] == null)
@@ -87,9 +85,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 判断ItemCategories是否已完成细分
-        /// </summary>
+        // 中文注释
         public bool IsReceiptRefined(string itemCategoriesJson)
         {
             if (string.IsNullOrWhiteSpace(itemCategoriesJson))
@@ -137,9 +135,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 从字典中按键名（大小写不敏感）读取字符串字段
-        /// </summary>
+        // 中文注释
         private bool TryGetCategoryFieldValue(Dictionary<string, object> category, string key, out string value)
         {
             value = null;
@@ -174,10 +172,10 @@ namespace recycling.DAL
             return false;
         }
 
-        /// <summary>
+        // 中文注释
         /// 预加载所有活动的类别价格
-        /// Preload all active category prices to avoid N+1 queries
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         private Dictionary<string, decimal> LoadCategoryPrices(SqlConnection conn, SqlTransaction transaction = null)
         {
             var categoryPrices = new Dictionary<string, decimal>();
@@ -202,7 +200,7 @@ namespace recycling.DAL
                         decimal pricePerKg = Convert.ToDecimal(priceReader["PricePerKg"]);
 
                         // 使用每个类别的第一个价格（已按SortOrder排序）
-                        // Use the first price for each category (ordered by SortOrder)
+                        // 中文注释
                         if (!categoryPrices.ContainsKey(category))
                         {
                             categoryPrices[category] = pricePerKg;
@@ -214,10 +212,10 @@ namespace recycling.DAL
             return categoryPrices;
         }
 
-        /// <summary>
+        // 中文注释
         /// 根据品类JSON和系统价格表计算总价
-        /// Calculate total price for warehouse receipt based on category JSON and price list
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         private decimal? CalculateTotalPrice(string itemCategoriesJson, SqlConnection conn, SqlTransaction transaction)
         {
             if (string.IsNullOrWhiteSpace(itemCategoriesJson))
@@ -286,10 +284,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 生成入库单号
         /// 格式：WR+YYYYMMDD+4位序号
-        /// </summary>
+        // 中文注释
         private string GenerateReceiptNumber()
         {
             string datePrefix = "WR" + DateTime.Now.ToString("yyyyMMdd");
@@ -323,10 +321,10 @@ namespace recycling.DAL
             return datePrefix + sequence.ToString("D4");
         }
 
-        /// <summary>
+        // 中文注释
         /// 创建入库单（状态为"待入库"，不写入库存）
-        /// Create warehouse receipt with "Pending" status, without writing to inventory
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public (int receiptId, string receiptNumber) CreateWarehouseReceipt(WarehouseReceipts receipt)
         {
             try
@@ -372,7 +370,7 @@ namespace recycling.DAL
                                 receiptId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
 
-                            // Note: Inventory is NOT written here. It will be written when ProcessWarehouseReceipt is called.
+                            // 中文注释
 
                             transaction.Commit();
                             return (receiptId, receipt.ReceiptNumber);
@@ -392,10 +390,10 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 处理入库单入库（将状态更新为"已入库"并写入库存，按类别累加）
-        /// Process warehouse receipt (update status to "Warehoused" and write to inventory, accumulate by category)
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public bool ProcessWarehouseReceipt(int receiptId)
         {
             try
@@ -423,10 +421,10 @@ namespace recycling.DAL
                                 {
                                     if (reader.Read())
                                     {
-                                        // Read raw ItemCategories from database
+                                        // 中文注释
                                         string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
                                         
-                                        // Validate and normalize to ensure valid JSON format
+                                        // 中文注释
                                         string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
                                         
                                         receipt = new WarehouseReceipts
@@ -523,7 +521,7 @@ namespace recycling.DAL
                                 string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                 string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
                                 
-                                // Extract weight using helper method
+                                // 中文注释
                                 decimal weight = ExtractWeightFromJson(category, categoryKey, "ProcessWarehouseReceipt");
 
                                 if (string.IsNullOrEmpty(categoryKey) || weight <= 0)
@@ -555,8 +553,8 @@ namespace recycling.DAL
                                 }
 
                                 // 检查是否已存在该类别的库存记录（同一入库单的同一类别）
-                                // Check if an inventory record already exists for this category in the same receipt
-                                // Note: OrderID in Inventory table stores the ReceiptID
+                                // 中文注释
+                                // 中文注释
                                 string checkExistingSql = @"
                                     SELECT InventoryID, Weight, Price
                                     FROM Inventory
@@ -684,9 +682,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取入库单列表（带分页）
-        /// </summary>
+        // 中文注释
         public List<WarehouseReceiptViewModel> GetWarehouseReceipts(int page = 1, int pageSize = 20, string status = null, int? workerId = null)
         {
             var receipts = new List<WarehouseReceiptViewModel>();
@@ -745,10 +743,10 @@ namespace recycling.DAL
                         {
                             while (reader.Read())
                             {
-                                // Read raw ItemCategories from database
+                                // 中文注释
                                 string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
                                 
-                                // Validate and normalize to ensure valid JSON format
+                                // 中文注释
                                 string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
                                 
                                 receipts.Add(new WarehouseReceiptViewModel
@@ -781,10 +779,10 @@ namespace recycling.DAL
             return receipts;
         }
 
-        /// <summary>
+        // 中文注释
         /// 根据ID获取入库单
-        /// Get warehouse receipt by ID
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public WarehouseReceipts GetWarehouseReceiptById(int receiptId)
         {
             try
@@ -805,10 +803,10 @@ namespace recycling.DAL
                         {
                             if (reader.Read())
                             {
-                                // Read raw ItemCategories from database
+                                // 中文注释
                                 string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
                                 
-                                // Validate and normalize to ensure valid JSON format
+                                // 中文注释
                                 string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
                                 
                                 return new WarehouseReceipts
@@ -839,9 +837,9 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新待入库单的细分后类别信息与总价
-        /// </summary>
+        // 中文注释
         public bool UpdateWarehouseReceiptSubdivision(int receiptId, string refinedCategoriesJson, decimal totalPrice)
         {
             try
@@ -873,15 +871,15 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 验证并标准化ItemCategories JSON字符串
-        /// Validates and normalizes ItemCategories JSON string
-        /// </summary>
-        /// <param name="rawItemCategories">Raw ItemCategories string from database</param>
-        /// <returns>Valid JSON string (empty array "[]" if invalid or null)</returns>
+        /// 中文注释
+        // 中文注释
+        /// <param name="rawItemCategories">中文注释</param>
+        /// <returns>中文注释</returns>
         private string ValidateAndNormalizeItemCategories(string rawItemCategories)
         {
-            // Return empty JSON array for null or empty values
+            // 中文注释
             if (string.IsNullOrWhiteSpace(rawItemCategories))
             {
                 return "[]";
@@ -889,43 +887,43 @@ namespace recycling.DAL
 
             try
             {
-                // Attempt to parse as JSON to validate format
+                // 中文注释
                 var parsed = JsonConvert.DeserializeObject(rawItemCategories);
                 
-                // If it's already a valid JSON array, return it as-is
+                // 中文注释
                 if (parsed is Newtonsoft.Json.Linq.JArray)
                 {
                     return rawItemCategories;
                 }
                 
-                // If it's a valid JSON object but not an array, wrap it in an array
-                // Use JsonConvert.SerializeObject to ensure proper formatting
+                // 中文注释
+                // 中文注释
                 if (parsed is Newtonsoft.Json.Linq.JObject)
                 {
                     return JsonConvert.SerializeObject(new[] { parsed });
                 }
                 
-                // For other valid JSON types (string, number, etc.), log warning and return empty array
+                // 中文注释
                 System.Diagnostics.Debug.WriteLine($"ItemCategories is valid JSON but unexpected type: {parsed.GetType().Name}");
                 return "[]";
             }
             catch (JsonException ex)
             {
                 // JSON parsing failed - this is the root cause of "类别数据格式错误"
-                // At this point, rawItemCategories is guaranteed to be non-null (checked on line 595)
+                // 中文注释
                 int previewLength = Math.Min(100, rawItemCategories.Length);
                 string preview = rawItemCategories.Substring(0, previewLength);
                 System.Diagnostics.Debug.WriteLine($"Invalid ItemCategories JSON format: {ex.Message}. Raw value: {preview}");
                 
-                // Return empty array to prevent frontend errors
+                // 中文注释
                 return "[]";
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取已完成的运输单列表（用于入库）
-        /// Get completed transport orders list (for warehousing)
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public List<TransportNotificationViewModel> GetCompletedTransportOrders()
         {
             var orders = new List<TransportNotificationViewModel>();
@@ -937,7 +935,7 @@ namespace recycling.DAL
                     conn.Open();
                     
                     // 检查 TransportationOrderCategories 表是否存在
-                    // Check if TransportationOrderCategories table exists
+                    // 中文注释
                     bool categoriesTableExists = false;
                     string checkTableSql = @"
                         SELECT COUNT(*) 
@@ -964,7 +962,7 @@ namespace recycling.DAL
                         ORDER BY t.CreatedDate DESC";
 
                     // 用于存储所有订单ID，后续查询结构化品类数据
-                    // Store all order IDs for batch querying structured category data
+                    // 中文注释
                     var orderIds = new List<int>();
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -973,10 +971,10 @@ namespace recycling.DAL
                         {
                             while (reader.Read())
                             {
-                                // Read raw ItemCategories from database
+                                // 中文注释
                                 string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
                                 
-                                // Validate and normalize to ensure valid JSON format
+                                // 中文注释
                                 // This prevents "类别数据格式错误" (category data format error) in frontend
                                 string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
                                 
@@ -1002,13 +1000,13 @@ namespace recycling.DAL
                     }
                     
                     // 如果 TransportationOrderCategories 表存在，尝试从结构化数据表获取品类信息
-                    // If TransportationOrderCategories table exists, try to get category info from structured data table
+                    // 中文注释
                     if (categoriesTableExists && orderIds.Count > 0)
                     {
                         try
                         {
                             // 批量查询所有订单的品类信息
-                            // Batch query all category info for orders
+                            // 中文注释
                             string categoryDetailsSql = @"
                                 SELECT TransportOrderID, CategoryKey, CategoryName, Weight, PricePerKg, TotalAmount
                                 FROM TransportationOrderCategories
@@ -1016,7 +1014,7 @@ namespace recycling.DAL
                                 ORDER BY TransportOrderID, CategoryID";
                             
                             // 构建品类数据字典 {TransportOrderID -> List of categories}
-                            // Build category data dictionary
+                            // 中文注释
                             var categoryDataDict = new Dictionary<int, List<Dictionary<string, object>>>();
                             
                             using (SqlCommand catCmd = new SqlCommand(categoryDetailsSql, conn))
@@ -1035,8 +1033,8 @@ namespace recycling.DAL
                                         }
                                         
                                         // 构建前端期望的JSON格式
-                                        // Build JSON format expected by frontend
-                                        // Frontend expects: categoryName, weight, price
+                                        // 中文注释
+                                        // 中文注释
                                         var categoryInfo = new Dictionary<string, object>
                                         {
                                             { "categoryKey", catReader["CategoryKey"] == DBNull.Value ? null : catReader["CategoryKey"].ToString() },
@@ -1052,13 +1050,13 @@ namespace recycling.DAL
                             }
                             
                             // 更新订单的品类信息（优先使用结构化数据）
-                            // Update order category info (prefer structured data)
+                            // 中文注释
                             foreach (var order in orders)
                             {
                                 if (categoryDataDict.TryGetValue(order.TransportOrderID, out var categoryList) && categoryList.Count > 0)
                                 {
                                     // 使用结构化数据生成JSON
-                                    // Generate JSON from structured data
+                                    // 中文注释
                                     order.ItemCategories = JsonConvert.SerializeObject(categoryList);
                                     System.Diagnostics.Debug.WriteLine($"从TransportationOrderCategories表获取了订单 {order.TransportOrderID} 的 {categoryList.Count} 条品类数据");
                                 }
@@ -1067,7 +1065,7 @@ namespace recycling.DAL
                         catch (Exception catEx)
                         {
                             // 获取结构化数据失败，使用原有的ItemCategories字段
-                            // Failed to get structured data, use original ItemCategories field
+                            // 中文注释
                             System.Diagnostics.Debug.WriteLine($"获取结构化品类数据失败，使用原有数据: {catEx.Message}");
                         }
                     }
@@ -1082,9 +1080,9 @@ namespace recycling.DAL
             return orders;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取运输中的订单列表（用于基地管理）
-        /// </summary>
+        // 中文注释
         public List<TransportNotificationViewModel> GetInTransitOrders(int workerId)
         {
             var orders = new List<TransportNotificationViewModel>();
@@ -1116,10 +1114,10 @@ namespace recycling.DAL
                         {
                             while (reader.Read())
                             {
-                                // Read raw ItemCategories from database
+                                // 中文注释
                                 string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
                                 
-                                // Validate and normalize to ensure valid JSON format
+                                // 中文注释
                                 string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
                                 
                                 orders.Add(new TransportNotificationViewModel
@@ -1149,9 +1147,9 @@ namespace recycling.DAL
             return orders;
         }
 
-        /// <summary>
+        // 中文注释
         /// 根据运输单ID获取入库单
-        /// </summary>
+        // 中文注释
         public WarehouseReceipts GetWarehouseReceiptByTransportOrderId(int transportOrderId)
         {
             try
@@ -1172,10 +1170,10 @@ namespace recycling.DAL
                         {
                             if (reader.Read())
                             {
-                                // Read raw ItemCategories from database
+                                // 中文注释
                                 string rawItemCategories = reader["ItemCategories"] == DBNull.Value ? null : reader["ItemCategories"].ToString();
                                 
-                                // Validate and normalize to ensure valid JSON format
+                                // 中文注释
                                 string validatedItemCategories = ValidateAndNormalizeItemCategories(rawItemCategories);
                                 
                                 return new WarehouseReceipts
@@ -1206,10 +1204,10 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取仓库库存汇总（按类别分组） - 从入库单数据中统计
-        /// Get warehouse inventory summary grouped by category - from warehouse receipts
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetWarehouseSummary()
         {
             var summary = new List<(string, string, decimal, decimal)>();
@@ -1250,7 +1248,7 @@ namespace recycling.DAL
                                             string categoryKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                             string categoryName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
                                             
-                                            // Extract weight using helper method
+                                            // 中文注释
                                             decimal weight = ExtractWeightFromJson(category, categoryKey, "GetWarehouseSummary");
 
                                             if (!string.IsNullOrEmpty(categoryKey) && weight > 0)
@@ -1310,10 +1308,10 @@ namespace recycling.DAL
             return summary;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取仓库库存明细（包含回收员信息）- 从入库单数据中提取
-        /// Get warehouse inventory detail with recycler info - from warehouse receipts
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public PagedResult<InventoryDetailViewModel> GetWarehouseDetailWithRecycler(int pageIndex = 1, int pageSize = 20, string categoryKey = null)
         {
             var result = new PagedResult<InventoryDetailViewModel>
@@ -1373,7 +1371,7 @@ namespace recycling.DAL
                                             string catKey = category.ContainsKey("categoryKey") ? category["categoryKey"].ToString() : "";
                                             string catName = category.ContainsKey("categoryName") ? category["categoryName"].ToString() : "";
                                             
-                                            // Extract weight using helper method
+                                            // 中文注释
                                             decimal weight = ExtractWeightFromJson(category, catKey, "GetWarehouseDetailWithRecycler");
 
                                             // 如果指定了类别筛选，则只包含匹配的类别

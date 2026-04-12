@@ -2,17 +2,17 @@ using System;
 
 namespace recycling.Common
 {
-    /// <summary>
+    // 中文注释
     /// 日期时间扩展方法类
-    /// </summary>
+    // 中文注释
     public static class DateTimeExtensions
     {
         // Unix时间戳起始时间
         private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        /// <summary>
+        // 中文注释
         /// 转换为中文日期格式（例如：2024年1月1日）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>中文日期字符串</returns>
         public static string ToChineseDateString(this DateTime dateTime)
@@ -20,9 +20,9 @@ namespace recycling.Common
             return $"{dateTime:yyyy年M月d日}";
         }
 
-        /// <summary>
+        // 中文注释
         /// 转换为中文日期时间格式（例如：2024年1月1日 10:30）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>中文日期时间字符串</returns>
         public static string ToChineseDateTimeString(this DateTime dateTime)
@@ -30,9 +30,9 @@ namespace recycling.Common
             return $"{dateTime:yyyy年M月d日 HH:mm}";
         }
 
-        /// <summary>
+        // 中文注释
         /// 转换为友好的时间描述（例如：刚刚、5分钟前、1小时前、昨天、2天前）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>友好的时间描述</returns>
         public static string ToFriendlyString(this DateTime dateTime)
@@ -70,9 +70,9 @@ namespace recycling.Common
             return $"{years}年前";
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取一天的开始时间（00:00:00）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>当天开始时间</returns>
         public static DateTime StartOfDay(this DateTime dateTime)
@@ -80,9 +80,9 @@ namespace recycling.Common
             return dateTime.Date;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取一天的结束时间（23:59:59.999）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>当天结束时间</returns>
         public static DateTime EndOfDay(this DateTime dateTime)
@@ -90,9 +90,9 @@ namespace recycling.Common
             return dateTime.Date.AddDays(1).AddMilliseconds(-1);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取一周的开始时间（周一00:00:00）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>本周开始时间</returns>
         public static DateTime StartOfWeek(this DateTime dateTime)
@@ -101,9 +101,9 @@ namespace recycling.Common
             return dateTime.AddDays(-diff).Date;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取一周的结束时间（周日23:59:59.999）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>本周结束时间</returns>
         public static DateTime EndOfWeek(this DateTime dateTime)
@@ -111,9 +111,9 @@ namespace recycling.Common
             return dateTime.StartOfWeek().AddDays(7).AddMilliseconds(-1);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取一个月的开始时间（1号00:00:00）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>本月开始时间</returns>
         public static DateTime StartOfMonth(this DateTime dateTime)
@@ -121,9 +121,9 @@ namespace recycling.Common
             return new DateTime(dateTime.Year, dateTime.Month, 1);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取一个月的结束时间（最后一天23:59:59.999）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>本月结束时间</returns>
         public static DateTime EndOfMonth(this DateTime dateTime)
@@ -131,9 +131,9 @@ namespace recycling.Common
             return dateTime.StartOfMonth().AddMonths(1).AddMilliseconds(-1);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取一年的开始时间（1月1日00:00:00）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>本年开始时间</returns>
         public static DateTime StartOfYear(this DateTime dateTime)
@@ -141,9 +141,9 @@ namespace recycling.Common
             return new DateTime(dateTime.Year, 1, 1);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取一年的结束时间（12月31日23:59:59.999）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>本年结束时间</returns>
         public static DateTime EndOfYear(this DateTime dateTime)
@@ -151,9 +151,9 @@ namespace recycling.Common
             return new DateTime(dateTime.Year, 12, 31, 23, 59, 59, 999);
         }
 
-        /// <summary>
+        // 中文注释
         /// 判断是否为工作日（周一至周五）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>是否为工作日</returns>
         public static bool IsWeekday(this DateTime dateTime)
@@ -162,9 +162,9 @@ namespace recycling.Common
                    dateTime.DayOfWeek != DayOfWeek.Sunday;
         }
 
-        /// <summary>
+        // 中文注释
         /// 判断是否为周末（周六或周日）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>是否为周末</returns>
         public static bool IsWeekend(this DateTime dateTime)
@@ -173,9 +173,9 @@ namespace recycling.Common
                    dateTime.DayOfWeek == DayOfWeek.Sunday;
         }
 
-        /// <summary>
+        // 中文注释
         /// 判断是否为今天
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>是否为今天</returns>
         public static bool IsToday(this DateTime dateTime)
@@ -183,9 +183,9 @@ namespace recycling.Common
             return dateTime.Date == DateTime.Today;
         }
 
-        /// <summary>
+        // 中文注释
         /// 判断是否为昨天
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>是否为昨天</returns>
         public static bool IsYesterday(this DateTime dateTime)
@@ -193,9 +193,9 @@ namespace recycling.Common
             return dateTime.Date == DateTime.Today.AddDays(-1);
         }
 
-        /// <summary>
+        // 中文注释
         /// 判断是否为明天
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>是否为明天</returns>
         public static bool IsTomorrow(this DateTime dateTime)
@@ -203,9 +203,9 @@ namespace recycling.Common
             return dateTime.Date == DateTime.Today.AddDays(1);
         }
 
-        /// <summary>
+        // 中文注释
         /// 判断是否在指定日期范围内
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <param name="startDate">开始日期</param>
         /// <param name="endDate">结束日期</param>
@@ -215,9 +215,9 @@ namespace recycling.Common
             return dateTime >= startDate && dateTime <= endDate;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取年龄（根据出生日期）
-        /// </summary>
+        // 中文注释
         /// <param name="birthDate">出生日期</param>
         /// <returns>年龄</returns>
         public static int GetAge(this DateTime birthDate)
@@ -231,9 +231,9 @@ namespace recycling.Common
             return age;
         }
 
-        /// <summary>
+        // 中文注释
         /// 添加工作日（跳过周末）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <param name="workdays">工作日数量</param>
         /// <returns>添加工作日后的日期</returns>
@@ -253,9 +253,9 @@ namespace recycling.Common
             return result;
         }
 
-        /// <summary>
+        // 中文注释
         /// 转换为Unix时间戳（秒）
-        /// </summary>
+        // 中文注释
         /// <param name="dateTime">日期时间</param>
         /// <returns>Unix时间戳</returns>
         public static long ToUnixTimestamp(this DateTime dateTime)
@@ -263,9 +263,9 @@ namespace recycling.Common
             return (long)(dateTime.ToUniversalTime() - UnixEpoch).TotalSeconds;
         }
 
-        /// <summary>
+        // 中文注释
         /// 从Unix时间戳转换为DateTime
-        /// </summary>
+        // 中文注释
         /// <param name="timestamp">Unix时间戳（秒）</param>
         /// <returns>日期时间</returns>
         public static DateTime FromUnixTimestamp(long timestamp)

@@ -2,9 +2,9 @@ using System;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 库存明细视图模型（包含回收员信息）- 管理员端使用
-    /// </summary>
+    // 中文注释
     public class InventoryDetailViewModel
     {
         public int InventoryID { get; set; }

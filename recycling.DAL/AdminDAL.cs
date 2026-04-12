@@ -14,9 +14,9 @@ namespace recycling.DAL
 
         #region User Management
 
-        /// <summary>
-        /// Get all users with pagination
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public PagedResult<Users> GetAllUsers(int page = 1, int pageSize = 20, string searchTerm = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Users>
@@ -26,14 +26,14 @@ namespace recycling.DAL
                 Items = new List<Users>()
             };
 
-            // Validate sort order to prevent SQL injection
+            // 中文注释
             string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
 
-                // Get total count
+                // 中文注释
                 string countSql = "SELECT COUNT(*) FROM Users WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -47,7 +47,7 @@ namespace recycling.DAL
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // Get paged data
+                // 中文注释
                 string sql = @"SELECT * FROM Users WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -84,9 +84,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
-        /// Get user statistics
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetUserStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -95,17 +95,17 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Total users
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Users", conn);
                 stats["TotalUsers"] = (int)cmd.ExecuteScalar();
 
-                // Users registered this month
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
                     WHERE YEAR(RegistrationDate) = YEAR(GETDATE()) 
                     AND MONTH(RegistrationDate) = MONTH(GETDATE())", conn);
                 stats["NewUsersThisMonth"] = (int)cmd.ExecuteScalar();
 
-                // Active users (logged in last 30 days)
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
                     WHERE LastLoginDate >= DATEADD(day, -30, GETDATE())", conn);
                 stats["ActiveUsers"] = (int)cmd.ExecuteScalar();
@@ -114,9 +114,9 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get comprehensive user dashboard statistics
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetUserDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -125,38 +125,38 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // === Basic Statistics ===
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Users", conn);
                 stats["TotalUsers"] = (int)cmd.ExecuteScalar();
 
-                // Users registered this month
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
                     WHERE YEAR(RegistrationDate) = YEAR(GETDATE()) 
                     AND MONTH(RegistrationDate) = MONTH(GETDATE())", conn);
                 stats["NewUsersThisMonth"] = (int)cmd.ExecuteScalar();
 
-                // Users registered last month
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
                     WHERE YEAR(RegistrationDate) = YEAR(DATEADD(month, -1, GETDATE())) 
                     AND MONTH(RegistrationDate) = MONTH(DATEADD(month, -1, GETDATE()))", conn);
                 stats["NewUsersLastMonth"] = (int)cmd.ExecuteScalar();
 
-                // Active users (logged in last 30 days)
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
                     WHERE LastLoginDate >= DATEADD(day, -30, GETDATE())", conn);
                 stats["ActiveUsers"] = (int)cmd.ExecuteScalar();
 
-                // Inactive users (never logged in or logged in more than 30 days ago)
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
                     WHERE LastLoginDate IS NULL OR LastLoginDate < DATEADD(day, -30, GETDATE())", conn);
                 stats["InactiveUsers"] = (int)cmd.ExecuteScalar();
 
-                // Users registered today
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Users 
                     WHERE CAST(RegistrationDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
                 stats["NewUsersToday"] = (int)cmd.ExecuteScalar();
 
-                // === User Registration Trend (Last 30 days) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT CAST(RegistrationDate AS DATE) AS RegDate, COUNT(*) AS UserCount
                     FROM Users
@@ -178,9 +178,9 @@ namespace recycling.DAL
                 }
                 stats["RegistrationTrend"] = registrationTrend;
 
-                // === Regional Distribution of Users ===
-                // Each user is counted only once, using their primary address
-                // (IsDefault=1 preferred, then most recently created)
+                // 中文注释
+                // 中文注释
+                // 中文注释
                 cmd = new SqlCommand(@"
                     ;WITH RankedAddresses AS (
                         SELECT ua.UserID,
@@ -209,7 +209,7 @@ namespace recycling.DAL
                 }
                 stats["RegionDistribution"] = regionDistribution;
 
-                // === User Activity Ranking (by total orders) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT TOP 10 
                            u.UserID, 
@@ -249,7 +249,7 @@ namespace recycling.DAL
                 }
                 stats["UserRanking"] = userRanking;
 
-                // === Active vs Inactive Distribution ===
+                // 中文注释
                 var activeInactiveDistribution = new List<Dictionary<string, object>>
                 {
                     new Dictionary<string, object>
@@ -265,7 +265,7 @@ namespace recycling.DAL
                 };
                 stats["ActiveInactiveDistribution"] = activeInactiveDistribution;
 
-                // === Monthly Growth Rate ===
+                // 中文注释
                 int thisMonth = (int)stats["NewUsersThisMonth"];
                 int lastMonth = (int)stats["NewUsersLastMonth"];
                 decimal growthRate = 0;
@@ -275,7 +275,7 @@ namespace recycling.DAL
                 }
                 else if (lastMonth == 0 && thisMonth > 0)
                 {
-                    // Growth from 0 to positive - represent as 100% growth
+                    // 中文注释
                     growthRate = 100;
                 }
                 stats["MonthlyGrowthRate"] = growthRate;
@@ -284,9 +284,9 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get all users for export (without pagination)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public List<Users> GetAllUsersForExport(string searchTerm = null)
         {
             var users = new List<Users>();
@@ -295,7 +295,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -339,9 +339,9 @@ namespace recycling.DAL
 
         #region Recycler Management
 
-        /// <summary>
-        /// Get all recyclers with pagination (optimized with completed orders count and sort order)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public PagedResult<RecyclerListViewModel> GetAllRecyclersWithDetails(int page = 1, int pageSize = 8, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<RecyclerListViewModel>
@@ -355,7 +355,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -366,11 +366,11 @@ namespace recycling.DAL
                     whereClause += " AND r.IsActive = @IsActive";
                 }
 
-                // Validate sort order to prevent SQL injection
-                // Only allows "ASC" or "DESC", defaults to "ASC" for any other value
+                // 中文注释
+                // 中文注释
                 string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
 
-                // Get total count
+                // 中文注释
                 string countSql = "SELECT COUNT(*) FROM Recyclers r " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -383,7 +383,7 @@ namespace recycling.DAL
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // Get paged data with completed orders count in single query
+                // 中文注释
                 string sql = @"
                     SELECT 
                         r.RecyclerID,
@@ -438,9 +438,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
-        /// Get all recyclers with pagination
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public PagedResult<Recyclers> GetAllRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
             var result = new PagedResult<Recyclers>
@@ -454,7 +454,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -465,7 +465,7 @@ namespace recycling.DAL
                     whereClause += " AND IsActive = @IsActive";
                 }
 
-                // Get total count
+                // 中文注释
                 string countSql = "SELECT COUNT(*) FROM Recyclers " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -478,7 +478,7 @@ namespace recycling.DAL
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // Get paged data
+                // 中文注释
                 string sql = "SELECT * FROM Recyclers " + whereClause + 
                     " ORDER BY RecyclerID OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -506,9 +506,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
-        /// Get recycler by ID
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Recyclers GetRecyclerById(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -529,9 +529,9 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
-        /// Add new recycler
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool AddRecycler(Recyclers recycler)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -553,9 +553,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether recycler username already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsRecyclerUsernameExists(string username, int? excludeRecyclerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -578,9 +578,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether recycler phone number already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsRecyclerPhoneNumberExists(string phoneNumber, int? excludeRecyclerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -603,9 +603,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Update recycler information
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool UpdateRecycler(Recyclers recycler)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -635,12 +635,12 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Delete recycler (hard delete from database)
-        /// WARNING: This performs a hard delete. If the recycler has associated records 
-        /// (orders, reviews, conversations, etc.), this operation may fail due to 
-        /// foreign key constraints.
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        /// 中文注释
+        /// 中文注释
+        /// 中文注释
+        // 中文注释
         public bool DeleteRecycler(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -657,7 +657,7 @@ namespace recycling.DAL
                 }
                 catch (SqlException ex)
                 {
-                    // If foreign key constraint violation (error 547), provide helpful message
+                    // 中文注释
                     if (ex.Number == 547)
                     {
                         throw new InvalidOperationException(
@@ -668,9 +668,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Get recycler completed orders count
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public int GetRecyclerCompletedOrdersCount(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -685,9 +685,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Get recycler statistics
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetRecyclerStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -696,19 +696,19 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Total recyclers
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers", conn);
                 stats["TotalRecyclers"] = (int)cmd.ExecuteScalar();
 
-                // Active recyclers
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE IsActive = 1", conn);
                 stats["ActiveRecyclers"] = (int)cmd.ExecuteScalar();
 
-                // Available recyclers
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers WHERE Available = 1 AND IsActive = 1", conn);
                 stats["AvailableRecyclers"] = (int)cmd.ExecuteScalar();
 
-                // Top performers (top 5 by completed orders)
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT TOP 5 r.RecyclerID, r.FullName, r.Username, COUNT(a.AppointmentID) AS CompletedOrders
                     FROM Recyclers r
                     LEFT JOIN Appointments a ON r.RecyclerID = a.RecyclerID AND a.Status = N'已完成'
@@ -736,9 +736,9 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get comprehensive recycler dashboard statistics for admin
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetRecyclerDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -747,7 +747,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // === Basic Statistics (keep original) ===
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers", conn);
                 stats["TotalRecyclers"] = (int)cmd.ExecuteScalar();
 
@@ -815,16 +815,16 @@ namespace recycling.DAL
                 }
                 stats["RecyclerRanking"] = recyclerRanking;
 
-                // === Additional Statistics ===
-                // Total completed orders (all time)
+                // 中文注释
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已完成'", conn);
                 stats["TotalCompletedOrders"] = (int)cmd.ExecuteScalar();
 
-                // Total orders (all statuses)
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments", conn);
                 stats["TotalOrders"] = (int)cmd.ExecuteScalar();
 
-                // This month's total weight (based on completed orders)
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT ISNULL(SUM(ac.Weight), 0) FROM AppointmentCategories ac
                     INNER JOIN Appointments a ON ac.AppointmentID = a.AppointmentID
@@ -833,14 +833,14 @@ namespace recycling.DAL
                       AND a.UpdatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
                 stats["MonthTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // All-time total weight (based on completed orders)
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT ISNULL(SUM(ac.Weight), 0) FROM AppointmentCategories ac
                     INNER JOIN Appointments a ON ac.AppointmentID = a.AppointmentID
                     WHERE a.Status = N'已完成'", conn);
                 stats["AllTimeTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // Average recycler rating
+                // 中文注释
                 cmd = new SqlCommand("SELECT ISNULL(AVG(Rating), 0) FROM Recyclers WHERE Rating IS NOT NULL AND IsActive = 1", conn);
                 stats["AverageRecyclerRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
@@ -848,11 +848,11 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已预约'", conn);
                 stats["PendingOrders"] = (int)cmd.ExecuteScalar();
 
-                // In-progress orders
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'进行中'", conn);
                 stats["InProgressOrders"] = (int)cmd.ExecuteScalar();
 
-                // === Last 7 days weight trend (based on completed orders) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT CAST(a.UpdatedDate AS DATE) AS RecycleDate, ISNULL(SUM(ac.Weight), 0) AS TotalWeight
                     FROM AppointmentCategories ac
@@ -876,7 +876,7 @@ namespace recycling.DAL
                 }
                 stats["WeeklyTrend"] = weeklyTrend;
 
-                // === Category distribution (all time, based on completed orders) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT ac.CategoryName, ISNULL(SUM(ac.Weight), 0) AS TotalWeight
                     FROM AppointmentCategories ac
@@ -903,9 +903,9 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get all recyclers for export (without pagination)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public List<Recyclers> GetAllRecyclersForExport(string searchTerm = null, bool? isActive = null)
         {
             var recyclers = new List<Recyclers>();
@@ -914,7 +914,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -969,9 +969,9 @@ namespace recycling.DAL
 
         #region Order Management
 
-        /// <summary>
-        /// Get all orders with pagination
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public PagedResult<Dictionary<string, object>> GetAllOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
         {
             var result = new PagedResult<Dictionary<string, object>>
@@ -985,7 +985,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(status))
                 {
@@ -996,7 +996,7 @@ namespace recycling.DAL
                     whereClause += " AND (u.Username LIKE @SearchTerm OR r.FullName LIKE @SearchTerm OR r.Username LIKE @SearchTerm OR a.ContactName LIKE @SearchTerm)";
                 }
 
-                // Get total count
+                // 中文注释
                 string countSql = @"SELECT COUNT(*) FROM Appointments a
                     LEFT JOIN Users u ON a.UserID = u.UserID
                     LEFT JOIN Recyclers r ON a.RecyclerID = r.RecyclerID " + whereClause;
@@ -1012,7 +1012,7 @@ namespace recycling.DAL
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // Get paged data
+                // 中文注释
                 string sql = @"SELECT 
                     a.AppointmentID,
                     a.AppointmentType,
@@ -1086,9 +1086,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
-        /// Get order statistics
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetOrderStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -1097,33 +1097,33 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Total orders
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments", conn);
                 stats["TotalOrders"] = (int)cmd.ExecuteScalar();
 
-                // Completed orders
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已完成'", conn);
                 stats["CompletedOrders"] = (int)cmd.ExecuteScalar();
 
-                // Pending orders
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'待接单'", conn);
                 stats["PendingOrders"] = (int)cmd.ExecuteScalar();
 
-                // In progress orders
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'进行中'", conn);
                 stats["InProgressOrders"] = (int)cmd.ExecuteScalar();
 
-                // Orders this month
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
                     WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
                     AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
                 stats["OrdersThisMonth"] = (int)cmd.ExecuteScalar();
 
-                // Total weight collected
+                // 中文注释
                 cmd = new SqlCommand("SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments WHERE Status = N'已完成'", conn);
                 stats["TotalWeightCollected"] = cmd.ExecuteScalar();
 
-                // Status distribution
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT Status, COUNT(*) AS Count 
                     FROM Appointments 
                     GROUP BY Status 
@@ -1151,9 +1151,9 @@ namespace recycling.DAL
 
         #region Admin Management
 
-        /// <summary>
-        /// Get all admins with pagination
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Admins>
@@ -1167,7 +1167,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -1178,10 +1178,10 @@ namespace recycling.DAL
                     whereClause += " AND IsActive = @IsActive";
                 }
 
-                // Validate sort order to prevent SQL injection
+                // 中文注释
                 string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
 
-                // Get total count
+                // 中文注释
                 string countSql = "SELECT COUNT(*) FROM Admins " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -1194,7 +1194,7 @@ namespace recycling.DAL
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // Get paged data
+                // 中文注释
                 string sql = "SELECT * FROM Admins " + whereClause + 
                     " ORDER BY AdminID " + orderDirection + " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -1222,9 +1222,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
-        /// Get admin by ID
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Admins GetAdminById(int adminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1245,9 +1245,9 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
-        /// Add new admin
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool AddAdmin(Admins admin)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1267,9 +1267,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether admin username already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsAdminUsernameExists(string username, int? excludeAdminId = null)
         {
             if (string.IsNullOrWhiteSpace(username))
@@ -1299,9 +1299,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Update admin information
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool UpdateAdmin(Admins admin)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1325,9 +1325,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Delete admin (hard delete from database)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool DeleteAdmin(int adminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1344,7 +1344,7 @@ namespace recycling.DAL
                 }
                 catch (SqlException ex)
                 {
-                    // If foreign key constraint violation (error 547), provide helpful message
+                    // 中文注释
                     if (ex.Number == 547)
                     {
                         throw new InvalidOperationException(
@@ -1355,9 +1355,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Get admin statistics
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetAdminStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -1366,15 +1366,15 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Total admins
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Admins", conn);
                 stats["TotalAdmins"] = (int)cmd.ExecuteScalar();
 
-                // Active admins
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Admins WHERE IsActive = 1", conn);
                 stats["ActiveAdmins"] = (int)cmd.ExecuteScalar();
 
-                // Admins created this month
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Admins 
                     WHERE YEAR(CreatedDate) = YEAR(GETDATE()) 
                     AND MONTH(CreatedDate) = MONTH(GETDATE())", conn);
@@ -1384,9 +1384,9 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get all admins for export (without pagination)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public List<Admins> GetAllAdminsForExport(string searchTerm = null, bool? isActive = null)
         {
             var admins = new List<Admins>();
@@ -1395,7 +1395,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -1448,9 +1448,9 @@ namespace recycling.DAL
 
         #region Dashboard Statistics
 
-        /// <summary>
-        /// Get comprehensive dashboard statistics for super admin
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -1459,7 +1459,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // === User Statistics ===
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Users", conn);
                 stats["TotalUsers"] = (int)cmd.ExecuteScalar();
 
@@ -1472,7 +1472,7 @@ namespace recycling.DAL
                     WHERE LastLoginDate >= DATEADD(day, -7, GETDATE())", conn);
                 stats["ActiveUsersThisWeek"] = (int)cmd.ExecuteScalar();
 
-                // === Recycler Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Recyclers", conn);
                 stats["TotalRecyclers"] = (int)cmd.ExecuteScalar();
 
@@ -1485,14 +1485,14 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT ISNULL(AVG(Rating), 0) FROM Recyclers WHERE Rating IS NOT NULL", conn);
                 stats["AverageRecyclerRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // === Admin Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Admins", conn);
                 stats["TotalAdmins"] = (int)cmd.ExecuteScalar();
 
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Admins WHERE IsActive = 1", conn);
                 stats["ActiveAdmins"] = (int)cmd.ExecuteScalar();
 
-                // === Order Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments", conn);
                 stats["TotalOrders"] = (int)cmd.ExecuteScalar();
 
@@ -1521,7 +1521,7 @@ namespace recycling.DAL
                     WHERE CAST(CreatedDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
                 stats["OrdersToday"] = (int)cmd.ExecuteScalar();
 
-                // === Weight and Revenue Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments WHERE Status = N'已完成'", conn);
                 stats["TotalWeightCollected"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
@@ -1540,7 +1540,7 @@ namespace recycling.DAL
                     AND MONTH(UpdatedDate) = MONTH(GETDATE())", conn);
                 stats["RevenueThisMonth"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // === Order Trend (Last 7 days) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT CAST(CreatedDate AS DATE) AS OrderDate, COUNT(*) AS OrderCount
                     FROM Appointments
@@ -1562,7 +1562,7 @@ namespace recycling.DAL
                 }
                 stats["OrderTrend"] = orderTrend;
 
-                // === User Registration Trend (Last 30 days) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT CAST(RegistrationDate AS DATE) AS RegDate, COUNT(*) AS UserCount
                     FROM Users
@@ -1584,7 +1584,7 @@ namespace recycling.DAL
                 }
                 stats["UserRegistrationTrend"] = userTrend;
 
-                // === Category Distribution ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT CategoryName, COUNT(*) AS Count
                     FROM AppointmentCategories
@@ -1605,7 +1605,7 @@ namespace recycling.DAL
                 }
                 stats["CategoryDistribution"] = categoryDistribution;
 
-                // === Order Status Distribution ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT Status, COUNT(*) AS Count 
                     FROM Appointments 
@@ -1626,7 +1626,7 @@ namespace recycling.DAL
                 }
                 stats["OrderStatusDistribution"] = statusDistribution;
 
-                // === Region Distribution ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT Region, COUNT(*) AS RecyclerCount
                     FROM Recyclers
@@ -1648,7 +1648,7 @@ namespace recycling.DAL
                 }
                 stats["RegionDistribution"] = regionDistribution;
 
-                // === Top Recyclers by Completed Orders ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT TOP 5 r.RecyclerID, ISNULL(r.FullName, r.Username) AS Name, 
                            r.Rating, COUNT(a.AppointmentID) AS CompletedOrders
@@ -1674,7 +1674,7 @@ namespace recycling.DAL
                 }
                 stats["TopRecyclers"] = topRecyclers;
 
-                // === Feedback Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM UserFeedback", conn);
                 stats["TotalFeedbacks"] = (int)cmd.ExecuteScalar();
 
@@ -1684,14 +1684,14 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT COUNT(*) FROM UserFeedback WHERE Status = N'已回复'", conn);
                 stats["ProcessedFeedbacks"] = (int)cmd.ExecuteScalar();
 
-                // === Review Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM OrderReviews", conn);
                 stats["TotalReviews"] = (int)cmd.ExecuteScalar();
 
                 cmd = new SqlCommand("SELECT ISNULL(AVG(CAST(StarRating AS DECIMAL(3,2))), 0) FROM OrderReviews", conn);
                 stats["AverageReviewRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // === Monthly Order Trend (Last 6 months) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT YEAR(CreatedDate) AS OrderYear, MONTH(CreatedDate) AS OrderMonth, COUNT(*) AS OrderCount
                     FROM Appointments
@@ -1716,7 +1716,7 @@ namespace recycling.DAL
                 stats["MonthlyOrderTrend"] = monthlyOrderTrend;
 
                 // === Inventory Statistics (从入库单数据获取) ===
-                // Get inventory statistics from WarehouseReceipts instead of Inventory table
+                // 中文注释
                 var warehouseReceiptDAL = new WarehouseReceiptDAL();
                 var warehouseSummary = warehouseReceiptDAL.GetWarehouseSummary();
                 
@@ -1732,7 +1732,7 @@ namespace recycling.DAL
                 }
                 stats["InventoryStats"] = inventoryStats;
 
-                // === Transporter Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters", conn);
                 stats["TotalTransporters"] = (int)cmd.ExecuteScalar();
 
@@ -1742,7 +1742,7 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters WHERE Available = 1 AND IsActive = 1", conn);
                 stats["AvailableTransporters"] = (int)cmd.ExecuteScalar();
 
-                // === Sorting Center Worker Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers", conn);
                 stats["TotalSortingWorkers"] = (int)cmd.ExecuteScalar();
 
@@ -1755,11 +1755,11 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT ISNULL(SUM(TotalWeightProcessed), 0) FROM SortingCenterWorkers WHERE IsActive = 1", conn);
                 stats["TotalWeightProcessed"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // === SuperAdmin Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM SuperAdmins", conn);
                 stats["TotalSuperAdmins"] = (int)cmd.ExecuteScalar();
 
-                // === Transportation Order Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders", conn);
                 stats["TotalTransportOrders"] = (int)cmd.ExecuteScalar();
 
@@ -1775,7 +1775,7 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'已完成'", conn);
                 stats["CompletedTransportOrders"] = (int)cmd.ExecuteScalar();
 
-                // === Warehouse Receipt Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM WarehouseReceipts", conn);
                 stats["TotalWarehouseReceipts"] = (int)cmd.ExecuteScalar();
 
@@ -1788,14 +1788,14 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT ISNULL(SUM(TotalWeight), 0) FROM WarehouseReceipts WHERE Status = N'已入库'", conn);
                 stats["TotalWarehouseWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // === Order Cancellation Breakdown ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已取消-回收员回退'", conn);
                 stats["RecyclerCancelledOrders"] = (int)cmd.ExecuteScalar();
 
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Appointments WHERE Status = N'已取消-系统超时回退'", conn);
                 stats["SystemExpiredOrders"] = (int)cmd.ExecuteScalar();
 
-                // === Order Completion Rate ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT CASE WHEN COUNT(*) > 0 
                         THEN CAST(SUM(CASE WHEN Status = N'已完成' THEN 1 ELSE 0 END) AS DECIMAL(5,2)) * 100 / COUNT(*) 
@@ -1803,7 +1803,7 @@ namespace recycling.DAL
                     FROM Appointments", conn);
                 stats["OrderCompletionRate"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // === Today's Highlights ===
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT COUNT(*) FROM Appointments 
                     WHERE CAST(UpdatedDate AS DATE) = CAST(GETDATE() AS DATE) AND Status = N'已完成'", conn);
                 stats["CompletedOrdersToday"] = (int)cmd.ExecuteScalar();
@@ -1820,7 +1820,7 @@ namespace recycling.DAL
                     WHERE CAST(RegistrationDate AS DATE) = CAST(GETDATE() AS DATE)", conn);
                 stats["NewUsersToday"] = (int)cmd.ExecuteScalar();
 
-                // === Revenue Trend (Last 6 months) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT YEAR(UpdatedDate) AS Y, MONTH(UpdatedDate) AS M, 
                            ISNULL(SUM(EstimatedPrice), 0) AS Revenue,
@@ -1847,7 +1847,7 @@ namespace recycling.DAL
                 }
                 stats["RevenueWeightTrend"] = revenueWeightTrend;
 
-                // === Transport Order Status Distribution ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT Status, COUNT(*) AS Count 
                     FROM TransportationOrders 
@@ -1868,7 +1868,7 @@ namespace recycling.DAL
                 }
                 stats["TransportStatusDistribution"] = transportStatusDist;
 
-                // === Top Users by Orders ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT TOP 5 u.UserID, u.Username, COUNT(a.AppointmentID) AS TotalOrders,
                            ISNULL(SUM(CASE WHEN a.Status = N'已完成' THEN a.EstimatedPrice ELSE 0 END), 0) AS TotalSpent
@@ -1893,21 +1893,21 @@ namespace recycling.DAL
                 }
                 stats["TopUsers"] = topUsers;
 
-                // === Weekly Revenue (Last 7 days) ===
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedPrice), 0) FROM Appointments 
                     WHERE Status = N'已完成' AND UpdatedDate >= DATEADD(day, -7, GETDATE())", conn);
                 stats["RevenueThisWeek"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // === Weekly Weight (Last 7 days) ===
+                // 中文注释
                 cmd = new SqlCommand(@"SELECT ISNULL(SUM(EstimatedWeight), 0) FROM Appointments 
                     WHERE Status = N'已完成' AND UpdatedDate >= DATEADD(day, -7, GETDATE())", conn);
                 stats["WeightThisWeek"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // === Notification Statistics ===
+                // 中文注释
                 cmd = new SqlCommand("SELECT COUNT(*) FROM UserNotifications WHERE IsRead = 0", conn);
                 stats["UnreadNotifications"] = (int)cmd.ExecuteScalar();
 
-                // === Personnel Totals ===
+                // 中文注释
                 stats["TotalPersonnel"] = (int)stats["TotalUsers"] + (int)stats["TotalRecyclers"] 
                     + (int)stats["TotalAdmins"] + (int)stats["TotalTransporters"] 
                     + (int)stats["TotalSortingWorkers"] + (int)stats["TotalSuperAdmins"];
@@ -1920,9 +1920,9 @@ namespace recycling.DAL
 
         #region Transporter Management
 
-        /// <summary>
-        /// Get all transporters with pagination
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Transporters>
@@ -1936,7 +1936,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // Build WHERE clause
+                // 中文注释
                 string whereClause = "WHERE 1=1";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -1947,10 +1947,10 @@ namespace recycling.DAL
                     whereClause += " AND IsActive = @IsActive";
                 }
 
-                // Validate sort order to prevent SQL injection
+                // 中文注释
                 string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
 
-                // Get total count
+                // 中文注释
                 string countSql = "SELECT COUNT(*) FROM Transporters " + whereClause;
                 SqlCommand countCmd = new SqlCommand(countSql, conn);
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -1963,7 +1963,7 @@ namespace recycling.DAL
                 }
                 result.TotalCount = (int)countCmd.ExecuteScalar();
 
-                // Get paged data
+                // 中文注释
                 string sql = "SELECT * FROM Transporters " + whereClause + 
                     " ORDER BY TransporterID " + orderDirection + " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -1991,9 +1991,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
-        /// Get transporter by ID
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Transporters GetTransporterById(int transporterId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2014,9 +2014,9 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
-        /// Add new transporter
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool AddTransporter(Transporters transporter)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2040,9 +2040,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether transporter username already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsTransporterUsernameExists(string username, int? excludeTransporterId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2065,9 +2065,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether transporter phone number already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsTransporterPhoneNumberExists(string phoneNumber, int? excludeTransporterId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2090,9 +2090,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether transporter ID number already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsTransporterIDNumberExists(string idNumber, int? excludeTransporterId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2115,9 +2115,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Update transporter information
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool UpdateTransporter(Transporters transporter)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2151,9 +2151,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Delete transporter (hard delete from database)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool DeleteTransporter(int transporterId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2180,9 +2180,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Get transporter statistics
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetTransporterStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -2204,14 +2204,14 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get comprehensive transporter dashboard statistics for admin
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetTransporterDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
 
-            // Initialize default values to ensure all keys exist
+            // 中文注释
             stats["TotalTransporters"] = 0;
             stats["ActiveTransporters"] = 0;
             stats["AvailableTransporters"] = 0;
@@ -2231,7 +2231,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // === Basic Statistics ===
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters", conn);
                 stats["TotalTransporters"] = (int)cmd.ExecuteScalar();
 
@@ -2241,7 +2241,7 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT COUNT(*) FROM Transporters WHERE Available = 1 AND IsActive = 1", conn);
                 stats["AvailableTransporters"] = (int)cmd.ExecuteScalar();
 
-                // === Transportation Order Statistics (wrapped in try-catch for resilience) ===
+                // 中文注释
                 try
                 {
                     cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders", conn);
@@ -2259,13 +2259,13 @@ namespace recycling.DAL
                     cmd = new SqlCommand("SELECT COUNT(*) FROM TransportationOrders WHERE Status = N'已取消'", conn);
                     stats["CancelledOrders"] = (int)cmd.ExecuteScalar();
 
-                    // Total transported weight (based on completed orders)
+                    // 中文注释
                     cmd = new SqlCommand(@"
                         SELECT ISNULL(SUM(ISNULL(ActualWeight, EstimatedWeight)), 0) 
                         FROM TransportationOrders WHERE Status = N'已完成'", conn);
                     stats["AllTimeTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                    // This month's transported weight
+                    // 中文注释
                     cmd = new SqlCommand(@"
                         SELECT ISNULL(SUM(ISNULL(ActualWeight, EstimatedWeight)), 0) 
                         FROM TransportationOrders 
@@ -2274,7 +2274,7 @@ namespace recycling.DAL
                           AND CompletedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
                     stats["MonthTotalWeight"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                    // === Order Status Distribution (for pie chart) ===
+                    // 中文注释
                     cmd = new SqlCommand(@"
                         SELECT Status, COUNT(*) AS OrderCount
                         FROM TransportationOrders
@@ -2295,7 +2295,7 @@ namespace recycling.DAL
                     }
                     stats["StatusDistribution"] = statusDistribution;
 
-                    // === Weekly Order Trend (last 7 days, based on CreatedDate) ===
+                    // 中文注释
                     cmd = new SqlCommand(@"
                         SELECT CAST(CreatedDate AS DATE) AS OrderDate, COUNT(*) AS OrderCount
                         FROM TransportationOrders
@@ -2319,11 +2319,11 @@ namespace recycling.DAL
                 }
                 catch (Exception ex)
                 {
-                    // TransportationOrders table may not exist yet - use default values
+                    // 中文注释
                     System.Diagnostics.Debug.WriteLine($"GetTransporterDashboardStatistics - TransportationOrders query error: {ex.Message}");
                 }
 
-                // === Transporter Ranking by Completed Orders ===
+                // 中文注释
                 try
                 {
                     cmd = new SqlCommand(@"
@@ -2360,11 +2360,11 @@ namespace recycling.DAL
                 }
                 catch (Exception ex)
                 {
-                    // Ranking query may fail if TransportationOrders table doesn't exist - use default values
+                    // 中文注释
                     System.Diagnostics.Debug.WriteLine($"GetTransporterDashboardStatistics - Ranking query error: {ex.Message}");
                 }
 
-                // === Regional Transporter Distribution ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT Region, COUNT(*) AS TransporterCount
                     FROM Transporters
@@ -2390,9 +2390,9 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get all transporters for export (without pagination)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public List<Transporters> GetAllTransportersForExport(string searchTerm = null, bool? isActive = null)
         {
             var transporters = new List<Transporters>();
@@ -2443,9 +2443,9 @@ namespace recycling.DAL
 
         #region SortingCenterWorker Management
 
-        /// <summary>
-        /// Get all sorting center workers with pagination
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<SortingCenterWorkers>
@@ -2469,7 +2469,7 @@ namespace recycling.DAL
                     whereClause += " AND IsActive = @IsActive";
                 }
 
-                // Validate sort order to prevent SQL injection
+                // 中文注释
                 string orderDirection = sortOrder?.ToUpper() == "DESC" ? "DESC" : "ASC";
 
                 string countSql = "SELECT COUNT(*) FROM SortingCenterWorkers " + whereClause;
@@ -2511,9 +2511,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
-        /// Get sorting center worker by ID
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2534,9 +2534,9 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
-        /// Add new sorting center worker
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool AddSortingCenterWorker(SortingCenterWorkers worker)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2564,9 +2564,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether sorting center worker username already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsSortingCenterWorkerUsernameExists(string username, int? excludeWorkerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2587,9 +2587,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether sorting center worker phone number already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsSortingCenterWorkerPhoneNumberExists(string phoneNumber, int? excludeWorkerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2610,9 +2610,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether sorting center worker ID number already exists
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool IsSortingCenterWorkerIDNumberExists(string idNumber, int? excludeWorkerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2633,9 +2633,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Update sorting center worker information
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool UpdateSortingCenterWorker(SortingCenterWorkers worker)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2671,9 +2671,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Delete sorting center worker (hard delete from database)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool DeleteSortingCenterWorker(int workerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2700,9 +2700,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Get sorting center worker statistics
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetSortingCenterWorkerStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -2724,14 +2724,14 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get comprehensive sorting center worker dashboard statistics
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public Dictionary<string, object> GetSortingCenterWorkerDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
 
-            // Initialize default values to ensure all keys exist
+            // 中文注释
             stats["TotalWorkers"] = 0;
             stats["ActiveWorkers"] = 0;
             stats["InactiveWorkers"] = 0;
@@ -2749,7 +2749,7 @@ namespace recycling.DAL
             {
                 conn.Open();
 
-                // === Basic Statistics ===
+                // 中文注释
                 SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers", conn);
                 stats["TotalWorkers"] = (int)cmd.ExecuteScalar();
 
@@ -2762,25 +2762,25 @@ namespace recycling.DAL
                 cmd = new SqlCommand("SELECT COUNT(*) FROM SortingCenterWorkers WHERE Available = 1 AND IsActive = 1", conn);
                 stats["AvailableWorkers"] = (int)cmd.ExecuteScalar();
 
-                // Total items and weight processed
+                // 中文注释
                 cmd = new SqlCommand("SELECT ISNULL(SUM(ISNULL(TotalItemsProcessed, 0)), 0) FROM SortingCenterWorkers", conn);
                 stats["TotalItemsProcessed"] = Convert.ToInt32(cmd.ExecuteScalar());
 
                 cmd = new SqlCommand("SELECT ISNULL(SUM(ISNULL(TotalWeightProcessed, 0)), 0) FROM SortingCenterWorkers", conn);
                 stats["TotalWeightProcessed"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // Average rating
+                // 中文注释
                 cmd = new SqlCommand("SELECT ISNULL(AVG(Rating), 0) FROM SortingCenterWorkers WHERE Rating IS NOT NULL AND IsActive = 1", conn);
                 stats["AvgRating"] = Convert.ToDecimal(cmd.ExecuteScalar());
 
-                // New workers this month
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT COUNT(*) FROM SortingCenterWorkers 
                     WHERE CreatedDate >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
                       AND CreatedDate < DATEADD(month, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))", conn);
                 stats["NewWorkersThisMonth"] = (int)cmd.ExecuteScalar();
 
-                // === Status Distribution (for pie chart) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT CurrentStatus, COUNT(*) AS WorkerCount
                     FROM SortingCenterWorkers
@@ -2802,7 +2802,7 @@ namespace recycling.DAL
                 }
                 stats["StatusDistribution"] = statusDistribution;
 
-                // === Rating Distribution (for bar chart) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT 
                         CASE 
@@ -2841,7 +2841,7 @@ namespace recycling.DAL
                 }
                 stats["RatingDistribution"] = ratingDistribution;
 
-                // === Registration Trend (last 6 months) ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT FORMAT(CreatedDate, 'yyyy-MM') AS RegMonth, COUNT(*) AS WorkerCount
                     FROM SortingCenterWorkers
@@ -2863,7 +2863,7 @@ namespace recycling.DAL
                 }
                 stats["RegistrationTrend"] = registrationTrend;
 
-                // === Worker Ranking by Weight Processed ===
+                // 中文注释
                 cmd = new SqlCommand(@"
                     SELECT WorkerID, ISNULL(FullName, Username) AS Name, Username, 
                            ISNULL(Rating, 0) AS Rating,
@@ -2899,9 +2899,9 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// <summary>
-        /// Get all sorting center workers for export (without pagination)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public List<SortingCenterWorkers> GetAllSortingCenterWorkersForExport(string searchTerm = null, bool? isActive = null)
         {
             var workers = new List<SortingCenterWorkers>();
@@ -3051,9 +3051,9 @@ namespace recycling.DAL
 
         #region Staff Avatar Update Methods
 
-        /// <summary>
+        // 中文注释
         /// 更新回收员头像
-        /// </summary>
+        // 中文注释
         public bool UpdateRecyclerAvatar(int recyclerId, string avatarUrl)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -3067,9 +3067,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新管理员头像
-        /// </summary>
+        // 中文注释
         public bool UpdateAdminAvatar(int adminId, string avatarUrl)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -3083,9 +3083,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新运输人员头像
-        /// </summary>
+        // 中文注释
         public bool UpdateTransporterAvatar(int transporterId, string avatarUrl)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -3099,9 +3099,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新基地工作人员头像
-        /// </summary>
+        // 中文注释
         public bool UpdateSortingCenterWorkerAvatar(int workerId, string avatarUrl)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))

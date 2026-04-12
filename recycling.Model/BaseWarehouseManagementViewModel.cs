@@ -2,45 +2,45 @@ using System.Collections.Generic;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 基地仓库管理页面视图模型
-    /// Base Warehouse Management Page View Model
-    /// </summary>
+    /// 中文注释
+    // 中文注释
     public class BaseWarehouseManagementViewModel
     {
-        /// <summary>
+        // 中文注释
         /// 已完成的运输单列表（待入库）
-        /// Completed transport orders (ready for warehousing)
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public List<TransportNotificationViewModel> CompletedTransportOrders { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 入库记录列表
-        /// Warehouse receipt records
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public List<WarehouseReceiptViewModel> WarehouseReceipts { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 当前库存汇总信息
-        /// Current inventory summary information
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public List<InventorySummaryViewModel> InventorySummary { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 库存明细列表
-        /// Inventory detail items list
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public List<InventoryDetailViewModel> InventoryDetails { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 库存明细总数
-        /// Total count of inventory details
-        /// </summary>
+        /// 中文注释
+        // 中文注释
         public int InventoryDetailsTotalCount { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 构造函数
-        /// </summary>
+        // 中文注释
         public BaseWarehouseManagementViewModel()
         {
             CompletedTransportOrders = new List<TransportNotificationViewModel>();

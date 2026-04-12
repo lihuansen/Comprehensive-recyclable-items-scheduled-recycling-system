@@ -2,54 +2,54 @@ using System;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 超时订单信息模型（用于超时自动回退检查）
-    /// </summary>
+    // 中文注释
     public class ExpiredOrderInfo
     {
-        /// <summary>
+        // 中文注释
         /// 预约订单ID
-        /// </summary>
+        // 中文注释
         public int AppointmentID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 用户ID
-        /// </summary>
+        // 中文注释
         public int UserID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 预约日期
-        /// </summary>
+        // 中文注释
         public DateTime AppointmentDate { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 时间段
-        /// </summary>
+        // 中文注释
         public string TimeSlot { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 订单状态
-        /// </summary>
+        // 中文注释
         public string Status { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 回收员ID
-        /// </summary>
+        // 中文注释
         public int? RecyclerID { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 联系人姓名
-        /// </summary>
+        // 中文注释
         public string ContactName { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 截止时间（根据预约日期和时间段计算）
-        /// </summary>
+        // 中文注释
         public DateTime DeadlineTime { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 格式化的订单编号
-        /// </summary>
+        // 中文注释
         public string OrderNumber => $"#AP{AppointmentID:D6}";
     }
 }

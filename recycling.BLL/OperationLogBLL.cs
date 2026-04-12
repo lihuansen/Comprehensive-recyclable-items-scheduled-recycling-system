@@ -14,9 +14,9 @@ namespace recycling.BLL
             _logDAL = new OperationLogDAL();
         }
 
-        /// <summary>
+        // 中文注释
         /// 记录管理员操作日志
-        /// </summary>
+        // 中文注释
         public bool LogOperation(int adminId, string adminUsername, string module, string operationType, string description, int? targetId = null, string targetName = null, string ipAddress = null, string result = "Success", string details = null)
         {
             var log = new AdminOperationLogs
@@ -40,14 +40,14 @@ namespace recycling.BLL
             }
             catch
             {
-                // Log failure should not affect main operation
+                // 中文注释
                 return false;
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取操作日志列表（分页）
-        /// </summary>
+        // 中文注释
         public PagedResult<AdminOperationLogs> GetLogs(int page = 1, int pageSize = 20, string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
         {
             if (page < 1) page = 1;
@@ -56,17 +56,17 @@ namespace recycling.BLL
             return _logDAL.GetLogs(page, pageSize, module, operationType, startDate, endDate, searchTerm);
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取日志统计信息
-        /// </summary>
+        // 中文注释
         public Dictionary<string, object> GetLogStatistics()
         {
             return _logDAL.GetLogStatistics();
         }
 
-        /// <summary>
+        // 中文注释
         /// 导出日志（不分页）
-        /// </summary>
+        // 中文注释
         public List<AdminOperationLogs> GetLogsForExport(string module = null, string operationType = null, DateTime? startDate = null, DateTime? endDate = null, string searchTerm = null)
         {
             return _logDAL.GetLogsForExport(module, operationType, startDate, endDate, searchTerm);
@@ -98,9 +98,9 @@ namespace recycling.BLL
             public const string Search = "Search";
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取模块中文名称
-        /// </summary>
+        // 中文注释
         public static string GetModuleDisplayName(string module)
         {
             switch (module)
@@ -118,9 +118,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取操作类型中文名称
-        /// </summary>
+        // 中文注释
         public static string GetOperationTypeDisplayName(string operationType)
         {
             switch (operationType)

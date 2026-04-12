@@ -424,9 +424,9 @@
                     var count = toCount(badge.getAttribute('data-tip-count'));
                     var dismissedCount = toCount(dismissedMap[key]);
 
-                    // Badge is hidden when count is zero (not loaded yet) or already dismissed (high-watermark).
-                    // We never delete the dismissed entry here, so a transient count=0 on page
-                    // load cannot erase a previously dismissed state.
+                    // 中文注释
+                    // 中文注释
+                    // 中文注释
                     if (!key || count <= dismissedCount) {
                         badge.textContent = '';
                         return;
@@ -461,9 +461,9 @@
 
             window.refreshNavTipBadges = applyNavTipBadges;
 
-            // Dismiss a specific nav badge programmatically (e.g. from the target page itself).
-            // Sets the dismissed high-watermark to the badge's current data-tip-count so the
-            // badge is hidden even if the user did not click the nav item directly.
+            // 中文注释
+            // 中文注释
+            // 中文注释
             window.dismissNavBadge = function(key) {
                 var badge = document.querySelector('.js-nav-tip-badge[data-tip-key="' + key + '"]');
                 var count = badge ? toCount(badge.getAttribute('data-tip-count')) : 0;

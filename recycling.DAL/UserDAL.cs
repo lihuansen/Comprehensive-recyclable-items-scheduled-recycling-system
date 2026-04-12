@@ -14,9 +14,9 @@ namespace recycling.DAL
         // 从配置文件获取数据库连接字符串
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        /// <summary>
+        // 中文注释
         /// 检查用户名是否已存在
-        /// </summary>
+        // 中文注释
         public bool IsUsernameExists(string username)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -31,9 +31,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查手机号是否已存在
-        /// </summary>
+        // 中文注释
         public bool IsPhoneExists(string phoneNumber)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -48,9 +48,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查邮箱是否已存在
-        /// </summary>
+        // 中文注释
         public bool IsEmailExists(string email)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -65,9 +65,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 插入新用户到数据库
-        /// </summary>
+        // 中文注释
         public int InsertUser(Users user)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -88,9 +88,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 根据用户名查询用户信息（已修正实体类名）
-        /// </summary>
+        // 中文注释
         public Users GetUserByUsername(string username)  // 改为Users，与InsertUser的实体类一致
         {
             Users user = null;  // 实体类名统一为Users
@@ -132,9 +132,9 @@ namespace recycling.DAL
             return user;
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新用户最后登录时间
-        /// </summary>
+        // 中文注释
         /// <param name="userId">用户ID（对应Users表的UserID）</param>
         /// <param name="lastLoginDate">最后登录时间</param>
         public void UpdateLastLoginDate(int userId, DateTime lastLoginDate)
@@ -164,9 +164,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 根据手机号更新密码（完全移除LastPasswordChangeDate字段）
-        /// </summary>
+        // 中文注释
         public bool UpdatePasswordByPhone(string phoneNumber, string newPasswordHash)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -186,9 +186,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 新增：通过手机号获取原密码哈希（用于验证新密码是否与原密码相同）
-        /// </summary>
+        // 中文注释
         public string GetOriginalPasswordHash(string phoneNumber)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -203,9 +203,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 新增：通过手机号获取用户信息
-        /// </summary>
+        // 中文注释
         public Users GetUserByPhone(string phoneNumber)
         {
             Users user = null;
@@ -239,9 +239,9 @@ namespace recycling.DAL
             return user;
         }
 
-        /// <summary>
+        // 中文注释
         /// 新增：通过邮箱查询用户（用于邮箱登录）
-        /// </summary>
+        // 中文注释
         public Users GetUserByEmail(string email)
         {
             Users user = null;
@@ -282,9 +282,9 @@ namespace recycling.DAL
             }
             return user;
         }
-        /// <summary>
+        // 中文注释
         /// 更新用户基本信息
-        /// </summary>
+        // 中文注释
         public bool UpdateUserProfile(int userId, string username, string phoneNumber, string email)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -307,9 +307,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 通过用户ID更新密码
-        /// </summary>
+        // 中文注释
         public bool UpdatePasswordByUserId(int userId, string newPasswordHash)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -328,9 +328,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 通过用户ID获取原密码哈希
-        /// </summary>
+        // 中文注释
         public string GetPasswordHashByUserId(int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -345,9 +345,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 通过用户ID获取用户信息
-        /// </summary>
+        // 中文注释
         public Users GetUserById(int userId)
         {
             Users user = null;
@@ -384,9 +384,9 @@ namespace recycling.DAL
             return user;
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新用户头像URL
-        /// </summary>
+        // 中文注释
         public bool UpdateUserAvatar(int userId, string avatarUrl)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -402,9 +402,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新用户信息（包括余额等字段）
-        /// </summary>
+        // 中文注释
         public bool UpdateUser(Users user)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))

@@ -13,9 +13,9 @@ namespace recycling.BLL
     {
         private readonly StaffDAL _staffDAL = new StaffDAL();
 
-        /// <summary>
+        // 中文注释
         /// 工作人员登录验证（根据角色区分处理）
-        /// </summary>
+        // 中文注释
         /// <param name="role">角色（recycler/admin/superadmin）</param>
         /// <param name="username">账号</param>
         /// <param name="password">密码（明文）</param>
@@ -52,9 +52,9 @@ namespace recycling.BLL
         }
 
         #region 角色验证逻辑（调用DAL层）
-        /// <summary>
+        // 中文注释
         /// 验证回收员登录
-        /// </summary>
+        // 中文注释
         private (string ErrorMsg, Recyclers Staff) ValidateRecycler(string username, string passwordHash)
         {
             try
@@ -81,9 +81,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 验证管理员登录
-        /// </summary>
+        // 中文注释
         private (string ErrorMsg, Admins Staff) ValidateAdmin(string username, string passwordHash)
         {
             try
@@ -105,9 +105,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 验证超级管理员登录
-        /// </summary>
+        // 中文注释
         private (string ErrorMsg, SuperAdmins Staff) ValidateSuperAdmin(string username, string passwordHash)
         {
             try
@@ -129,9 +129,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 验证运输人员登录
-        /// </summary>
+        // 中文注释
         private (string ErrorMsg, Transporters Staff) ValidateTransporter(string username, string passwordHash)
         {
             try
@@ -158,9 +158,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 验证基地工作人员登录
-        /// </summary>
+        // 中文注释
         private (string ErrorMsg, SortingCenterWorkers Staff) ValidateSortingCenterWorker(string username, string passwordHash)
         {
             try
@@ -188,9 +188,9 @@ namespace recycling.BLL
         }
         #endregion
 
-        /// <summary>
+        // 中文注释
         /// 密码哈希算法（与UserBLL保持完全一致）
-        /// </summary>
+        // 中文注释
         private string HashPassword(string password)
         {
             using (SHA256 sha256 = SHA256.Create())
@@ -205,9 +205,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 通过ID获取回收员信息（供UI层调用）
-        /// </summary>
+        // 中文注释
         public Recyclers GetRecyclerById(int recyclerId)
         {
             if (recyclerId <= 0)
@@ -223,9 +223,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 通过ID获取运输人员信息（供UI层调用）
-        /// </summary>
+        // 中文注释
         public Transporters GetTransporterById(int transporterId)
         {
             if (transporterId <= 0)
@@ -243,9 +243,9 @@ namespace recycling.BLL
 
         #region 回收员账号管理
 
-        /// <summary>
+        // 中文注释
         /// 更新回收员个人信息
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) UpdateRecyclerProfile(int recyclerId, RecyclerProfileViewModel model)
         {
             if (recyclerId <= 0)
@@ -274,9 +274,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 修改回收员密码
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) ChangeRecyclerPassword(int recyclerId, string currentPassword, string newPassword)
         {
             if (recyclerId <= 0)
@@ -317,9 +317,9 @@ namespace recycling.BLL
 
         #endregion
 
-        /// <summary>
+        // 中文注释
         /// 更新运输人员个人信息（不包括车辆类型和载重）
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) UpdateTransporterProfile(int transporterId, TransporterProfileViewModel model)
         {
             if (transporterId <= 0)
@@ -349,9 +349,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 修改运输人员密码
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) ChangeTransporterPassword(int transporterId, string currentPassword, string newPassword)
         {
             if (transporterId <= 0)
@@ -392,9 +392,9 @@ namespace recycling.BLL
 
         #region 基地工作人员账号管理
 
-        /// <summary>
+        // 中文注释
         /// 根据ID获取基地工作人员信息
-        /// </summary>
+        // 中文注释
         public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
         {
             if (workerId <= 0)
@@ -410,9 +410,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 更新基地工作人员个人信息
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) UpdateSortingCenterWorkerProfile(int workerId, SortingCenterWorkerProfileViewModel model)
         {
             if (workerId <= 0)
@@ -441,9 +441,9 @@ namespace recycling.BLL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 修改基地工作人员密码
-        /// </summary>
+        // 中文注释
         public (bool Success, string Message) ChangeSortingCenterWorkerPassword(int workerId, string currentPassword, string newPassword)
         {
             if (workerId <= 0)

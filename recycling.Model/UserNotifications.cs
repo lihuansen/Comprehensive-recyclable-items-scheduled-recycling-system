@@ -30,65 +30,65 @@ namespace recycling.Model
 
         public DateTime? ReadDate { get; set; }
     }
-    /// <summary>
+    // 中文注释
     /// 通知类型枚举
-    /// </summary>
+    // 中文注释
     public static class NotificationTypes
     {
-        /// <summary>
+        // 中文注释
         /// 订单已创建
-        /// </summary>
+        // 中文注释
         public const string OrderCreated = "OrderCreated";
 
-        /// <summary>
+        // 中文注释
         /// 回收员已接单
-        /// </summary>
+        // 中文注释
         public const string OrderAccepted = "OrderAccepted";
 
-        /// <summary>
+        // 中文注释
         /// 订单已完成
-        /// </summary>
+        // 中文注释
         public const string OrderCompleted = "OrderCompleted";
 
-        /// <summary>
+        // 中文注释
         /// 评价提醒
-        /// </summary>
+        // 中文注释
         public const string ReviewReminder = "ReviewReminder";
 
-        /// <summary>
+        // 中文注释
         /// 订单已取消
-        /// </summary>
+        // 中文注释
         public const string OrderCancelled = "OrderCancelled";
 
-        /// <summary>
+        // 中文注释
         /// 轮播图更新
-        /// </summary>
+        // 中文注释
         public const string CarouselUpdated = "CarouselUpdated";
 
-        /// <summary>
+        // 中文注释
         /// 反馈已回复
-        /// </summary>
+        // 中文注释
         public const string FeedbackReplied = "FeedbackReplied";
 
 
-        /// <summary>
+        // 中文注释
         /// 回收员发来消息
-        /// </summary>
+        // 中文注释
         public const string RecyclerMessageReceived = "RecyclerMessageReceived";
 
-        /// <summary>
+        // 中文注释
         /// 回收员退回订单
-        /// </summary>
+        // 中文注释
         public const string OrderRolledBack = "OrderRolledBack";
 
-        /// <summary>
+        // 中文注释
         /// 订单超时自动回退
-        /// </summary>
+        // 中文注释
         public const string OrderExpiredAutoRollback = "OrderExpiredAutoRollback";
 
-        /// <summary>
+        // 中文注释
         /// 获取通知类型的显示名称
-        /// </summary>
+        // 中文注释
         public static string GetDisplayName(string type)
         {
             switch (type)
@@ -118,9 +118,9 @@ namespace recycling.Model
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取通知类型的图标
-        /// </summary>
+        // 中文注释
         public static string GetIcon(string type)
         {
             switch (type)
@@ -150,35 +150,35 @@ namespace recycling.Model
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取通知类型的颜色
-        /// </summary>
+        // 中文注释
         public static string GetColor(string type)
         {
             switch (type)
             {
                 case OrderCreated:
-                    return "#28a745"; // green
+                    return "#28a745"; // 中文注释
                 case OrderAccepted:
-                    return "#17a2b8"; // info blue
+                    return "#17a2b8"; // 中文注释
                 case OrderCompleted:
-                    return "#28a745"; // green
+                    return "#28a745"; // 中文注释
                 case ReviewReminder:
-                    return "#ffc107"; // warning yellow
+                    return "#ffc107"; // 中文注释
                 case OrderCancelled:
-                    return "#dc3545"; // red
+                    return "#dc3545"; // 中文注释
                 case CarouselUpdated:
-                    return "#6f42c1"; // purple
+                    return "#6f42c1"; // 中文注释
                 case FeedbackReplied:
-                    return "#007bff"; // primary blue
+                    return "#007bff"; // 中文注释
                 case RecyclerMessageReceived:
-                    return "#20c997"; // teal green
+                    return "#20c997"; // 中文注释
                 case OrderRolledBack:
-                    return "#fd7e14"; // orange
+                    return "#fd7e14"; // 中文注释
                 case OrderExpiredAutoRollback:
-                    return "#e83e8c"; // pink
+                    return "#e83e8c"; // 中文注释
                 default:
-                    return "#6c757d"; // gray
+                    return "#6c757d"; // 中文注释
             }
         }
     }

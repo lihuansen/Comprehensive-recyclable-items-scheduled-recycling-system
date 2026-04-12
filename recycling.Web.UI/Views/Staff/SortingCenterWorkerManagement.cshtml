@@ -22,7 +22,7 @@
     .badge-unavailable { background-color: #ffc107; }
     .btn-action { margin: 0 2px; }
     .modal-header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
-    /* Dashboard styles */
+    /* 仪表板样式 */
     .dashboard-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .dashboard-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; border-bottom: 2px solid #11998e; padding-bottom: 8px; }
     .chart-container { height: 250px; }
@@ -325,13 +325,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 var currentPage = 1, pageSize = 8, searchTerm = '', statusFilter = null, sortOrder = 'ASC';
-var workerCache = {}; // Cache for worker data
+var workerCache = {}; // 中文注释
 var dashboardVisible = true;
 var statusPieChart = null;
 var ratingBarChart = null;
 var registrationLineChart = null;
 
-// Helper function to escape HTML and prevent XSS
+// 中文注释
 function escapeHtml(text) {
     if (!text) return '';
     var div = document.createElement('div');
@@ -371,7 +371,7 @@ $(document).ready(function () {
     });
 });
 
-// Toggle dashboard visibility
+// 中文注释
 function toggleDashboard() {
     dashboardVisible = !dashboardVisible;
     if (dashboardVisible) {
@@ -383,7 +383,7 @@ function toggleDashboard() {
     }
 }
 
-// Toggle sort order
+// 中文注释
 function toggleSortOrder() {
     sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
     $('#sortOrderIcon').removeClass('fa-sort-amount-down fa-sort-amount-up').addClass(sortOrder === 'ASC' ? 'fa-sort-amount-down' : 'fa-sort-amount-up');
@@ -393,7 +393,7 @@ function toggleSortOrder() {
     loadWorkers();
 }
 
-// Load comprehensive dashboard statistics
+// 中文注释
 function loadDashboardStatistics() {
     $.ajax({
         url: '@Url.Action("GetSortingCenterWorkerDashboardStatistics", "Staff")',
@@ -403,7 +403,7 @@ function loadDashboardStatistics() {
             if (response.success) {
                 var data = response.data;
 
-                // Basic stats
+                // 中文注释
                 $('#totalWorkers').text(data.TotalWorkers || 0);
                 $('#activeWorkers').text(data.ActiveWorkers || 0);
                 $('#inactiveWorkers').text(data.InactiveWorkers || 0);
@@ -418,13 +418,13 @@ function loadDashboardStatistics() {
 
                 $('#newWorkersThisMonth').text(data.NewWorkersThisMonth || 0);
 
-                // Active rate
+                // 中文注释
                 var total = parseInt(data.TotalWorkers) || 0;
                 var active = parseInt(data.ActiveWorkers) || 0;
                 var activeRate = total > 0 ? ((active / total) * 100).toFixed(1) + '%' : '0%';
                 $('#activeRate').text(activeRate);
 
-                // Charts
+                // 中文注释
                 try { renderStatusDistribution(data.StatusDistribution); }
                 catch (e) { console.error('Status distribution chart error:', e); }
 
@@ -434,7 +434,7 @@ function loadDashboardStatistics() {
                 try { renderRegistrationTrend(data.RegistrationTrend); }
                 catch (e) { console.error('Registration trend chart error:', e); }
 
-                // Worker ranking
+                // 中文注释
                 try { renderWorkerRanking(data.WorkerRanking); }
                 catch (e) { console.error('Worker ranking error:', e); }
             } else {
@@ -449,7 +449,7 @@ function loadDashboardStatistics() {
     });
 }
 
-// Show fallback values when dashboard data fails to load
+// 中文注释
 function showDashboardFallbackValues() {
     $('#totalWorkers').text('0');
     $('#activeWorkers').text('0');
@@ -463,7 +463,7 @@ function showDashboardFallbackValues() {
     $('#workerRankingList').html('<div class="text-center text-muted">暂无排名数据</div>');
 }
 
-// Render status distribution pie chart
+// 中文注释
 function renderStatusDistribution(statusData) {
     var canvas = document.getElementById('statusDistributionChart');
     if (!canvas) return;
@@ -500,7 +500,7 @@ function renderStatusDistribution(statusData) {
     });
 }
 
-// Render rating distribution bar chart
+// 中文注释
 function renderRatingDistribution(ratingData) {
     var canvas = document.getElementById('ratingDistributionChart');
     if (!canvas) return;
@@ -549,7 +549,7 @@ function renderRatingDistribution(ratingData) {
     });
 }
 
-// Render registration trend line chart
+// 中文注释
 function renderRegistrationTrend(trendData) {
     var canvas = document.getElementById('registrationTrendChart');
     if (!canvas) return;
@@ -602,7 +602,7 @@ function renderRegistrationTrend(trendData) {
     });
 }
 
-// Render worker ranking list
+// 中文注释
 function renderWorkerRanking(rankings) {
     var container = $('#workerRankingList');
     container.empty();
@@ -673,7 +673,7 @@ function renderWorkers(data) {
                 '<button class="btn btn-xs btn-danger btn-action" onclick="deleteWorker(' + w.WorkerID + ')"><i class="fas fa-trash"></i> 删除</button>' +
             '</td>' +
         '</tr>';
-        // Store full worker object for later retrieval
+        // 中文注释
         workerCache[w.WorkerID] = w;
         tbody.append(row);
     });

@@ -8,9 +8,9 @@ using System.Web;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 工作人员登录视图模型（与用户登录模型保持一致，仅增加角色选择）
-    /// </summary>
+    // 中文注释
     public class StaffLoginViewModel
     {
         [Required(ErrorMessage = "请输入用户名")]
@@ -27,14 +27,14 @@ namespace recycling.Model
         [Display(Name = "验证码")]
         public string Captcha { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 服务器生成的验证码（用于与用户输入的Captcha比对）
-        /// </summary>
+        // 中文注释
         public string GeneratedCaptcha { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 工作人员角色（回收员/管理员/超级管理员/运输人员/基地工作人员）- 仅此处与用户登录不同
-        /// </summary>
+        // 中文注释
         [Required(ErrorMessage = "请选择角色")]
         [Display(Name = "工作人员角色")]
         public string StaffRole { get; set; } // 值对应：recycler/admin/superadmin/transporter/sortingcenterworker

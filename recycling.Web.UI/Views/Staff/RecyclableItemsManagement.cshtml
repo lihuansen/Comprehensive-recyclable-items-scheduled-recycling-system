@@ -261,7 +261,7 @@
             'foam': '泡沫'
         };
 
-        // Helper function to get anti-forgery token
+        // 中文注释
         function getAntiForgeryToken() {
             var token = $('#itemForm input[name="__RequestVerificationToken"]').val();
             if (!token) {
@@ -338,21 +338,21 @@
             pagination.empty();
 
             var totalPages = Math.ceil(data.TotalCount / pageSize);
-            pagination.data('total', data.TotalCount); // Store for validation
+            pagination.data('total', data.TotalCount); // 中文注释
 
             if (totalPages <= 1) return;
 
-            // Previous button
+            // 中文注释
             pagination.append('<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
                 '<a class="page-link" href="#" onclick="changePage(' + (currentPage - 1) + ')">上一页</a></li>');
 
-            // Page numbers
+            // 中文注释
             for (var i = 1; i <= totalPages; i++) {
                 pagination.append('<li class="page-item ' + (i === currentPage ? 'active' : '') + '">' +
                     '<a class="page-link" href="#" onclick="changePage(' + i + ')">' + i + '</a></li>');
             }
 
-            // Next button
+            // 中文注释
             pagination.append('<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
                 '<a class="page-link" href="#" onclick="changePage(' + (currentPage + 1) + ')">下一页</a></li>');
         }
@@ -370,7 +370,7 @@
             $('#itemForm')[0].reset();
             $('#itemId').val('0');
             
-            // Get max sort order and set to max + 1
+            // 中文注释
             $.ajax({
                 url: '@Url.Action("GetMaxRecyclableItemOrder", "Staff")',
                 type: 'POST',
@@ -437,7 +437,7 @@
                 return;
             }
 
-            // Update category name based on selected category
+            // 中文注释
             updateCategoryName();
 
             var itemIdValue = $.trim($('#itemId').val());

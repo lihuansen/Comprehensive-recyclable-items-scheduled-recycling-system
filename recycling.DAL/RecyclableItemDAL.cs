@@ -14,9 +14,9 @@ namespace recycling.DAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        /// <summary>
+        // 中文注释
         /// 分页查询可回收物（支持多条件筛选）- 修正参数重复问题
-        /// </summary>
+        // 中文注释
         public PagedResult<RecyclableItems> GetPagedItems(RecyclableQueryModel query)
         {
             var result = new PagedResult<RecyclableItems>
@@ -124,9 +124,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
+        // 中文注释
         /// 分页查询所有可回收物（管理端使用，不过滤IsActive状态）
-        /// </summary>
+        // 中文注释
         public PagedResult<RecyclableItems> GetPagedItemsForAdmin(RecyclableQueryModel query)
         {
             var result = new PagedResult<RecyclableItems>
@@ -222,9 +222,9 @@ namespace recycling.DAL
             return result;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取所有品类（去重，含中文名称）
-        /// </summary>
+        // 中文注释
         public Dictionary<string, string> GetAllCategories()
         {
             var categories = new Dictionary<string, string>();
@@ -255,9 +255,9 @@ namespace recycling.DAL
             return categories;
         }
 
-        /// <summary>
+        // 中文注释
         /// 确保泡沫品类数据存在，若不存在则自动插入初始数据
-        /// </summary>
+        // 中文注释
         public void EnsureFoamCategoryExists()
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -289,9 +289,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 确保家电品类数据存在，若不存在则自动插入初始数据
-        /// </summary>
+        // 中文注释
         public void EnsureApplianceCategoryExists()
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -329,9 +329,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 检查数据库中是否有可回收物数据
-        /// </summary>
+        // 中文注释
         public bool HasData()
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -344,9 +344,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取所有有效数据（用于调试）
-        /// </summary>
+        // 中文注释
         public List<RecyclableItems> GetAllActiveItems()
         {
             var items = new List<RecyclableItems>();
@@ -377,9 +377,9 @@ namespace recycling.DAL
             return items;
         }
 
-        /// <summary>
-        /// Get recyclable item by ID
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public RecyclableItems GetById(int itemId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -410,9 +410,9 @@ namespace recycling.DAL
             return null;
         }
 
-        /// <summary>
-        /// Add new recyclable item
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool Add(RecyclableItems item)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -472,9 +472,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Update recyclable item
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool Update(RecyclableItems item)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -576,9 +576,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Check whether a recyclable item with the same Name + Category already exists.
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool ExistsByNameAndCategory(string name, string category, int? excludeItemId = null)
         {
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(category))
@@ -613,9 +613,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Delete recyclable item (soft delete by setting IsActive = false)
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool Delete(int itemId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -629,9 +629,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Hard delete recyclable item
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public bool HardDelete(int itemId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -645,9 +645,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
-        /// Get the maximum SortOrder value
-        /// </summary>
+        // 中文注释
+        /// 中文注释
+        // 中文注释
         public int GetMaxSortOrder()
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))

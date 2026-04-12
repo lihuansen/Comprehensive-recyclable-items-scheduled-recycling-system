@@ -1,9 +1,9 @@
 /**
- * Keyboard Navigation Utility
+  * 中文注释
  * 键盘导航工具
  * 
  * 为表单输入框添加上下箭头键导航功能
- * Adds up/down arrow key navigation functionality to form input fields
+  * 中文注释
  * 
  * 使用方法 (Usage):
  * KeyboardNavigation.init(); // 在页面加载后调用 (Call after page load)
@@ -169,7 +169,7 @@
             for (var i = 0; i < inputs.length; i++) {
                 if (this.isInputAccessible(inputs[i])) {
                     // 使用IIFE捕获当前输入框元素，避免闭包问题
-                    // Use IIFE to capture the input element for setTimeout callback
+                    // 中文注释
                     (function(input) {
                         setTimeout(function() {
                             input.focus();

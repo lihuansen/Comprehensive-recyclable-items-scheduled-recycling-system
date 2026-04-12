@@ -7,26 +7,26 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    /// <summary>
+    // 中文注释
     /// 用户通知数据访问层
-    /// </summary>
+    // 中文注释
     public class UserNotificationDAL
     {
         private string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
         private static bool _tableChecked = false;
         private static readonly object _lockObject = new object();
 
-        /// <summary>
+        // 中文注释
         /// 构造函数 - 确保UserNotifications表存在
-        /// </summary>
+        // 中文注释
         public UserNotificationDAL()
         {
             EnsureTableExists();
         }
 
-        /// <summary>
+        // 中文注释
         /// 确保UserNotifications表存在（如果不存在则创建）
-        /// </summary>
+        // 中文注释
         private void EnsureTableExists()
         {
             if (_tableChecked) return;
@@ -41,7 +41,7 @@ namespace recycling.DAL
                     {
                         conn.Open();
                         
-                        // Check if table exists and create it if not
+                        // 中文注释
                         string checkSql = @"
                             IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[UserNotifications]') AND type in (N'U'))
                             BEGIN
@@ -75,15 +75,15 @@ namespace recycling.DAL
                 }
                 catch (Exception ex)
                 {
-                    // Log the error but don't mark as checked, allowing retry on next instantiation
+                    // 中文注释
                     System.Diagnostics.Debug.WriteLine($"确保UserNotifications表存在时发生错误: {ex.Message}");
                 }
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 添加通知
-        /// </summary>
+        // 中文注释
         public bool AddNotification(UserNotifications notification)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -107,9 +107,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 批量添加通知 (用于向所有用户发送通知)
-        /// </summary>
+        // 中文注释
         public bool AddNotificationsToAllUsers(string notificationType, string title, string content)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -131,9 +131,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取用户的通知列表（分页）
-        /// </summary>
+        // 中文注释
         public List<UserNotifications> GetUserNotifications(int userId, int pageIndex = 1, int pageSize = 20)
         {
             var notifications = new List<UserNotifications>();
@@ -177,9 +177,9 @@ namespace recycling.DAL
             return notifications;
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取用户未读通知数量
-        /// </summary>
+        // 中文注释
         public int GetUnreadCount(int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -193,9 +193,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 标记通知为已读
-        /// </summary>
+        // 中文注释
         public bool MarkAsRead(int notificationId, int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -216,9 +216,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 标记所有通知为已读
-        /// </summary>
+        // 中文注释
         public bool MarkAllAsRead(int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -239,9 +239,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 删除通知
-        /// </summary>
+        // 中文注释
         public bool DeleteNotification(int notificationId, int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -257,9 +257,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取用户通知总数
-        /// </summary>
+        // 中文注释
         public int GetTotalCount(int userId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -273,9 +273,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取订单对应用户ID
-        /// </summary>
+        // 中文注释
         public int GetUserIdByOrderId(int orderId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -290,9 +290,9 @@ namespace recycling.DAL
             }
         }
 
-        /// <summary>
+        // 中文注释
         /// 获取反馈对应用户ID
-        /// </summary>
+        // 中文注释
         public int GetUserIdByFeedbackId(int feedbackId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))

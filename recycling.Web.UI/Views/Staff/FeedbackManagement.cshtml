@@ -520,7 +520,7 @@
                         $('#detailEmail').text(feedback.ContactEmail || '未提供');
                         $('#detailCreatedDate').text(new Date(feedback.CreatedDate).toLocaleString('zh-CN'));
                         
-                        // Display admin reply if exists
+                        // 中文注释
                         if (feedback.AdminReply) {
                             $('#detailAdminReply').text(feedback.AdminReply);
                             $('#adminReplyDisplay').show();
@@ -528,11 +528,11 @@
                             $('#adminReplyDisplay').hide();
                         }
                         
-                        // Set checkbox based on status
+                        // 中文注释
                         var isResolved = feedback.Status === '已完成';
                         $('#resolvedCheckbox').prop('checked', isResolved);
                         
-                        // Disable checkbox if already resolved
+                        // 中文注释
                         if (isResolved) {
                             $('#resolvedCheckbox').prop('disabled', true);
                             $('#resolvedLabel').addClass('disabled').text('已解决（不可更改）');
@@ -554,8 +554,8 @@
     }
 
     function handleResolvedChange() {
-        // This function is called when checkbox changes
-        // No action needed as we handle it in updateFeedbackStatus
+        // 中文注释
+        // 中文注释
     }
 
     function updateFeedbackStatus() {
@@ -574,7 +574,7 @@
                 __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                 feedbackId: currentFeedbackId,
                 status: status,
-                adminReply: '' // No reply in this modal
+                adminReply: '' // 中文注释
             },
             success: function(response) {
                 if (response.success) {
@@ -643,7 +643,7 @@
             data: {
                 __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
                 feedbackId: replyFeedbackId,
-                status: '', // Empty means don't change status
+                status: '', // 中文注释
                 adminReply: replyContent
             },
             success: function(response) {

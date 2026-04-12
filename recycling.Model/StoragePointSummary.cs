@@ -2,29 +2,29 @@ using System;
 
 namespace recycling.Model
 {
-    /// <summary>
+    // 中文注释
     /// 暂存点库存汇总模型
-    /// </summary>
+    // 中文注释
     public class StoragePointSummary
     {
-        /// <summary>
+        // 中文注释
         /// 类别键
-        /// </summary>
+        // 中文注释
         public string CategoryKey { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 类别名称
-        /// </summary>
+        // 中文注释
         public string CategoryName { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 总重量（公斤）
-        /// </summary>
+        // 中文注释
         public decimal TotalWeight { get; set; }
 
-        /// <summary>
+        // 中文注释
         /// 总价值（元）
-        /// </summary>
+        // 中文注释
         public decimal TotalPrice { get; set; }
     }
 }
