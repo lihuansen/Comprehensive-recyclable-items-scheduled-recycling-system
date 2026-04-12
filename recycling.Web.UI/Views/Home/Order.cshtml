@@ -1553,5 +1553,34 @@
                 window.location.href = '@Url.Action("ReviewOrder", "Home")?orderId=' + orderId;
             });
         }
+
+        // Auto-dismiss the "我的订单" nav badge when user is viewing this page.
+        // Uses a MutationObserver so we wait for the async badge count to be written
+        // by updateOrderNavBadge before dismissing, rather than relying on a fixed timeout.
+        (function() {
+            var BADGE_KEY = 'home-order';
+
+            function tryDismiss() {
+                if (window.dismissNavBadge) {
+                    window.dismissNavBadge(BADGE_KEY);
+                }
+            }
+
+            var badgeEl = document.querySelector('.js-nav-tip-badge[data-tip-key="' + BADGE_KEY + '"]');
+            if (badgeEl) {
+                // Observe attribute changes – updateOrderNavBadge sets data-tip-count asynchronously
+                var observer = new MutationObserver(function() {
+                    tryDismiss();
+                });
+                observer.observe(badgeEl, { attributes: true, attributeFilter: ['data-tip-count'] });
+            }
+
+            // Also try immediately in case the count was already populated before this script ran
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryDismiss);
+            } else {
+                tryDismiss();
+            }
+        })();
     </script>
 }
