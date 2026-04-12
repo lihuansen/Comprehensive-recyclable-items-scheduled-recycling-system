@@ -464,12 +464,28 @@ namespace recycling.BLL
         /// </summary>
         private void SendTransportNotificationToBase(TransportationOrders order)
         {
-            // 这里可以实现发送通知的逻辑
-            // 由于系统中可能有多个基地人员，可以通过以下方式实现：
-            // 1. 查询所有基地人员并逐个发送通知
-            // 2. 使用广播机制发送通知
-            // 暂时记录日志，实际实现可以根据需求调整
-            System.Diagnostics.Debug.WriteLine($"运输单 {order.OrderNumber} 开始运输，需要通知基地人员");
+            try
+            {
+                string recyclerName = "未知回收员";
+                if (order.RecyclerID.HasValue && order.RecyclerID.Value > 0)
+                {
+                    var recycler = _staffDAL.GetRecyclerById(order.RecyclerID.Value);
+                    recyclerName = GetRecyclerName(recycler);
+                }
+
+                _notificationBLL.SendTransportOrderCreatedNotification(
+                    order.TransportOrderID,
+                    order.OrderNumber,
+                    recyclerName,
+                    order.PickupAddress,
+                    order.EstimatedWeight ?? 0);
+
+                System.Diagnostics.Debug.WriteLine($"运输单 {order.OrderNumber} 开始运输，已通知基地人员");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SendTransportNotificationToBase Error: {ex.Message}");
+            }
         }
 
         /// <summary>
