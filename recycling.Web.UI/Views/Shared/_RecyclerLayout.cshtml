@@ -464,15 +464,15 @@
         @* 回收员"订单管理"导航栏徽章计数脚本 *@
         <script>
             (function() {
-                function updateRecyclerOrderNavBadge() {
-                    fetch('@Url.Action("GetRecyclerOrderNavBadgeCount", "Staff")', {
+                function updateNavBadgeFromApi(apiUrl, tipKey) {
+                    fetch(apiUrl, {
                         method: 'GET',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     })
                     .then(function(response) { return response.json(); })
                     .then(function(data) {
                         if (data.success) {
-                            var badge = document.querySelector('.js-nav-tip-badge[data-tip-key="recycler-order"]');
+                            var badge = document.querySelector('.js-nav-tip-badge[data-tip-key="' + tipKey + '"]');
                             if (badge) {
                                 badge.setAttribute('data-tip-count', data.count || 0);
                                 if (window.refreshNavTipBadges) window.refreshNavTipBadges();
@@ -482,15 +482,36 @@
                     .catch(function() {});
                 }
 
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', updateRecyclerOrderNavBadge);
-                } else {
-                    updateRecyclerOrderNavBadge();
+                function updateRecyclerOrderNavBadge() {
+                    updateNavBadgeFromApi('@Url.Action("GetRecyclerOrderNavBadgeCount", "Staff")', 'recycler-order');
                 }
 
-                setInterval(updateRecyclerOrderNavBadge, 60000);
+                function updateRecyclerStoragePointNavBadge() {
+                    updateNavBadgeFromApi('@Url.Action("GetRecyclerStoragePointNavBadgeCount", "Staff")', 'recycler-storage-point');
+                }
+
+                function updateRecyclerReviewNavBadge() {
+                    updateNavBadgeFromApi('@Url.Action("GetRecyclerReviewNavBadgeCount", "Staff")', 'recycler-review');
+                }
+
+                function updateRecyclerAllNavBadges() {
+                    updateRecyclerOrderNavBadge();
+                    updateRecyclerStoragePointNavBadge();
+                    updateRecyclerReviewNavBadge();
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateRecyclerAllNavBadges);
+                } else {
+                    updateRecyclerAllNavBadges();
+                }
+
+                setInterval(updateRecyclerAllNavBadges, 60000);
 
                 window.updateRecyclerOrderNavBadge = updateRecyclerOrderNavBadge;
+                window.updateRecyclerStoragePointNavBadge = updateRecyclerStoragePointNavBadge;
+                window.updateRecyclerReviewNavBadge = updateRecyclerReviewNavBadge;
+                window.updateRecyclerAllNavBadges = updateRecyclerAllNavBadges;
             })();
         </script>
     }
