@@ -356,7 +356,7 @@
                 <div class="nav-container">
                     <ul class="left-navs">
                         <li class="normal-nav nav-tip-item">@Html.ActionLink("首页", "Index", "Home")<span class="nav-top-badge js-nav-tip-badge" data-tip-key="home-index" data-tip-count="@getNavBadgeCount("home-index")">@getNavBadgeText("home-index")</span></li>
-                        <li class="normal-nav nav-tip-item">@Html.ActionLink("我的订单", "Order", "Home")<span class="nav-top-badge js-nav-tip-badge" data-tip-key="home-order" data-tip-count="@getNavBadgeCount("home-order")">@getNavBadgeText("home-order")</span></li>
+                        <li class="normal-nav">@Html.ActionLink("我的订单", "Order", "Home")</li>
                         <li class="normal-nav has-badge" id="nav-message-item">
                             @Html.ActionLink("我的消息", "Message", "Home")
                             <span id="nav-unread-badge" class="nav-unread-badge"></span>
@@ -524,38 +524,6 @@
             })();
         </script>
 
-        @* 导航栏"我的订单"徽章计数脚本 *@
-        <script type="text/javascript">
-            (function() {
-                function updateOrderNavBadge() {
-                    fetch('@Url.Action("GetOrderNavBadgeCount", "Home")', {
-                        method: 'GET',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    })
-                    .then(function(response) { return response.json(); })
-                    .then(function(data) {
-                        if (data.success) {
-                            var badge = document.querySelector('.js-nav-tip-badge[data-tip-key="home-order"]');
-                            if (badge) {
-                                badge.setAttribute('data-tip-count', data.count || 0);
-                                if (window.refreshNavTipBadges) window.refreshNavTipBadges();
-                            }
-                        }
-                    })
-                    .catch(function() {});
-                }
-
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', updateOrderNavBadge);
-                } else {
-                    updateOrderNavBadge();
-                }
-
-                setInterval(updateOrderNavBadge, 60000);
-
-                window.updateOrderNavBadge = updateOrderNavBadge;
-            })();
-        </script>
     }
     
     @RenderSection("scripts", required: false)

@@ -1516,6 +1516,85 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// <summary>
+        /// 获取回收员暂存点管理导航栏徽章数（暂存点明细数量）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclerStoragePointNavBadgeCount()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                {
+                    return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var storagePointBLL = new StoragePointBLL();
+                var detailList = storagePointBLL.GetStoragePointDetail(recycler.RecyclerID);
+                var count = detailList == null ? 0 : detailList.Count(d => d.Weight > 0);
+
+                return Json(new { success = true, count = count }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取回收员暂存点导航徽章数失败: {ex.Message}");
+                return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 获取回收员用户评价导航栏徽章数（评价总数）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRecyclerReviewNavBadgeCount()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "recycler")
+                {
+                    return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+                }
+
+                var recycler = (Recyclers)Session["LoginStaff"];
+                var reviewBLL = new OrderReviewBLL();
+                var summary = reviewBLL.GetRecyclerRatingSummary(recycler.RecyclerID);
+
+                return Json(new { success = true, count = Math.Max(0, summary.TotalReviews) }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取回收员评价导航徽章数失败: {ex.Message}");
+                return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// 获取运输人员运输管理导航栏徽章数（待接单数量）
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetTransporterTransportationNavBadgeCount()
+        {
+            try
+            {
+                if (Session["LoginStaff"] == null || Session["StaffRole"] as string != "transporter")
+                {
+                    return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+                }
+
+                var transporter = (Transporters)Session["LoginStaff"];
+                var pendingOrders = _transportationOrderBLL.GetTransportationOrdersByTransporter(transporter.TransporterID, "待接单");
+                var count = pendingOrders == null ? 0 : pendingOrders.Count;
+
+                return Json(new { success = true, count = count }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取运输管理导航徽章数失败: {ex.Message}");
+                return Json(new { success = false, count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
         /// 获取订单详情（AJAX）
         /// </summary>
         [HttpPost]
