@@ -507,9 +507,12 @@
                                             var isAssignedToMe = !receipt.AssignedWorkerID.HasValue || receipt.AssignedWorkerID.Value == currentWorkerId;
                                             if (isAssignedToMe)
                                             {
-                                                <button class="btn-secondary" onclick="goToSubdivision(@receipt.ReceiptID)" style="margin-right: 6px;">
-                                                    <i class="fas fa-sliders-h"></i> 细分
-                                                </button>
+                                                if (!receipt.IsRefined)
+                                                {
+                                                    <button class="btn-secondary" onclick="goToSubdivision(@receipt.ReceiptID)" style="margin-right: 6px;">
+                                                        <i class="fas fa-sliders-h"></i> 细分
+                                                    </button>
+                                                }
                                                 if (receipt.IsRefined)
                                                 {
                                                     <button class="btn-warehouse" onclick="processWarehouse(@receipt.ReceiptID)">
@@ -1304,7 +1307,9 @@
                     // 只有指定的基地工作人员才能操作入库按钮
                     var isAssignedToMe = !receipt.AssignedWorkerID || receipt.AssignedWorkerID === currentWorkerID;
                     if (isAssignedToMe) {
-                        actionButton = '<button class="btn-secondary" style="margin-right:6px;" onclick="goToSubdivision(' + receipt.ReceiptID + ')"><i class="fas fa-sliders-h"></i> 细分</button>';
+                        if (!receipt.IsRefined) {
+                            actionButton = '<button class="btn-secondary" style="margin-right:6px;" onclick="goToSubdivision(' + receipt.ReceiptID + ')"><i class="fas fa-sliders-h"></i> 细分</button>';
+                        }
                         if (receipt.IsRefined) {
                             actionButton += '<button class="btn-warehouse" onclick="processWarehouse(' + receipt.ReceiptID + ')"><i class="fas fa-warehouse"></i> 入库</button>';
                         } else {

@@ -619,6 +619,11 @@ namespace recycling.BLL
                     return (false, "仅入库单创建人可执行细分");
                 }
 
+                if (_dal.IsReceiptRefined(receipt.ItemCategories))
+                {
+                    return (false, "该入库单已完成细分，请直接执行入库");
+                }
+
                 var originalCategories = JsonConvert.DeserializeObject<List<WarehouseReceiptCategoryItemViewModel>>(
                     string.IsNullOrWhiteSpace(receipt.ItemCategories) ? "[]" : receipt.ItemCategories) ?? new List<WarehouseReceiptCategoryItemViewModel>();
 
