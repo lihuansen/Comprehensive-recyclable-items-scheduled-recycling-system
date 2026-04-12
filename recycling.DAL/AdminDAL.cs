@@ -617,7 +617,8 @@ namespace recycling.DAL
                     FullName = @FullName,
                     Region = @Region,
                     Available = @Available,
-                    IsActive = @IsActive
+                    IsActive = @IsActive,
+                    PasswordHash = @PasswordHash
                     WHERE RecyclerID = @RecyclerID";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
@@ -628,6 +629,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@Region", recycler.Region);
                 cmd.Parameters.AddWithValue("@Available", recycler.Available);
                 cmd.Parameters.AddWithValue("@IsActive", recycler.IsActive);
+                cmd.Parameters.AddWithValue("@PasswordHash", recycler.PasswordHash ?? (object)DBNull.Value);
 
                 return cmd.ExecuteNonQuery() > 0;
             }
@@ -2129,7 +2131,8 @@ namespace recycling.DAL
                     Region = @Region,
                     Available = @Available,
                     CurrentStatus = @CurrentStatus,
-                    IsActive = @IsActive
+                    IsActive = @IsActive,
+                    PasswordHash = @PasswordHash
                     WHERE TransporterID = @TransporterID";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
@@ -2142,6 +2145,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@Available", transporter.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", transporter.CurrentStatus ?? "空闲");
                 cmd.Parameters.AddWithValue("@IsActive", transporter.IsActive);
+                cmd.Parameters.AddWithValue("@PasswordHash", transporter.PasswordHash ?? (object)DBNull.Value);
 
                 return cmd.ExecuteNonQuery() > 0;
             }
@@ -2646,7 +2650,8 @@ namespace recycling.DAL
                     SortingCenterName = @SortingCenterName,
                     Available = @Available,
                     CurrentStatus = @CurrentStatus,
-                    IsActive = @IsActive
+                    IsActive = @IsActive,
+                    PasswordHash = @PasswordHash
                     WHERE WorkerID = @WorkerID";
 
                 SqlCommand cmd = new SqlCommand(sql, conn);
@@ -2660,6 +2665,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
                 cmd.Parameters.AddWithValue("@IsActive", worker.IsActive);
+                cmd.Parameters.AddWithValue("@PasswordHash", worker.PasswordHash ?? (object)DBNull.Value);
 
                 return cmd.ExecuteNonQuery() > 0;
             }

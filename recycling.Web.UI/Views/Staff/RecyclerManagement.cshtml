@@ -609,7 +609,8 @@ function editRecycler(recycler) {
     $('#region').val(recycler.Region);
     $('#available').prop('checked', recycler.Available);
     $('#isActive').prop('checked', recycler.IsActive);
-    $('#passwordGroup').hide();
+    $('#password').val('');
+    $('#passwordGroup').show();
     $('#recyclerModal').modal('show');
 }
 
@@ -626,7 +627,7 @@ function saveRecycler() {
         return;
     }
 
-    if (!id && !password) {
+    if (!password) {
         alert('密码不能为空');
         return;
     }
@@ -655,7 +656,7 @@ function saveRecycler() {
         Available: $('#available').is(':checked'),
         IsActive: $('#isActive').is(':checked')
     };
-    if (!id) data.password = password;
+    data.password = password;
     
     $.ajax({
         url: id ? '@Url.Action("UpdateRecycler", "Staff")' : '@Url.Action("AddRecycler", "Staff")',

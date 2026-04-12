@@ -723,7 +723,8 @@ function editWorker(worker) {
     $('#currentStatus').val(worker.CurrentStatus);
     $('#available').prop('checked', worker.Available);
     $('#isActive').prop('checked', worker.IsActive);
-    $('#passwordGroup').hide();
+    $('#password').val('');
+    $('#passwordGroup').show();
     $('#workerModal').modal('show');
 }
 
@@ -732,7 +733,7 @@ function saveWorker() {
     var username = $.trim($('#username').val());
     var phoneNumber = $.trim($('#phoneNumber').val());
     var idNumber = $.trim($('#idNumber').val());
-    var password = $('#password').val();
+    var password = $.trim($('#password').val());
     var chinaMobileRegex = /^1[3-9]\d{9}$/;
     var chinaId15Regex = /^[1-9]\d{5}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}$/;
     var chinaId18Regex = /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/;
@@ -742,7 +743,7 @@ function saveWorker() {
         return;
     }
 
-    if (!id && !$.trim(password)) {
+    if (!password) {
         alert('密码不能为空');
         return;
     }
@@ -779,7 +780,7 @@ function saveWorker() {
         Available: $('#available').is(':checked'),
         IsActive: $('#isActive').is(':checked')
     };
-    if (!id) data.password = password;
+    data.password = password;
     data.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
     
     $.ajax({

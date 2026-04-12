@@ -2647,11 +2647,11 @@ namespace recycling.Web.UI.Controllers
         /// 管理员 - 更新回收员信息（API）
         /// </summary>
         [HttpPost]
-        public JsonResult UpdateRecycler(Recyclers recycler)
+        public JsonResult UpdateRecycler(Recyclers recycler, string password)
         {
             try
             {
-                var result = _adminBLL.UpdateRecycler(recycler);
+                var result = _adminBLL.UpdateRecycler(recycler, password);
                 
                 // 记录操作日志
                 LogAdminOperation(OperationLogBLL.Modules.RecyclerManagement, OperationLogBLL.OperationTypes.Update, 
@@ -4311,11 +4311,11 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult UpdateTransporter(Transporters transporter)
+        public JsonResult UpdateTransporter(Transporters transporter, string password)
         {
             try
             {
-                var result = _adminBLL.UpdateTransporter(transporter);
+                var result = _adminBLL.UpdateTransporter(transporter, password);
                 
                 LogAdminOperation("TransporterManagement", OperationLogBLL.OperationTypes.Update, 
                     result.Success ? $"更新运输人员信息：{transporter.Username}" : $"更新运输人员信息失败：{transporter.Username}", 
@@ -4523,11 +4523,11 @@ namespace recycling.Web.UI.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult UpdateSortingCenterWorker(SortingCenterWorkers worker)
+        public JsonResult UpdateSortingCenterWorker(SortingCenterWorkers worker, string password)
         {
             try
             {
-                var result = _adminBLL.UpdateSortingCenterWorker(worker);
+                var result = _adminBLL.UpdateSortingCenterWorker(worker, password);
                 
                 LogAdminOperation("SortingCenterWorkerManagement", OperationLogBLL.OperationTypes.Update, 
                     result.Success ? $"更新基地人员信息：{worker.Username}" : $"更新基地人员信息失败：{worker.Username}", 
