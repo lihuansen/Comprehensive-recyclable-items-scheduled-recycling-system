@@ -238,7 +238,7 @@ namespace recycling.Web.UI.Controllers
                 // 2. 调用BLL层生成并发送验证码（真实发送到邮箱）
                 bool isSent = _userBLL.GenerateAndSendEmailCode(email);
 
-                // 3. 测试环境仍返回验证码（便于调试）
+                // 3. 测试环境仍获取验证码（便于调试）
                 string debugCode = _userBLL.GetVerificationCodeForTest(email);
                 bool hasDebugCode = !string.IsNullOrWhiteSpace(debugCode);
 
