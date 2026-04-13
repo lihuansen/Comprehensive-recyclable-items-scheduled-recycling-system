@@ -10,6 +10,23 @@
         background-color: #3498db;
         color: white;
     }
+
+    .order-list-pagination {
+        display: none;
+        margin-top: 12px;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .order-list-pagination .btn {
+        white-space: nowrap;
+    }
+
+    .order-list-page-info {
+        color: #6c757d;
+        font-size: 12px;
+    }
 </style>
 
 <h3>消息中心 - 与已接收订单用户对话</h3>
@@ -53,6 +70,13 @@
                 }
             }
         </div>
+        <div id="orderListPagination" class="order-list-pagination">
+            <button type="button" id="btnOrderFirstPage" class="btn btn-default btn-sm" onclick="changeOrderListPage(1)">首页</button>
+            <button type="button" id="btnOrderPrevPage" class="btn btn-default btn-sm" onclick="changeOrderListPage(orderListCurrentPage - 1)">上一页</button>
+            <span id="orderListPageInfo" class="order-list-page-info"></span>
+            <button type="button" id="btnOrderNextPage" class="btn btn-default btn-sm" onclick="changeOrderListPage(orderListCurrentPage + 1)">下一页</button>
+            <button type="button" id="btnOrderLastPage" class="btn btn-default btn-sm" onclick="changeOrderListPage(orderListTotalPages)">最后一页</button>
+        </div>
     </div>
 
     <div class="col-md-8">
@@ -82,6 +106,9 @@
     var currentOrderId = null;
     var currentUserName = null;
     var refreshInterval = null;
+    var orderListCurrentPage = 1;
+    var orderListPageSize = 5;
+    var orderListTotalPages = 1;
 
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
@@ -132,7 +159,71 @@
                 if (e.key === 'Enter') sendConversationMessage();
             });
         }
+
+        initOrderListPagination();
     });
+
+    function getOrderListItems() {
+        return Array.from(document.querySelectorAll('#orderList .order-item'));
+    }
+
+    function initOrderListPagination() {
+        var items = getOrderListItems();
+        var total = items.length;
+        var pagination = document.getElementById('orderListPagination');
+
+        if (!pagination) return;
+
+        if (total <= orderListPageSize) {
+            orderListCurrentPage = 1;
+            orderListTotalPages = 1;
+            pagination.style.display = 'none';
+            items.forEach(function (item) { item.style.display = ''; });
+            return;
+        }
+
+        orderListTotalPages = Math.ceil(total / orderListPageSize);
+        pagination.style.display = 'flex';
+        renderOrderListPage(orderListCurrentPage);
+    }
+
+    function changeOrderListPage(page) {
+        renderOrderListPage(page);
+    }
+
+    function renderOrderListPage(page) {
+        var items = getOrderListItems();
+        var total = items.length;
+        var pagination = document.getElementById('orderListPagination');
+        var pageInfo = document.getElementById('orderListPageInfo');
+        var btnFirst = document.getElementById('btnOrderFirstPage');
+        var btnPrev = document.getElementById('btnOrderPrevPage');
+        var btnNext = document.getElementById('btnOrderNextPage');
+        var btnLast = document.getElementById('btnOrderLastPage');
+
+        if (!pagination || total <= orderListPageSize) {
+            if (pagination) pagination.style.display = 'none';
+            items.forEach(function (item) { item.style.display = ''; });
+            return;
+        }
+
+        orderListTotalPages = Math.max(1, Math.ceil(total / orderListPageSize));
+        orderListCurrentPage = Math.min(Math.max(1, page || 1), orderListTotalPages);
+        var startIndex = (orderListCurrentPage - 1) * orderListPageSize;
+        var endIndex = startIndex + orderListPageSize;
+
+        items.forEach(function (item, index) {
+            item.style.display = (index >= startIndex && index < endIndex) ? '' : 'none';
+        });
+
+        if (pageInfo) {
+            pageInfo.textContent = '第 ' + orderListCurrentPage + ' / ' + orderListTotalPages + ' 页 (共 ' + total + ' 条)';
+        }
+        if (btnFirst) btnFirst.disabled = orderListCurrentPage <= 1;
+        if (btnPrev) btnPrev.disabled = orderListCurrentPage <= 1;
+        if (btnNext) btnNext.disabled = orderListCurrentPage >= orderListTotalPages;
+        if (btnLast) btnLast.disabled = orderListCurrentPage >= orderListTotalPages;
+    }
 
     function openConversation(orderId, userName) {
         currentOrderId = orderId;

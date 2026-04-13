@@ -195,6 +195,7 @@
 
     .pagination-container .btn {
         margin: 0 5px;
+        white-space: nowrap;
     }
 
     .loading-spinner {
@@ -232,12 +233,18 @@
     </div>
 
     <div class="pagination-container" id="paginationContainer" style="display: none;">
+        <button id="btnFirstPage" class="btn btn-outline-secondary btn-sm" onclick="loadNotifications(1)" disabled>
+            首页
+        </button>
         <button id="btnPrevPage" class="btn btn-outline-secondary btn-sm" onclick="loadNotifications(currentPage - 1)" disabled>
             <i class="fas fa-chevron-left"></i> 上一页
         </button>
         <span id="pageInfo" style="margin: 0 15px; line-height: 32px;"></span>
         <button id="btnNextPage" class="btn btn-outline-secondary btn-sm" onclick="loadNotifications(currentPage + 1)" disabled>
             下一页 <i class="fas fa-chevron-right"></i>
+        </button>
+        <button id="btnLastPage" class="btn btn-outline-secondary btn-sm" onclick="loadNotifications(totalPages)" disabled>
+            最后一页
         </button>
     </div>
 </div>
@@ -246,7 +253,7 @@
     <script>
         var currentPage = 1;
         var totalPages = 1;
-        var pageSize = 10;
+        var pageSize = 5;
         var currentFilter = 'all';
         var antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
@@ -391,15 +398,19 @@
         function updatePagination(total, current, pages) {
             var paginationContainer = document.getElementById('paginationContainer');
             var pageInfo = document.getElementById('pageInfo');
+            var btnFirst = document.getElementById('btnFirstPage');
             var btnPrev = document.getElementById('btnPrevPage');
             var btnNext = document.getElementById('btnNextPage');
+            var btnLast = document.getElementById('btnLastPage');
 
             if (total > pageSize) {
                 paginationContainer.style.display = 'flex';
                 pageInfo.textContent = '第 ' + current + ' 页 / 共 ' + pages + ' 页 (共 ' + total + ' 条)';
 
+                btnFirst.disabled = current <= 1;
                 btnPrev.disabled = current <= 1;
                 btnNext.disabled = current >= pages;
+                btnLast.disabled = current >= pages;
             } else {
                 paginationContainer.style.display = 'none';
             }

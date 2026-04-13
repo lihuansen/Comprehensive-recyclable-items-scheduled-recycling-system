@@ -165,6 +165,41 @@
         gap: 20px;
     }
 
+    .order-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .order-pagination-btn {
+        border: 1px solid #dee2e6;
+        background: #fff;
+        color: #495057;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 13px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+        .order-pagination-btn:hover:not(:disabled) {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .order-pagination-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .order-pagination-info {
+        color: #6c757d;
+        font-size: 13px;
+    }
+
     .order-item {
         background: white;
         border: 2px solid #f8f9fa;
@@ -810,6 +845,9 @@
 @section Scripts {
     <script>
         // 全局函数：显示消息提示
+        const orderPageSize = 5;
+        const orderPageState = {};
+
         function showAlert(message, type) {
             const alertContainer = document.getElementById('alertContainer');
             const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
@@ -855,8 +893,9 @@
         }
 
         // 全局函数：加载订单数据
-        function loadOrdersByStatus(status) {
+        function loadOrdersByStatus(status, page) {
             console.log(`加载 ${status} 状态的订单数据`);
+            orderPageState[status] = page || 1;
 
             const currentSection = document.getElementById(`${status}-orders`);
 
@@ -939,9 +978,16 @@
                 return;
             }
 
+            const totalOrders = orders.length;
+            const totalPages = Math.max(1, Math.ceil(totalOrders / orderPageSize));
+            const currentPage = Math.min(orderPageState[status] || 1, totalPages);
+            orderPageState[status] = currentPage;
+            const startIndex = (currentPage - 1) * orderPageSize;
+            const pagedOrders = orders.slice(startIndex, startIndex + orderPageSize);
+
             let ordersHTML = '<div class="order-list">';
 
-            orders.forEach(order => {
+            pagedOrders.forEach(order => {
                 // 根据订单状态显示不同的操作按钮
                 let actionButtons = '';
 
@@ -1075,7 +1121,26 @@
             });
 
             ordersHTML += '</div>';
+            if (totalOrders > orderPageSize) {
+                ordersHTML += renderOrderPagination(status, currentPage, totalPages, totalOrders);
+            }
             container.innerHTML = ordersHTML;
+        }
+
+        function renderOrderPagination(status, currentPage, totalPages, totalOrders) {
+            return `
+                <div class="order-pagination">
+                    <button class="order-pagination-btn" onclick="changeOrderPage('${status}', 1)" ${currentPage <= 1 ? 'disabled' : ''}>首页</button>
+                    <button class="order-pagination-btn" onclick="changeOrderPage('${status}', ${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>上一页</button>
+                    <span class="order-pagination-info">第 ${currentPage} / ${totalPages} 页（共 ${totalOrders} 条）</span>
+                    <button class="order-pagination-btn" onclick="changeOrderPage('${status}', ${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>下一页</button>
+                    <button class="order-pagination-btn" onclick="changeOrderPage('${status}', ${totalPages})" ${currentPage >= totalPages ? 'disabled' : ''}>最后一页</button>
+                </div>
+            `;
+        }
+
+        function changeOrderPage(status, page) {
+            loadOrdersByStatus(status, page);
         }
 
         // 全局函数：显示错误信息
