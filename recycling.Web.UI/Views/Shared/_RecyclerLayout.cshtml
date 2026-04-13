@@ -434,17 +434,8 @@
                     updateRecyclerMessageBadge();
                 }
 
-                // 更高频率自动更新，提升实时性
-                setInterval(updateRecyclerMessageBadge, 15000);
-
-                // 页面重新可见/激活时立即刷新
-                document.addEventListener('visibilitychange', function () {
-                    if (!document.hidden) {
-                        updateRecyclerMessageBadge();
-                    }
-                });
-                window.addEventListener('focus', updateRecyclerMessageBadge);
-                window.addEventListener('online', updateRecyclerMessageBadge);
+                // 每分钟自动更新一次
+                setInterval(updateRecyclerMessageBadge, 60000);
 
                 // 暴露给全局作用域，方便其他地方调用
                 window.updateRecyclerMessageBadge = updateRecyclerMessageBadge;
@@ -496,15 +487,7 @@
                     updateRecyclerAllNavBadges();
                 }
 
-                setInterval(updateRecyclerAllNavBadges, 15000);
-
-                document.addEventListener('visibilitychange', function () {
-                    if (!document.hidden) {
-                        updateRecyclerAllNavBadges();
-                    }
-                });
-                window.addEventListener('focus', updateRecyclerAllNavBadges);
-                window.addEventListener('online', updateRecyclerAllNavBadges);
+                setInterval(updateRecyclerAllNavBadges, 60000);
 
                 window.updateRecyclerOrderNavBadge = updateRecyclerOrderNavBadge;
                 window.updateRecyclerStoragePointNavBadge = updateRecyclerStoragePointNavBadge;

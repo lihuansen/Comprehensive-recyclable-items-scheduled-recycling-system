@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
-using System.Linq;
 using recycling.Model;
 
 namespace recycling.DAL
@@ -1238,171 +1237,80 @@ namespace recycling.DAL
         }
 
         /// 完成运输（更新状态为已完成并记录完成时间）
-        public bool CompleteTransportation(int orderId, decimal? actualWeight, List<TransportationOrderCategories> actualCategories = null)
+        public bool CompleteTransportation(int orderId, decimal? actualWeight)
         {
             try
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-
-                    using (SqlTransaction transaction = conn.BeginTransaction())
+                    
+                    bool hasTransportStage = ColumnExistsInTable(conn, null, "TransportationOrders", "TransportStage");
+                    bool hasStage = ColumnExistsInTable(conn, null, "TransportationOrders", "Stage");
+                    bool hasDeliveryDate = ColumnExistsInTable(conn, null, "TransportationOrders", "DeliveryDate");
+                    bool hasCompletedDate = ColumnExistsInTable(conn, null, "TransportationOrders", "CompletedDate");
+                    
+                    List<string> setClauses = new List<string>();
+                    setClauses.Add("Status = N'已完成'");
+                    
+                    if (hasDeliveryDate)
                     {
-                        try
+                        setClauses.Add("DeliveryDate = @DeliveryDate");
+                    }
+                    
+                    if (hasCompletedDate)
+                    {
+                        setClauses.Add("CompletedDate = @CompletedDate");
+                    }
+                    
+                    if (actualWeight.HasValue)
+                    {
+                        setClauses.Add("ActualWeight = @ActualWeight");
+                    }
+                    
+                    if (hasTransportStage)
+                    {
+                        setClauses.Add("TransportStage = NULL");
+                    }
+                    
+                    if (hasStage)
+                    {
+                        setClauses.Add("Stage = NULL");
+                    }
+                    
+                    string sql = "UPDATE TransportationOrders SET " + string.Join(", ", setClauses);
+                    sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
+                    
+                    if (hasStage)
+                    {
+                        sql += " AND (Stage = N'到达送货地点' OR Stage IS NULL)";
+                    }
+                    else if (hasTransportStage)
+                    {
+                        sql += " AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
+                    }
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@OrderID", orderId);
+                        
+                        if (hasDeliveryDate)
                         {
-                            bool hasTransportStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "TransportStage");
-                            bool hasStage = ColumnExistsInTable(conn, transaction, "TransportationOrders", "Stage");
-                            bool hasDeliveryDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "DeliveryDate");
-                            bool hasCompletedDate = ColumnExistsInTable(conn, transaction, "TransportationOrders", "CompletedDate");
-
-                            if (actualCategories != null && actualCategories.Count > 0 && !actualWeight.HasValue)
-                            {
-                                actualWeight = Math.Round(actualCategories.Sum(c => c?.Weight ?? 0m), 2, MidpointRounding.AwayFromZero);
-                            }
-
-                            List<string> setClauses = new List<string>();
-                            setClauses.Add("Status = N'已完成'");
-
-                            if (hasDeliveryDate)
-                            {
-                                setClauses.Add("DeliveryDate = @DeliveryDate");
-                            }
-
-                            if (hasCompletedDate)
-                            {
-                                setClauses.Add("CompletedDate = @CompletedDate");
-                            }
-
-                            if (actualWeight.HasValue)
-                            {
-                                setClauses.Add("ActualWeight = @ActualWeight");
-                            }
-
-                            if (hasTransportStage)
-                            {
-                                setClauses.Add("TransportStage = NULL");
-                            }
-
-                            if (hasStage)
-                            {
-                                setClauses.Add("Stage = NULL");
-                            }
-
-                            string sql = "UPDATE TransportationOrders SET " + string.Join(", ", setClauses);
-                            sql += " WHERE TransportOrderID = @OrderID AND Status = N'运输中'";
-
-                            if (hasStage)
-                            {
-                                sql += " AND (Stage = N'到达送货地点' OR Stage IS NULL)";
-                            }
-                            else if (hasTransportStage)
-                            {
-                                sql += " AND (TransportStage = N'到达送货地点' OR TransportStage IS NULL)";
-                            }
-
-                            int rowsAffected;
-                            using (SqlCommand cmd = new SqlCommand(sql, conn, transaction))
-                            {
-                                cmd.Parameters.AddWithValue("@OrderID", orderId);
-
-                                if (hasDeliveryDate)
-                                {
-                                    cmd.Parameters.AddWithValue("@DeliveryDate", DateTime.Now);
-                                }
-
-                                if (hasCompletedDate)
-                                {
-                                    cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
-                                }
-
-                                if (actualWeight.HasValue)
-                                {
-                                    cmd.Parameters.AddWithValue("@ActualWeight", actualWeight.Value);
-                                }
-
-                                rowsAffected = cmd.ExecuteNonQuery();
-                            }
-
-                            if (rowsAffected <= 0)
-                            {
-                                transaction.Rollback();
-                                return false;
-                            }
-
-                            if (actualCategories != null && actualCategories.Count > 0)
-                            {
-                                string checkTableSql = @"
-                                    SELECT COUNT(*)
-                                    FROM INFORMATION_SCHEMA.TABLES
-                                    WHERE TABLE_NAME = 'TransportationOrderCategories'";
-                                bool categoriesTableExists;
-                                using (SqlCommand checkCmd = new SqlCommand(checkTableSql, conn, transaction))
-                                {
-                                    categoriesTableExists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
-                                }
-
-                                if (categoriesTableExists)
-                                {
-                                    foreach (var category in actualCategories.Where(c => c != null && c.Weight > 0))
-                                    {
-                                        string categoryKey = string.IsNullOrWhiteSpace(category.CategoryKey) ? "mixed" : category.CategoryKey.Trim();
-                                        string categoryName = string.IsNullOrWhiteSpace(category.CategoryName) ? "未分类" : category.CategoryName.Trim();
-                                        decimal weight = Math.Round(category.Weight, 2, MidpointRounding.AwayFromZero);
-                                        decimal pricePerKg = Math.Round(category.PricePerKg, 2, MidpointRounding.AwayFromZero);
-                                        decimal totalAmount = Math.Round(category.TotalAmount, 2, MidpointRounding.AwayFromZero);
-
-                                        string updateCategorySql = @"
-                                            UPDATE TransportationOrderCategories
-                                            SET CategoryName = @CategoryName,
-                                                Weight = @Weight,
-                                                PricePerKg = @PricePerKg,
-                                                TotalAmount = @TotalAmount
-                                            WHERE TransportOrderID = @OrderID
-                                              AND CategoryKey = @CategoryKey";
-                                        int categoryRows;
-                                        using (SqlCommand categoryCmd = new SqlCommand(updateCategorySql, conn, transaction))
-                                        {
-                                            categoryCmd.Parameters.AddWithValue("@CategoryName", categoryName);
-                                            categoryCmd.Parameters.AddWithValue("@Weight", weight);
-                                            categoryCmd.Parameters.AddWithValue("@PricePerKg", pricePerKg);
-                                            categoryCmd.Parameters.AddWithValue("@TotalAmount", totalAmount);
-                                            categoryCmd.Parameters.AddWithValue("@OrderID", orderId);
-                                            categoryCmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
-                                            categoryRows = categoryCmd.ExecuteNonQuery();
-                                        }
-
-                                        if (categoryRows <= 0)
-                                        {
-                                            string insertCategorySql = @"
-                                                INSERT INTO TransportationOrderCategories
-                                                (TransportOrderID, CategoryKey, CategoryName, Weight, PricePerKg, TotalAmount, CreatedDate)
-                                                VALUES
-                                                (@OrderID, @CategoryKey, @CategoryName, @Weight, @PricePerKg, @TotalAmount, @CreatedDate)";
-                                            using (SqlCommand insertCmd = new SqlCommand(insertCategorySql, conn, transaction))
-                                            {
-                                                insertCmd.Parameters.AddWithValue("@OrderID", orderId);
-                                                insertCmd.Parameters.AddWithValue("@CategoryKey", categoryKey);
-                                                insertCmd.Parameters.AddWithValue("@CategoryName", categoryName);
-                                                insertCmd.Parameters.AddWithValue("@Weight", weight);
-                                                insertCmd.Parameters.AddWithValue("@PricePerKg", pricePerKg);
-                                                insertCmd.Parameters.AddWithValue("@TotalAmount", totalAmount);
-                                                insertCmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
-                                                insertCmd.ExecuteNonQuery();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            transaction.Commit();
-                            return true;
+                            cmd.Parameters.AddWithValue("@DeliveryDate", DateTime.Now);
                         }
-                        catch (Exception txEx)
+                        
+                        if (hasCompletedDate)
                         {
-                            transaction.Rollback();
-                            System.Diagnostics.Debug.WriteLine($"CompleteTransportation transaction rollback: {txEx.Message}");
-                            throw;
+                            cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
                         }
+                        
+                        if (actualWeight.HasValue)
+                        {
+                            cmd.Parameters.AddWithValue("@ActualWeight", actualWeight.Value);
+                        }
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
                     }
                 }
             }

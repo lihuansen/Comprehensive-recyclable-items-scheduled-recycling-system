@@ -407,11 +407,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">实际入库总重量（kg）<span style="color: red;">*</span></label>
-                        <input type="number" class="form-control" id="totalWeightDisplayInput" step="0.01" readonly
-                               style="background-color: #f5f5f5;" />
-                        <input type="hidden" id="totalWeight" />
-                        <small style="color: #666;">总重量由下方各品类实际重量实时汇总</small>
+                        <label class="form-label">实际入库重量（kg）<span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="totalWeight" step="0.01" required 
+                               placeholder="请输入实际称重后的重量" />
+                        <small style="color: #666;">提示：可以修改为实际称重重量</small>
                     </div>
 
                     <div class="form-group">
@@ -422,7 +421,7 @@
                                 <thead>
                                     <tr style="border-bottom: 2px solid #ddd;">
                                         <th style="padding: 8px; text-align: left; font-weight: 600; color: #2c3e50;">品类名称</th>
-                                        <th style="padding: 8px; text-align: right; font-weight: 600; color: #2c3e50;">实际重量（kg）</th>
+                                        <th style="padding: 8px; text-align: right; font-weight: 600; color: #2c3e50;">重量（kg）</th>
                                         <th style="padding: 8px; text-align: right; font-weight: 600; color: #2c3e50;">价值（元）</th>
                                     </tr>
                                 </thead>
@@ -443,7 +442,7 @@
                             </table>
                         </div>
                         <small style="color: #666; display: block; margin-top: 8px;">
-                            <i class="fas fa-edit"></i> 物品类别由运输单自动带出，可逐项填写实际重量，系统自动汇总
+                            <i class="fas fa-lock"></i> 物品类别从运输单自动获取，不可修改
                         </small>
                     </div>
 
@@ -1085,8 +1084,7 @@
                     
                     var estimatedWeight = orderData.EstimatedWeight || 0;
                     $('#estimatedWeightDisplay').val(estimatedWeight);
-                    $('#totalWeight').val('');
-                    $('#totalWeightDisplayInput').val('');
+                    $('#totalWeight').val(estimatedWeight); // 默认使用预估重量，可修改
                     
                     // 从缓存中获取ItemCategories（避免HTML属性编码问题）
                     var itemCategories = orderData.ItemCategories || '';
@@ -1122,8 +1120,6 @@
                 '<i class="fas fa-info-circle"></i> 无类别信息</td></tr>'
             );
             tableFooter.hide();
-            $('#totalWeight').val('');
-            $('#totalWeightDisplayInput').val('');
             return;
         }
         
@@ -1135,8 +1131,6 @@
                     '<i class="fas fa-info-circle"></i> 无类别信息</td></tr>'
                 );
                 tableFooter.hide();
-                $('#totalWeight').val('');
-                $('#totalWeightDisplayInput').val('');
                 return;
             }
             
@@ -1145,20 +1139,17 @@
             
             // 为每个类别创建一行
             categories.forEach(function(cat, index) {
-                var weight = parseFloat(cat.weight || cat.Weight || 0);
-                var price = parseFloat(cat.price || cat.Price || cat.totalAmount || cat.TotalAmount || 0);
+                var weight = parseFloat(cat.weight || 0);
+                var price = parseFloat(cat.price || 0);
                 
                 totalWeight += weight;
                 totalPrice += price;
                 
-                var categoryName = $('<div>').text(cat.categoryName || cat.CategoryName || FALLBACK_TEXT.UNKNOWN_CATEGORY).html();
+                var categoryName = $('<div>').text(cat.categoryName || FALLBACK_TEXT.UNKNOWN_CATEGORY).html();
                 
                 var row = '<tr style="border-bottom: 1px solid #e0e0e0;">' +
                     '<td style="padding: 10px; color: #2c3e50;"><i class="fas fa-box" style="margin-right: 5px; color: #27ae60;"></i>' + categoryName + '</td>' +
-                    '<td style="padding: 10px; text-align: right;">' +
-                    '<input type="number" class="form-control category-actual-weight" ' +
-                    'data-index="' + index + '" style="text-align:right; display:inline-block; width:120px;" min="0.01" step="0.01" value="' + weight.toFixed(2) + '" />' +
-                    '</td>' +
+                    '<td style="padding: 10px; text-align: right; color: #555; font-weight: 500;">' + weight.toFixed(2) + '</td>' +
                     '<td style="padding: 10px; text-align: right; color: #555; font-weight: 500;">¥' + price.toFixed(2) + '</td>' +
                     '</tr>';
                 
@@ -1169,13 +1160,6 @@
             $('#totalWeightDisplay').text(totalWeight.toFixed(2));
             $('#totalPriceDisplay').text('¥' + totalPrice.toFixed(2));
             tableFooter.show();
-            $('#totalWeight').val(totalWeight.toFixed(2));
-            $('#totalWeightDisplayInput').val(totalWeight.toFixed(2));
-
-            $('.category-actual-weight').off('input').on('input', function () {
-                syncCategoriesWeightAndTotals();
-            });
-            syncCategoriesWeightAndTotals();
             
         } catch (e) {
             tableBody.html(
@@ -1184,57 +1168,7 @@
             );
             tableFooter.hide();
             console.error('解析类别数据失败:', e);
-            $('#totalWeight').val('');
-            $('#totalWeightDisplayInput').val('');
         }
-    }
-
-    function syncCategoriesWeightAndTotals() {
-        var currentCategories = $('#itemCategories').val();
-        if (!currentCategories) {
-            return;
-        }
-
-        var categories;
-        try {
-            categories = JSON.parse(currentCategories);
-            if (!Array.isArray(categories)) {
-                console.error('品类数据不是数组格式');
-                return;
-            }
-        } catch (e) {
-            console.error('解析品类数据失败:', e);
-            return;
-        }
-
-        var totalWeight = 0;
-        var totalPrice = 0;
-
-        $('.category-actual-weight').each(function () {
-            var index = parseInt($(this).attr('data-index'), 10);
-            var item = categories[index];
-            if (!item) {
-                return;
-            }
-
-            var inputWeight = parseFloat($(this).val());
-            var weight = (!isNaN(inputWeight) && inputWeight > 0) ? inputWeight : 0;
-            item.weight = parseFloat(weight.toFixed(2));
-
-            var pricePerKg = parseFloat(item.pricePerKg || item.PricePerKg || 0);
-            var amount = pricePerKg > 0 ? (weight * pricePerKg) : (parseFloat(item.price || item.Price || item.totalAmount || item.TotalAmount || 0) || 0);
-            item.totalAmount = parseFloat(amount.toFixed(2));
-            item.price = parseFloat(amount.toFixed(2));
-
-            totalWeight += weight;
-            totalPrice += amount;
-        });
-
-        $('#itemCategories').val(JSON.stringify(categories));
-        $('#totalWeightDisplay').text(totalWeight.toFixed(2));
-        $('#totalPriceDisplay').text('¥' + totalPrice.toFixed(2));
-        $('#totalWeight').val(totalWeight.toFixed(2));
-        $('#totalWeightDisplayInput').val(totalWeight.toFixed(2));
     }
 
     // 取消选择
@@ -1248,7 +1182,6 @@
         }
         $('.transit-order-item').removeClass('selected');
         $('#createReceiptForm')[0].reset();
-        $('#totalWeightDisplayInput').val('');
         
         // 重置品类表格
         $('#categoriesTableBody').html(
@@ -1261,14 +1194,13 @@
     // 创建入库单
     function createReceipt() {
         var orderId = $('#selectedTransportOrderId').val();
-        syncCategoriesWeightAndTotals();
         var weight = $('#totalWeight').val();
         var categories = $('#itemCategories').val();
         var notes = $('#notes').val();
 
         // 验证必填项
         if (!orderId || !weight || weight <= 0) {
-            alert('请填写完整信息：运输单和各品类实际重量为必填项');
+            alert('请填写完整信息：运输单和重量为必填项');
             return;
         }
 

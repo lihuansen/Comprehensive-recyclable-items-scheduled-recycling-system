@@ -178,47 +178,6 @@ namespace recycling.BLL
                     System.Diagnostics.Debug.WriteLine($"获取品类详细信息失败: {ex.Message}，使用传入的itemCategories");
                 }
 
-                // 4.1 按各品类重量重新计算总重量，避免“只填总重量”导致数据不一致
-                decimal calculatedTotalWeight = 0m;
-                if (!string.IsNullOrWhiteSpace(finalItemCategories))
-                {
-                    try
-                    {
-                        var categoryDictList = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(finalItemCategories) ?? new List<Dictionary<string, object>>();
-                        foreach (var category in categoryDictList)
-                        {
-                            if (category == null) continue;
-                            var weight = 0m;
-                            if (category.ContainsKey("weight") && category["weight"] != null)
-                            {
-                                decimal.TryParse(category["weight"].ToString(), out weight);
-                            }
-                            else if (category.ContainsKey("Weight") && category["Weight"] != null)
-                            {
-                                decimal.TryParse(category["Weight"].ToString(), out weight);
-                            }
-
-                            if (weight > 0)
-                            {
-                                calculatedTotalWeight += Math.Round(weight, 2, MidpointRounding.AwayFromZero);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"计算品类总重量失败，回退传入总重量: {ex.Message}");
-                    }
-                }
-
-                if (calculatedTotalWeight > 0)
-                {
-                    totalWeight = calculatedTotalWeight;
-                }
-                else if (totalWeight <= 0)
-                {
-                    return (false, "入库重量必须大于0", 0, null);
-                }
-
                 // 5. 创建入库单（状态为"待入库"）
                 var receipt = new WarehouseReceipts
                 {
