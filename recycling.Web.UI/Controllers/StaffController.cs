@@ -52,15 +52,6 @@ namespace recycling.Web.UI.Controllers
             public bool? IsActive { get; set; }
         }
 
-        public class TransportCategoryWeightInputModel
-        {
-            public string categoryKey { get; set; }
-            public string categoryName { get; set; }
-            public decimal weight { get; set; }
-            public decimal? pricePerKg { get; set; }
-            public decimal? totalAmount { get; set; }
-        }
-
         // 上传文件扩展名白名单
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
         private static readonly string[] AllowedVideoExtensions = { ".mp4", ".webm", ".ogg" };
@@ -550,37 +541,6 @@ namespace recycling.Web.UI.Controllers
                     status
                 );
 
-                // 优先返回结构化品类数据，便于运输完成时按品类填写实际重量
-                var orderCategoriesJsonMap = new Dictionary<int, string>();
-                try
-                {
-                    var categoriesDal = new TransportationOrderCategoriesDAL();
-                    if (categoriesDal.TableExists())
-                    {
-                        foreach (var order in orders)
-                        {
-                            var categories = categoriesDal.GetCategoriesByTransportOrderId(order.TransportOrderID);
-                            if (categories != null && categories.Count > 0)
-                            {
-                                var categoryPayload = categories.Select(c => new
-                                {
-                                    categoryKey = c.CategoryKey,
-                                    categoryName = c.CategoryName,
-                                    weight = c.Weight,
-                                    pricePerKg = c.PricePerKg,
-                                    totalAmount = c.TotalAmount,
-                                    price = c.TotalAmount
-                                }).ToList();
-                                orderCategoriesJsonMap[order.TransportOrderID] = JsonConvert.SerializeObject(categoryPayload);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"读取运输单结构化品类失败: {ex.Message}");
-                }
-
                 // 获取所有订单用于计算统计数据
                 // Note: 当筛选状态时，这会产生额外的数据库查询，但确保统计数据始终准确
                 // 对于运输人员通常不会有大量订单，这个开销是可接受的
@@ -610,9 +570,7 @@ namespace recycling.Web.UI.Controllers
                         o.ContactPhone,
                         o.EstimatedWeight,
                         o.ActualWeight,
-                        ItemCategories = orderCategoriesJsonMap.ContainsKey(o.TransportOrderID)
-                            ? orderCategoriesJsonMap[o.TransportOrderID]
-                            : o.ItemCategories,
+                        o.ItemCategories,
                         o.SpecialInstructions,
                         o.Status,
                         Stage = !string.IsNullOrEmpty(o.Stage) ? o.Stage : o.TransportStage,
@@ -743,7 +701,7 @@ namespace recycling.Web.UI.Controllers
         /// 完成运输（AJAX）
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult CompleteTransport(int orderId, decimal? actualWeight, string actualCategoriesJson = null)
+        public JsonResult CompleteTransport(int orderId, decimal? actualWeight)
         {
             try
             {
@@ -768,36 +726,8 @@ namespace recycling.Web.UI.Controllers
                     return Json(new { success = false, message = $"运输阶段不正确，当前阶段为{currentStage}，必须先完成前面的步骤" });
                 }
 
-                List<TransportationOrderCategories> actualCategories = null;
-                if (!string.IsNullOrWhiteSpace(actualCategoriesJson))
-                {
-                    var parsedCategories = JsonConvert.DeserializeObject<List<TransportCategoryWeightInputModel>>(actualCategoriesJson) ?? new List<TransportCategoryWeightInputModel>();
-                    actualCategories = parsedCategories
-                        .Where(c => c != null && c.weight > 0 && !string.IsNullOrWhiteSpace(c.categoryName))
-                        .Select(c =>
-                        {
-                            var roundedWeight = Math.Round(c.weight, 2, MidpointRounding.AwayFromZero);
-                            var roundedPricePerKg = Math.Round(c.pricePerKg ?? 0m, 2, MidpointRounding.AwayFromZero);
-                            var roundedAmount = Math.Round(c.totalAmount ?? (roundedWeight * roundedPricePerKg), 2, MidpointRounding.AwayFromZero);
-                            return new TransportationOrderCategories
-                            {
-                                CategoryKey = string.IsNullOrWhiteSpace(c.categoryKey) ? "mixed" : c.categoryKey.Trim(),
-                                CategoryName = c.categoryName.Trim(),
-                                Weight = roundedWeight,
-                                PricePerKg = roundedPricePerKg,
-                                TotalAmount = roundedAmount
-                            };
-                        })
-                        .ToList();
-
-                    if (actualCategories.Count == 0)
-                    {
-                        return Json(new { success = false, message = "请填写有效的各品类实际重量" });
-                    }
-                }
-
                 // 完成运输
-                bool result = _transportationOrderBLL.CompleteTransportation(orderId, actualWeight, actualCategories);
+                bool result = _transportationOrderBLL.CompleteTransportation(orderId, actualWeight);
 
                 if (result)
                 {
