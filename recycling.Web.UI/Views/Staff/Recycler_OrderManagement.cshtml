@@ -1704,12 +1704,12 @@ select.form-control::-ms-expand {
                     '</div>' +
                     '<div class="ver-field">' +
                         '<span class="ver-label">重量 (kg)</span>' +
-                        '<input type="number" class="ver-input ver-weight" placeholder="重量" min="0.01" step="0.01" required aria-required="true"' +
+                        '<input type="number" class="ver-input ver-weight" placeholder="请输入实际重量" min="0.01" step="0.01" required aria-required="true" aria-label="请输入实际重量（kg）"' +
                             (initWeight !== '' ? ' value="' + initWeight + '"' : '') + ' />' +
                     '</div>' +
                     '<div class="ver-field">' +
                         '<span class="ver-label">金额 (元)</span>' +
-                        '<input type="number" class="ver-input ver-price" placeholder="手动填写金额" min="0" step="0.01" required aria-required="true" />' +
+                        '<input type="number" class="ver-input ver-price" placeholder="请输入实际回收金额" min="0" step="0.01" required aria-required="true" aria-label="请输入实际回收金额（元）" />' +
                     '</div>' +
                 '</div>';
 
