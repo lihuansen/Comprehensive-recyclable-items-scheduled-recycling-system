@@ -443,35 +443,59 @@ function renderCategoryPieChart(categories) {
         categoryPieChart.destroy();
     }
     
-    var categoryTranslations = {
+    var categoryAliasToKey = {
+        'glass': 'glass', '玻璃': 'glass',
+        'metal': 'metal', '金属': 'metal',
+        'plastic': 'plastic', '塑料': 'plastic',
+        'paper': 'paper', '纸类': 'paper', '纸张': 'paper', '废纸': 'paper',
+        'fabric': 'fabric', '纺织品': 'fabric',
+        'appliance': 'appliance', '家电': 'appliance',
+        'foam': 'foam', '泡沫': 'foam'
+    };
+    var categoryDisplayNames = {
         'glass': '玻璃',
         'metal': '金属',
         'plastic': '塑料',
-        'paper': '纸张',
+        'paper': '纸类',
         'fabric': '纺织品',
         'appliance': '家电',
         'foam': '泡沫'
     };
 
+    function normalizeCategoryToken(value) {
+        return (value || '').toString().trim().toLowerCase();
+    }
+
     var mergedMap = {};
     var mergedLabels = [];
     categories.forEach(function(c) {
         var rawName = (c.CategoryName || '').trim();
-        if (!rawName) return;
+        var rawKey = (c.CategoryKey || '').trim();
+        if (!rawName && !rawKey) return;
 
-        var categoryKey = rawName.toLowerCase();
-        var displayName = categoryTranslations[categoryKey] || rawName;
-        var weight = parseFloat(c.TotalWeight) || 0;
-
-        if (!Object.prototype.hasOwnProperty.call(mergedMap, displayName)) {
-            mergedMap[displayName] = 0;
-            mergedLabels.push(displayName);
+        var normalizedKey = normalizeCategoryToken(rawKey);
+        var normalizedName = normalizeCategoryToken(rawName);
+        if (!normalizedKey && !normalizedName) {
+            return;
         }
-        mergedMap[displayName] += weight;
+        var canonicalKey = categoryAliasToKey[normalizedKey] || categoryAliasToKey[normalizedName] || normalizedKey || normalizedName;
+        var displayName = categoryDisplayNames[canonicalKey] || rawName || rawKey;
+        var mergeKey = canonicalKey || displayName;
+        var weight = parseFloat(c.TotalWeight);
+        if (!isFinite(weight) || weight < 0) {
+            console.warn('分类回收占比存在无效重量数据，已忽略：', c);
+            return;
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(mergedMap, mergeKey)) {
+            mergedMap[mergeKey] = { label: displayName, weight: 0 };
+            mergedLabels.push(mergeKey);
+        }
+        mergedMap[mergeKey].weight += weight;
     });
 
-    var labels = mergedLabels;
-    var data = labels.map(function(label) { return mergedMap[label]; });
+    var labels = mergedLabels.map(function(key) { return mergedMap[key].label; });
+    var data = mergedLabels.map(function(key) { return mergedMap[key].weight; });
     if (labels.length === 0) {
         var fallbackContainer = canvas.parentElement;
         fallbackContainer.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>暂无分类回收数据</div>';
@@ -503,12 +527,12 @@ function renderCategoryPieChart(categories) {
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
-                            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                            var value = context.raw;
-                            var percentage = ((value / total) * 100).toFixed(1);
-                            return context.label + ': ' + value.toFixed(2) + ' kg (' + percentage + '%)';
-                        }
+                         label: function(context) {
+                             var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                             var value = context.raw;
+                             var percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                             return context.label + ': ' + value.toFixed(2) + ' kg (' + percentage + '%)';
+                         }
                     }
                 }
             }
