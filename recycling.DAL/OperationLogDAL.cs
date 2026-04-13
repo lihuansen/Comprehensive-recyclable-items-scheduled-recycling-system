@@ -210,7 +210,7 @@ namespace recycling.DAL
             return logs;
         }
 
-        #region Helper Methods
+        #region 辅助方法
 
         private void AddWhereParameters(SqlCommand cmd, string module, string operationType, DateTime? startDate, DateTime? endDate, string searchTerm)
         {

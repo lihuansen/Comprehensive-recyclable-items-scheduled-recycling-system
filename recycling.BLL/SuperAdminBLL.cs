@@ -18,7 +18,7 @@ namespace recycling.BLL
             _superAdminDAL = new SuperAdminDAL();
         }
 
-        #region SuperAdmin Management
+        #region 超级管理员管理
 
         /// 中文说明
         /// 分页获取所有超级管理员
@@ -138,7 +138,7 @@ namespace recycling.BLL
 
         #endregion
 
-        #region Helper Methods
+        #region 辅助方法
 
         /// 中文说明
         /// 使用SHA256算法哈希密码
@@ -158,7 +158,7 @@ namespace recycling.BLL
 
         #endregion
 
-        #region SuperAdmin Avatar Methods
+        #region 超级管理员头像方法
 
         /// 更新超级管理员头像
         public bool UpdateSuperAdminAvatar(int superAdminId, string avatarUrl)

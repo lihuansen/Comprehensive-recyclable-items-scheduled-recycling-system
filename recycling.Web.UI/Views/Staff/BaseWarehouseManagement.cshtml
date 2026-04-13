@@ -553,7 +553,7 @@
         </div>
     </div>
 
-    <!-- 库存信息显示区域 - Inventory Information Display Area -->
+    <!-- 库存信息显示区域 -->
     <div class="section-card" style="margin-top: 25px;">
         <div class="section-header">
             <h2 class="section-title">
@@ -569,7 +569,7 @@
             <p>加载中...</p>
         </div>
 
-        <!-- 库存汇总卡片 - Server-side rendered -->
+        <!-- 库存汇总卡片（服务端渲染） -->
         <div id="inventorySummaryCards" class="inventory-summary-grid">
             @if (Model != null && Model.InventorySummary != null && Model.InventorySummary.Any())
             {
@@ -619,7 +619,7 @@
     </div>
 
     <!-- 库存明细表格 - 独立的板块 -->
-    <!-- Inventory Details Table - Independent Section -->
+    <!-- 库存明细表（独立区域） -->
     <div class="section-card" style="margin-top: 25px;">
         <div id="inventoryDetailSection">
             <div class="section-header">
@@ -701,7 +701,7 @@
                     }
                 </div>
                 <div id="inventoryPagination" class="pagination-controls">
-                    <!-- Pagination will be inserted here by JavaScript for subsequent pages -->
+                    <!-- 后续分页由 JavaScript 动态插入此处 -->
                 </div>
             </div>
         </div>
@@ -822,32 +822,22 @@
     var currentWorkerID = @(((recycling.Model.SortingCenterWorkers)Session["LoginStaff"]).WorkerID);
     
     /**
-     * 运输单数据缓存
-      * 中文说明
-     * 
-      * 中文说明
-      * 中文说明
-      * 中文说明
-      * 中文说明
-     * 
-      * 中文说明
-      * 中文说明
-      * 中文说明
-      * 中文说明
-      * 中文说明
-      * 中文说明
+     * 运输单数据缓存。
+     *
+     * 作用：
+     * 1. 在运输单列表与入库单详情之间共享运输单基础信息。
+     * 2. 通过 TransportOrderID 快速回填回收员、运输员、时间等字段，避免重复请求。
+     *
+     * 结构示例：
+     * transportOrdersCache[transportOrderID] = {
+     *     TransportOrderID: 123,
      *     RecyclerName: "张三",
      *     TransporterName: "李四"
-     * }
-     * 
-      * 中文说明
-      * 中文说明
-      * 中文说明
-      * 中文说明
+     * };
      */
     var transportOrdersCache = {};
     
-    // 常量定义 - Constants for fallback text
+    // 回退文案常量（用于后端未返回完整字段时的兜底显示）
     var FALLBACK_TEXT = {
         UNKNOWN_RECYCLER: '未知',
         UNKNOWN_TRANSPORTER: '未知',
