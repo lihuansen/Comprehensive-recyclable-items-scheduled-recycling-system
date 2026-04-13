@@ -1199,9 +1199,11 @@
         try {
             categories = JSON.parse(currentCategories);
             if (!Array.isArray(categories)) {
+                console.error('品类数据不是数组格式');
                 return;
             }
         } catch (e) {
+            console.error('解析品类数据失败:', e);
             return;
         }
 

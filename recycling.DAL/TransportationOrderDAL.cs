@@ -1397,9 +1397,10 @@ namespace recycling.DAL
                             transaction.Commit();
                             return true;
                         }
-                        catch
+                        catch (Exception txEx)
                         {
                             transaction.Rollback();
+                            System.Diagnostics.Debug.WriteLine($"CompleteTransportation transaction rollback: {txEx.Message}");
                             throw;
                         }
                     }
