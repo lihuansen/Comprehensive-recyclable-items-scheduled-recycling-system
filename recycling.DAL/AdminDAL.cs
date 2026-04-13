@@ -602,7 +602,10 @@ namespace recycling.DAL
                     using (SqlCommand inProgressCmd = new SqlCommand(inProgressOrderSql, conn))
                     {
                         inProgressCmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                        int inProgressOrderCount = Convert.ToInt32(inProgressCmd.ExecuteScalar());
+                        object inProgressCountObj = inProgressCmd.ExecuteScalar();
+                        int inProgressOrderCount = inProgressCountObj == null || inProgressCountObj == DBNull.Value
+                            ? 0
+                            : Convert.ToInt32(inProgressCountObj);
                         if (inProgressOrderCount > 0)
                         {
                             throw new InvalidOperationException("无法删除该回收员：仍有进行中的订单，请先处理完相关订单。");
@@ -618,7 +621,10 @@ namespace recycling.DAL
                     using (SqlCommand inventoryCmd = new SqlCommand(storageInventorySql, conn))
                     {
                         inventoryCmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
-                        int storageInventoryCount = Convert.ToInt32(inventoryCmd.ExecuteScalar());
+                        object storageInventoryCountObj = inventoryCmd.ExecuteScalar();
+                        int storageInventoryCount = storageInventoryCountObj == null || storageInventoryCountObj == DBNull.Value
+                            ? 0
+                            : Convert.ToInt32(storageInventoryCountObj);
                         if (storageInventoryCount > 0)
                         {
                             throw new InvalidOperationException("无法删除该回收员：暂存点仍有库存，请先清空库存后再删除。");
