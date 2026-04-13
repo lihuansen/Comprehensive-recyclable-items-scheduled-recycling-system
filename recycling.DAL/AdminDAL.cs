@@ -11,6 +11,7 @@ namespace recycling.DAL
     public class AdminDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
+        private const string DefaultSortingCenterName = "深圳基地";
 
         #region 用户管理
 
@@ -2357,7 +2358,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
-                cmd.Parameters.AddWithValue("@SortingCenterName", "深圳基地");
+                cmd.Parameters.AddWithValue("@SortingCenterName", DefaultSortingCenterName);
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
                 cmd.Parameters.AddWithValue("@TotalItemsProcessed", 0);
@@ -2458,7 +2459,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
-                cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SortingCenterName", DefaultSortingCenterName);
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
                 cmd.Parameters.AddWithValue("@IsActive", worker.IsActive);
