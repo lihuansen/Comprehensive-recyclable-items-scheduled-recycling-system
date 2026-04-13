@@ -900,7 +900,7 @@ namespace recycling.DAL
                     
                     string sql = @"
                         SELECT 
-                            t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, 
+                            t.TransportOrderID, t.OrderNumber, t.EstimatedWeight, t.ActualWeight,
                             t.ItemCategories, t.Status, t.CreatedDate,
                             t.AssignedWorkerID, t.BaseContactPerson,
                             r.FullName AS RecyclerName,
@@ -934,7 +934,9 @@ namespace recycling.DAL
                                 {
                                     TransportOrderID = orderId,
                                     OrderNumber = reader["OrderNumber"].ToString(),
-                                    EstimatedWeight = Convert.ToDecimal(reader["EstimatedWeight"]),
+                                    EstimatedWeight = reader["ActualWeight"] == DBNull.Value
+                                        ? Convert.ToDecimal(reader["EstimatedWeight"])
+                                        : Convert.ToDecimal(reader["ActualWeight"]),
                                     ItemCategories = validatedItemCategories,
                                     CreatedDate = reader["CreatedDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CreatedDate"]),
                                     Status = reader["Status"].ToString(),
