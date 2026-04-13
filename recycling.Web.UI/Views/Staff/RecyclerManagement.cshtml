@@ -443,7 +443,12 @@ function renderCategoryPieChart(categories) {
         categoryPieChart.destroy();
     }
     
-    var labels = categories.map(function(c) { return c.CategoryName; });
+    var labels = categories.map(function(c) {
+        if (typeof c.CategoryName === 'string' && c.CategoryName.toLowerCase() === 'foam') {
+            return '泡沫';
+        }
+        return c.CategoryName;
+    });
     var data = categories.map(function(c) { return parseFloat(c.TotalWeight); });
     var colors = ['#4facfe', '#00f2fe', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#6c757d'];
     
