@@ -475,11 +475,15 @@ function renderCategoryPieChart(categories) {
 
         var normalizedKey = normalizeCategoryToken(rawKey);
         var normalizedName = normalizeCategoryToken(rawName);
+        if (!normalizedKey && !normalizedName) {
+            return;
+        }
         var canonicalKey = categoryAliasToKey[normalizedKey] || categoryAliasToKey[normalizedName] || normalizedKey || normalizedName;
         var displayName = categoryDisplayNames[canonicalKey] || rawName || rawKey;
         var mergeKey = canonicalKey || displayName;
         var weight = parseFloat(c.TotalWeight);
         if (!isFinite(weight) || weight < 0) {
+            console.warn('分类回收占比存在无效重量数据，已忽略：', c);
             return;
         }
 
