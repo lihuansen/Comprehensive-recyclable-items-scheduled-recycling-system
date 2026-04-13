@@ -802,11 +802,20 @@ namespace recycling.DAL
                 stats["WeeklyTrend"] = weeklyTrend;
 
                 cmd = new SqlCommand(@"
-                    SELECT ac.CategoryName, ISNULL(SUM(ac.Weight), 0) AS TotalWeight
+                    SELECT 
+                        LOWER(COALESCE(NULLIF(LTRIM(RTRIM(ac.CategoryKey)), ''), NULLIF(LTRIM(RTRIM(ac.CategoryName)), ''))) AS CategoryKey,
+                        COALESCE(NULLIF(LTRIM(RTRIM(ac.CategoryName)), ''), NULLIF(LTRIM(RTRIM(ac.CategoryKey)), '')) AS CategoryName,
+                        ISNULL(SUM(ISNULL(ac.Weight, 0)), 0) AS TotalWeight
                     FROM AppointmentCategories ac
                     INNER JOIN Appointments a ON ac.AppointmentID = a.AppointmentID
                     WHERE a.Status = N'已完成'
-                    GROUP BY ac.CategoryName
+                      AND (
+                            (ac.CategoryKey IS NOT NULL AND LTRIM(RTRIM(ac.CategoryKey)) <> '')
+                            OR (ac.CategoryName IS NOT NULL AND LTRIM(RTRIM(ac.CategoryName)) <> '')
+                      )
+                    GROUP BY 
+                        LOWER(COALESCE(NULLIF(LTRIM(RTRIM(ac.CategoryKey)), ''), NULLIF(LTRIM(RTRIM(ac.CategoryName)), ''))),
+                        COALESCE(NULLIF(LTRIM(RTRIM(ac.CategoryName)), ''), NULLIF(LTRIM(RTRIM(ac.CategoryKey)), ''))
                     ORDER BY TotalWeight DESC", conn);
 
                 var categoryDistribution = new List<Dictionary<string, object>>();
@@ -816,8 +825,9 @@ namespace recycling.DAL
                     {
                         categoryDistribution.Add(new Dictionary<string, object>
                         {
-                            ["CategoryName"] = reader.GetString(0),
-                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(1))
+                            ["CategoryKey"] = reader.IsDBNull(0) ? "" : reader.GetString(0),
+                            ["CategoryName"] = reader.IsDBNull(1) ? "" : reader.GetString(1),
+                            ["TotalWeight"] = Convert.ToDecimal(reader.GetValue(2))
                         });
                     }
                 }
