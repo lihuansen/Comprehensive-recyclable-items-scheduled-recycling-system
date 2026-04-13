@@ -13,7 +13,7 @@ namespace recycling.DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        #region SuperAdmin Management
+        #region 超级管理员管理
 
         /// 中文说明
         /// 分页获取所有超级管理员
@@ -392,7 +392,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region Helper Methods
+        #region 辅助方法
 
         /// 中文说明
         /// 从数据读取器映射超级管理员对象

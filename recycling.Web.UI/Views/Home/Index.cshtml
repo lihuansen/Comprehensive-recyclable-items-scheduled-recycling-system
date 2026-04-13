@@ -383,7 +383,7 @@
     @if (carouselItems.Count > 0)
     {
         <div id="homepageCarousel" class="carousel slide carousel-section" data-ride="carousel" data-interval="8000">
-            <!-- Indicators -->
+            <!-- 轮播指示器 -->
             @if (carouselItems.Count > 1)
             {
                 <ol class="carousel-indicators">
@@ -394,7 +394,7 @@
                 </ol>
             }
 
-            <!-- Wrapper for slides -->
+            <!-- 轮播项容器 -->
             <div class="carousel-inner">
                 @for (int i = 0; i < carouselItems.Count; i++)
                 {
@@ -425,7 +425,7 @@
                 }
             </div>
 
-            <!-- Controls -->
+            <!-- 轮播控制按钮 -->
             @if (carouselItems.Count > 1)
             {
                 <a class="left carousel-control" href="#homepageCarousel" data-slide="prev">

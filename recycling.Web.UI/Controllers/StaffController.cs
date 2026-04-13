@@ -2367,7 +2367,7 @@ namespace recycling.Web.UI.Controllers
 
 
 
-        #region Admin - User Management
+        #region 管理员 - 用户管理
 
         /// 管理员 - 用户管理页面
         [AdminPermission(AdminPermissions.UserManagement)]
@@ -2472,7 +2472,7 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region Admin - Recycler Management
+        #region 管理员 - 回收员管理
 
         /// 管理员 - 回收员管理页面
         [AdminPermission(AdminPermissions.RecyclerManagement)]
@@ -2691,7 +2691,7 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region Admin - Order Management
+        #region 管理员 - 订单管理
 
         /// 管理员 - 订单管理页面
         public ActionResult OrderManagement()
@@ -2736,7 +2736,7 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region SuperAdmin - Data Dashboard
+        #region 超级管理员 - 数据看板
 
         /// 超级管理员 - 数据看板页面
         public ActionResult DataDashboard()
@@ -2774,7 +2774,7 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region SuperAdmin - Admin Management
+        #region 超级管理员 - 管理员管理
 
         /// 超级管理员 - 管理员管理页面
         public ActionResult AdminManagement()
@@ -3000,7 +3000,7 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region SuperAdmin - SuperAdmin Account Management
+        #region 超级管理员 - 超级管理员账号管理
 
         /// 超级管理员 - 超级管理员账号管理页面
         public ActionResult SuperAdminAccountManagement()
@@ -3206,7 +3206,7 @@ namespace recycling.Web.UI.Controllers
 
         #endregion
 
-        #region Admin Homepage Management
+        #region 管理员首页管理
 
         /// 中文说明
         [AdminPermission(AdminPermissions.HomepageManagement)]

@@ -63,7 +63,7 @@ namespace recycling.BLL
             return _logDAL.GetLogsForExport(module, operationType, startDate, endDate, searchTerm);
         }
 
-        #region Module Constants
+        #region 模块常量
 
         public static class Modules
         {

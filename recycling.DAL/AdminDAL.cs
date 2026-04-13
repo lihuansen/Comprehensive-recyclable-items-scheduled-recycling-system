@@ -12,7 +12,7 @@ namespace recycling.DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        #region User Management
+        #region 用户管理
 
         /// 中文说明
         public PagedResult<Users> GetAllUsers(int page = 1, int pageSize = 20, string searchTerm = null, string sortOrder = "ASC")
@@ -308,7 +308,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region Recycler Management
+        #region 回收员管理
 
         /// 中文说明
         public PagedResult<RecyclerListViewModel> GetAllRecyclersWithDetails(int page = 1, int pageSize = 8, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
@@ -890,7 +890,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region Order Management
+        #region 订单管理
 
         /// 中文说明
         public PagedResult<Dictionary<string, object>> GetAllOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
@@ -1058,7 +1058,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region Admin Management
+        #region 管理员管理
 
         /// 中文说明
         public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
@@ -1330,7 +1330,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region Dashboard Statistics
+        #region 仪表盘统计
 
         /// 中文说明
         public Dictionary<string, object> GetDashboardStatistics()
@@ -1770,7 +1770,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region Transporter Management
+        #region 运输员管理
 
         /// 中文说明
         public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
@@ -2256,7 +2256,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region SortingCenterWorker Management
+        #region 分拣中心工作人员管理
 
         /// 中文说明
         public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
@@ -2733,7 +2733,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region Helper Methods
+        #region 辅助方法
 
         private Recyclers MapRecyclerFromReader(SqlDataReader reader)
         {
@@ -2832,7 +2832,7 @@ namespace recycling.DAL
 
         #endregion
 
-        #region Staff Avatar Update Methods
+        #region 工作人员头像更新方法
 
         /// 更新回收员头像
         public bool UpdateRecyclerAvatar(int recyclerId, string avatarUrl)
