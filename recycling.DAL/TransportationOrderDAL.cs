@@ -1332,8 +1332,8 @@ namespace recycling.DAL
                             if (actualCategories != null && actualCategories.Count > 0)
                             {
                                 string checkTableSql = @"
-                                    SELECT COUNT(*) 
-                                    FROM INFORMATION_SCHEMA.TABLES 
+                                    SELECT COUNT(*)
+                                    FROM INFORMATION_SCHEMA.TABLES
                                     WHERE TABLE_NAME = 'TransportationOrderCategories'";
                                 bool categoriesTableExists;
                                 using (SqlCommand checkCmd = new SqlCommand(checkTableSql, conn, transaction))
