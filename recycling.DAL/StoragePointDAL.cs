@@ -81,8 +81,7 @@ namespace recycling.DAL
             return summary;
         }
 
-        /// 中文说明
-        /// 中文说明
+        /// 获取暂存点明细。
         public List<StoragePointDetail> GetStoragePointDetail(int recyclerId, string categoryKey = null)
         {
             var details = new List<StoragePointDetail>();
@@ -233,9 +232,9 @@ namespace recycling.DAL
         }
 
         /// 清空回收员的暂存点库存记录（删除库存数据，不改变预约订单状态）
-        /// 中文说明
+        /// 清空回收员暂存点。
         /// Note: This method does NOT change appointment status. Appointments remain "已完成".
-        /// 中文说明
+        /// 清空回收员暂存点。
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>是否成功</returns>
         public bool ClearStoragePointForRecycler(int recyclerId)

@@ -7,7 +7,7 @@ using recycling.Model;
 
 namespace recycling.DAL
 {
-    /// 中文说明
+    /// 超级管理员数据访问处理类。
     /// 超级管理员数据访问层
     public class SuperAdminDAL
     {
@@ -15,7 +15,7 @@ namespace recycling.DAL
 
         #region 超级管理员管理
 
-        /// 中文说明
+        /// 获取超级管理员列表。
         /// 分页获取所有超级管理员
         public PagedResult<SuperAdmins> GetAllSuperAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
@@ -79,7 +79,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 根据编号获取超级管理员。
         /// 根据ID获取超级管理员
         public SuperAdmins GetSuperAdminById(int superAdminId)
         {
@@ -101,7 +101,7 @@ namespace recycling.DAL
             return null;
         }
 
-        /// 中文说明
+        /// 新增超级管理员。
         /// 添加新超级管理员
         public bool AddSuperAdmin(SuperAdmins superAdmin)
         {
@@ -121,7 +121,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 更新超级管理员。
         /// 更新超级管理员信息
         public bool UpdateSuperAdmin(SuperAdmins superAdmin)
         {
@@ -144,10 +144,9 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 删除超级管理员。
         /// 删除超级管理员（硬删除）
-        /// 中文说明
-        /// 中文说明
+        /// 删除超级管理员。
         public bool DeleteSuperAdmin(int superAdminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -174,7 +173,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 获取超级管理员统计数据。
         /// 获取超级管理员统计信息
         public Dictionary<string, object> GetSuperAdminStatistics()
         {
@@ -199,7 +198,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取超级管理员列表导出数据。
         /// 获取所有超级管理员用于导出（无分页）
         public List<SuperAdmins> GetAllSuperAdminsForExport(string searchTerm = null, bool? isActive = null)
         {
@@ -256,7 +255,7 @@ namespace recycling.DAL
             return superAdmins;
         }
 
-        /// 中文说明
+        /// 获取管理员仪表盘统计数据。
         /// 获取管理员数据看板统计信息
         public Dictionary<string, object> GetAdminDashboardStatistics()
         {
@@ -394,7 +393,7 @@ namespace recycling.DAL
 
         #region 辅助方法
 
-        /// 中文说明
+        /// 将数据读取结果映射为超级管理员实体。
         /// 从数据读取器映射超级管理员对象
         private SuperAdmins MapSuperAdminFromReader(SqlDataReader reader)
         {

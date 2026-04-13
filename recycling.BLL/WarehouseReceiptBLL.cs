@@ -8,7 +8,7 @@ using recycling.DAL;
 namespace recycling.BLL
 {
     /// 入库单业务逻辑层
-    /// 中文说明
+    /// 入库单业务逻辑处理类。
     public class WarehouseReceiptBLL
     {
         private readonly WarehouseReceiptDAL _dal = new WarehouseReceiptDAL();
@@ -105,7 +105,7 @@ namespace recycling.BLL
         };
 
         /// 创建入库单（状态为"待入库"，不写入库存）
-        /// 中文说明
+        /// 创建入库单。
         public (bool success, string message, int receiptId, string receiptNumber) CreateWarehouseReceipt(
             int transportOrderId, 
             int workerId, 
@@ -231,7 +231,7 @@ namespace recycling.BLL
         }
 
         /// 处理入库单入库（将状态更新为"已入库"并写入库存）
-        /// 中文说明
+        /// 处理入库单流程。
         public (bool success, string message) ProcessWarehouseReceipt(int receiptId)
         {
             try
@@ -398,7 +398,7 @@ namespace recycling.BLL
         }
 
         /// 获取仓库库存汇总（按类别分组）- 从入库单数据中统计
-        /// 中文说明
+        /// 获取仓库库存汇总。
         public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetWarehouseSummary()
         {
             try
@@ -413,7 +413,7 @@ namespace recycling.BLL
         }
 
         /// 获取仓库库存明细（包含回收员信息）- 从入库单数据中提取
-        /// 中文说明
+        /// 获取库存明细（含回收员信息）。
         public PagedResult<InventoryDetailViewModel> GetWarehouseDetailWithRecycler(int pageIndex = 1, int pageSize = 20, string categoryKey = null)
         {
             try

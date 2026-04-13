@@ -8,7 +8,7 @@ using recycling.Model;
 namespace recycling.DAL
 {
     /// 基地工作人员通知数据访问层
-    /// 中文说明
+    /// 基地员工通知数据访问处理类。
     public class BaseStaffNotificationDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;

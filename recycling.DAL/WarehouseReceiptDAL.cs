@@ -165,7 +165,7 @@ namespace recycling.DAL
         }
 
         /// 预加载所有活动的类别价格
-        /// 中文说明
+        /// 加载可回收分类对应的单价配置。
         private Dictionary<string, decimal> LoadCategoryPrices(SqlConnection conn, SqlTransaction transaction = null)
         {
             var categoryPrices = new Dictionary<string, decimal>();
@@ -202,7 +202,7 @@ namespace recycling.DAL
         }
 
         /// 根据品类JSON和系统价格表计算总价
-        /// 中文说明
+        /// 按分类重量与单价计算入库总金额。
         private decimal? CalculateTotalPrice(string itemCategoriesJson, SqlConnection conn, SqlTransaction transaction)
         {
             if (string.IsNullOrWhiteSpace(itemCategoriesJson))
@@ -307,7 +307,7 @@ namespace recycling.DAL
         }
 
         /// 创建入库单（状态为"待入库"，不写入库存）
-        /// 中文说明
+        /// 创建入库单。
         public (int receiptId, string receiptNumber) CreateWarehouseReceipt(WarehouseReceipts receipt)
         {
             try
@@ -373,7 +373,7 @@ namespace recycling.DAL
         }
 
         /// 处理入库单入库（将状态更新为"已入库"并写入库存，按类别累加）
-        /// 中文说明
+        /// 处理入库单流程。
         public bool ProcessWarehouseReceipt(int receiptId)
         {
             try
@@ -751,7 +751,7 @@ namespace recycling.DAL
         }
 
         /// 根据ID获取入库单
-        /// 中文说明
+        /// 根据编号获取入库单。
         public WarehouseReceipts GetWarehouseReceiptById(int receiptId)
         {
             try
@@ -837,7 +837,7 @@ namespace recycling.DAL
         }
 
         /// 验证并标准化ItemCategories JSON字符串
-        /// 中文说明
+        /// 校验并标准化入库分类 JSON 数据。
         /// <param name="rawItemCategories">中文说明</param>
         /// <returns>中文说明</returns>
         private string ValidateAndNormalizeItemCategories(string rawItemCategories)
@@ -876,7 +876,7 @@ namespace recycling.DAL
         }
 
         /// 获取已完成的运输单列表（用于入库）
-        /// 中文说明
+        /// 获取已完成运输订单列表。
         public List<TransportNotificationViewModel> GetCompletedTransportOrders()
         {
             var orders = new List<TransportNotificationViewModel>();
@@ -1138,7 +1138,7 @@ namespace recycling.DAL
         }
 
         /// 获取仓库库存汇总（按类别分组） - 从入库单数据中统计
-        /// 中文说明
+        /// 获取仓库库存汇总。
         public List<(string CategoryKey, string CategoryName, decimal TotalWeight, decimal TotalPrice)> GetWarehouseSummary()
         {
             var summary = new List<(string, string, decimal, decimal)>();
@@ -1239,7 +1239,7 @@ namespace recycling.DAL
         }
 
         /// 获取仓库库存明细（包含回收员信息）- 从入库单数据中提取
-        /// 中文说明
+        /// 获取库存明细（含回收员信息）。
         public PagedResult<InventoryDetailViewModel> GetWarehouseDetailWithRecycler(int pageIndex = 1, int pageSize = 20, string categoryKey = null)
         {
             var result = new PagedResult<InventoryDetailViewModel>

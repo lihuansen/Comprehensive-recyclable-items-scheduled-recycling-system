@@ -7,7 +7,7 @@ using recycling.Model;
 
 namespace recycling.BLL
 {
-    /// 中文说明
+    /// 超级管理员业务逻辑处理类。
     /// 超级管理员业务逻辑层
     public class SuperAdminBLL
     {
@@ -20,7 +20,7 @@ namespace recycling.BLL
 
         #region 超级管理员管理
 
-        /// 中文说明
+        /// 获取超级管理员列表。
         /// 分页获取所有超级管理员
         public PagedResult<SuperAdmins> GetAllSuperAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
@@ -30,7 +30,7 @@ namespace recycling.BLL
             return _superAdminDAL.GetAllSuperAdmins(page, pageSize, searchTerm, isActive);
         }
 
-        /// 中文说明
+        /// 根据编号获取超级管理员。
         /// 根据ID获取超级管理员
         public SuperAdmins GetSuperAdminById(int superAdminId)
         {
@@ -42,7 +42,7 @@ namespace recycling.BLL
             return _superAdminDAL.GetSuperAdminById(superAdminId);
         }
 
-        /// 中文说明
+        /// 新增超级管理员。
         /// 添加新超级管理员
         public (bool Success, string Message) AddSuperAdmin(SuperAdmins superAdmin, string password)
         {
@@ -68,7 +68,7 @@ namespace recycling.BLL
             return result ? (true, "添加超级管理员成功") : (false, "添加超级管理员失败");
         }
 
-        /// 中文说明
+        /// 更新超级管理员。
         /// 更新超级管理员信息
         public (bool Success, string Message) UpdateSuperAdmin(SuperAdmins superAdmin)
         {
@@ -91,7 +91,7 @@ namespace recycling.BLL
             return result ? (true, "更新超级管理员信息成功") : (false, "更新超级管理员信息失败");
         }
 
-        /// 中文说明
+        /// 删除超级管理员。
         /// 删除超级管理员（硬删除）
         public (bool Success, string Message) DeleteSuperAdmin(int superAdminId)
         {
@@ -115,21 +115,21 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 获取超级管理员统计数据。
         /// 获取超级管理员统计信息
         public Dictionary<string, object> GetSuperAdminStatistics()
         {
             return _superAdminDAL.GetSuperAdminStatistics();
         }
 
-        /// 中文说明
+        /// 获取超级管理员列表导出数据。
         /// 获取所有超级管理员用于导出（无分页）
         public List<SuperAdmins> GetAllSuperAdminsForExport(string searchTerm = null, bool? isActive = null)
         {
             return _superAdminDAL.GetAllSuperAdminsForExport(searchTerm, isActive);
         }
 
-        /// 中文说明
+        /// 获取管理员仪表盘统计数据。
         /// 获取管理员数据看板统计信息
         public Dictionary<string, object> GetAdminDashboardStatistics()
         {
@@ -140,7 +140,7 @@ namespace recycling.BLL
 
         #region 辅助方法
 
-        /// 中文说明
+        /// 对密码进行 SHA256 哈希处理。
         /// 使用SHA256算法哈希密码
         private string HashPassword(string password)
         {

@@ -6,7 +6,7 @@ using recycling.DAL;
 namespace recycling.BLL
 {
     /// 运输单业务逻辑层
-    /// 中文说明
+    /// 运输订单业务逻辑处理类。
     public class TransportationOrderBLL
     {
         private readonly TransportationOrderDAL _dal = new TransportationOrderDAL();
@@ -249,7 +249,7 @@ namespace recycling.BLL
         }
 
         /// 开始运输
-        /// 中文说明
+        /// 启动运输流程。
         /// <param name="orderId">运输单ID</param>
         /// <returns>是否更新成功</returns>
         public bool StartTransportation(int orderId)

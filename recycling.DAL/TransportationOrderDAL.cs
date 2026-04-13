@@ -8,7 +8,7 @@ using recycling.Model;
 namespace recycling.DAL
 {
     /// 运输单数据访问层
-    /// 中文说明
+    /// 运输订单数据访问处理类。
     public class TransportationOrderDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
@@ -17,10 +17,7 @@ namespace recycling.DAL
         private static readonly object _cacheLock = new object();
 
         /// 安全地检查列是否存在于DataReader中
-        /// 中文说明
-        /// 中文说明
-        /// 中文说明
-        /// 中文说明
+        /// 判断读取结果中是否包含指定列。
         private bool ColumnExists(SqlDataReader reader, string columnName)
         {
             try
@@ -34,7 +31,7 @@ namespace recycling.DAL
         }
 
         /// 安全地从DataReader读取可空字符串列
-        /// 中文说明
+        /// 安全读取字符串字段，避免空值异常。
         private string SafeGetString(SqlDataReader reader, string columnName)
         {
             if (!ColumnExists(reader, columnName))
@@ -44,7 +41,7 @@ namespace recycling.DAL
         }
 
         /// 安全地从DataReader读取可空日期时间列
-        /// 中文说明
+        /// 安全读取日期字段，避免空值异常。
         private DateTime? SafeGetDateTime(SqlDataReader reader, string columnName)
         {
             if (!ColumnExists(reader, columnName))
@@ -55,7 +52,7 @@ namespace recycling.DAL
         }
 
         /// 安全地从DataReader读取可空整数列
-        /// 中文说明
+        /// 安全读取整数字段，避免空值异常。
         private int? SafeGetInt(SqlDataReader reader, string columnName)
         {
             if (!ColumnExists(reader, columnName))
@@ -66,9 +63,7 @@ namespace recycling.DAL
         }
 
         /// 检查数据库表中是否存在指定列
-        /// 中文说明
-        /// 中文说明
-        /// 中文说明
+        /// 判断数据表中是否存在指定字段。
         private bool ColumnExistsInTable(SqlConnection conn, SqlTransaction transaction, string tableName, string columnName)
         {
             string cacheKey = $"{tableName}.{columnName}";
@@ -114,8 +109,7 @@ namespace recycling.DAL
 
         /// 生成运输单号
         /// 格式：TO+YYYYMMDD+4位序号
-        /// 中文说明
-        /// 中文说明
+        /// 生成唯一运输订单编号。
         private string GenerateOrderNumber()
         {
             string datePrefix = "TO" + DateTime.Now.ToString("yyyyMMdd");
@@ -254,7 +248,7 @@ namespace recycling.DAL
         }
 
         /// 更新基地工作人员的当前状态
-        /// 中文说明
+        /// 更新分拣中心工作人员状态。
         /// <param name="workerId">基地工作人员ID</param>
         /// <param name="status">新状态（空闲/工作中）</param>
         /// <returns>是否更新成功</returns>
@@ -284,7 +278,7 @@ namespace recycling.DAL
         }
 
         /// 检查基地工作人员是否有未完成入库的运输单
-        /// 中文说明
+        /// 检查分拣员是否存在待处理任务。
         /// <param name="workerId">基地工作人员ID</param>
         /// <returns>是否有未完成的任务</returns>
         public bool HasPendingTasksForWorker(int workerId)
@@ -320,7 +314,7 @@ namespace recycling.DAL
         }
 
         /// 获取运输单的指定基地工作人员ID
-        /// 中文说明
+        /// 获取运输订单分配的分拣员编号。
         public int? GetAssignedWorkerIdByTransportOrderId(int transportOrderId)
         {
             try
@@ -348,7 +342,7 @@ namespace recycling.DAL
         }
 
         /// 更新运输人员的当前状态
-        /// 中文说明
+        /// 更新运输员状态。
         /// <param name="transporterId">运输人员ID</param>
         /// <param name="status">新状态（空闲/运输中）</param>
         /// <returns>是否更新成功</returns>
@@ -378,7 +372,7 @@ namespace recycling.DAL
         }
 
         /// 累加运输人员的总运输重量
-        /// 中文说明
+        /// 更新运输员累计承运重量。
         /// <param name="transporterId">运输人员ID</param>
         /// <param name="weight">本次运输重量（公斤）</param>
         /// <returns>是否更新成功</returns>
@@ -408,7 +402,7 @@ namespace recycling.DAL
         }
 
         /// 检查运输人员是否有未完成的运输单
-        /// 中文说明
+        /// 检查运输员是否存在进行中的运输订单。
         /// <param name="transporterId">运输人员ID</param>
         /// <returns>是否有未完成的运输单</returns>
         public bool HasActiveTransportOrdersForTransporter(int transporterId)
@@ -440,7 +434,7 @@ namespace recycling.DAL
         }
 
         /// 检查回收员是否有未完成的运输单（即暂存点物品已创建了运输单但尚未完成）
-        /// 中文说明
+        /// 检查回收员是否存在进行中的运输订单。
         /// <param name="recyclerId">回收员ID</param>
         /// <returns>是否有未完成的运输单</returns>
         public bool HasActiveTransportOrdersForRecycler(int recyclerId)
@@ -777,7 +771,7 @@ namespace recycling.DAL
         }
 
         /// 开始运输（更新状态为运输中并记录取货时间）
-        /// 中文说明
+        /// 启动运输流程。
         public bool StartTransportation(int orderId)
         {
             try

@@ -7,13 +7,13 @@ using recycling.Model;
 namespace recycling.BLL
 {
     /// 运输单品类明细业务逻辑层
-    /// 中文说明
+    /// 运输订单分类明细业务逻辑处理类。
     public class TransportationOrderCategoriesBLL
     {
         private readonly TransportationOrderCategoriesDAL _dal = new TransportationOrderCategoriesDAL();
 
         /// 批量插入运输单品类明细
-        /// 中文说明
+        /// 批量新增分类明细。
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -40,7 +40,7 @@ namespace recycling.BLL
         }
 
         /// 获取运输单的所有品类明细
-        /// 中文说明
+        /// 获取运输单对应的分类明细。
         /// <param name="transportOrderId">运输单ID</param>
         /// <returns>品类明细列表</returns>
         public List<TransportationOrderCategories> GetCategoriesByTransportOrderId(int transportOrderId)
@@ -54,7 +54,7 @@ namespace recycling.BLL
         }
 
         /// 删除运输单的所有品类明细
-        /// 中文说明
+        /// 按运输单编号删除分类明细。
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -79,7 +79,7 @@ namespace recycling.BLL
         }
 
         /// 检查 TransportationOrderCategories 表是否存在
-        /// 中文说明
+        /// 检查运输订单分类表是否已创建。
         /// <returns>表是否存在</returns>
         public bool TableExists()
         {

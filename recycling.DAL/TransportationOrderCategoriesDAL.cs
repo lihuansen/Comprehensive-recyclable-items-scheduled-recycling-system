@@ -9,14 +9,13 @@ using recycling.Model;
 namespace recycling.DAL
 {
     /// 运输单品类明细数据访问层
-    /// 中文说明
+    /// 运输订单分类明细数据访问处理类。
     public class TransportationOrderCategoriesDAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
         /// 批量插入运输单品类明细
-        /// 中文说明
-        /// 中文说明
+        /// 批量新增分类明细。
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -73,7 +72,7 @@ namespace recycling.DAL
         }
 
         /// 获取运输单的所有品类明细
-        /// 中文说明
+        /// 获取运输单对应的分类明细。
         /// <param name="transportOrderId">运输单ID</param>
         /// <returns>品类明细列表</returns>
         public List<TransportationOrderCategories> GetCategoriesByTransportOrderId(int transportOrderId)
@@ -126,7 +125,7 @@ namespace recycling.DAL
         }
 
         /// 删除运输单的所有品类明细
-        /// 中文说明
+        /// 按运输单编号删除分类明细。
         /// <param name="conn">数据库连接</param>
         /// <param name="transaction">事务</param>
         /// <param name="transportOrderId">运输单ID</param>
@@ -144,7 +143,7 @@ namespace recycling.DAL
         }
 
         /// 检查 TransportationOrderCategories 表是否存在
-        /// 中文说明
+        /// 检查运输订单分类表是否已创建。
         public bool TableExists()
         {
             try
