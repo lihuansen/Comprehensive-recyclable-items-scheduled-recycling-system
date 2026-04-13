@@ -444,14 +444,39 @@ function renderCategoryPieChart(categories) {
     }
     
     var categoryTranslations = {
+        'glass': '玻璃',
+        'metal': '金属',
+        'plastic': '塑料',
+        'paper': '纸张',
+        'fabric': '纺织品',
+        'appliance': '家电',
         'foam': '泡沫'
     };
-    var labels = categories.map(function(c) {
-        var categoryName = c.CategoryName || '';
-        var categoryKey = categoryName.toString().toLowerCase();
-        return categoryTranslations[categoryKey] || categoryName;
+
+    var mergedMap = {};
+    var mergedLabels = [];
+    categories.forEach(function(c) {
+        var rawName = (c.CategoryName || '').toString().trim();
+        if (!rawName) return;
+
+        var categoryKey = rawName.toLowerCase();
+        var displayName = categoryTranslations[categoryKey] || rawName;
+        var weight = parseFloat(c.TotalWeight) || 0;
+
+        if (!mergedMap.hasOwnProperty(displayName)) {
+            mergedMap[displayName] = 0;
+            mergedLabels.push(displayName);
+        }
+        mergedMap[displayName] += weight;
     });
-    var data = categories.map(function(c) { return parseFloat(c.TotalWeight); });
+
+    var labels = mergedLabels;
+    var data = labels.map(function(label) { return mergedMap[label]; });
+    if (labels.length === 0) {
+        var fallbackContainer = canvas.parentElement;
+        fallbackContainer.innerHTML = '<div class="text-center text-muted" style="padding-top: 80px;"><i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>暂无分类回收数据</div>';
+        return;
+    }
     var colors = ['#4facfe', '#00f2fe', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#6c757d'];
     
     categoryPieChart = new Chart(ctx, {
