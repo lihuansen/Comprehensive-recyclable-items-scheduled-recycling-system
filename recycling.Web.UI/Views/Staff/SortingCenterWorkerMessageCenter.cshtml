@@ -257,6 +257,9 @@
         <div class="message-pagination">
             <ul class="pagination">
                 <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="@(currentPage <= 1 ? "javascript:void(0);" : Url.Action("SortingCenterWorkerMessageCenter", "Staff", new { page = 1 }))">首页</a>
+                </li>
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
                     <a href="@(currentPage <= 1 ? "javascript:void(0);" : Url.Action("SortingCenterWorkerMessageCenter", "Staff", new { page = currentPage - 1 }))">上一页</a>
                 </li>
 
@@ -291,6 +294,9 @@
 
                 <li class="@(currentPage >= totalPages ? "disabled" : "")">
                     <a href="@(currentPage >= totalPages ? "javascript:void(0);" : Url.Action("SortingCenterWorkerMessageCenter", "Staff", new { page = currentPage + 1 }))">下一页</a>
+                </li>
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="@(currentPage >= totalPages ? "javascript:void(0);" : Url.Action("SortingCenterWorkerMessageCenter", "Staff", new { page = totalPages }))">最后一页</a>
                 </li>
             </ul>
         </div>

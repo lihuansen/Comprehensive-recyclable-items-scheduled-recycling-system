@@ -367,12 +367,18 @@
 
             <!-- 分页控件 -->
             <div id="transitOrdersPagination" class="transit-pagination" style="display: none;">
+                <button class="pagination-btn" id="firstPageBtn" onclick="transitOrdersFirstPage()" disabled>
+                    首页
+                </button>
                 <button class="pagination-btn" id="prevPageBtn" onclick="transitOrdersPrevPage()" disabled>
                     <i class="fas fa-chevron-left"></i> 上一页
                 </button>
                 <span id="pageInfo" class="page-info"></span>
                 <button class="pagination-btn" id="nextPageBtn" onclick="transitOrdersNextPage()">
                     下一页 <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="pagination-btn" id="lastPageBtn" onclick="transitOrdersLastPage()">
+                    最后一页
                 </button>
             </div>
 
@@ -985,11 +991,20 @@
         // 更新分页控件
         if (orders.length > TRANSIT_PAGE_SIZE) {
             $('#pageInfo').text('第 ' + transitOrdersCurrentPage + ' / ' + totalPages + ' 页');
+            $('#firstPageBtn').prop('disabled', transitOrdersCurrentPage <= 1);
             $('#prevPageBtn').prop('disabled', transitOrdersCurrentPage <= 1);
             $('#nextPageBtn').prop('disabled', transitOrdersCurrentPage >= totalPages);
+            $('#lastPageBtn').prop('disabled', transitOrdersCurrentPage >= totalPages);
             $('#transitOrdersPagination').show();
         } else {
             $('#transitOrdersPagination').hide();
+        }
+    }
+
+    function transitOrdersFirstPage() {
+        if (transitOrdersCurrentPage > 1) {
+            transitOrdersCurrentPage = 1;
+            renderTransitOrdersPage();
         }
     }
 
@@ -1004,6 +1019,14 @@
         var totalPages = Math.ceil(allTransitOrders.length / TRANSIT_PAGE_SIZE);
         if (transitOrdersCurrentPage < totalPages) {
             transitOrdersCurrentPage++;
+            renderTransitOrdersPage();
+        }
+    }
+
+    function transitOrdersLastPage() {
+        var totalPages = Math.ceil(allTransitOrders.length / TRANSIT_PAGE_SIZE);
+        if (transitOrdersCurrentPage < totalPages) {
+            transitOrdersCurrentPage = totalPages;
             renderTransitOrdersPage();
         }
     }
@@ -1377,6 +1400,17 @@
         var pagination = $('#warehouseReceiptsPagination');
         pagination.empty();
 
+        var firstBtn = $('<button>')
+            .text('首页')
+            .prop('disabled', warehouseReceiptsCurrentPage === 1)
+            .on('click', function () {
+                if (warehouseReceiptsCurrentPage > 1) {
+                    warehouseReceiptsCurrentPage = 1;
+                    renderWarehouseReceiptsPage();
+                }
+            });
+        pagination.append(firstBtn);
+
         var prevBtn = $('<button>')
             .text('上一页')
             .prop('disabled', warehouseReceiptsCurrentPage === 1)
@@ -1413,6 +1447,17 @@
                 }
             });
         pagination.append(nextBtn);
+
+        var lastBtn = $('<button>')
+            .text('最后一页')
+            .prop('disabled', warehouseReceiptsCurrentPage >= totalPages)
+            .on('click', function () {
+                if (warehouseReceiptsCurrentPage < totalPages) {
+                    warehouseReceiptsCurrentPage = totalPages;
+                    renderWarehouseReceiptsPage();
+                }
+            });
+        pagination.append(lastBtn);
         $('#warehouseReceiptsPaginationContainer').css('display', 'flex');
     }
 
@@ -1626,6 +1671,17 @@
         var pagination = $('#inventorySummaryPagination');
         pagination.empty();
 
+        var firstBtn = $('<button>')
+            .text('首页')
+            .prop('disabled', InventoryManager.summaryCurrentPage === 1)
+            .on('click', function () {
+                if (InventoryManager.summaryCurrentPage > 1) {
+                    InventoryManager.summaryCurrentPage = 1;
+                    renderInventorySummaryPage();
+                }
+            });
+        pagination.append(firstBtn);
+
         var prevBtn = $('<button>')
             .text('上一页')
             .prop('disabled', InventoryManager.summaryCurrentPage === 1)
@@ -1662,6 +1718,17 @@
                 }
             });
         pagination.append(nextBtn);
+
+        var lastBtn = $('<button>')
+            .text('最后一页')
+            .prop('disabled', InventoryManager.summaryCurrentPage >= totalPages)
+            .on('click', function () {
+                if (InventoryManager.summaryCurrentPage < totalPages) {
+                    InventoryManager.summaryCurrentPage = totalPages;
+                    renderInventorySummaryPage();
+                }
+            });
+        pagination.append(lastBtn);
         $('#inventorySummaryPaginationContainer').css('display', 'flex');
     }
 
@@ -1790,6 +1857,17 @@
 
         if (totalPages <= 1) return;
 
+        var firstBtn = $('<button>')
+            .text('首页')
+            .prop('disabled', data.PageIndex === 1)
+            .on('click', function () {
+                if (data.PageIndex > 1) {
+                    InventoryManager.currentPage = 1;
+                    loadInventoryDetail();
+                }
+            });
+        pagination.append(firstBtn);
+
         // 上一页
         var prevBtn = $('<button>')
             .text('上一页')
@@ -1830,6 +1908,17 @@
                 }
             });
         pagination.append(nextBtn);
+
+        var lastBtn = $('<button>')
+            .text('最后一页')
+            .prop('disabled', data.PageIndex >= totalPages)
+            .on('click', function () {
+                if (data.PageIndex < totalPages) {
+                    InventoryManager.currentPage = totalPages;
+                    loadInventoryDetail();
+                }
+            });
+        pagination.append(lastBtn);
     }
 
     // HTML转义函数（防止XSS）

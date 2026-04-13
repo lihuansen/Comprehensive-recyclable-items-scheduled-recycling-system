@@ -522,6 +522,7 @@
 
         if (data.TotalPages <= 1) return;
 
+        pagination.append('<li class="' + (data.PageIndex == 1 ? 'disabled' : '') + '"><a href="#" onclick="goToPage(1); return false;">首页</a></li>');
         pagination.append('<li class="' + (data.PageIndex == 1 ? 'disabled' : '') + '"><a href="#" onclick="goToPage(' + (data.PageIndex - 1) + '); return false;">上一页</a></li>');
 
         var startPage = Math.max(1, data.PageIndex - 2);
@@ -532,6 +533,7 @@
         }
 
         pagination.append('<li class="' + (data.PageIndex >= data.TotalPages ? 'disabled' : '') + '"><a href="#" onclick="goToPage(' + (data.PageIndex + 1) + '); return false;">下一页</a></li>');
+        pagination.append('<li class="' + (data.PageIndex >= data.TotalPages ? 'disabled' : '') + '"><a href="#" onclick="goToPage(' + data.TotalPages + '); return false;">最后一页</a></li>');
     }
 
     function goToPage(page) {
