@@ -35,9 +35,27 @@
 
     .inventory-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 20px;
         margin-bottom: 30px;
+    }
+
+    @@media (max-width: 1200px) {
+        .inventory-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .inventory-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .inventory-grid {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
     }
 
     .inventory-card {
@@ -197,6 +215,15 @@
         margin-top: 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+
+    .summary-pagination-container {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-top: -10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 </style>
 
 <div class="warehouse-container">
@@ -227,6 +254,16 @@
 
     <!-- 分类汇总卡片 -->
     <div id="inventoryGrid" class="inventory-grid"></div>
+    <div id="summaryPaginationContainer" class="summary-pagination-container" style="display: none;">
+        <div class="row">
+            <div class="col-md-6">
+                <div id="summaryPaginationInfo"></div>
+            </div>
+            <div class="col-md-6 text-right">
+                <ul class="pagination" id="summaryPagination" style="margin: 0;"></ul>
+            </div>
+        </div>
+    </div>
 
     <div id="noData" class="no-data" style="display: none;">
         <i class="fas fa-box-open" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
@@ -296,8 +333,11 @@
         };
 
         var currentPage = 1;
-        var pageSize = 20;
+        var pageSize = 8;
         var currentCategoryKey = null;
+        var summaryCurrentPage = 1;
+        var summaryPageSize = 8;
+        var summaryItems = [];
 
         // 加载库存数据
         function loadInventorySummary() {
@@ -332,11 +372,37 @@
             var container = document.getElementById('inventoryGrid');
             var totalWeight = 0;
             var totalPrice = 0;
-            var html = '';
 
             inventoryData.forEach(function(item) {
                 totalWeight += item.totalWeight;
                 totalPrice += item.totalPrice;
+            });
+            summaryItems = inventoryData || [];
+            summaryCurrentPage = 1;
+            renderInventorySummaryPage();
+
+            // 显示总重量和总价格
+            if (totalWeight > 0) {
+                document.getElementById('totalSummary').style.display = 'block';
+                document.getElementById('totalWeightDisplay').textContent = totalWeight.toFixed(1);
+                document.getElementById('totalPriceDisplay').textContent = '¥' + totalPrice.toFixed(2);
+            }
+        }
+
+        function renderInventorySummaryPage() {
+            var container = document.getElementById('inventoryGrid');
+            var totalCount = summaryItems.length;
+            var totalPages = Math.max(1, Math.ceil(totalCount / summaryPageSize));
+
+            if (summaryCurrentPage > totalPages) {
+                summaryCurrentPage = totalPages;
+            }
+
+            var startIndex = (summaryCurrentPage - 1) * summaryPageSize;
+            var pageItems = summaryItems.slice(startIndex, startIndex + summaryPageSize);
+            var html = '';
+
+            pageItems.forEach(function(item) {
                 var icon = categoryIcons[item.categoryKey] || 'fa-box';
                 var color = categoryColors[item.categoryKey] || '#3498db';
 
@@ -355,13 +421,68 @@
             });
 
             container.innerHTML = html;
+            renderSummaryPagination(totalCount, totalPages, startIndex, pageItems.length);
+        }
 
-            // 显示总重量和总价格
-            if (totalWeight > 0) {
-                document.getElementById('totalSummary').style.display = 'block';
-                document.getElementById('totalWeightDisplay').textContent = totalWeight.toFixed(1);
-                document.getElementById('totalPriceDisplay').textContent = '¥' + totalPrice.toFixed(2);
+        function renderSummaryPagination(totalCount, totalPages, startIndex, pageCount) {
+            var paginationContainer = document.getElementById('summaryPaginationContainer');
+            var pagination = document.getElementById('summaryPagination');
+            var info = document.getElementById('summaryPaginationInfo');
+            pagination.innerHTML = '';
+
+            if (totalCount <= 0 || totalPages <= 1) {
+                paginationContainer.style.display = 'none';
+                return;
             }
+
+            var endIndex = startIndex + pageCount;
+            info.textContent = '显示 ' + (startIndex + 1) + ' - ' + endIndex + ' 项，共 ' + totalCount + ' 项';
+            paginationContainer.style.display = 'block';
+
+            var firstDisabled = summaryCurrentPage === 1 ? 'disabled' : '';
+            pagination.innerHTML += `
+                <li class="${firstDisabled}">
+                    <a href="#" onclick="goToSummaryPage(1); return false;">首页</a>
+                </li>
+            `;
+
+            var prevDisabled = summaryCurrentPage === 1 ? 'disabled' : '';
+            pagination.innerHTML += `
+                <li class="${prevDisabled}">
+                    <a href="#" onclick="goToSummaryPage(${summaryCurrentPage - 1}); return false;">上一页</a>
+                </li>
+            `;
+
+            var startPage = Math.max(1, summaryCurrentPage - 2);
+            var endPage = Math.min(totalPages, summaryCurrentPage + 2);
+            for (var i = startPage; i <= endPage; i++) {
+                var activeClass = i === summaryCurrentPage ? 'active' : '';
+                pagination.innerHTML += `
+                    <li class="${activeClass}">
+                        <a href="#" onclick="goToSummaryPage(${i}); return false;">${i}</a>
+                    </li>
+                `;
+            }
+
+            var nextDisabled = summaryCurrentPage >= totalPages ? 'disabled' : '';
+            pagination.innerHTML += `
+                <li class="${nextDisabled}">
+                    <a href="#" onclick="goToSummaryPage(${summaryCurrentPage + 1}); return false;">下一页</a>
+                </li>
+            `;
+
+            pagination.innerHTML += `
+                <li class="${nextDisabled}">
+                    <a href="#" onclick="goToSummaryPage(${totalPages}); return false;">最后一页</a>
+                </li>
+            `;
+        }
+
+        function goToSummaryPage(page) {
+            var totalPages = Math.max(1, Math.ceil(summaryItems.length / summaryPageSize));
+            if (page < 1 || page > totalPages) return;
+            summaryCurrentPage = page;
+            renderInventorySummaryPage();
         }
 
         // 加载库存明细
@@ -445,6 +566,13 @@
 
             if (data.TotalPages <= 1) return;
 
+            var firstDisabled = data.PageIndex == 1 ? 'disabled' : '';
+            pagination.innerHTML += `
+                <li class="${firstDisabled}">
+                    <a href="#" onclick="goToPage(1); return false;">首页</a>
+                </li>
+            `;
+
             var prevDisabled = data.PageIndex == 1 ? 'disabled' : '';
             pagination.innerHTML += `
                 <li class="${prevDisabled}">
@@ -468,6 +596,12 @@
             pagination.innerHTML += `
                 <li class="${nextDisabled}">
                     <a href="#" onclick="goToPage(${data.PageIndex + 1}); return false;">下一页</a>
+                </li>
+            `;
+
+            pagination.innerHTML += `
+                <li class="${nextDisabled}">
+                    <a href="#" onclick="goToPage(${data.TotalPages}); return false;">最后一页</a>
                 </li>
             `;
         }
