@@ -1661,7 +1661,6 @@ select.form-control::-ms-expand {
                 }
 
                 var orderDetail = data.data;
-                currentIsUrgent = orderDetail.IsUrgent || false;
 
                 // 设置订单ID
                 document.getElementById('verifyAppointmentId').value = appointmentId;
@@ -1677,19 +1676,6 @@ select.form-control::-ms-expand {
                 showAlert('获取订单信息失败', 'error');
             });
         }
-
-        // 品类基础单价（元/公斤），与后端 BasePrices.Prices 保持一致
-        var basePrices = {
-            'glass': 0.5,
-            'metal': 2.0,
-            'plastic': 1.2,
-            'paper': 0.8,
-            'fabric': 0.6,
-            'appliance': 1.5,
-            'foam': 0.3
-        };
-
-        var currentIsUrgent = false;
 
         // 初始化/重置核实行（按预约品类自动生成）
         function initVerificationRows(categories) {
@@ -1719,49 +1705,16 @@ select.form-control::-ms-expand {
                     '<div class="ver-field">' +
                         '<span class="ver-label">重量 (kg)</span>' +
                         '<input type="number" class="ver-input ver-weight" placeholder="重量" min="0.01" step="0.01"' +
-                            (initWeight !== '' ? ' value="' + initWeight + '"' : '') + ' ' +
-                            'oninput="calcRowPrice(this)" />' +
+                            (initWeight !== '' ? ' value="' + initWeight + '"' : '') + ' />' +
                     '</div>' +
                     '<div class="ver-field">' +
                         '<span class="ver-label">金额 (元)</span>' +
-                        '<input type="number" class="ver-input ver-price" placeholder="自动计算" readonly style="background:#f8f9fa;" />' +
+                        '<input type="number" class="ver-input ver-price" placeholder="手动填写金额" min="0" step="0.01" />' +
                     '</div>' +
                 '</div>';
 
                 container.insertAdjacentHTML('beforeend', rowHtml);
-
-                // 如果有初始重量，立即计算价格
-                if (initWeight !== '') {
-                    var newRow = document.getElementById(rowId);
-                    var weightInput = newRow.querySelector('.ver-weight');
-                    calcRowPrice(weightInput);
-                }
             });
-        }
-
-        // 根据重量自动计算该行的价格
-        function calcRowPrice(weightInput) {
-            var row = weightInput.closest('.verification-row');
-            var catKey = row.getAttribute('data-category-key') || '';
-            var weight = parseFloat(weightInput.value);
-            var priceInput = row.querySelector('.ver-price');
-
-            if (isNaN(weight) || weight <= 0) {
-                priceInput.value = '';
-                return;
-            }
-
-            var unitPrice = basePrices[catKey];
-            if (unitPrice === undefined) {
-                console.warn('未知品类，无法计算价格：', catKey);
-                priceInput.value = '';
-                return;
-            }
-            var price = unitPrice * weight;
-            if (currentIsUrgent) {
-                price *= 1.2;
-            }
-            priceInput.value = Math.round(price * 100) / 100;
         }
 
         // 提交核实数据
