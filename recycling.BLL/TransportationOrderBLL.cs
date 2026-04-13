@@ -461,8 +461,9 @@ namespace recycling.BLL
         /// 完成运输
         /// <param name="orderId">运输单ID</param>
         /// <param name="actualWeight">实际重量</param>
+        /// <param name="actualCategories">各品类实际重量（可选）</param>
         /// <returns>是否完成成功</returns>
-        public bool CompleteTransportation(int orderId, decimal? actualWeight)
+        public bool CompleteTransportation(int orderId, decimal? actualWeight, List<TransportationOrderCategories> actualCategories = null)
         {
             try
             {
@@ -472,10 +473,23 @@ namespace recycling.BLL
                 if (actualWeight.HasValue && actualWeight.Value < 0)
                     throw new ArgumentException("实际重量不能为负数");
 
+                if (actualCategories != null && actualCategories.Count > 0)
+                {
+                    foreach (var category in actualCategories)
+                    {
+                        if (category == null || category.Weight <= 0 || string.IsNullOrWhiteSpace(category.CategoryName))
+                        {
+                            throw new ArgumentException("品类实际重量数据无效");
+                        }
+                    }
+
+                    actualWeight = Math.Round(actualCategories.Sum(c => c.Weight), 2, MidpointRounding.AwayFromZero);
+                }
+
                 // 获取运输单详情（在完成之前获取，以便获取运输人员ID）
                 var order = _dal.GetTransportationOrderById(orderId);
 
-                bool result = _dal.CompleteTransportation(orderId, actualWeight);
+                bool result = _dal.CompleteTransportation(orderId, actualWeight, actualCategories);
 
                 // 发送通知给基地工作人员，并更新运输人员状态
                 if (result)
