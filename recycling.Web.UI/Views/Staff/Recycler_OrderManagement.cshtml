@@ -1694,7 +1694,8 @@ select.form-control::-ms-expand {
                     'fabric': '纺织品', 'appliance': '家电', 'foam': '泡沫'
                 };
                 var catName = cat.CategoryName || displayNames[catKey] || catKey;
-                var initWeight = (cat.Weight && cat.Weight > 0) ? cat.Weight : '';
+                var parsedWeight = parseFloat(cat.Weight);
+                var initWeight = (!isNaN(parsedWeight) && parsedWeight > 0) ? parsedWeight : '';
                 var rowId = 'ver-row-' + catKey + '-' + Date.now();
 
                 var rowHtml = '<div class="verification-row" id="' + rowId + '" data-category-key="' + catKey + '">' +
@@ -1704,12 +1705,12 @@ select.form-control::-ms-expand {
                     '</div>' +
                     '<div class="ver-field">' +
                         '<span class="ver-label">重量 (kg)</span>' +
-                        '<input type="number" class="ver-input ver-weight" placeholder="请输入实际重量" min="0.01" step="0.01" required aria-required="true" aria-label="实际回收重量，单位公斤"' +
+                        '<input type="number" class="ver-input ver-weight" placeholder="请输入实际重量" min="0.01" step="0.01" required aria-label="实际回收重量，单位公斤"' +
                             (initWeight !== '' ? ' value="' + initWeight + '"' : '') + ' />' +
                     '</div>' +
                     '<div class="ver-field">' +
                         '<span class="ver-label">金额 (元)</span>' +
-                        '<input type="number" class="ver-input ver-price" placeholder="请输入实际回收金额" min="0" step="0.01" required aria-required="true" aria-label="实际回收金额，单位元" />' +
+                        '<input type="number" class="ver-input ver-price" placeholder="请输入实际回收金额" min="0" step="0.01" required aria-label="实际回收金额，单位元" />' +
                     '</div>' +
                 '</div>';
 
