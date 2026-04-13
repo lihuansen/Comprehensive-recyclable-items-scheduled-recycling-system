@@ -594,6 +594,37 @@ namespace recycling.DAL
                 
                 try
                 {
+                    string inProgressOrderSql = @"
+                        SELECT COUNT(*)
+                        FROM Appointments
+                        WHERE RecyclerID = @RecyclerID
+                          AND Status = N'进行中'";
+                    using (SqlCommand inProgressCmd = new SqlCommand(inProgressOrderSql, conn))
+                    {
+                        inProgressCmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                        int inProgressOrderCount = Convert.ToInt32(inProgressCmd.ExecuteScalar());
+                        if (inProgressOrderCount > 0)
+                        {
+                            throw new InvalidOperationException("无法删除该回收员：仍有进行中的订单，请先处理完相关订单。");
+                        }
+                    }
+
+                    string storageInventorySql = @"
+                        SELECT COUNT(*)
+                        FROM Inventory
+                        WHERE RecyclerID = @RecyclerID
+                          AND InventoryType = N'StoragePoint'
+                          AND ISNULL(Weight, 0) > 0";
+                    using (SqlCommand inventoryCmd = new SqlCommand(storageInventorySql, conn))
+                    {
+                        inventoryCmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
+                        int storageInventoryCount = Convert.ToInt32(inventoryCmd.ExecuteScalar());
+                        if (storageInventoryCount > 0)
+                        {
+                            throw new InvalidOperationException("无法删除该回收员：暂存点仍有库存，请先清空库存后再删除。");
+                        }
+                    }
+
                     string sql = "DELETE FROM Recyclers WHERE RecyclerID = @RecyclerID";
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@RecyclerID", recyclerId);
@@ -1591,9 +1622,9 @@ namespace recycling.DAL
                 }
                 stats["MonthlyOrderTrend"] = monthlyOrderTrend;
 
-                // === Inventory Statistics (从入库单数据获取) ===
-                var warehouseReceiptDAL = new WarehouseReceiptDAL();
-                var warehouseSummary = warehouseReceiptDAL.GetWarehouseSummary();
+                // === Inventory Statistics（当前仓库库存）===
+                var inventoryDAL = new InventoryDAL();
+                var warehouseSummary = inventoryDAL.GetInventorySummary(inventoryType: "Warehouse");
                 
                 var inventoryStats = new List<Dictionary<string, object>>();
                 foreach (var item in warehouseSummary)
@@ -2002,6 +2033,12 @@ namespace recycling.DAL
                 
                 try
                 {
+                    var transportationOrderDAL = new TransportationOrderDAL();
+                    if (transportationOrderDAL.HasActiveTransportOrdersForTransporter(transporterId))
+                    {
+                        throw new InvalidOperationException("无法删除该运输人员：当前仍有进行中的运输任务。");
+                    }
+
                     string sql = "DELETE FROM Transporters WHERE TransporterID = @TransporterID";
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@TransporterID", transporterId);
@@ -2488,6 +2525,12 @@ namespace recycling.DAL
                 
                 try
                 {
+                    var transportationOrderDAL = new TransportationOrderDAL();
+                    if (transportationOrderDAL.HasPendingTasksForWorker(workerId))
+                    {
+                        throw new InvalidOperationException("无法删除该基地人员：当前仍有进行中的工作任务。");
+                    }
+
                     string sql = "DELETE FROM SortingCenterWorkers WHERE WorkerID = @WorkerID";
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@WorkerID", workerId);
