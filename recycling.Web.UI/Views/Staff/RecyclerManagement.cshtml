@@ -456,14 +456,14 @@ function renderCategoryPieChart(categories) {
     var mergedMap = {};
     var mergedLabels = [];
     categories.forEach(function(c) {
-        var rawName = (c.CategoryName || '').toString().trim();
+        var rawName = (c.CategoryName || '').trim();
         if (!rawName) return;
 
         var categoryKey = rawName.toLowerCase();
         var displayName = categoryTranslations[categoryKey] || rawName;
         var weight = parseFloat(c.TotalWeight) || 0;
 
-        if (!mergedMap.hasOwnProperty(displayName)) {
+        if (!Object.prototype.hasOwnProperty.call(mergedMap, displayName)) {
             mergedMap[displayName] = 0;
             mergedLabels.push(displayName);
         }
