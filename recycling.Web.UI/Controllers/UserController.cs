@@ -238,13 +238,15 @@ namespace recycling.Web.UI.Controllers
                 // 2. 调用BLL层生成并发送验证码（真实发送到邮箱）
                 bool isSent = _userBLL.GenerateAndSendEmailCode(email);
 
-                // 3. 中性提示（不泄露邮箱是否注册）
-                string message = isSent
+                // 3. 测试环境仍获取验证码（便于调试）
+                string debugCode = _userBLL.GetVerificationCodeForTest(email);
+                bool hasDebugCode = !string.IsNullOrWhiteSpace(debugCode);
+
+                // 4. 中性提示（不泄露邮箱是否注册）：
+                // 若已成功发信或已生成测试验证码，都按“发送成功”提示，避免出现验证码已生成但提示失败
+                string message = (isSent || hasDebugCode)
                     ? "若该邮箱已注册，验证码已发送至您的邮箱"
                     : "发送失败，请稍后重试";
-
-                // 4. 测试环境仍返回验证码（便于调试）
-                string debugCode = _userBLL.GetVerificationCodeForTest(email);  // 需要在BLL层新增一个测试用方法
 
                 return Json(new
                 {
