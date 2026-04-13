@@ -2458,7 +2458,7 @@ namespace recycling.DAL
                 cmd.Parameters.AddWithValue("@PhoneNumber", worker.PhoneNumber);
                 cmd.Parameters.AddWithValue("@IDNumber", worker.IDNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SortingCenterID", worker.SortingCenterID);
-                cmd.Parameters.AddWithValue("@SortingCenterName", (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SortingCenterName", "深圳基地");
                 cmd.Parameters.AddWithValue("@Available", worker.Available);
                 cmd.Parameters.AddWithValue("@CurrentStatus", worker.CurrentStatus ?? "空闲");
                 cmd.Parameters.AddWithValue("@IsActive", worker.IsActive);
