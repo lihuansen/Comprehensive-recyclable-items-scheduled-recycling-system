@@ -96,7 +96,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 根据编号获取可回收物。
         public RecyclableItems GetById(int itemId)
         {
             if (itemId <= 0)
@@ -114,7 +114,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 新增可回收物。
         public (bool Success, string Message) Add(RecyclableItems item)
         {
             if (item == null)
@@ -175,7 +175,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 更新可回收物。
         public (bool Success, string Message) Update(RecyclableItems item)
         {
             if (item == null)
@@ -241,7 +241,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 删除可回收物。
         public (bool Success, string Message) Delete(int itemId)
         {
             if (itemId <= 0)
@@ -260,7 +260,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 彻底删除可回收物。
         public (bool Success, string Message) HardDelete(int itemId)
         {
             if (itemId <= 0)
@@ -279,7 +279,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 获取排序值。
         public int GetMaxSortOrder()
         {
             try
@@ -292,7 +292,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 规范化可回收物字段内容。
         private static void NormalizeItemFields(RecyclableItems item)
         {
             if (item == null)

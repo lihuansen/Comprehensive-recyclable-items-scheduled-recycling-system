@@ -6,7 +6,7 @@ using recycling.Model;
 namespace recycling.BLL
 {
     /// 基地工作人员通知业务逻辑层
-    /// 中文说明
+    /// 基地员工通知业务逻辑处理类。
     public class BaseStaffNotificationBLL
     {
         private readonly BaseStaffNotificationDAL _notificationDAL = new BaseStaffNotificationDAL();

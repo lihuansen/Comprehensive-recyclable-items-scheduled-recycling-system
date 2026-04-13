@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace recycling.Model
 {
     /// 入库单视图模型
-    /// 中文说明
+    /// 仓库入库单视图模型。
     public class WarehouseReceiptViewModel
     {
         /// 入库单ID
@@ -47,7 +47,7 @@ namespace recycling.Model
         public DateTime CreatedDate { get; set; }
 
         /// 运输单指定的基地工作人员ID
-        /// 中文说明
+        /// 表示已分配分拣员编号。
         public int? AssignedWorkerID { get; set; }
 
         /// 是否已完成细分
@@ -55,7 +55,7 @@ namespace recycling.Model
     }
 
     /// 运输中通知视图模型
-    /// 中文说明
+    /// 运输通知视图模型。
     public class TransportNotificationViewModel
     {
         /// 运输单ID
@@ -83,15 +83,15 @@ namespace recycling.Model
         public string Status { get; set; }
 
         /// 指定的基地工作人员ID
-        /// 中文说明
+        /// 表示已分配分拣员编号。
         public int? AssignedWorkerID { get; set; }
 
         /// 基地联系人
-        /// 中文说明
+        /// 表示基地联系人。
         public string BaseContactPerson { get; set; }
 
         /// 是否已创建入库单
-        /// 中文说明
+        /// 表示是否已生成入库单。
         public bool HasReceipt { get; set; }
     }
 

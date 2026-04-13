@@ -98,7 +98,7 @@ namespace recycling.Web.UI.Controllers
             };
         }
 
-        /// 中文说明
+        /// 对 CSV 字段进行转义，避免格式错乱。
         private string EscapeCsvField(string field)
         {
             if (string.IsNullOrEmpty(field))
@@ -465,7 +465,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 使用 SHA256 对密码进行哈希处理。
         private string HashPasswordSHA256(string password)
         {
             using (System.Security.Cryptography.SHA256 sha256Hash = System.Security.Cryptography.SHA256.Create())
@@ -1800,8 +1800,7 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// 中文说明
-        /// 中文说明
+        /// 获取暂存点汇总信息。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetStoragePointSummary()
@@ -1876,8 +1875,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
-        /// 中文说明
+        /// 获取暂存点明细。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetStoragePointDetail(string categoryKey = null)
@@ -2020,7 +2018,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 获取可用运输员列表。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetAvailableTransporters()
@@ -3208,7 +3206,7 @@ namespace recycling.Web.UI.Controllers
 
         #region 管理员首页管理
 
-        /// 中文说明
+        /// 返回首页管理页。
         [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult HomepageManagement()
         {
@@ -3228,7 +3226,7 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// 中文说明
+        /// 返回首页轮播图管理页。
         [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult HomepageCarouselManagement()
         {
@@ -3248,7 +3246,7 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// 中文说明
+        /// 获取轮播图列表。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetCarouselList(int page = 1, int pageSize = 20)
@@ -3267,7 +3265,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 获取轮播图信息。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetCarousel(int id)
@@ -3289,7 +3287,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 新增轮播图。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult AddCarousel(HomepageCarousel carousel, HttpPostedFileBase MediaFile)
@@ -3368,7 +3366,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 更新轮播图。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult UpdateCarousel(HomepageCarousel carousel, HttpPostedFileBase MediaFile)
@@ -3474,7 +3472,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 删除轮播图。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult DeleteCarousel(int id)
@@ -3511,7 +3509,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 获取轮播图最大排序值。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetMaxCarouselOrder()
@@ -3530,7 +3528,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 返回可回收物管理页。
         [AdminPermission(AdminPermissions.HomepageManagement)]
         public ActionResult RecyclableItemsManagement()
         {
@@ -3550,7 +3548,7 @@ namespace recycling.Web.UI.Controllers
             return View();
         }
 
-        /// 中文说明
+        /// 获取可回收物列表。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetRecyclableItemsList(int page = 1, int pageSize = 20)
@@ -3574,7 +3572,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 获取可回收物信息。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetRecyclableItem(int id)
@@ -3596,7 +3594,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 新增可回收物。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult AddRecyclableItem(RecyclableItemInputModel input)
@@ -3640,7 +3638,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 更新可回收物。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult UpdateRecyclableItem(RecyclableItemInputModel input)
@@ -3684,7 +3682,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 删除可回收物。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult DeleteRecyclableItem(int id)
@@ -3715,7 +3713,7 @@ namespace recycling.Web.UI.Controllers
             }
         }
 
-        /// 中文说明
+        /// 获取可回收物最大排序值。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetMaxRecyclableItemOrder()
@@ -5091,7 +5089,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// 处理入库单入库（AJAX）
-        /// 中文说明
+        /// 处理入库单流程。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult ProcessWarehouseReceipt(int receiptId)
@@ -5222,7 +5220,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// 获取基地仓库库存汇总信息（AJAX）
-        /// 中文说明
+        /// 获取基地仓库库存汇总。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetBaseWarehouseInventorySummary()
@@ -5255,7 +5253,7 @@ namespace recycling.Web.UI.Controllers
         }
 
         /// 获取仓库库存明细 - 基地工作人员端（AJAX）
-        /// 中文说明
+        /// 获取基地仓库库存明细。
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ContentResult GetBaseWarehouseInventoryDetail(int page = 1, int pageSize = 8, string categoryKey = null)

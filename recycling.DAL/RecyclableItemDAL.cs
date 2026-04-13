@@ -363,7 +363,7 @@ namespace recycling.DAL
             return items;
         }
 
-        /// 中文说明
+        /// 根据编号获取可回收物。
         public RecyclableItems GetById(int itemId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -394,7 +394,7 @@ namespace recycling.DAL
             return null;
         }
 
-        /// 中文说明
+        /// 新增可回收物。
         public bool Add(RecyclableItems item)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -454,7 +454,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 更新可回收物。
         public bool Update(RecyclableItems item)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -556,7 +556,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查名称与分类组合是否已存在。
         public bool ExistsByNameAndCategory(string name, string category, int? excludeItemId = null)
         {
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(category))
@@ -591,7 +591,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 删除可回收物。
         public bool Delete(int itemId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -605,7 +605,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 彻底删除可回收物。
         public bool HardDelete(int itemId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -619,7 +619,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 获取排序值。
         public int GetMaxSortOrder()
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))

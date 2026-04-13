@@ -11,7 +11,7 @@ namespace recycling.DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["RecyclingDB"].ConnectionString;
 
-        /// 中文说明
+        /// 获取所有启用的轮播图。
         public List<HomepageCarousel> GetAllActive()
         {
             var items = new List<HomepageCarousel>();
@@ -36,7 +36,7 @@ namespace recycling.DAL
             return items;
         }
 
-        /// 中文说明
+        /// 分页获取轮播图列表。
         public PagedResult<HomepageCarousel> GetPaged(int page = 1, int pageSize = 20)
         {
             var result = new PagedResult<HomepageCarousel>
@@ -76,7 +76,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 根据编号获取轮播图。
         public HomepageCarousel GetById(int carouselId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -99,7 +99,7 @@ namespace recycling.DAL
             return null;
         }
 
-        /// 中文说明
+        /// 新增轮播图。
         public bool Add(HomepageCarousel carousel)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -124,7 +124,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 更新轮播图。
         public bool Update(HomepageCarousel carousel)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -207,7 +207,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 删除轮播图。
         public bool Delete(int carouselId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -222,7 +222,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 彻底删除轮播图。
         public bool HardDelete(int carouselId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -236,7 +236,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 获取显示顺序。
         public int GetMaxDisplayOrder()
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -250,7 +250,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 将数据读取结果映射为轮播图实体。
         private HomepageCarousel MapCarouselFromReader(SqlDataReader reader)
         {
             return new HomepageCarousel

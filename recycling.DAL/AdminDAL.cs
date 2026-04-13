@@ -14,7 +14,7 @@ namespace recycling.DAL
 
         #region 用户管理
 
-        /// 中文说明
+        /// 获取用户列表。
         public PagedResult<Users> GetAllUsers(int page = 1, int pageSize = 20, string searchTerm = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Users>
@@ -79,7 +79,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 获取用户统计数据。
         public Dictionary<string, object> GetUserStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -104,7 +104,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取用户仪表盘统计数据。
         public Dictionary<string, object> GetUserDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -258,7 +258,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取用户列表导出数据。
         public List<Users> GetAllUsersForExport(string searchTerm = null)
         {
             var users = new List<Users>();
@@ -310,7 +310,7 @@ namespace recycling.DAL
 
         #region 回收员管理
 
-        /// 中文说明
+        /// 获取回收员列表及详细信息。
         public PagedResult<RecyclerListViewModel> GetAllRecyclersWithDetails(int page = 1, int pageSize = 8, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<RecyclerListViewModel>
@@ -402,7 +402,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 获取回收员列表。
         public PagedResult<Recyclers> GetAllRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
             var result = new PagedResult<Recyclers>
@@ -465,7 +465,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 根据编号获取回收员。
         public Recyclers GetRecyclerById(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -486,7 +486,7 @@ namespace recycling.DAL
             return null;
         }
 
-        /// 中文说明
+        /// 新增回收员。
         public bool AddRecycler(Recyclers recycler)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -508,7 +508,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查回收员用户名是否已存在。
         public bool IsRecyclerUsernameExists(string username, int? excludeRecyclerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -531,7 +531,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查回收员手机号是否已存在。
         public bool IsRecyclerPhoneNumberExists(string phoneNumber, int? excludeRecyclerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -554,7 +554,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 更新回收员。
         public bool UpdateRecycler(Recyclers recycler)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -584,10 +584,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
-        /// 中文说明
-        /// 中文说明
-        /// 中文说明
+        /// 删除回收员。
         public bool DeleteRecycler(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -614,7 +611,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 获取回收员已完成订单数量。
         public int GetRecyclerCompletedOrdersCount(int recyclerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -629,7 +626,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 获取回收员统计数据。
         public Dictionary<string, object> GetRecyclerStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -674,7 +671,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取回收员仪表盘统计数据。
         public Dictionary<string, object> GetRecyclerDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -829,7 +826,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取回收员列表导出数据。
         public List<Recyclers> GetAllRecyclersForExport(string searchTerm = null, bool? isActive = null)
         {
             var recyclers = new List<Recyclers>();
@@ -892,7 +889,7 @@ namespace recycling.DAL
 
         #region 订单管理
 
-        /// 中文说明
+        /// 获取订单列表。
         public PagedResult<Dictionary<string, object>> GetAllOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
         {
             var result = new PagedResult<Dictionary<string, object>>
@@ -1004,7 +1001,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 获取订单统计数据。
         public Dictionary<string, object> GetOrderStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -1060,7 +1057,7 @@ namespace recycling.DAL
 
         #region 管理员管理
 
-        /// 中文说明
+        /// 获取管理员列表。
         public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Admins>
@@ -1125,7 +1122,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 根据编号获取管理员。
         public Admins GetAdminById(int adminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1146,7 +1143,7 @@ namespace recycling.DAL
             return null;
         }
 
-        /// 中文说明
+        /// 新增管理员。
         public bool AddAdmin(Admins admin)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1166,7 +1163,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查管理员用户名是否已存在。
         public bool IsAdminUsernameExists(string username, int? excludeAdminId = null)
         {
             if (string.IsNullOrWhiteSpace(username))
@@ -1196,7 +1193,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 更新管理员。
         public bool UpdateAdmin(Admins admin)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1220,7 +1217,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 删除管理员。
         public bool DeleteAdmin(int adminId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1247,7 +1244,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 获取管理员统计数据。
         public Dictionary<string, object> GetAdminStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -1271,7 +1268,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取管理员列表导出数据。
         public List<Admins> GetAllAdminsForExport(string searchTerm = null, bool? isActive = null)
         {
             var admins = new List<Admins>();
@@ -1332,7 +1329,7 @@ namespace recycling.DAL
 
         #region 仪表盘统计
 
-        /// 中文说明
+        /// 获取仪表盘统计数据。
         public Dictionary<string, object> GetDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -1772,7 +1769,7 @@ namespace recycling.DAL
 
         #region 运输员管理
 
-        /// 中文说明
+        /// 获取运输员列表。
         public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<Transporters>
@@ -1837,7 +1834,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 根据编号获取运输员。
         public Transporters GetTransporterById(int transporterId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1858,7 +1855,7 @@ namespace recycling.DAL
             return null;
         }
 
-        /// 中文说明
+        /// 新增运输员。
         public bool AddTransporter(Transporters transporter)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1882,7 +1879,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查运输员用户名是否已存在。
         public bool IsTransporterUsernameExists(string username, int? excludeTransporterId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1905,7 +1902,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查运输员手机号是否已存在。
         public bool IsTransporterPhoneNumberExists(string phoneNumber, int? excludeTransporterId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1928,7 +1925,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查运输员身份证号是否已存在。
         public bool IsTransporterIDNumberExists(string idNumber, int? excludeTransporterId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1951,7 +1948,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 更新运输员。
         public bool UpdateTransporter(Transporters transporter)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -1985,7 +1982,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 删除运输员。
         public bool DeleteTransporter(int transporterId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2012,7 +2009,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 获取运输员统计数据。
         public Dictionary<string, object> GetTransporterStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -2034,7 +2031,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取运输员仪表盘统计数据。
         public Dictionary<string, object> GetTransporterDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -2207,7 +2204,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取运输员列表导出数据。
         public List<Transporters> GetAllTransportersForExport(string searchTerm = null, bool? isActive = null)
         {
             var transporters = new List<Transporters>();
@@ -2258,7 +2255,7 @@ namespace recycling.DAL
 
         #region 分拣中心工作人员管理
 
-        /// 中文说明
+        /// 获取分拣中心工作人员列表。
         public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             var result = new PagedResult<SortingCenterWorkers>
@@ -2323,7 +2320,7 @@ namespace recycling.DAL
             return result;
         }
 
-        /// 中文说明
+        /// 根据编号获取分拣中心工作人员。
         public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2344,7 +2341,7 @@ namespace recycling.DAL
             return null;
         }
 
-        /// 中文说明
+        /// 新增分拣中心工作人员。
         public bool AddSortingCenterWorker(SortingCenterWorkers worker)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2372,7 +2369,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查分拣中心工作人员用户名是否已存在。
         public bool IsSortingCenterWorkerUsernameExists(string username, int? excludeWorkerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2393,7 +2390,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查分拣中心工作人员手机号是否已存在。
         public bool IsSortingCenterWorkerPhoneNumberExists(string phoneNumber, int? excludeWorkerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2414,7 +2411,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 检查分拣中心工作人员身份证号是否已存在。
         public bool IsSortingCenterWorkerIDNumberExists(string idNumber, int? excludeWorkerId = null)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2435,7 +2432,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 更新分拣中心工作人员。
         public bool UpdateSortingCenterWorker(SortingCenterWorkers worker)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2471,7 +2468,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 删除分拣中心工作人员。
         public bool DeleteSortingCenterWorker(int workerId)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -2498,7 +2495,7 @@ namespace recycling.DAL
             }
         }
 
-        /// 中文说明
+        /// 获取分拣中心工作人员统计数据。
         public Dictionary<string, object> GetSortingCenterWorkerStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -2520,7 +2517,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取分拣中心工作人员仪表盘统计数据。
         public Dictionary<string, object> GetSortingCenterWorkerDashboardStatistics()
         {
             var stats = new Dictionary<string, object>();
@@ -2684,7 +2681,7 @@ namespace recycling.DAL
             return stats;
         }
 
-        /// 中文说明
+        /// 获取分拣中心工作人员列表导出数据。
         public List<SortingCenterWorkers> GetAllSortingCenterWorkersForExport(string searchTerm = null, bool? isActive = null)
         {
             var workers = new List<SortingCenterWorkers>();

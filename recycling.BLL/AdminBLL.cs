@@ -25,7 +25,7 @@ namespace recycling.BLL
 
         #region 用户管理
 
-        /// 中文说明
+        /// 获取用户列表。
         public PagedResult<Users> GetAllUsers(int page = 1, int pageSize = 20, string searchTerm = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
@@ -35,19 +35,19 @@ namespace recycling.BLL
             return _adminDAL.GetAllUsers(page, pageSize, searchTerm, sortOrder);
         }
 
-        /// 中文说明
+        /// 获取用户统计数据。
         public Dictionary<string, object> GetUserStatistics()
         {
             return _adminDAL.GetUserStatistics();
         }
 
-        /// 中文说明
+        /// 获取用户仪表盘统计数据。
         public Dictionary<string, object> GetUserDashboardStatistics()
         {
             return _adminDAL.GetUserDashboardStatistics();
         }
 
-        /// 中文说明
+        /// 获取用户列表导出数据。
         public List<Users> GetAllUsersForExport(string searchTerm = null)
         {
             return _adminDAL.GetAllUsersForExport(searchTerm);
@@ -57,7 +57,7 @@ namespace recycling.BLL
 
         #region 回收员管理
 
-        /// 中文说明
+        /// 获取回收员列表及详细信息。
         public PagedResult<RecyclerListViewModel> GetAllRecyclersWithDetails(int page = 1, int pageSize = 8, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
@@ -66,7 +66,7 @@ namespace recycling.BLL
             return _adminDAL.GetAllRecyclersWithDetails(page, pageSize, searchTerm, isActive, sortOrder);
         }
 
-        /// 中文说明
+        /// 获取回收员列表。
         public PagedResult<Recyclers> GetAllRecyclers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null)
         {
             if (page < 1) page = 1;
@@ -75,7 +75,7 @@ namespace recycling.BLL
             return _adminDAL.GetAllRecyclers(page, pageSize, searchTerm, isActive);
         }
 
-        /// 中文说明
+        /// 根据编号获取回收员。
         public Recyclers GetRecyclerById(int recyclerId)
         {
             if (recyclerId <= 0)
@@ -86,7 +86,7 @@ namespace recycling.BLL
             return _adminDAL.GetRecyclerById(recyclerId);
         }
 
-        /// 中文说明
+        /// 新增回收员。
         public (bool Success, string Message) AddRecycler(Recyclers recycler, string password)
         {
             if (recycler == null)
@@ -143,7 +143,7 @@ namespace recycling.BLL
             return result ? (true, "添加回收员成功") : (false, "添加回收员失败");
         }
 
-        /// 中文说明
+        /// 更新回收员。
         public (bool Success, string Message) UpdateRecycler(Recyclers recycler, string password)
         {
             if (recycler == null)
@@ -204,7 +204,7 @@ namespace recycling.BLL
             return result ? (true, "更新回收员信息成功") : (false, "更新回收员信息失败");
         }
 
-        /// 中文说明
+        /// 删除回收员。
         public (bool Success, string Message) DeleteRecycler(int recyclerId)
         {
             if (recyclerId <= 0)
@@ -227,7 +227,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 获取回收员已完成订单数量。
         public int GetRecyclerCompletedOrdersCount(int recyclerId)
         {
             if (recyclerId <= 0)
@@ -238,19 +238,19 @@ namespace recycling.BLL
             return _adminDAL.GetRecyclerCompletedOrdersCount(recyclerId);
         }
 
-        /// 中文说明
+        /// 获取回收员统计数据。
         public Dictionary<string, object> GetRecyclerStatistics()
         {
             return _adminDAL.GetRecyclerStatistics();
         }
 
-        /// 中文说明
+        /// 获取回收员仪表盘统计数据。
         public Dictionary<string, object> GetRecyclerDashboardStatistics()
         {
             return _adminDAL.GetRecyclerDashboardStatistics();
         }
 
-        /// 中文说明
+        /// 获取回收员列表导出数据。
         public List<Recyclers> GetAllRecyclersForExport(string searchTerm = null, bool? isActive = null)
         {
             return _adminDAL.GetAllRecyclersForExport(searchTerm, isActive);
@@ -260,7 +260,7 @@ namespace recycling.BLL
 
         #region 订单管理
 
-        /// 中文说明
+        /// 获取订单列表。
         public PagedResult<Dictionary<string, object>> GetAllOrders(int page = 1, int pageSize = 20, string status = null, string searchTerm = null)
         {
             if (page < 1) page = 1;
@@ -269,7 +269,7 @@ namespace recycling.BLL
             return _adminDAL.GetAllOrders(page, pageSize, status, searchTerm);
         }
 
-        /// 中文说明
+        /// 获取订单统计数据。
         public Dictionary<string, object> GetOrderStatistics()
         {
             return _adminDAL.GetOrderStatistics();
@@ -279,7 +279,7 @@ namespace recycling.BLL
 
         #region 管理员管理
 
-        /// 中文说明
+        /// 获取管理员列表。
         public PagedResult<Admins> GetAllAdmins(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
@@ -288,7 +288,7 @@ namespace recycling.BLL
             return _adminDAL.GetAllAdmins(page, pageSize, searchTerm, isActive, sortOrder);
         }
 
-        /// 中文说明
+        /// 根据编号获取管理员。
         public Admins GetAdminById(int adminId)
         {
             if (adminId <= 0)
@@ -299,7 +299,7 @@ namespace recycling.BLL
             return _adminDAL.GetAdminById(adminId);
         }
 
-        /// 中文说明
+        /// 新增管理员。
         public (bool Success, string Message) AddAdmin(Admins admin, string password)
         {
             if (admin == null)
@@ -339,7 +339,7 @@ namespace recycling.BLL
             return result ? (true, "添加管理员成功") : (false, "添加管理员失败");
         }
 
-        /// 中文说明
+        /// 更新管理员。
         public (bool Success, string Message) UpdateAdmin(Admins admin)
         {
             if (admin == null)
@@ -375,7 +375,7 @@ namespace recycling.BLL
             return result ? (true, "更新管理员信息成功") : (false, "更新管理员信息失败");
         }
 
-        /// 中文说明
+        /// 删除管理员。
         public (bool Success, string Message) DeleteAdmin(int adminId)
         {
             if (adminId <= 0)
@@ -398,13 +398,13 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 获取管理员统计数据。
         public Dictionary<string, object> GetAdminStatistics()
         {
             return _adminDAL.GetAdminStatistics();
         }
 
-        /// 中文说明
+        /// 获取管理员列表导出数据。
         public List<Admins> GetAllAdminsForExport(string searchTerm = null, bool? isActive = null)
         {
             return _adminDAL.GetAllAdminsForExport(searchTerm, isActive);
@@ -414,7 +414,7 @@ namespace recycling.BLL
 
         #region 仪表盘统计
 
-        /// 中文说明
+        /// 获取仪表盘统计数据。
         public Dictionary<string, object> GetDashboardStatistics()
         {
             return _adminDAL.GetDashboardStatistics();
@@ -424,7 +424,7 @@ namespace recycling.BLL
 
         #region 运输员管理
 
-        /// 中文说明
+        /// 获取运输员列表。
         public PagedResult<Transporters> GetAllTransporters(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
@@ -433,7 +433,7 @@ namespace recycling.BLL
             return _adminDAL.GetAllTransporters(page, pageSize, searchTerm, isActive, sortOrder);
         }
 
-        /// 中文说明
+        /// 根据编号获取运输员。
         public Transporters GetTransporterById(int transporterId)
         {
             if (transporterId <= 0)
@@ -444,7 +444,7 @@ namespace recycling.BLL
             return _adminDAL.GetTransporterById(transporterId);
         }
 
-        /// 中文说明
+        /// 新增运输员。
         public (bool Success, string Message) AddTransporter(Transporters transporter, string password)
         {
             if (transporter == null)
@@ -512,7 +512,7 @@ namespace recycling.BLL
             return result ? (true, "添加运输人员成功") : (false, "添加运输人员失败");
         }
 
-        /// 中文说明
+        /// 更新运输员。
         public (bool Success, string Message) UpdateTransporter(Transporters transporter, string password)
         {
             if (transporter == null)
@@ -584,7 +584,7 @@ namespace recycling.BLL
             return result ? (true, "更新运输人员信息成功") : (false, "更新运输人员信息失败");
         }
 
-        /// 中文说明
+        /// 删除运输员。
         public (bool Success, string Message) DeleteTransporter(int transporterId)
         {
             if (transporterId <= 0)
@@ -607,19 +607,19 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 获取运输员统计数据。
         public Dictionary<string, object> GetTransporterStatistics()
         {
             return _adminDAL.GetTransporterStatistics();
         }
 
-        /// 中文说明
+        /// 获取运输员仪表盘统计数据。
         public Dictionary<string, object> GetTransporterDashboardStatistics()
         {
             return _adminDAL.GetTransporterDashboardStatistics();
         }
 
-        /// 中文说明
+        /// 获取运输员列表导出数据。
         public List<Transporters> GetAllTransportersForExport(string searchTerm = null, bool? isActive = null)
         {
             return _adminDAL.GetAllTransportersForExport(searchTerm, isActive);
@@ -629,7 +629,7 @@ namespace recycling.BLL
 
         #region 分拣中心工作人员管理
 
-        /// 中文说明
+        /// 获取分拣中心工作人员列表。
         public PagedResult<SortingCenterWorkers> GetAllSortingCenterWorkers(int page = 1, int pageSize = 20, string searchTerm = null, bool? isActive = null, string sortOrder = "ASC")
         {
             if (page < 1) page = 1;
@@ -638,7 +638,7 @@ namespace recycling.BLL
             return _adminDAL.GetAllSortingCenterWorkers(page, pageSize, searchTerm, isActive, sortOrder);
         }
 
-        /// 中文说明
+        /// 根据编号获取分拣中心工作人员。
         public SortingCenterWorkers GetSortingCenterWorkerById(int workerId)
         {
             if (workerId <= 0)
@@ -649,7 +649,7 @@ namespace recycling.BLL
             return _adminDAL.GetSortingCenterWorkerById(workerId);
         }
 
-        /// 中文说明
+        /// 新增分拣中心工作人员。
         public (bool Success, string Message) AddSortingCenterWorker(SortingCenterWorkers worker, string password)
         {
             if (worker == null)
@@ -679,7 +679,7 @@ namespace recycling.BLL
             return result ? (true, "添加基地人员成功") : (false, "添加基地人员失败");
         }
 
-        /// 中文说明
+        /// 更新分拣中心工作人员。
         public (bool Success, string Message) UpdateSortingCenterWorker(SortingCenterWorkers worker, string password)
         {
             if (worker == null)
@@ -713,7 +713,7 @@ namespace recycling.BLL
             return result ? (true, "更新基地人员信息成功") : (false, "更新基地人员信息失败");
         }
 
-        /// 中文说明
+        /// 删除分拣中心工作人员。
         public (bool Success, string Message) DeleteSortingCenterWorker(int workerId)
         {
             if (workerId <= 0)
@@ -736,19 +736,19 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 获取分拣中心工作人员统计数据。
         public Dictionary<string, object> GetSortingCenterWorkerStatistics()
         {
             return _adminDAL.GetSortingCenterWorkerStatistics();
         }
 
-        /// 中文说明
+        /// 获取分拣中心工作人员仪表盘统计数据。
         public Dictionary<string, object> GetSortingCenterWorkerDashboardStatistics()
         {
             return _adminDAL.GetSortingCenterWorkerDashboardStatistics();
         }
 
-        /// 中文说明
+        /// 获取分拣中心工作人员列表导出数据。
         public List<SortingCenterWorkers> GetAllSortingCenterWorkersForExport(string searchTerm = null, bool? isActive = null)
         {
             return _adminDAL.GetAllSortingCenterWorkersForExport(searchTerm, isActive);
@@ -758,7 +758,7 @@ namespace recycling.BLL
 
         #region 辅助方法
 
-        /// 中文说明
+        /// 对密码进行 SHA256 哈希处理。
         private string HashPassword(string password)
         {
             using (SHA256 sha256Hash = SHA256.Create())
@@ -773,7 +773,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 校验中国居民身份证号是否合法。
         private bool IsValidChinaIdNumber(string idNumber)
         {
             if (string.IsNullOrEmpty(idNumber))

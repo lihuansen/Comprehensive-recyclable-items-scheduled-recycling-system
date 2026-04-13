@@ -12,7 +12,7 @@ namespace recycling.BLL
     {
         private readonly HomepageCarouselDAL _carouselDAL = new HomepageCarouselDAL();
 
-        /// 中文说明
+        /// 获取所有启用的轮播图。
         public List<HomepageCarousel> GetAllActive()
         {
             try
@@ -25,7 +25,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 分页获取轮播图列表。
         public PagedResult<HomepageCarousel> GetPaged(int page = 1, int pageSize = 20)
         {
             if (page < 1) page = 1;
@@ -41,7 +41,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 根据编号获取轮播图。
         public HomepageCarousel GetById(int carouselId)
         {
             if (carouselId <= 0)
@@ -59,7 +59,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 新增轮播图。
         public (bool Success, string Message) Add(HomepageCarousel carousel, int adminId)
         {
             if (string.IsNullOrEmpty(carousel.MediaType))
@@ -98,7 +98,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 更新轮播图。
         public (bool Success, string Message) Update(HomepageCarousel carousel)
         {
             if (carousel.CarouselID <= 0)
@@ -139,7 +139,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 删除轮播图。
         public (bool Success, string Message) Delete(int carouselId)
         {
             if (carouselId <= 0)
@@ -158,7 +158,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 彻底删除轮播图。
         public (bool Success, string Message) HardDelete(int carouselId)
         {
             if (carouselId <= 0)
@@ -177,7 +177,7 @@ namespace recycling.BLL
             }
         }
 
-        /// 中文说明
+        /// 获取显示顺序。
         public int GetMaxDisplayOrder()
         {
             try
